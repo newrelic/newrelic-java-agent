@@ -1,0 +1,19 @@
+name: Check Copyright Headers
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-copyright-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        with:
+          fetch-depth: 2
+
+      - name: Check newly added source code contains copyright headers
+        run: |
+          ADDED_FILES=$(git diff --name-only --diff-filter=A HEAD^1 HEAD | xargs)
+          ./automation/pull-request/validate-copyright-headers.sh $ADDED_FILES

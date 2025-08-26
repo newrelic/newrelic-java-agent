@@ -23,7 +23,7 @@ for file in $CHANGED_FILES; do
 done
 echo "~~~~~~~~~~ RESULTS ~~~~~~~~~~"
 if [[ -n "$FAILURES" ]]; then
-    echo "Build file checks failed at the following locations:"
+    echo "Optional build file checks failed at the following locations. Please review for accuracy: "
     echo -e "$FAILURES"
     exit 1
 else

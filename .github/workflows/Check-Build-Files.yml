@@ -1,0 +1,17 @@
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-build-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        with:
+          fetch-depth: 2
+
+      - name: Check changed files pass optional build file validations
+        run: |
+          CHANGED_FILES=$(git diff --name-only -r HEAD^1 HEAD | xargs)
+          ./automation/pull-request/validate-build-files.sh $CHANGED_FILES
