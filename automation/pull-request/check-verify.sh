@@ -16,6 +16,6 @@ if [ -z "$block" ]; then
 fi
 
 if !(echo "$block" | grep -q 'passesOnly') ; then
-  echo "  Warning: passesOnly not found inside verifyInstrumentation block. Review for accuracy."
+  echo "  Warning: 'passesOnly' not found inside verifyInstrumentation block. When possible, prefer 'passesOnly' over 'passes'."
   exit 1
 fi
