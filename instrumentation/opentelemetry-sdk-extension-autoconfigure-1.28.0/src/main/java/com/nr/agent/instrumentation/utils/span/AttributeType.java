@@ -7,5 +7,5 @@
 package com.nr.agent.instrumentation.utils.span;
 
 public enum AttributeType {
-    Port, Host, StatusCode, Method, Route, Component
+    Port, Host, StatusCode, Method, Route, Component, Queue, RoutingKey, Product, DBName
 }
