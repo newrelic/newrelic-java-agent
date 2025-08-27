@@ -13,11 +13,6 @@ dependencies {
 
 }
 
-// This long list of "passes" versions is designed to only verify the last revision
-// for each minor version. This was required since some minor versions had hundreds
-// of revisions which was causing the verification task to take hours.
-// The only uncapped verification is the most recent minor version. This may need
-// to be revisited as AWS release more minor versions.
 verifyInstrumentation {
     /*
         This is the original verifier range prior to this update.
