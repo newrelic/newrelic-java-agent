@@ -24,8 +24,67 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'software.amazon.awssdk:dynamodb:[2.1.0,)'
-    exclude 'software.amazon.awssdk:dynamodb:2.17.200' // this version failed the test, but the next one works again.
+    /*
+        This is the original verifier range prior to this update.
+        Previously it was simply "passes"; this changes it to
+        the standard "passOnly" method.
+     */
+    passesOnly 'software.amazon.awssdk:dynamodb:[2.1.0,)'
+
+    /*
+        Now, exclude the ranges we know have passed verification
+        previously. The ranges ensure we will run verification if
+        a new revision of a previous minor version is released.
+
+        For the last known minor version, we leave the verify
+        range open ended to catch any new versions released
+        (including any new major/minor versions). The verify
+        ranges will probably need to be manually inspected
+        every so often to keep the task runtime in check.
+
+        This dramatically reduces the runtime of the verification
+        task. For this module, there were over 1500 artifacts that
+        were being downloaded for each verification - AWS seems to
+        enjoy releasing new revisions of SDK artifacts every few days.
+
+        This pattern can be applied to any module that suffers from
+        large numbers of artifacts (looking at anything AWS related).
+     */
+    excludeRegex ".*preview.*"
+    exclude('software.amazon.awssdk:dynamodb:[2.1.0,2.1.4]')
+    exclude('software.amazon.awssdk:dynamodb:2.2.0')
+    exclude('software.amazon.awssdk:dynamodb:[2.3.0,2.3.9]')
+    exclude('software.amazon.awssdk:dynamodb:[2.4.0,2.4.17]')
+    exclude('software.amazon.awssdk:dynamodb:[2.5.0,2.5.71]')
+    exclude('software.amazon.awssdk:dynamodb:[2.6.0,2.6.5]')
+    exclude('software.amazon.awssdk:dynamodb:[2.7.0,2.7.36]')
+    exclude('software.amazon.awssdk:dynamodb:[2.8.0,2.8.7]')
+    exclude('software.amazon.awssdk:dynamodb:[2.9.0,2.9.26]')
+    exclude('software.amazon.awssdk:dynamodb:[2.10.0,2.10.91]')
+    exclude('software.amazon.awssdk:dynamodb:[2.11.0,2.11.14]')
+    exclude('software.amazon.awssdk:dynamodb:2.12.0')
+    exclude('software.amazon.awssdk:dynamodb:[2.13.0,2.13.76]')
+    exclude('software.amazon.awssdk:dynamodb:[2.14.0,2.14.28]')
+    exclude('software.amazon.awssdk:dynamodb:[2.15.0,2.15.82]')
+    exclude('software.amazon.awssdk:dynamodb:[2.16.0,2.16.104]')
+    exclude('software.amazon.awssdk:dynamodb:[2.17.0,2.17.295]')
+    exclude('software.amazon.awssdk:dynamodb:[2.18.0,2.18.41]')
+    exclude('software.amazon.awssdk:dynamodb:[2.19.0,2.19.33]')
+    exclude('software.amazon.awssdk:dynamodb:[2.20.0,2.20.162]')
+    exclude('software.amazon.awssdk:dynamodb:[2.21.0,2.21.46]')
+    exclude('software.amazon.awssdk:dynamodb:[2.22.0,2.22.13]')
+    exclude('software.amazon.awssdk:dynamodb:[2.23.0,2.23.21]')
+    exclude('software.amazon.awssdk:dynamodb:[2.24.0,2.24.13]')
+    exclude('software.amazon.awssdk:dynamodb:[2.25.0,2.25.70]')
+    exclude('software.amazon.awssdk:dynamodb:[2.26.0,2.26.31]')
+    exclude('software.amazon.awssdk:dynamodb:[2.27.0,2.27.24]')
+    exclude('software.amazon.awssdk:dynamodb:[2.28.0,2.28.29]')
+    exclude('software.amazon.awssdk:dynamodb:[2.29.0,2.29.52]')
+    exclude('software.amazon.awssdk:dynamodb:[2.30.0,2.30.38]')
+    exclude('software.amazon.awssdk:dynamodb:[2.31.0,2.31.78]')
+
+    // The next excludes will be 2.32.x -- Leaving this out so the verifier actually
+    // has something to run against.
 }
 
 task copyNativeDeps(type: Copy) {
