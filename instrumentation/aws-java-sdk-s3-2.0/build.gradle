@@ -19,38 +19,67 @@ dependencies {
 // The only uncapped verification is the most recent minor version. This may need
 // to be revisited as AWS release more minor versions.
 verifyInstrumentation {
-    passes 'software.amazon.awssdk:s3:2.1.4'
-    passes 'software.amazon.awssdk:s3:2.2.0'
-    passes 'software.amazon.awssdk:s3:2.3.9'
-    passes 'software.amazon.awssdk:s3:2.4.17'
-    passes 'software.amazon.awssdk:s3:2.5.71'
-    passes 'software.amazon.awssdk:s3:2.6.5'
-    passes 'software.amazon.awssdk:s3:2.7.36'
-    passes 'software.amazon.awssdk:s3:2.8.6'
-    passes 'software.amazon.awssdk:s3:2.9.26'
-    passes 'software.amazon.awssdk:s3:2.10.91'
-    passes 'software.amazon.awssdk:s3:2.11.14'
-    passes 'software.amazon.awssdk:s3:2.12.0'
-    passes 'software.amazon.awssdk:s3:2.13.76'
-    passes 'software.amazon.awssdk:s3:2.14.28'
-    passes 'software.amazon.awssdk:s3:2.15.82'
-    passes 'software.amazon.awssdk:s3:2.16.104'
-    passes 'software.amazon.awssdk:s3:2.17.295'
-    passes 'software.amazon.awssdk:s3:2.18.41'
-    passes 'software.amazon.awssdk:s3:2.19.31'
-    passes 'software.amazon.awssdk:s3:2.20.162'
-    passes 'software.amazon.awssdk:s3:2.21.46'
-    passes 'software.amazon.awssdk:s3:2.22.13'
-    passes 'software.amazon.awssdk:s3:2.23.21'
-    passes 'software.amazon.awssdk:s3:2.24.13'
-    passes 'software.amazon.awssdk:s3:2.25.70'
-    passes 'software.amazon.awssdk:s3:2.26.31'
-    passes 'software.amazon.awssdk:s3:2.27.24'
-    passes 'software.amazon.awssdk:s3:2.28.29'
-    passes 'software.amazon.awssdk:s3:2.29.52'
-    passes 'software.amazon.awssdk:s3:2.30.38'
-    passes 'software.amazon.awssdk:s3:[2.31.0,)'
+    /*
+        This is the original verifier range prior to this update.
+        Previously it was simply "passes"; this changes it to
+        the standard "passOnly" method.
+     */
+    passesOnly 'software.amazon.awssdk:s3:[2.1.0,)'
+
+    /*
+        Now, exclude the ranges we know have passed verification
+        previously. The ranges ensure we will run verification if
+        a new revision of a previous minor version is released.
+
+        For the last known minor version, we leave the verify
+        range open ended to catch any new versions released
+        (including any new major/minor versions). The verify
+        ranges will probably need to be manually inspected
+        every so often to keep the task runtime in check.
+
+        This dramatically reduces the runtime of the verification
+        task. For this module, there were over 1500 artifacts that
+        were being downloaded for each verification - AWS seems to
+        enjoy releasing new revisions of SDK artifacts every few days.
+
+        This pattern can be applied to any module that suffers from
+        large numbers of artifacts (looking at anything AWS related).
+     */
     excludeRegex ".*preview.*"
+    exclude  'software.amazon.awssdk:s3:[2.1.0,2.1.4]'
+    exclude  'software.amazon.awssdk:s3:2.2.0'
+    exclude  'software.amazon.awssdk:s3:[2.3.0,2.3.9]'
+    exclude  'software.amazon.awssdk:s3:[2.4.0,2.4.17]'
+    exclude  'software.amazon.awssdk:s3:[2.5.0,2.5.71]'
+    exclude  'software.amazon.awssdk:s3:[2.6.0,2.6.5]'
+    exclude  'software.amazon.awssdk:s3:[2.7.0,2.7.36]'
+    exclude  'software.amazon.awssdk:s3:[2.8.0,2.8.6]'
+    exclude  'software.amazon.awssdk:s3:[2.9.0,2.9.26]'
+    exclude  'software.amazon.awssdk:s3:[2.10.0,2.10.91]'
+    exclude  'software.amazon.awssdk:s3:[2.11.0,2.11.14]'
+    exclude  'software.amazon.awssdk:s3:2.12.0'
+    exclude  'software.amazon.awssdk:s3:[2.13.0,2.13.76]'
+    exclude  'software.amazon.awssdk:s3:[2.14.0,2.14.28]'
+    exclude  'software.amazon.awssdk:s3:[2.15.0,2.15.82]'
+    exclude  'software.amazon.awssdk:s3:[2.16.0,2.16.104]'
+    exclude  'software.amazon.awssdk:s3:[2.17.0,2.17.295]'
+    exclude  'software.amazon.awssdk:s3:[2.18.0,2.18.41]'
+    exclude  'software.amazon.awssdk:s3:[2.19.0,2.19.31]'
+    exclude  'software.amazon.awssdk:s3:[2.20.0,2.20.162]'
+    exclude  'software.amazon.awssdk:s3:[2.21.0,2.21.46]'
+    exclude  'software.amazon.awssdk:s3:[2.22.0,2.22.13]'
+    exclude  'software.amazon.awssdk:s3:[2.23.0,2.23.21]'
+    exclude  'software.amazon.awssdk:s3:[2.24.0,2.24.13]'
+    exclude  'software.amazon.awssdk:s3:[2.25.0,2.25.70]'
+    exclude  'software.amazon.awssdk:s3:[2.26.0,2.26.31]'
+    exclude  'software.amazon.awssdk:s3:[2.27.0,2.27.24]'
+    exclude  'software.amazon.awssdk:s3:[2.28.0,2.28.29]'
+    exclude  'software.amazon.awssdk:s3:[2.29.0,2.29.52]'
+    exclude  'software.amazon.awssdk:s3:[2.30.0,2.30.38]'
+    exclude  'software.amazon.awssdk:s3:[2.31.0,2.31.78]'
+
+    // The next excludes will be 2.32.x -- Leaving this out so the verifier actually
+    // has something to run against.
 }
 
 site {
