@@ -79,7 +79,7 @@ public class ExitTracerSpanTest {
         ReadWriteSpan startedSpan = started.get(0);
         assertEquals("SELECT petclinic", startedSpan.getName());
         SpanData spanData = startedSpan.toSpanData();
-        assertEquals(48, spanData.getAttributes().size());
+        assertEquals(49, spanData.getAttributes().size());
         assertEquals(4, spanData.getResource().getAttributes().size());
         assertEquals("opentelemetry", spanData.getResource().getAttributes().get(AttributeKey.stringKey("telemetry.sdk.name")));
 

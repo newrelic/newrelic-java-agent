@@ -65,8 +65,10 @@ class NRSpanBuilder implements SpanBuilder {
         this.spanName = spanName;
         this.sharedState = sharedState;
         instrumentationLibraryInfo = InstrumentationLibraryInfo.create(instrumentationScopeName, instrumentationScopeVersion);
+        attributes.put(ExitTracerSpan.OTEL_SCOPE_NAME.getKey(), instrumentationScopeName);
         attributes.put(ExitTracerSpan.OTEL_LIBRARY_NAME.getKey(), instrumentationScopeName);
         if (instrumentationScopeVersion != null) {
+            attributes.put(ExitTracerSpan.OTEL_SCOPE_VERSION, instrumentationScopeVersion);
             attributes.put(ExitTracerSpan.OTEL_LIBRARY_VERSION, instrumentationScopeVersion);
         }
         if (sharedState.getActiveSpanProcessor().isEndRequired()) {

@@ -43,11 +43,11 @@ import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_STACKTRACE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_TYPE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_LIBRARY_NAME;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_LIBRARY_VERSION;
+import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_SCOPE_NAME;
+import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_SCOPE_VERSION;
 
 public class LogEventUtil {
     private static final Set<String> OTEL_ATTRIBUTES = new HashSet<>(Arrays.asList(
-            OTEL_LIBRARY_NAME.getKey(),
-            OTEL_LIBRARY_VERSION.getKey(),
             OTEL_EXCEPTION_MESSAGE.getKey(),
             OTEL_EXCEPTION_TYPE.getKey(),
             OTEL_EXCEPTION_STACKTRACE.getKey())
@@ -76,6 +76,27 @@ public class LogEventUtil {
                 }
                 logEventMap.put(TIMESTAMP, logRecordData.getTimestampEpochNanos());
 
+                // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
+                String instrumentationScopeName = logRecordData.getInstrumentationScopeInfo().getName();
+
+                if (instrumentationScopeName != null && !instrumentationScopeName.isEmpty()) {
+                    LogAttributeKey instrumentationScopeNameKey = new LogAttributeKey(OTEL_SCOPE_NAME.getKey(), LogAttributeType.AGENT);
+                    logEventMap.put(instrumentationScopeNameKey, instrumentationScopeName);
+
+                    LogAttributeKey instrumentationLibraryNameKey = new LogAttributeKey(OTEL_LIBRARY_NAME.getKey(), LogAttributeType.AGENT);
+                    logEventMap.put(instrumentationLibraryNameKey, instrumentationScopeName);
+                }
+
+                String instrumentationScopeVersion = logRecordData.getInstrumentationScopeInfo().getVersion();
+
+                if (instrumentationScopeVersion != null && !instrumentationScopeVersion.isEmpty()) {
+                    LogAttributeKey instrumentationScopeVersionKey = new LogAttributeKey(OTEL_SCOPE_VERSION.getKey(), LogAttributeType.AGENT);
+                    logEventMap.put(instrumentationScopeVersionKey, instrumentationScopeVersion);
+
+                    LogAttributeKey instrumentationLibraryVersionKey = new LogAttributeKey(OTEL_LIBRARY_VERSION.getKey(), LogAttributeType.AGENT);
+                    logEventMap.put(instrumentationLibraryVersionKey, instrumentationScopeVersion);
+                }
+
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
                     for (Map.Entry<AttributeKey<?>, Object> entry : contextAttributes.asMap().entrySet()) {
                         String key = entry.getKey().getKey();
@@ -90,18 +111,6 @@ public class LogEventUtil {
 
                 // These attributes come from the attribute map, but they should not be prefixed with context since they are defined in the OTel semantic conventions.
                 if (!contextAttributes.isEmpty()) {
-                    String otelLibraryName = contextAttributes.get(OTEL_LIBRARY_NAME);
-                    if (otelLibraryName != null) {
-                        LogAttributeKey logAttrKey = new LogAttributeKey(OTEL_LIBRARY_NAME.getKey(), LogAttributeType.AGENT);
-                        logEventMap.put(logAttrKey, otelLibraryName);
-                    }
-
-                    String otelLibraryVersion = contextAttributes.get(OTEL_LIBRARY_VERSION);
-                    if (otelLibraryVersion != null) {
-                        LogAttributeKey logAttrKey = new LogAttributeKey(OTEL_LIBRARY_VERSION.getKey(), LogAttributeType.AGENT);
-                        logEventMap.put(logAttrKey, otelLibraryVersion);
-                    }
-
                     // Exceptions are captured in the attributes map for OTel logs.
                     // https://opentelemetry.io/docs/specs/semconv/exceptions/exceptions-logs/
                     if (ExceptionUtil.getErrorMessage(errorMessage) != null) {
@@ -135,18 +144,6 @@ public class LogEventUtil {
 
                 long threadId = ((BasicLogRecordData) logRecordData).getThreadId();
                 logEventMap.put(THREAD_ID, threadId);
-
-                String loggerName = logRecordData.getInstrumentationScopeInfo()
-                        .getName(); // FIXME doesn't seem to map to otel semantic conventions, should we add this?
-                if (loggerName != null) {
-                    logEventMap.put(LOGGER_NAME, loggerName);
-                }
-
-                String loggerFqcn = logRecordData.getInstrumentationScopeInfo()
-                        .getName();  // FIXME doesn't seem to map to otel semantic conventions, should we add this?
-                if (loggerFqcn != null) {
-                    logEventMap.put(LOGGER_FQCN, loggerFqcn);
-                }
 
                 AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
             }

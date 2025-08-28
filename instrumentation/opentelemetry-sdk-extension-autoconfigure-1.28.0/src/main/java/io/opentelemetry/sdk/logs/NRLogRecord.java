@@ -23,6 +23,8 @@ import java.util.Map;
  * New Relic Java representation of an OpenTelemetry LogRecord.
  */
 public class NRLogRecord implements ReadWriteLogRecord {
+    public static final AttributeKey<String> OTEL_SCOPE_VERSION = AttributeKey.stringKey("otel.scope.version");
+    public static final AttributeKey<String> OTEL_SCOPE_NAME = AttributeKey.stringKey("otel.scope.name");
     public static final AttributeKey<String> OTEL_LIBRARY_VERSION = AttributeKey.stringKey("otel.library.version");
     public static final AttributeKey<String> OTEL_LIBRARY_NAME = AttributeKey.stringKey("otel.library.name");
     public static final AttributeKey<String> OTEL_EXCEPTION_MESSAGE = AttributeKey.stringKey("exception.message");

@@ -24,6 +24,10 @@ public final class SdkLoggerProvider_Instrumentation {
     public LoggerBuilder loggerBuilder(String instrumentationScopeName) {
         final LoggerBuilder loggerBuilder = Weaver.callOriginal();
         Config config = NewRelic.getAgent().getConfig();
+
+        // Generate the instrumentation module supportability metric
+        NewRelic.incrementCounter("Supportability/Logging/Java/OpenTelemetryBridge/enabled");
+
         if (NRLogRecordBuilder.isLogRecordBuilderEnabled(config)) {
             // return our logger builder instead of the OTel instance
             return new NRLoggerBuilder(config, instrumentationNameOrDefault(instrumentationScopeName), sharedState);

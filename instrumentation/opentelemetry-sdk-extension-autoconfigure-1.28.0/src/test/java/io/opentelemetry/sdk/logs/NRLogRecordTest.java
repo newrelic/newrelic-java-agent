@@ -88,13 +88,10 @@ public class NRLogRecordTest extends TestCase {
 
         assertEquals(instrumentationScopeName, logRecordData.getInstrumentationScopeInfo().getName());
         assertEquals("1.0.0", logRecordData.getInstrumentationScopeInfo().getVersion());
-        assertEquals(instrumentationScopeName, logRecordData.getAttributes().get(AttributeKey.stringKey("otel.library.name")));
-        assertEquals("1.0.0", logRecordData.getAttributes().get(AttributeKey.stringKey("otel.library.version")));
 
-        // The +3 is because our instrumentation adds otel.library.version and
-        // otel.library.name as attributes and one additional attribute is added via
+        // The +1 is because one additional attribute is added via
         // the explicit setAttribute(AttributeKey.stringKey("foo"), "bar") call.
-        assertEquals((attributesMap.size() + 3), logRecordData.getAttributes().size());
+        assertEquals((attributesMap.size() + 1), logRecordData.getAttributes().size());
         assertEquals(4, logRecordData.getResource().getAttributes().size());
         assertEquals("opentelemetry", logRecordData.getResource().getAttributes().get(AttributeKey.stringKey("telemetry.sdk.name")));
 

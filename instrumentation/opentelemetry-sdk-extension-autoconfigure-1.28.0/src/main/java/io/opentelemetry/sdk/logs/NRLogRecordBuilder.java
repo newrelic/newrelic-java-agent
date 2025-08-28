@@ -51,12 +51,6 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
                 .setVersion(instrumentationScopeVersion)
                 .setSchemaUrl(schemaUrl)
                 .build();
-
-        attributes.put(NRLogRecord.OTEL_LIBRARY_NAME.getKey(), instrumentationScopeName);
-
-        if (instrumentationScopeVersion != null) {
-            attributes.put(NRLogRecord.OTEL_LIBRARY_VERSION.getKey(), instrumentationScopeVersion);
-        }
     }
 
     @Override
