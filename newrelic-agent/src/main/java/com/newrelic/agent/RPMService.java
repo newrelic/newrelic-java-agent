@@ -984,13 +984,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         try {
             // local settings
             Map<String, Object> dtConfig = (Map<String, Object>) settings.get("distributed_tracing");
-            NewRelic.getAgent().getLogger().log(Level.INFO, "JGB dtConfig: "+dtConfig);
             if (dtConfig != null) {
                 Map<String, Object> samplerConfig = (Map<String, Object>) dtConfig.get("sampler");
-                NewRelic.getAgent().getLogger().log(Level.INFO, "JGB samplerConfig: "+samplerConfig);
                 if (samplerConfig != null) {
                     Integer adaptiveSamplingTarget = toInt(samplerConfig.get("adaptive_sampling_target"));
-                    NewRelic.getAgent().getLogger().log(Level.INFO, "JGB adaptiveSamplingTarget: "+adaptiveSamplingTarget);
                     if (adaptiveSamplingTarget != null) {
                         Integer newAdaptiveSamplingTarget = (int) Math.ceil(adaptiveSamplingTarget.doubleValue() / 12.0);
                         NewRelic.getAgent()
