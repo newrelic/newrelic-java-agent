@@ -47,6 +47,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.utilization.UtilizationData;
+import com.newrelic.api.agent.NewRelic;
 import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
@@ -236,6 +237,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             settings.put("build_date", buildDate);
         }
         settings.put("services", ServiceFactory.getServicesConfiguration());
+
+        // the sysprops and envvars above an in unmodifiable collections, so just change it here
+        updateSamplingTargetSettings(settings);
 
         return settings;
     }
@@ -967,6 +971,58 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             // print at finest until we reach a certain count
             Agent.LOG.log(Level.FINER, msg, e);
         }
+    }
+
+    private void updateSamplingTargetSettings (Map<String, Object> settings) {
+        // the new distributed_tracing.sampler.adaptive_sampling_target is meant to be per minute
+        // but, the harvest cycle is 12 times per minute right now,
+        // so we need to divide this number by 12 until that changes
+        // there are 2 spots we need to do this:
+        //   - settings.distributed_tracing_sampler_adaptive_sampling_target
+        //   - settings.distributed_tracing.sampler.adaptive_sampling_target
+        if (settings == null) return;
+        try {
+            // local settings
+            Map<String, Object> dtConfig = (Map<String, Object>) settings.get("distributed_tracing");
+            if (dtConfig != null) {
+                Map<String, Object> samplerConfig = (Map<String, Object>) dtConfig.get("sampler");
+                if (samplerConfig != null) {
+                    Integer adaptiveSamplingTarget = toInt(samplerConfig.get("adaptive_sampling_target"));
+                    if (adaptiveSamplingTarget != null) {
+                        Integer newAdaptiveSamplingTarget = (int) Math.ceil(adaptiveSamplingTarget.doubleValue() / 12.0);
+                        NewRelic.getAgent()
+                                .getLogger()
+                                .log(Level.FINE, "Updating local setting adaptive_sampling_target from " + adaptiveSamplingTarget + " to " +
+                                        newAdaptiveSamplingTarget);
+                        samplerConfig.put("adaptive_sampling_target", newAdaptiveSamplingTarget);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Unable to parse local setting adaptive_sampling_target setting: {0}", e);
+        }
+
+        try {
+            // env var
+            if (settings.containsKey("distributed_tracing_sampler_adaptive_sampling_target")) {
+                Integer adaptiveSamplingTarget = toInt(settings.get("distributed_tracing_sampler_adaptive_sampling_target"));
+                Integer newAdaptiveSamplingTarget = (int) Math.ceil(adaptiveSamplingTarget.doubleValue() / 12.0);
+                NewRelic.getAgent()
+                        .getLogger()
+                        .log(Level.FINE, "Updating environment variable adaptive_sampling_target from " + adaptiveSamplingTarget + " to " +
+                                newAdaptiveSamplingTarget);
+                settings.put("distributed_tracing_sampler_adaptive_sampling_target", newAdaptiveSamplingTarget);
+            }
+        } catch (Exception e) {
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Unable to parse environment variable adaptive_sampling_target setting: {0}", e);
+        }
+    }
+
+    private static Integer toInt(Object o) {
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        }
+        return ((Double)Double.parseDouble((String)o)).intValue();
     }
 
     @Override
