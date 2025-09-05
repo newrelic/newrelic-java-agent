@@ -16,6 +16,7 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.nr.agent.instrumentation.utils.AttributesHelper;
+import com.nr.agent.instrumentation.utils.span.AttributeMapper;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
@@ -35,7 +36,6 @@ import io.opentelemetry.sdk.trace.data.StatusData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -57,18 +57,10 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private static final AttributeKey<String> DB_STATEMENT = AttributeKey.stringKey("db.statement");
     private static final AttributeKey<String> DB_OPERATION = AttributeKey.stringKey("db.operation");
     private static final AttributeKey<String> DB_SQL_TABLE = AttributeKey.stringKey("db.sql.table");
-    private static final AttributeKey<String> DB_NAME = AttributeKey.stringKey("db.name");
 
     private static final AttributeKey<String> SERVER_ADDRESS = AttributeKey.stringKey("server.address");
     private static final AttributeKey<Long> SERVER_PORT = AttributeKey.longKey("server.port");
-    private static final AttributeKey<String> URL_FULL = AttributeKey.stringKey("url.full");
-    private static final AttributeKey<String> URL_SCHEME = AttributeKey.stringKey("url.scheme");
-    private static final AttributeKey<String> RPC_METHOD = AttributeKey.stringKey("rpc.method");
-    private static final AttributeKey<String> CODE_FUNCTION = AttributeKey.stringKey("code.function");
-    private static final AttributeKey<String> HTTP_REQUEST_METHOD = AttributeKey.stringKey("http.request.method");
 
-    private static final List<AttributeKey<String>> PROCEDURE_KEYS =
-            Arrays.asList(CODE_FUNCTION, RPC_METHOD, HTTP_REQUEST_METHOD);
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
@@ -88,6 +80,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private String spanName;
     private long endEpochNanos;
     private final Resource resource;
+    private final AttributeMapper attributeMapper = AttributeMapper.getInstance();
 
     ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
             Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd) {
@@ -244,23 +237,23 @@ public class ExitTracerSpan implements ReadWriteSpan {
     }
 
     private void reportClientSpan() {
-        final String dbSystem = getAttribute(DB_SYSTEM);
+        final String dbSystem = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBSystem));
         if (dbSystem != null) {
-            String operation = getAttribute(DB_OPERATION);
+            String operation = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBOperation));
             DatastoreParameters.InstanceParameter builder = DatastoreParameters
                     .product(dbSystem)
-                    .collection(getAttribute(DB_SQL_TABLE))
+                    .collection(getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBTable)))
                     .operation(operation == null ? "unknown" : operation);
-            String serverAddress = getAttribute(SERVER_ADDRESS);
-            Long serverPort = getAttribute(SERVER_PORT);
+            String serverAddress = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Host));
+            Long serverPort = getAttribute(generateLongAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Port));
 
             DatastoreParameters.DatabaseParameter instance = serverAddress == null ? builder.noInstance() :
                     builder.instance(serverAddress, (serverPort == null ? Long.valueOf(0L) : serverPort).intValue());
 
-            String dbName = getAttribute(DB_NAME);
+            String dbName = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBName));
             DatastoreParameters.SlowQueryParameter slowQueryParameter =
                     dbName == null ? instance.noDatabaseName() : instance.databaseName(dbName);
-            final String dbStatement = getAttribute(DB_STATEMENT);
+            final String dbStatement = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBStatement));
             final DatastoreParameters datastoreParameters;
             if (dbStatement == null) {
                 datastoreParameters = slowQueryParameter.build();
@@ -286,25 +279,34 @@ public class ExitTracerSpan implements ReadWriteSpan {
         }
     }
 
+    private AttributeKey<String> generateStringAttributeKey(SpanKind spanKind, com.nr.agent.instrumentation.utils.span.AttributeType attributeType) {
+        return AttributeKey.stringKey(
+                attributeMapper.findProperOtelKey(SpanKind.CLIENT, attributeType, attributes.keySet()));
+    }
+
+    private AttributeKey<Long> generateLongAttributeKey(SpanKind spanKind, com.nr.agent.instrumentation.utils.span.AttributeType attributeType) {
+        return AttributeKey.longKey(
+                attributeMapper.findProperOtelKey(SpanKind.CLIENT, attributeType, attributes.keySet()));
+    }
+
+
     String getProcedure() {
-        for (AttributeKey<String> key : PROCEDURE_KEYS) {
-            String value = getAttribute(key);
-            if (value != null) {
-                return value;
-            }
+        AttributeKey<String> key = generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.ExternalProcedure);
+        if (key.getKey().isEmpty()) {
+            key = generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Method);
         }
-        return "unknown";
+        return key.getKey().isEmpty() ? "unknown" : getAttribute(key);
     }
 
     URI getUri() throws URISyntaxException {
-        final String urlFull = getAttribute(URL_FULL);
+        final String urlFull = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Route));
         if (urlFull != null) {
             return URI.create(urlFull);
         } else {
-            final String serverAddress = getAttribute(SERVER_ADDRESS);
+            final String serverAddress = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Host));
             if (serverAddress != null) {
-                final String scheme = getAttribute(URL_SCHEME);
-                final Long serverPort = getAttribute(SERVER_PORT);
+                final String scheme = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Route));
+                final Long serverPort = getAttribute(generateLongAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.Port));
                 return new URI(scheme == null ? "http" : scheme, null, serverAddress,
                         serverPort == null ? 0 : serverPort.intValue(), null, null, null);
             }

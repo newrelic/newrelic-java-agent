@@ -25,6 +25,10 @@
           {
             "name": "net.host.name",
             "version": "HTTP-Server:1.20"
+          },
+          {
+            "name": "user_agent.original",
+            "version": ""
           }
         ]
       },
@@ -63,11 +67,32 @@
         ]
       },
       {
+        "attributeType": "ExternalProcedure",
+        "attributes": [
+          {
+            "name": "code.function",
+            "version": ""
+          }
+        ]
+      },
+      {
         "attributeType": "Route",
         "attributes": [
           {
             "name": "http.route",
             "version": "HTTP-Server:1.23,HTTP-Server:1.20"
+          },
+          {
+            "name": "url.path",
+            "version": ""
+          },
+          {
+            "name": "url.full",
+            "version": ""
+          },
+          {
+            "name": "url.scheme",
+            "version": ""
           }
         ]
       },
@@ -143,11 +168,68 @@
     "spanKind": "CLIENT",
     "attributeTypes": [
       {
-        "attributeType": "Product",
+        "attributeType": "Route",
+        "attributes": [
+          {
+            "name": "http.route",
+            "version": "HTTP-Server:1.23,HTTP-Server:1.20"
+          },
+          {
+            "name": "url.path",
+            "version": ""
+          },
+          {
+            "name": "url.full",
+            "version": ""
+          },
+          {
+            "name": "url.scheme",
+            "version": ""
+          }
+        ]
+      },
+      {
+        "attributeType": "DBName",
+        "attributes": [
+          {
+            "name": "db.name",
+            "version": "Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynamoDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
+          }
+        ]
+      },
+      {
+        "attributeType": "DBOperation",
+        "attributes": [
+          {
+            "name": "db.operation",
+            "version": "Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynamoDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
+          }
+        ]
+      },
+      {
+        "attributeType": "DBSystem",
         "attributes": [
           {
             "name": "db.system",
-            "version": "Redis-Client:1.24,Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynampDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
+            "version": "Redis-Client:1.24,Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynamoDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
+          }
+        ]
+      },
+      {
+        "attributeType": "DBStatement",
+        "attributes": [
+          {
+            "name": "db.statement",
+            "version": "Redis-Client:1.24,Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynamoDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
+          }
+        ]
+      },
+      {
+        "attributeType": "DBTable",
+        "attributes": [
+          {
+            "name": "db.sql.table",
+            "version": "Redis-Client:1.24,Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynamoDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
           }
         ]
       },
@@ -174,15 +256,6 @@
           {
             "name": "net.peer.port",
             "version": "Redis-Client:1.17,Mongo-Client:1.17,DB-Client:1.17,HTTP-Client:1.23,RPC-Client:1.17"
-          }
-        ]
-      },
-      {
-        "attributeType": "DBName",
-        "attributes": [
-          {
-            "name": "db.name",
-            "version": "Redis-Client:1.17,Mongo-Client:1.24,Mongo-Client:1.17,DynampDB-Client:1.17,DB-Client:1.24,DB-Client:1.17"
           }
         ]
       },
@@ -221,6 +294,15 @@
         ]
       },
       {
+        "attributeType": "ExternalProcedure",
+        "attributes": [
+          {
+            "name": "code.function",
+            "version": ""
+          }
+        ]
+      },
+      {
         "attributeType": "Component",
         "attributes": [
           {
@@ -244,6 +326,14 @@
           {
             "name": "messaging.destination",
             "version": "Messaging-Consumer-1.17"
+          },
+          {
+            "name": "aws_sqs",
+            "version": "SQS-Producer-1.17"
+          },
+          {
+            "name": "aws.region",
+            "version": "SQS-Producer-1.17"
           }
         ]
       },
@@ -290,19 +380,6 @@
           },
           {
             "name": "messaging.destination",
-            "version": "SQS-Producer-1.17"
-          }
-        ]
-      },
-      {
-        "attributeType": "Product",
-        "attributes": [
-          {
-            "name": "aws_sqs",
-            "version": "SQS-Producer-1.17"
-          },
-          {
-            "name": "aws.region",
             "version": "SQS-Producer-1.17"
           }
         ]

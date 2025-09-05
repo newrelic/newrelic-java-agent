@@ -18,6 +18,8 @@ import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.TracedMethod;
 import com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader;
+import com.nr.agent.instrumentation.utils.span.AttributeMapper;
+import com.nr.agent.instrumentation.utils.span.AttributeType;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -58,6 +60,7 @@ class NRSpanBuilder implements SpanBuilder {
     private final InstrumentationLibraryInfo instrumentationLibraryInfo;
     private SpanKind spanKind = SpanKind.INTERNAL;
     private SpanContext parentSpanContext;
+    private AttributeMapper attributeMapper = AttributeMapper.getInstance();
 
     public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
             String spanName) {
@@ -192,11 +195,8 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public String getRequestURI() {
-                Object httpRoute = attributes.get("http.route");
-                if (httpRoute != null) {
-                    return httpRoute.toString();
-                }
-                return (String) attributes.get("url.path");
+                Object httpRoute = attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Route, attributes.keySet()));
+                return httpRoute == null ? null : httpRoute.toString();
             }
 
             @Override
@@ -232,7 +232,7 @@ class NRSpanBuilder implements SpanBuilder {
             @Override
             public String getHeader(String name) {
                 if ("User-Agent".equalsIgnoreCase(name)) {
-                    return (String) attributes.get("user_agent.original");
+                    return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Host, attributes.keySet()));
                 }
                 // TODO is it possible to get the newrelic DT header from OTel???
                 if (NEWRELIC.equalsIgnoreCase(name)) {
@@ -274,7 +274,7 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public String getMethod() {
-                return (String) attributes.get("http.request.method");
+                return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Method, attributes.keySet()));
             }
         };
 
@@ -282,7 +282,7 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public int getStatus() throws Exception {
-                Object statusCode = attributes.get("http.response.status_code");
+                Object statusCode = attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.StatusCode, attributes.keySet()));
                 return statusCode instanceof Number ? ((Number) statusCode).intValue() : 0;
             }
 
