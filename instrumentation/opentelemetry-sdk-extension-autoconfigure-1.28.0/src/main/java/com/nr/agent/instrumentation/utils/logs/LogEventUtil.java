@@ -30,8 +30,6 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_STACK;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.INSTRUMENTATION;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LEVEL;
-import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_FQCN;
-import static com.newrelic.agent.bridge.logging.AppLoggingUtils.LOGGER_NAME;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.MESSAGE;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
@@ -74,7 +72,14 @@ public class LogEventUtil {
                         logEventMap.put(MESSAGE, bodyString);
                     }
                 }
-                logEventMap.put(TIMESTAMP, logRecordData.getTimestampEpochNanos());
+
+                // Use Timestamp if it is present, otherwise use ObservedTimestamp.
+                long timestampEpochNanos = logRecordData.getTimestampEpochNanos();
+                if (timestampEpochNanos >= 0) {
+                    logEventMap.put(TIMESTAMP, timestampEpochNanos);
+                } else {
+                    logEventMap.put(TIMESTAMP, logRecordData.getObservedTimestampEpochNanos());
+                }
 
                 // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
                 String instrumentationScopeName = logRecordData.getInstrumentationScopeInfo().getName();
@@ -129,9 +134,19 @@ public class LogEventUtil {
 
                 Severity severity = logRecordData.getSeverity();
                 if (severity != null) {
-                    String severityName = severity.name();
-                    if (severityName.isEmpty()) {
-                        logEventMap.put(LEVEL, UNKNOWN);
+                    // Use SeverityText if it is present, otherwise use SeverityNumber and convert it to a textual representation based on the enum value.
+                    String severityName = severity.toString();
+                    if (severityName == null || severityName.isEmpty()) {
+                        int severityNumber = severity.getSeverityNumber();
+                        Severity[] severityValues = Severity.values();
+                        Severity severityValue = severityValues[severityNumber];
+                        severityName = severityValue.toString();
+                        // If we still don't have a valid severity name, set it to "UNKNOWN"
+                        if (severityName == null || severityName.isEmpty()) {
+                            logEventMap.put(LEVEL, UNKNOWN);
+                        } else {
+                            logEventMap.put(LEVEL, severityName);
+                        }
                     } else {
                         logEventMap.put(LEVEL, severityName);
                     }
