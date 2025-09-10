@@ -16,6 +16,12 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOffSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOnSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.TraceIdRatioBasedSampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
@@ -51,9 +57,14 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     private final AtomicReference<String> accountId = new AtomicReference<>();
     private final AtomicReference<String> applicationId = new AtomicReference<>();
     private final AtomicReference<String> trustKey = new AtomicReference<>();
-    private final AtomicBoolean firstHarvest = new AtomicBoolean(true);
+    //JUST FOR DEVELOPMENT- MAKE SURE TO REVERT BACK TO PRIVATE
+    public final AtomicBoolean firstHarvest = new AtomicBoolean(true);
 
     private DistributedTracingConfig distributedTraceConfig;
+
+    private final Sampler remoteParentSampledSampler;
+    private final Sampler remoteParentNotSampledSampler;
+    private final Sampler rootSampler;
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
@@ -76,6 +87,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        this.remoteParentSampledSampler = initSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
+        this.remoteParentNotSampledSampler = initSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
+        this.rootSampler = initSampler(distributedTraceConfig.getRootSamplerConfig());
     }
 
     @Override
@@ -290,6 +304,26 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         return next;
     }
 
+    private Sampler initSampler(SamplerConfig config){
+        String samplerType = config.getSamplerType();
+        Float samplerRatio = config.getSamplingRatio();
+        if (SamplerConfig.ALWAYS_ON.equals(samplerType)){
+            return new AlwaysOnSampler();
+        }
+        if (SamplerConfig.ALWAYS_OFF.equals(samplerType)){
+            return new AlwaysOffSampler();
+        }
+        if (SamplerConfig.TRACE_ID_RATIO_BASED.equals(samplerType)){
+            if (samplerRatio != null && TraceIdRatioBasedSampler.validRatio(samplerRatio)) {
+                return new TraceIdRatioBasedSampler(samplerRatio);
+            } else {
+                //log something?
+                return new AdaptiveSampler(this);
+            }
+        }
+        return new AdaptiveSampler(this);
+    }
+
     private void recordMetrics(TransactionData transactionData, TransactionStats transactionStats) {
         DistributedTracePayloadImpl payload = transactionData.getInboundDistributedTracePayload();
         if (payload == null) {
@@ -389,5 +423,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
             statsService.getMetricAggregator().incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER,
                     !distributedTraceConfig.isIncludeNewRelicHeader()));
         }
+    }
+
+    public Sampler getRemoteParentSampledSampler() {
+        return this.remoteParentSampledSampler;
+    }
+
+    public Sampler getRemoteParentNotSampledSampler(){
+        return this.remoteParentNotSampledSampler;
+    }
+
+    public Sampler getRootSampler(){
+        return this.rootSampler;
     }
 }

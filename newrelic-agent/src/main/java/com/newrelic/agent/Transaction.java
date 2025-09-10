@@ -61,6 +61,7 @@ import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.tracing.W3CTraceParent;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCache;
 import com.newrelic.agent.transaction.TransactionCounts;
@@ -339,19 +340,18 @@ public class Transaction {
 
     public void applyDistributedTracingSamplerConfig(W3CTraceParent parent) {
         if (parent != null) {
-            DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
-            if (parent.sampled()) { // traceparent exists and sampled is 1
-                if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentSampled())) {
-                    this.setPriorityIfNotNull(2.0f);
-                } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentSampled())) {
-                    this.setPriorityIfNotNull(0.0f);
-                } // else leave it as it was
+            DistributedTraceServiceImpl dtService = (DistributedTraceServiceImpl) ServiceFactory.getDistributedTraceService();
+            //tmp PLEASE MODIFY!!!
+            DistributedTracePayloadImpl inboundPayload = spanProxy.get().getInboundDistributedTracePayload();
+            Float inboundPriority = inboundPayload != null ? inboundPayload.priority : null;
+            DistributedSamplingPriorityQueue<TransactionEvent> reservoir = ServiceFactory.getTransactionEventsService()
+                    .getOrCreateDistributedSamplingReservoir(getApplicationName());
+            if (parent.sampled()) {
+                Sampler remoteParentSampledSampler = dtService.getRemoteParentSampledSampler();
+                this.setPriorityIfNotNull(remoteParentSampledSampler.calculatePriority(getOrCreateTraceId(), inboundPriority, reservoir));
             } else { // traceparent exists and sampled is 0
-                if (DistributedTracingConfig.SAMPLE_ALWAYS_ON.equals(dtConfig.getRemoteParentNotSampled())) {
-                    this.setPriorityIfNotNull(2.0f);
-                } else if (DistributedTracingConfig.SAMPLE_ALWAYS_OFF.equals(dtConfig.getRemoteParentNotSampled())) {
-                    this.setPriorityIfNotNull(0.0f);
-                } // else leave it as it was
+                Sampler remoteParentNotSampledSampler = dtService.getRemoteParentNotSampledSampler();
+                this.setPriorityIfNotNull(remoteParentNotSampledSampler.calculatePriority(getOrCreateTraceId(), inboundPriority, reservoir));
             }
         }
     }

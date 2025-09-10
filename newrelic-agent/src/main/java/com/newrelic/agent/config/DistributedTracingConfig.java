@@ -24,17 +24,16 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String SAMPLER = "sampler";
     public static final String REMOTE_PARENT_SAMPLED = "remote_parent_sampled";
     public static final String REMOTE_PARENT_NOT_SAMPLED = "remote_parent_not_sampled";
-    public static final String SAMPLE_ALWAYS_ON = "always_on";
-    public static final String SAMPLE_ALWAYS_OFF = "always_off";
-    public static final String SAMPLE_DEFAULT = "default";
+    public static final String ROOT = "root";
 
     private final boolean enabled;
     private final String trustedAccountKey;
     private final String accountId;
     private final String primaryApplicationId;
     private final boolean includeNewRelicHeader;
-    private final String remoteParentSampled;
-    private final String remoteParentNotSampled;
+    private final SamplerConfig remoteParentSampledConfig;
+    private final SamplerConfig remoteParentNotSampledConfig;
+    private final SamplerConfig rootSamplerConfig;
 
     DistributedTracingConfig(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
@@ -43,10 +42,9 @@ public class DistributedTracingConfig extends BaseConfig {
         this.accountId = getProperty(ACCOUNT_ID);
         this.primaryApplicationId = getProperty(PRIMARY_APPLICATION_ID);
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
-
-        BaseConfig samplerConfig = new BaseConfig(nestedProps(SAMPLER), SYSTEM_PROPERTY_ROOT+SAMPLER+".");
-        this.remoteParentSampled = samplerConfig.getProperty(REMOTE_PARENT_SAMPLED, SAMPLE_DEFAULT);
-        this.remoteParentNotSampled = samplerConfig.getProperty(REMOTE_PARENT_NOT_SAMPLED, SAMPLE_DEFAULT);
+        this.remoteParentSampledConfig = initSamplerConfig(REMOTE_PARENT_SAMPLED);
+        this.remoteParentNotSampledConfig = initSamplerConfig(REMOTE_PARENT_NOT_SAMPLED);
+        this.rootSamplerConfig = initSamplerConfig(ROOT);
     }
 
     public String getTrustedAccountKey() {
@@ -69,11 +67,21 @@ public class DistributedTracingConfig extends BaseConfig {
         return includeNewRelicHeader;
     }
 
-    public String getRemoteParentSampled() {
-        return remoteParentSampled;
+    public SamplerConfig getRemoteParentSampledSamplerConfig() {
+        return remoteParentSampledConfig;
     }
 
-    public String getRemoteParentNotSampled() {
-        return remoteParentNotSampled;
+    public SamplerConfig getRemoteParentNotSampledSamplerConfig() {
+        return remoteParentNotSampledConfig;
+    }
+
+    public SamplerConfig getRootSamplerConfig(){
+        return rootSamplerConfig;
+    }
+
+    private SamplerConfig initSamplerConfig(String subsection) {
+        String prefix = this.systemPropertyPrefix + subsection + ".";
+        Object val = getProperty(subsection);
+        return SamplerConfig.createSamplerConfig(val, prefix);
     }
 }
