@@ -192,7 +192,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
             // fall through
         }
 
-        kotlinCoroutinesService = new KotlinCoroutinesService();
     }
 
     @Override
