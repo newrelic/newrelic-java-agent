@@ -8,10 +8,9 @@ import com.newrelic.api.agent.Token;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
-import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
-
+import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +22,6 @@ public class Utils implements CoroutineConfigListener {
 
 	public static final String CREATE_METHOD_1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
 	public static final String CREATE_METHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
-	private static final Utils INSTANCE = new Utils();
 	private static final String CONT_LOC = "Continuation at";
 	public static boolean DELAYED_ENABLED = true;
 
@@ -33,7 +31,7 @@ public class Utils implements CoroutineConfigListener {
 		* the ignored items
 		*/
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
-		service.addCoroutineConfigListener(INSTANCE);
+		service.addCoroutineConfigListener(new Utils());
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
