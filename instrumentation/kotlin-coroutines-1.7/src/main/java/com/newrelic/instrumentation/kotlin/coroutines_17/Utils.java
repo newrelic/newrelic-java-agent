@@ -8,22 +8,24 @@ import com.newrelic.api.agent.Token;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
-import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
-
+import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class Utils implements CoroutineConfigListener {
 
 	private static final List<String> ignoredContinuations = new ArrayList<>();
+	private static final List<Pattern> ignoredContinuationPatterns = new ArrayList<>();
 	private static final List<String> ignoredScopes = new ArrayList<>();
+	private static final List<Pattern> ignoredScopePatterns = new ArrayList<>();
 
 	public static final String CREATE_METHOD_1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
 	public static final String CREATE_METHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
-	private static final Utils INSTANCE = new Utils();
 	private static final String CONT_LOC = "Continuation at";
 	public static boolean DELAYED_ENABLED = true;
 
@@ -33,7 +35,7 @@ public class Utils implements CoroutineConfigListener {
 		 * the ignored items
 		 */
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
-		service.addCoroutineConfigListener(INSTANCE);
+		service.addCoroutineConfigListener(new Utils());
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
@@ -82,8 +84,8 @@ public class Utils implements CoroutineConfigListener {
 	 * coroutineScope can be a Coroutine name or CoroutineScope class name
 	 */
 	public static boolean continueWithScope(String coroutineScope) {
-		for(String ignoredScope : ignoredScopes) {
-			if(coroutineScope.matches(ignoredScope)) {
+		for(Pattern ignoredScope : ignoredScopePatterns) {
+			if(ignoredScope.matcher(coroutineScope).matches()) {
 				return false;
 			}
 		}
@@ -103,12 +105,19 @@ public class Utils implements CoroutineConfigListener {
 		String cont_string = getContinuationString(continuation);
 		if(cont_string == null) { return false; }
 
-		for(String ignored : ignoredContinuations) {
-			if(cont_string.matches(ignored)) {
+		if(ignoredContinuations.contains(cont_string)) {
+			NewRelic.getAgent().getLogger().log(Level.FINE, "Returning false for continuation {0}", cont_string);
+			return false;
+		}
+
+		for(Pattern pattern : ignoredContinuationPatterns) {
+			if(pattern.matcher(cont_string).matches()) {
 				return false;
 			}
 		}
-		return !ignoredContinuations.contains(cont_string);
+
+		NewRelic.getAgent().getLogger().log(Level.FINE, "Returning true for continuation {0}", cont_string);
+		return true;
 	}
 
 	public static String sub = "createCoroutineFromSuspendFunction";
@@ -199,26 +208,50 @@ public class Utils implements CoroutineConfigListener {
 	}
 
 	@Override
-	public void configureContinuationIgnores(String[] ignores) {
+	public void configureContinuationIgnores(String[] ignores, String[] ignoresRegExs) {
 		ignoredContinuations.clear();
+		ignoredContinuationPatterns.clear();
+
 		if(ignores != null) {
 			ignoredContinuations.addAll(Arrays.asList(ignores));
+			for(String ignore : ignoredContinuations) {
+				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these continuation: {0}", ignore);
+			}
+		}
+		if(ignoresRegExs != null) {
+			for(String ignore : ignoresRegExs) {
+				ignoredContinuationPatterns.add(Pattern.compile(ignore));
+				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these continuations matching regex: {0}", ignore);
+			}
 		}
 	}
 
 	@Override
-	public void configureScopeIgnores(String[] ignores) {
+	public void configureScopeIgnores(String[] ignores, String[] ignoresRegExs) {
 		ignoredScopes.clear();
+		ignoredScopePatterns.clear();
+
 		if (ignores != null) {
 			ignoredScopes.addAll(Arrays.asList(ignores));
+			for(String ignore : ignoredScopes) {
+				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these Scope: {0}", ignore);
+			}
+		}
+
+		if(ignoresRegExs != null) {
+			for(String ignore : ignoresRegExs) {
+				ignoredScopePatterns.add(Pattern.compile(ignore));
+				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these scope matching regex: {0}", ignore);
+			}
 		}
 	}
 
 	@Override
-	public void configureDispatchedTasksIgnores(String[] ignores) {
+	public void configureDispatchedTasksIgnores(String[] ignores, String[] ignoresRegExs) {
 		DispatchedTaskIgnores.reset();
+
 		if(ignores != null) {
-			DispatchedTaskIgnores.addIgnoredTasks(Arrays.asList(ignores));
+			DispatchedTaskIgnores.addIgnoredTasks(Arrays.asList(ignores), Arrays.asList(ignoresRegExs));
 		}
 	}
 

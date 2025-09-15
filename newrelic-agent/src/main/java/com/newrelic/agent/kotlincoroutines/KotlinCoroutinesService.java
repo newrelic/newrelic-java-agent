@@ -18,14 +18,15 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
     public KotlinCoroutinesService(KotlinCoroutinesConfig coroutinesConfig) {
         super("KotlinCoroutinesService");
         this.coroutinesConfig = coroutinesConfig;
+        ServiceFactory.getConfigService().addIAgentConfigListener(this);
     }
 
     public void addCoroutineConfigListener(CoroutineConfigListener listener) {
         if(listener != null) {
             listeners.add(listener);
-            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations());
-            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes());
-            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched());
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(), coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(), coroutinesConfig.getIgnoredRegexDispatched());
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
         }
     }
@@ -34,9 +35,9 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
     protected void doStart() throws Exception {
         for (CoroutineConfigListener listener : listeners) {
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
-            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes());
-            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched());
-            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
         }
     }
 
@@ -56,9 +57,9 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
         coroutinesConfig = agentConfig.getKotlinCoroutinesConfig();
         for (CoroutineConfigListener listener : listeners) {
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
-            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes());
-            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched());
-            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
         }
 
     }
