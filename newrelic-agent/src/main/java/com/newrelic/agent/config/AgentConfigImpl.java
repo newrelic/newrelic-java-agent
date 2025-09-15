@@ -13,7 +13,6 @@ import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
-import com.newrelic.api.agent.NewRelic;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -361,7 +360,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
-        NewRelic.getAgent().getLogger().log(Level.FINE,"making call to initKotlinCoroutinesConfig");
         kotlinCoroutinesConfig = initKotlinCoroutinesConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
