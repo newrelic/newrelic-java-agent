@@ -29,7 +29,8 @@ To stop tracking a Continuation whose metric name starts with "Custom/Continuati
    
 &nbsp;&nbsp;coroutines:   
 &nbsp;&nbsp;&nbsp;&nbsp;continuations:      
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ignore: com.nr.example.MyContinuation
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ignore: com.nr.example.MyContinuation   
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ignoreRegex: com\.nr\.example\.continuations\..*   
 
 #### CoroutineScopes
 To stop tracking a call to async or launch based upon either the class name of the CoroutineScope or the coroutine name from its CoroutineContext.  The spans that can be ignored will start with Custom/Builders followed by async or launch.  The spans usually have two related attributes defined "CoroutineScope-Class" and "CoroutineScope-CoroutineName".   Either of the values can be used to ignore those spans by adding a scopes stanza.    
