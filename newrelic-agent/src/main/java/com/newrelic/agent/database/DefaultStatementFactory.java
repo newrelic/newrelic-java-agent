@@ -12,7 +12,6 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.Strings;
-import com.newrelic.api.agent.NewRelic;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
