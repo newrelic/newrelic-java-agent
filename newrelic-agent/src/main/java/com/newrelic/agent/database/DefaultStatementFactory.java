@@ -8,10 +8,17 @@
 package com.newrelic.agent.database;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.TransactionTracerConfig;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.Strings;
+import com.newrelic.api.agent.NewRelic;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,12 +28,16 @@ class DefaultStatementFactory implements StatementFactory {
     private final DefaultStatementFactory backupPattern;
     protected final String key;
     private final boolean generateMetric;
+    private final boolean isExecCallSqlRegexDisabled;
+
+    private final Set<String> DISABLEABLE_REGEX = new HashSet<>(Arrays.asList("call", "exec"));
 
     public DefaultStatementFactory(String key, Pattern pattern, boolean generateMetric) {
         this.key = key;
         this.pattern = pattern;
         this.generateMetric = generateMetric;
         this.backupPattern = null;
+        isExecCallSqlRegexDisabled = getExecCallSqlRegexDisabled();
     }
 
     public DefaultStatementFactory(String key, Pattern pattern, boolean generateMetric, Pattern backupPattern) {
@@ -34,6 +45,7 @@ class DefaultStatementFactory implements StatementFactory {
         this.pattern = pattern;
         this.generateMetric = generateMetric;
         this.backupPattern = new DefaultStatementFactory(key, backupPattern, generateMetric);
+        isExecCallSqlRegexDisabled = getExecCallSqlRegexDisabled();
     }
 
     protected boolean isMetricGenerator() {
@@ -42,7 +54,10 @@ class DefaultStatementFactory implements StatementFactory {
 
     @Override
     public ParsedDatabaseStatement parseStatement(String statement) {
-        // Optimization to prevent running complex regex when we don't need to
+        // Optimizations to prevent running complex regex when we don't need to
+        if (isExecCallSqlRegexDisabled && DISABLEABLE_REGEX.contains(getOperation())) {
+            return null;
+        }
         if (!StringUtils.containsIgnoreCase(statement, key)) {
             return null;
         }
@@ -85,5 +100,13 @@ class DefaultStatementFactory implements StatementFactory {
     @Override
     public String getOperation() {
         return key;
+    }
+
+    private boolean getExecCallSqlRegexDisabled() {
+        ConfigService configService = ServiceFactory.getConfigService();
+        TransactionTracerConfig transactionTracerConfig = ServiceFactory.getConfigService()
+                .getTransactionTracerConfig(configService.getDefaultAgentConfig().getApplicationName());
+
+        return transactionTracerConfig.isExecCallSqlRegexDisabled();
     }
 }
