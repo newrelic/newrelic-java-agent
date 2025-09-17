@@ -13,10 +13,12 @@ import kotlinx.coroutines.AbstractCoroutine;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 public class SuspendsUtils implements SuspendsConfigListener {
 
     private static final HashSet<String> ignoredSuspends = new HashSet<>();
+    private static final HashSet<Pattern> ignoredSuspendsRegex = new HashSet<>();
     public static final String CREATE_METHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
     public static final String CREATE_METHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
     private static final String CONT_LOC = "Continuation at";
@@ -40,8 +42,10 @@ public class SuspendsUtils implements SuspendsConfigListener {
         // ignore if can't determine continuation string
         if(continuationString == null || continuationString.isEmpty()) { return null; }
 
-        for(String ignoredSuspend : ignoredSuspends) {
-            if(continuationString.matches(ignoredSuspend) || className.matches(ignoredSuspend)) { return null; }
+        for(Pattern ignoredSuspend : ignoredSuspendsRegex) {
+            if(ignoredSuspend.matcher(continuationString).matches() || ignoredSuspend.matcher(className).matches() ) {
+                return null;
+            }
         }
         if (ignoredSuspends.contains(continuationString) || ignoredSuspends.contains(className)) {
             return null;
@@ -83,11 +87,19 @@ public class SuspendsUtils implements SuspendsConfigListener {
     }
 
     @Override
-    public void configureSuspendsIgnores(String[] ignores) {
+    public void configureSuspendsIgnores(String[] ignores, String[] ignoreRegexes) {
         NewRelic.getAgent().getLogger().log(Level.FINE,"Will ignore Suspend Functions matching {0}", Arrays.toString(ignores));
+        NewRelic.getAgent().getLogger().log(Level.FINE,"Will ignore Suspend Functions matching regular expressions:  {0}", Arrays.toString(ignoreRegexes));
+
         ignoredSuspends.clear();
         if(ignores != null) {
             ignoredSuspends.addAll(Arrays.asList(ignores));
+        }
+        ignoredSuspendsRegex.clear();
+        if(ignoreRegexes != null) {
+            for(String regex : ignoreRegexes) {
+                ignoredSuspendsRegex.add(Pattern.compile(regex));
+            }
         }
     }
 }

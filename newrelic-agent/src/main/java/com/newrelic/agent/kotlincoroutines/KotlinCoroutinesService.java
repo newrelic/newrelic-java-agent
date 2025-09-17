@@ -3,6 +3,7 @@ package com.newrelic.agent.kotlincoroutines;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.KotlinCoroutinesConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 
@@ -11,44 +12,41 @@ import java.util.Set;
 
 public class KotlinCoroutinesService extends AbstractService implements AgentConfigListener {
 
-    private static final String COROUTINES_IGNORES_CONTINUATIONS = "Coroutines.ignores.continuations";
-    private static final String COROUTINES_IGNORES_SCOPES = "Coroutines.ignores.scopes";
-    private static final String COROUTINES_IGNORES_DISPATCHED = "Coroutines.ignores.dispatched";
-    private static final String COROUTINES_IGNORES_SUSPENDS = "Coroutines.ignores.suspends";
-    private static final String DELAYED_ENABLED_CONFIG = "Coroutines.delayed.enabled";
     private final Set<CoroutineConfigListener> listeners = new LinkedHashSet<>();
-    private final Set<SuspendsConfigListener> suspendsConfigListeners = new LinkedHashSet<>();
-    private String[] ignoredContinuations = null;
-    private String[] ignoredScopes = null;
-    private String[] ignoredDispatched = null;
-    private String[] ignoredSuspends = null;
+    private final Set<SuspendsConfigListener> suspendListeners = new LinkedHashSet<>();
+    private KotlinCoroutinesConfig coroutinesConfig;
 
-    public KotlinCoroutinesService() {
+    public KotlinCoroutinesService(KotlinCoroutinesConfig coroutinesConfig) {
         super("KotlinCoroutinesService");
-    }
-
-    public void addSuspendsConfigListener(SuspendsConfigListener listener) {
-
-        suspendsConfigListeners.add(listener);
-        listener.configureSuspendsIgnores(ignoredSuspends);
+        this.coroutinesConfig = coroutinesConfig;
+        ServiceFactory.getConfigService().addIAgentConfigListener(this);
     }
 
     public void addCoroutineConfigListener(CoroutineConfigListener listener) {
         if(listener != null) {
             listeners.add(listener);
-            listener.configureContinuationIgnores(ignoredContinuations);
-            listener.configureScopeIgnores(ignoredScopes);
-            listener.configureDispatchedTasksIgnores(ignoredDispatched);
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(), coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(), coroutinesConfig.getIgnoredRegexDispatched());
+            listener.configureDelay(coroutinesConfig.isDelayedEnabled());
+        }
+    }
+
+    public void addSuspendsConfigListener(SuspendsConfigListener listener) {
+        if(listener != null) {
+            suspendListeners.add(listener);
+            listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
         }
     }
 
     @Override
     protected void doStart() throws Exception {
-        ConfigService configService = ServiceFactory.getConfigService();
-        configService.addIAgentConfigListener(this);
-
-        AgentConfig localAgentConfig = configService.getLocalAgentConfig();
-        loadConfig(localAgentConfig);
+        for (CoroutineConfigListener listener : listeners) {
+            listener.configureDelay(coroutinesConfig.isDelayedEnabled());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+        }
     }
 
     @Override
@@ -64,32 +62,16 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
 
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
-        loadConfig(agentConfig);
-    }
-
-    private void loadConfig(AgentConfig agentConfig) {
-        String ignoredContinuationStr = agentConfig.getValue(COROUTINES_IGNORES_CONTINUATIONS);
-        ignoredContinuations = ignoredContinuationStr != null ? ignoredContinuationStr.split(",") : null;
-
-        String ignoredScopeStr = agentConfig.getValue(COROUTINES_IGNORES_SCOPES);
-        ignoredScopes = ignoredScopeStr != null ? ignoredScopeStr.split(",") : null;
-
-        String ignoredDispatchedStr = agentConfig.getValue(COROUTINES_IGNORES_DISPATCHED);
-        ignoredDispatched = ignoredDispatchedStr != null ? ignoredDispatchedStr.split(",") : null;
-
-        boolean delayedEnabled = agentConfig.getValue(DELAYED_ENABLED_CONFIG, Boolean.FALSE);
-
+        coroutinesConfig = agentConfig.getKotlinCoroutinesConfig();
         for (CoroutineConfigListener listener : listeners) {
-            listener.configureContinuationIgnores(ignoredContinuations);
-            listener.configureScopeIgnores(ignoredScopes);
-            listener.configureDispatchedTasksIgnores(ignoredDispatched);
-            listener.configureDelay(delayedEnabled);
+            listener.configureDelay(coroutinesConfig.isDelayedEnabled());
+            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
+            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
+            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+        }
+        for(SuspendsConfigListener listener : suspendListeners) {
+            listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
         }
 
-        String ignoredSuspendsString = agentConfig.getValue(COROUTINES_IGNORES_SUSPENDS);
-        ignoredSuspends = ignoredSuspendsString != null ? ignoredSuspendsString.split(",") : null;
-        for (SuspendsConfigListener listener : suspendsConfigListeners) {
-            listener.configureSuspendsIgnores(ignoredSuspends);
-        }
     }
 }

@@ -31,6 +31,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
+import com.newrelic.agent.config.KotlinCoroutinesConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.deadlock.DeadlockDetectorService;
@@ -254,6 +255,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
         AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
 
+        KotlinCoroutinesConfig kotlinCoroutinesConfig = config.getKotlinCoroutinesConfig();
+        kotlinCoroutinesService = new KotlinCoroutinesService(kotlinCoroutinesConfig);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
@@ -293,8 +297,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         slowTransactionService = new SlowTransactionService(config);
 
         agentControlIntegrationService = buildAgentControlIntegrationService(config);
-
-        kotlinCoroutinesService = new KotlinCoroutinesService();
 
         asyncTxService.start();
         threadService.start();

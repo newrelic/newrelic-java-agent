@@ -149,6 +149,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     JmxConfig getJmxConfig();
 
     /**
+     * Gets the Kotlin Coroutines configuration settings.
+     *
+     * @return Kotlin Coroutines configuration settings
+     */
+    KotlinCoroutinesConfig getKotlinCoroutinesConfig();
+
+    /**
      * Gets the JarCollectorService configuration settings.
      *
      * @return JarCollectorService configuration settings.
