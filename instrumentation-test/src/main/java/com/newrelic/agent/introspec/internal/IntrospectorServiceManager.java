@@ -191,7 +191,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         } catch (Exception e) {
             // fall through
         }
-        kotlinCoroutinesService = new KotlinCoroutinesService();
     }
 
     @Override
@@ -434,7 +433,9 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         return expirationService;
     }
 
-    public KotlinCoroutinesService getKotlinCoroutinesService() { return kotlinCoroutinesService; }
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
+    }
     
     @Override
     public void refreshDataForCRaCRestore() {}
