@@ -50,8 +50,6 @@ public class DatabaseStatementResponseParserTest {
         agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
         MockConfigService configService = new MockConfigService(agentConfig);
         sm.setConfigService(configService);
-
-        when(agentConfig.getTransactionTracerConfig().isExecCallSqlRegexDisabled()).thenReturn(false);
     }
 
     @AfterClass
@@ -65,6 +63,7 @@ public class DatabaseStatementResponseParserTest {
     @Before
     public void before() {
         parser = new DefaultDatabaseStatementParser();
+        when(agentConfig.getTransactionTracerConfig().isExecCallSqlRegexDisabled()).thenReturn(false);
     }
 
     @Test
