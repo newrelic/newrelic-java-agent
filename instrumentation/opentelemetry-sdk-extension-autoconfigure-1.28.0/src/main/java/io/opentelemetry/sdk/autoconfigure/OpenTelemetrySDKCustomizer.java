@@ -53,6 +53,9 @@ final class OpenTelemetrySDKCustomizer {
             final Map<String, String> properties = new HashMap<>();
             properties.put("otel.exporter.otlp.headers", "api-key=" + licenseKey);
             properties.put("otel.exporter.otlp.endpoint", endpoint);
+            properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
+            properties.put("otel.traces.exporter", "none"); // disable default traces exporter
+            properties.put("otel.logs.exporter", "none"); // disable default logs exporter
             properties.put("otel.exporter.otlp.protocol", "http/protobuf");
             properties.put("otel.span.attribute.value.length.limit", "4095");
             properties.put("otel.exporter.otlp.compression", "gzip");
