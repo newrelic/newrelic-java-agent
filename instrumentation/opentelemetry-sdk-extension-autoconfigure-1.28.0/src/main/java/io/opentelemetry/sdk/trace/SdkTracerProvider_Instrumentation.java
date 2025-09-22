@@ -25,6 +25,8 @@ public final class SdkTracerProvider_Instrumentation {
         final TracerBuilder tracerBuilder = Weaver.callOriginal();
         Config config = NewRelic.getAgent().getConfig();
         if (NRSpanBuilder.isSpanBuilderEnabled(config)) {
+            // Generate the instrumentation module supportability metric
+            NewRelic.incrementCounter("Supportability/Tracing/Java/OpenTelemetryBridge/enabled");
             // return our tracer builder instead of the OTel instance
             return new NRTracerBuilder(config, instrumentationScopeName, sharedState);
         }
