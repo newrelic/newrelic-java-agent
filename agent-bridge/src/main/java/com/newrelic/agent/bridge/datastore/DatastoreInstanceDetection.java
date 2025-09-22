@@ -95,13 +95,15 @@ public final class DatastoreInstanceDetection {
         InetSocketAddress previousAddress = address.get();
         if (previousAddress != null && !previousAddress.equals(addressToStore)) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
-                    "Two different addresses detected: {0} and {1}. Invalidating previously detected address.",
-                    previousAddress, address);
-            stopDetectingConnectionAddress();
+                    "JGB: Two different addresses detected: {0} and {1}. Using originally detected address.",
+                    previousAddress, addressToStore);
+            //stopDetectingConnectionAddress();
+            AgentBridge.getAgent().getLogger().log(Level.FINEST,
+                    "JGB: No longer stopping address detection");
             return;
         }
 
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing address: {0}", address);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing address: {0}", addressToStore);
         DatastoreInstanceDetection.address.set(addressToStore);
     }
 
