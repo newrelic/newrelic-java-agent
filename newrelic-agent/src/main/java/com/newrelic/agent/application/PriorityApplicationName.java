@@ -15,7 +15,7 @@ import com.newrelic.agent.config.BaseConfig;
 import com.newrelic.api.agent.ApplicationNamePriority;
 
 /**
- * An name that participates in the priority application naming rules. This class is immutable and therefore threadsafe.
+ * A name that participates in the priority application naming rules. This class is immutable and therefore threadsafe.
  */
 public class PriorityApplicationName {
 
