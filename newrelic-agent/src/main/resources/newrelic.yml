@@ -225,6 +225,12 @@ common: &default_settings
     # Default is apdex_f.
     transaction_threshold: apdex_f
 
+    # For large SQL statements, executing the regular expressions that attempt to parse exec and
+    # call statements can take a significant amount of time. Setting this to true will disable the
+    # execution of these complex regular expressions.
+    # Default is false.
+    exec_call_sql_regex_disabled: false
+
     # When transaction tracer is on, SQL statements can optionally be
     # recorded. The recorder has three modes, "off" which sends no
     # SQL, "raw" which sends the SQL statement in its original form,

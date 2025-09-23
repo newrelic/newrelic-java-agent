@@ -8,9 +8,12 @@
 package com.newrelic.agent.database;
 
 import com.google.common.io.Files;
+import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockCoreService;
+import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import org.junit.AfterClass;
@@ -30,12 +33,23 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class DatabaseStatementResponseParserTest {
     DatabaseStatementParser parser;
+    private static AgentConfig agentConfig;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
         MockCoreService.getMockAgentAndBootstrapTheServiceManager();
+
+        MockServiceManager sm = new MockServiceManager();
+        ServiceFactory.setServiceManager(sm);
+        agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        MockConfigService configService = new MockConfigService(agentConfig);
+        sm.setConfigService(configService);
     }
 
     @AfterClass
@@ -49,6 +63,7 @@ public class DatabaseStatementResponseParserTest {
     @Before
     public void before() {
         parser = new DefaultDatabaseStatementParser();
+        when(agentConfig.getTransactionTracerConfig().isExecCallSqlRegexDisabled()).thenReturn(false);
     }
 
     @Test
@@ -534,6 +549,39 @@ public class DatabaseStatementResponseParserTest {
 
         assertEquals("insert", parsedStatement.getOperation());
         assertEquals("jxu7wns.djs_project_test", parsedStatement.getModel());
+    }
+
+    @Test
+    public void testExecCallRegexDisabled() {
+        when(agentConfig.getTransactionTracerConfig().isExecCallSqlRegexDisabled()).thenReturn(true);
+        parser = new DefaultDatabaseStatementParser();
+
+        // These should return an unparaseable statement instance
+        ParsedDatabaseStatement parsedStatement = parseStatement("call dude(?)");
+        assertEquals("other", parsedStatement.getOperation());
+        assertNull(parsedStatement.getModel());
+
+        parsedStatement = parseStatement("exec dude(?)");
+        assertEquals("other", parsedStatement.getOperation());
+        assertNull(parsedStatement.getModel());
+
+        // These should parse normally even with the disabled flag on
+        parsedStatement = parseStatement("Select * from metrics");
+        assertEquals("select", parsedStatement.getOperation());
+        assertEquals("metrics", parsedStatement.getModel());
+
+        parsedStatement = parseStatement("DROP PROCEDURE IF EXISTS agent_count_all");
+        assertEquals("drop", parsedStatement.getOperation());
+        assertEquals("Procedure", parsedStatement.getModel());
+
+        parsedStatement = parseStatement("insert into dude(1,2,3)");
+        assertEquals("insert", parsedStatement.getOperation());
+        assertEquals("dude", parsedStatement.getModel());
+
+        parsedStatement = parseStatement("delete from  dude");
+        assertEquals("delete", parsedStatement.getOperation());
+        assertEquals("dude", parsedStatement.getModel());
+
     }
 
     private ParsedDatabaseStatement parseStatement(String statement, ResultSetMetaData metaData) {
