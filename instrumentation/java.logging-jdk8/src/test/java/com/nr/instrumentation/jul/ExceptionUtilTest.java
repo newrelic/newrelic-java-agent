@@ -64,7 +64,7 @@ public class ExceptionUtilTest {
         assertNull(ExceptionUtil.getErrorClass(null));
     }
     
-    public static Throwable createNestedThrowable(int depth) {
+    private static Throwable createNestedThrowable(int depth) {
         Throwable rootCause = new Throwable("Root Cause (Level " + (depth - 1) + ")");
         Throwable currentThrowable = rootCause;
 
