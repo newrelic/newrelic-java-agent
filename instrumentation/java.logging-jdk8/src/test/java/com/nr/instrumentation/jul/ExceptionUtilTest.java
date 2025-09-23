@@ -17,9 +17,17 @@ import static org.junit.Assert.assertTrue;
 public class ExceptionUtilTest {
     @Test
     public void getErrorStack_withThrowable_generatesFullStacktrace() {
-        assertFalse(ExceptionUtil.getErrorStack(createTestException()).contains("caused by: java.lang.Exception: inner exception"));
+        assertFalse(ExceptionUtil.getErrorStack(createNestedThrowable(1)).contains("caused by: java.lang.Throwable: Root Cause (Level 0)"));
 
-        assertTrue(ExceptionUtil.getErrorStack(createTestExceptionWithCausedBy()).contains("caused by: java.lang.Exception: inner exception"));
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 1)"));
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 2)"));
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 3)"));
+    }
+
+    @Test
+    public void getErrorStack_withLargeCausedByStack_truncatesStackTrace() {
+        // This was causing an OOM prior to the fix
+        assertEquals(300, ExceptionUtil.getErrorStack(createNestedThrowable(35000)).split("\n").length);
     }
 
     @Test
@@ -38,7 +46,7 @@ public class ExceptionUtilTest {
 
     @Test
     public void getErrorMessage_withThrowable_returnsErrorMessage() {
-        assertEquals("test exception", ExceptionUtil.getErrorMessage(createTestException()));
+        assertEquals("Root Cause (Level 0)", ExceptionUtil.getErrorMessage(createNestedThrowable(1)));
     }
 
     @Test
@@ -48,7 +56,7 @@ public class ExceptionUtilTest {
 
     @Test
     public void getErrorClass_withThrowable_returnsErrorMessage() {
-        assertEquals("java.lang.Exception", ExceptionUtil.getErrorClass(createTestException()));
+        assertEquals("java.lang.Throwable", ExceptionUtil.getErrorClass(createNestedThrowable(1)));
     }
 
     @Test
@@ -56,11 +64,14 @@ public class ExceptionUtilTest {
         assertNull(ExceptionUtil.getErrorClass(null));
     }
     
-    private Exception createTestException() {
-        return new Exception("test exception");
-    }
+    public static Throwable createNestedThrowable(int depth) {
+        Throwable rootCause = new Throwable("Root Cause (Level " + (depth - 1) + ")");
+        Throwable currentThrowable = rootCause;
 
-    private Exception createTestExceptionWithCausedBy() {
-        return new Exception("test exception", new Exception("inner exception"));
+        for (int i = depth - 2; i >= 0; i--) {
+            currentThrowable = new Throwable("Nested Exception (Level " + i + ")", currentThrowable);
+        }
+
+        return currentThrowable;
     }
 }
