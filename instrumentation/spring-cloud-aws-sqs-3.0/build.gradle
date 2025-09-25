@@ -1,0 +1,35 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.awspring.cloud:spring-cloud-aws-sqs:3.0.4")
+    implementation("software.amazon.awssdk:sqs:2.21.29")
+    
+    testImplementation("org.elasticmq:elasticmq-core_2.13:1.5.7")
+    testImplementation("org.elasticmq:elasticmq-rest-sqs_2.13:1.5.7")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-cloud-aws-sqs-3.0', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.awspring.cloud:spring-cloud-aws-sqs:[3.0.0,)'
+    excludeRegex 'io.awspring.cloud:spring-cloud-aws-sqs:.*M[0-9]*$'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Spring Cloud AWS SQS'
+    type 'Messaging'
+}
