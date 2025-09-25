@@ -97,10 +97,10 @@ public final class DatastoreInstanceDetection {
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "JGB: Two different addresses detected: {0} and {1}. Using originally detected address.",
                     previousAddress, addressToStore);
-            stopDetectingConnectionAddress();
+            //stopDetectingConnectionAddress();
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
-                    "JGB: Setting to previous address");
-            DatastoreInstanceDetection.address.set(previousAddress);
+                    "JGB: Keeping previous address");
+            //DatastoreInstanceDetection.address.set(previousAddress);
             return;
         }
 
