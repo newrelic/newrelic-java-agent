@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoroutinesConfig {
 
-    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.kotlin.coroutines.";
+    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.coroutines.";
     public static final String CONTINUATIONS_ROOT = "continuations";
     public static final String SCOPES_ROOT = "scopes";
     public static final String DISPATCHED_ROOT = "dispatched";
@@ -30,9 +30,9 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
 
         if (continuations_root != null) {
             String continuationsToIgnore = continuations_root.get(IGNORE);
-            ignoredContinuations = splitString(continuationsToIgnore); //continuationsToIgnore == null ? new String[0] : continuationsToIgnore.split(",");
+            ignoredContinuations = splitString(continuationsToIgnore);
             String continuationsToIgnoreRegex = continuations_root.get(IGNORE_REGEX);
-            ignoredRegexContinuations = splitString(continuationsToIgnoreRegex); //continuationsToIgnoreRegex == null ? new String[0] : continuationsToIgnoreRegex.split(",");
+            ignoredRegexContinuations = splitString(continuationsToIgnoreRegex);
         } else {
             ignoredContinuations = new String[0];
             ignoredRegexContinuations = new String[0];
@@ -41,9 +41,9 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         Map<String, String> scopes_root = getProperty(SCOPES_ROOT);
         if (scopes_root != null) {
             String scopesToIgnore = scopes_root.get(IGNORE);
-            ignoredScopes = splitString(scopesToIgnore); //scopesToIgnore == null ? new String[0] : scopesToIgnore.split(",");
+            ignoredScopes = splitString(scopesToIgnore);
             String scopesToIgnoreRegex = scopes_root.get(IGNORE_REGEX);
-            ignoredRegexScopes = splitString(scopesToIgnoreRegex); //scopesToIgnoreRegex == null ? new String[0] : scopesToIgnoreRegex.split(",");
+            ignoredRegexScopes = splitString(scopesToIgnoreRegex);
         } else {
             ignoredScopes = new String[0];
             ignoredRegexScopes = new String[0];
@@ -52,9 +52,9 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         Map<String, String> dispatched_root = getProperty(DISPATCHED_ROOT);
         if (dispatched_root != null) {
             String dispatchedToIgnore = dispatched_root.get(IGNORE);
-            ignoredDispatched = splitString(dispatchedToIgnore);  //dispatchedToIgnore == null ? new String[0] : dispatchedToIgnore.split(",");
+            ignoredDispatched = splitString(dispatchedToIgnore);
             String dispatchedToIgnoreRegex = dispatched_root.get(IGNORE_REGEX);
-            ignoredRegexDispatched = splitString(dispatchedToIgnoreRegex); //dispatchedToIgnoreRegex == null ? new String[0] : dispatchedToIgnoreRegex.split(",");
+            ignoredRegexDispatched = splitString(dispatchedToIgnoreRegex);
         } else {
             ignoredDispatched = new String[0];
             ignoredRegexDispatched = new String[0];
