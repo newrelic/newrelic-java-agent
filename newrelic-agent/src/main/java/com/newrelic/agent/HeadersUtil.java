@@ -265,7 +265,7 @@ public class HeadersUtil {
                 }
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
-                    tx.applyDistributedTracingSamplerConfig(w3CTracePayload.getTraceParent());
+                    tx.assignPriorityFromRemoteParent(w3CTracePayload.getTraceParent().sampled());
                 }
                 if (w3CTracePayload.getTraceState() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceState(w3CTracePayload.getTraceState());
@@ -275,7 +275,12 @@ public class HeadersUtil {
         else {
             String tracePayload = HeadersUtil.getNewRelicTraceHeader(inboundHeaders);
             if (tracePayload != null) {
-                tx.acceptDistributedTracePayload(tracePayload);
+                boolean accepted = tx.acceptDistributedTracePayload(tracePayload);
+                //REVISIT BEFORE FINALIZING
+                if (accepted) {
+                    DistributedTracePayloadImpl newRelicPayload = tx.getSpanProxy().getInboundDistributedTracePayload();
+                    tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
+                }
             }
         }
     }

@@ -27,6 +27,11 @@ public interface DistributedTraceService {
 
     String getApplicationId();
 
+
+    float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority);
+
+    float calculatePriorityRoot();
+
     <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir);
 
     Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid, String traceId, TransportType transportType,

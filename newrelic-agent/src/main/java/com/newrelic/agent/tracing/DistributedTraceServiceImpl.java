@@ -16,11 +16,15 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.interfaces.SamplingPriorityQueue;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOffSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOnSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -55,6 +59,11 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     private DistributedTracingConfig distributedTraceConfig;
 
+    private Sampler sampler;
+    private Sampler remoteParentSampledSampler;
+    private Sampler remoteParentNotSampledSampler;
+
+
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
     private static final ThreadLocal<DecimalFormat> FORMATTER =
@@ -76,6 +85,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        this.sampler = setSamplerType("default");
+        this.remoteParentSampledSampler = setSamplerType(distributedTraceConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = setSamplerType(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -172,6 +184,30 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     @Override
     public String getApplicationId() {
         return applicationId.get();
+    }
+
+    @Override
+    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority){
+        Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
+        if (parentSampler.getType().equals(Sampler.ADAPTIVE) && inboundPriority != null) {
+            return inboundPriority;
+        }
+        return remoteParentNotSampledSampler.calculatePriority();
+    }
+
+    @Override
+    public float calculatePriorityRoot(){
+        return sampler.calculatePriority();
+    }
+
+    private Sampler setSamplerType(String samplerType){
+        if (samplerType.equals(DistributedTracingConfig.SAMPLE_ALWAYS_ON)){
+            return new AlwaysOnSampler();
+        }
+        if (samplerType.equals(DistributedTracingConfig.SAMPLE_ALWAYS_OFF)){
+            return new AlwaysOffSampler();
+        }
+        return AdaptiveSampler.getInstance();
     }
 
     @Override
