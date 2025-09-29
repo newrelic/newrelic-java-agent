@@ -2248,6 +2248,9 @@ public class Transaction {
         }
 
         // Record Token API usage supportability metric
+        if (getMetricAggregator() == null) throw new RuntimeException("No getMetricAggregator");
+        if (AgentBridge.currentApiSource == null) throw new RuntimeException("No currentApiSource");
+        if (AgentBridge.currentApiSource.get() == null) throw new RuntimeException("No currentApiSource.get()");
         getMetricAggregator().incrementCounter(AgentBridge.currentApiSource.get().getSupportabilityMetric(
                 MetricNames.SUPPORTABILITY_API_TOKEN));
 

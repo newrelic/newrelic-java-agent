@@ -119,7 +119,7 @@ public class OneTestForCriticalPath implements TransactionListener {
 
     public void runTest() throws Exception {
         try {
-            System.out.println("Running test " + testName);
+            System.out.println("JGB: Running test " + testName);
             ServiceFactory.getTransactionService().addTransactionListener(this);
             long startTime = System.nanoTime();
             executeTest(startTime);
