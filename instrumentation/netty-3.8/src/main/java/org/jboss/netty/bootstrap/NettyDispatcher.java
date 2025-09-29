@@ -55,6 +55,7 @@ public class NettyDispatcher {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Unable to dispatch netty tx. No tracer."); // it happens.
             } else {
                 tracer.setMetricName("NettyUpstreamDispatcher");
+                System.out.println("JGB: set api source: Netty Dispatcher 3.8");
                 AgentBridge.currentApiSource.set(WeavePackageType.INTERNAL);
                 AgentBridge.getAgent().getTransaction().setTransactionName(TransactionNamePriority.SERVLET_NAME, true,
                         "NettyDispatcher", "NettyDispatcher");
@@ -69,6 +70,7 @@ public class NettyDispatcher {
         } catch (Throwable t) {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         } finally {
+            System.out.println("JGB: removing api source: Netty Dispatcher 3.8");
             AgentBridge.currentApiSource.remove();
         }
     }

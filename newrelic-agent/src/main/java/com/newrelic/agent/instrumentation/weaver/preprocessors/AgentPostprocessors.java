@@ -102,6 +102,7 @@ public class AgentPostprocessors implements WeavePostprocessor {
                         Collection<Method> methods = TRACKED_API_INTERNAL_NAME_TO_METHOD_NAMES.get(owner);
                         if (methods != null && methods.contains(currentMethod)) {
                             // Set the thread local to the current type of caller (e.g. - FIELD, INTERNAL, CUSTOM, etc)
+                            System.out.println("JGB: setting api source: AgentPostProcessor");
                             setCurrentApiSource(weavePackageType);
 
                             // Make the original API call
@@ -109,6 +110,7 @@ public class AgentPostprocessors implements WeavePostprocessor {
 
                             // Remove the thread local. If we hit an exception before we get here it will just be
                             // overwritten before the next call. So we don't need to worry about a try/catch/finally
+                            System.out.println("JGB: removing api source: AgentPostProcessor");
                             unsetCurrentApiSource();
                         } else {
                             super.visitMethodInsn(opcode, owner, name, desc, itf);
