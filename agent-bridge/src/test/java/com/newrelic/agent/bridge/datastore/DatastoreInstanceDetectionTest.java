@@ -57,7 +57,8 @@ public class DatastoreInstanceDetectionTest {
         DatastoreInstanceDetection.stopDetectingConnectionAddress();
 
         InetSocketAddress address = DatastoreInstanceDetection.getAddressForConnection(connection);
-        assertNull(address);
+        assertEquals("myhost", address.getHostName());
+        assertEquals(1234, address.getPort());
     }
 
     @Test
