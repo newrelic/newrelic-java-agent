@@ -169,7 +169,7 @@ public class OneTestForCriticalPath implements TransactionListener {
 
         while (dataList.size() != expectedTxCount) {
             try {
-                System.out.println("JGB: waiting for expectedTxCount");
+                System.out.println("JGB: waiting for expectedTxCount: "+dataList.size()+" != "+expectedTxCount);
                 Thread.sleep(10);
             } catch (InterruptedException e) {
             }
