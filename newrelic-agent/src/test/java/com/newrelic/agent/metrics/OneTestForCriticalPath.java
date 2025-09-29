@@ -56,10 +56,14 @@ public class OneTestForCriticalPath implements TransactionListener {
 
     public static OneTestForCriticalPath createOneTestForCriticalPath(JSONObject json, String pFileName) {
 
+        System.out.println("JGB: creating test");
+
         OneTestForCriticalPath one = new OneTestForCriticalPath();
         one.fileName = pFileName;
         Object obj = json.get("testname");
+
         one.testName = (obj == null) ? null : (String) obj;
+        System.out.println("JGB: testname: "+one.testName);
 
         obj = json.get("tracers");
         if (obj != null) {
@@ -69,6 +73,8 @@ public class OneTestForCriticalPath implements TransactionListener {
                 one.tracers.add(t);
             }
         }
+        System.out.println("JGB: added: "+one.tracers.size()+" tracers");
+
 
         obj = json.get("scoped_metric_solution");
         if (obj != null) {
@@ -78,6 +84,7 @@ public class OneTestForCriticalPath implements TransactionListener {
                 one.expectedScopedMetrics.put(metric.getScope(), metric);
             }
         }
+        System.out.println("JGB: added: "+one.expectedScopedMetrics.size()+" scoped metrics");
         obj = json.get("unscoped_metric_solution");
         if (obj != null) {
             JSONArray metrics = (JSONArray) obj;
@@ -86,6 +93,7 @@ public class OneTestForCriticalPath implements TransactionListener {
                 one.expectedUnscopedMetrics.add(metric);
             }
         }
+        System.out.println("JGB: added: "+one.expectedUnscopedMetrics.size()+" unscoped metrics");
         one.expectedTxCount = one.expectedScopedMetrics.keySet().size();
 
         obj = json.get("transaction_trace");
@@ -122,6 +130,7 @@ public class OneTestForCriticalPath implements TransactionListener {
     }
 
     private void executeTest(long startTime) throws InterruptedException, ExecutionException {
+        System.out.println("JGB: begin executeTest");
         Queue<JsonTracer> toPull = new ConcurrentLinkedQueue<>(tracers);
         for (JsonTracer current : tracers) {
             AsyncComponent comp = threads.get(current.getAsyncUnit());
@@ -130,34 +139,42 @@ public class OneTestForCriticalPath implements TransactionListener {
                 threads.put(current.getAsyncUnit(), comp);
             }
         }
+        System.out.println("JGB: added threads");
 
         ExecutorService executor = Executors.newFixedThreadPool(threads.size());
         List<Future<Transaction>> outputs = new ArrayList<>(threads.size());
         for (AsyncComponent current : threads.values()) {
             outputs.add(executor.submit(current));
         }
+        System.out.println("JGB: submitted executors");
 
         Transaction tx = null;
         for (Future<Transaction> currTx : outputs) {
             if (tx == null) {
+                System.out.println("JGB: getting tx: "+currTx);
                 tx = currTx.get();
             } else {
                 // Transaction newest = currTx.get();
                 // Assert.assertEquals(newest, tx);
             }
         }
+        System.out.println("JGB: got transaction");
 
         Assert.assertNotNull(tx);
-
+        System.out.println("JGB: end executeTest");
     }
 
     private void validateResults() {
+        System.out.println("JGB: begin validateResults");
+
         while (dataList.size() != expectedTxCount) {
             try {
+                System.out.println("JGB: waiting for expectedTxCount");
                 Thread.sleep(10);
             } catch (InterruptedException e) {
             }
         }
+        System.out.println("JGB: asserting tx counts");
         Assert.assertEquals(expectedTxCount, dataList.size());
         Assert.assertEquals(expectedTxCount, statsList.size());
 
@@ -167,20 +184,32 @@ public class OneTestForCriticalPath implements TransactionListener {
     }
 
     private void verifyTransactionTrace() {
+        System.out.println("JGB: begin verifyTT");
+
         if (trace != null) {
             TransactionTrace actualTrace = TransactionTrace.getTransactionTrace(dataList.get(0));
             trace.validateTransactionTrace(actualTrace);
         }
+        System.out.println("JGB: end verifyTT");
+
     }
 
     private void verifyTransactionEvent() {
+        System.out.println("JGB: begin verifyTE");
+
         if (txEvent != null) {
             txEvent.verifyTransactionEvent(dataList.get(0), statsList.get(0));
         }
+        System.out.println("JGB: end verifyTE");
+
     }
 
     private void verifyMetrics() {
+        System.out.println("JGB: begin verifyMetrics");
+
         for (int i = 0; i < expectedTxCount; i++) {
+            System.out.println("JGB: tx #"+i);
+
             String scope = dataList.get(i).getBlameOrRootMetricName();
             SimpleStatsEngine scopedStats = statsList.get(i).getScopedStats();
 
@@ -210,10 +239,14 @@ public class OneTestForCriticalPath implements TransactionListener {
                 }
             }
         }
+        System.out.println("JGB: end verifyMetrics");
+
     }
 
     @Override
     public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+        System.out.println("JGB: dispatcherTransactionFinished");
+
         dataList.add(transactionData);
         statsList.add(transactionStats);
     }
