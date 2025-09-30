@@ -50,36 +50,41 @@ public class AdaptiveSamplerTest {
     @Test
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
         int DEFAULT_TARGET = 120;
-        int DEFAULT_REPORT_PERIOD = 30;
-        int NUM_PERIODS = 10;
+        int DEFAULT_REPORT_PERIOD = 60;
+        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstance();
+        int NUM_PERIODS = 5;
         int expectedSampled = DEFAULT_TARGET * NUM_PERIODS;
-        runSingleThreadedTest(DEFAULT_TARGET, DEFAULT_REPORT_PERIOD, NUM_PERIODS, expectedSampled);
+        long testLengthMillis = DEFAULT_REPORT_PERIOD * NUM_PERIODS * 1000;
+        runSingleThreadedTest(defaultSampler, testLengthMillis, expectedSampled);
     }
 
     @Test
     public void testCalculatePriorityFastPeriod() throws InterruptedException{
         int TARGET = 10;
         int REPORT_PERIOD = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
         int NUM_PERIODS = 30;
         int expectedSampled = TARGET * NUM_PERIODS;
-        runSingleThreadedTest(TARGET, REPORT_PERIOD, NUM_PERIODS, expectedSampled);
+        long testLengthMillis = REPORT_PERIOD * NUM_PERIODS * 1000;
+        runSingleThreadedTest(sampler, testLengthMillis, expectedSampled);
     }
 
     @Test
     public void testTargetIsZeroShouldSampleNothing() throws InterruptedException{
         int TARGET = 0;
         int REPORT_PERIOD = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
         int NUM_PERIODS = 12;
         int expectedSampled = 0;
-        runSingleThreadedTest(TARGET, REPORT_PERIOD, NUM_PERIODS, expectedSampled);
+        long testLengthMillis = REPORT_PERIOD * NUM_PERIODS * 1000;
+        runSingleThreadedTest(sampler, testLengthMillis, expectedSampled);
     }
 
     @Test
     public void testFirstPeriodShouldSampleTargetExactly() throws InterruptedException {
         int TARGET = 15;
         int REPORT_PERIOD = 10;
-        setupConfig(TARGET, REPORT_PERIOD);
-        AdaptiveSampler sampler = AdaptiveSampler.getInstance();
+        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
 
         long testLengthMillis = 12000L; //run test for 12 seconds
         runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
@@ -95,9 +100,7 @@ public class AdaptiveSamplerTest {
         int REPORT_PERIOD = 5;
         int numPeriods = 10;
 
-        setupConfig(TARGET, REPORT_PERIOD);
-
-        AdaptiveSampler sampler = AdaptiveSampler.getInstance();
+        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
 
         long testLengthMillis = numPeriods * REPORT_PERIOD * 1000L;
         int totalSampledFirstLoad = runSamplerAndGetSampled(sampler, testLengthMillis);
@@ -122,9 +125,8 @@ public class AdaptiveSamplerTest {
         int TARGET = 50;
         int REPORT_PERIOD = 5;
         int numPeriods = 10;
-        setupConfig(TARGET, REPORT_PERIOD);
 
-        AdaptiveSampler sampler = AdaptiveSampler.getInstance();
+        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
 
         long testLengthMillis = numPeriods * REPORT_PERIOD * 1000L;
 
@@ -160,38 +162,29 @@ public class AdaptiveSamplerTest {
     public void testGetAdaptiveSamplerInstance() throws InterruptedException, ExecutionException {
         //The sampler is REQUIRED to be a singleton instance.
         //This test verifies that access to the sampler always returns the same instance.
-        setupConfig(null, null);
         ExecutorService executor = Executors.newFixedThreadPool(5);
         List<Future<?>> samplerArray = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
-            Future<?> fut = executor.submit(AdaptiveSampler::getInstance);
+            Future<?> fut = executor.submit(AdaptiveSampler::getSharedInstance);
             samplerArray.add(fut);
         }
-        AdaptiveSampler baseSampler = AdaptiveSampler.getInstance();
+        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
         Assert.assertNotNull(baseSampler);
         for (Future<?> f : samplerArray) {
             Assert.assertEquals(baseSampler, f.get());
         }
     }
 
-    private void setupConfig(Integer target, Integer reportPeriod) {
+
+    private void setupDefaultConfig() {
         Map<String, Object> settings = new HashMap<>();
-        if (target != null){
-            settings.put(AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_TARGET, target);
-        }
-        if (reportPeriod != null){
-            settings.put(AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_PERIOD, reportPeriod);
-        }
         ConfigService configService = ConfigServiceFactory.createConfigService(
                 AgentConfigImpl.createAgentConfig(settings),
                 Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
     }
 
-    private void runSingleThreadedTest(int target, int reportPeriod, int numPeriods, int expectedSampled) throws InterruptedException{
-        setupConfig(target, reportPeriod);
-        AdaptiveSampler sampler = AdaptiveSampler.getInstance();
-        long testLengthMillis = numPeriods * reportPeriod * 1000L;
+    private void runSingleThreadedTest(AdaptiveSampler sampler, long testLengthMillis, int expectedSampled) throws InterruptedException{
         int totalSampled = runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
         //evaluate results
         float errorMargin = 0.15f;

@@ -300,7 +300,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
         //EXPERIMENTAL
-        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, 10);
+        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, 120);
         adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, 60);
         //END EXPERIMENTAL
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security

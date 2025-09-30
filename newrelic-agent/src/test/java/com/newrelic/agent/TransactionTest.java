@@ -207,6 +207,16 @@ public class TransactionTest {
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
             }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 0.0f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 0.0f;
+            }
         };
     }
 
@@ -1258,6 +1268,16 @@ public class TransactionTest {
             @Override
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 0.0f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 0.0f;
             }
         });
 

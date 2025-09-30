@@ -40,8 +40,6 @@ import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
-import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
-import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.StatsWorks;
@@ -307,7 +305,7 @@ public class Transaction {
             boolean accepted = spanProxy.get().acceptDistributedTracePayload(payload);
             if (accepted) {
                 this.transportDurationInMillis = spanProxy.get().getTransportDurationInMillis();
-                //this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
+                this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
             }
             return accepted;
         } else {
@@ -325,7 +323,7 @@ public class Transaction {
             boolean accepted = spanProxy.get().acceptDistributedTracePayload(payload);
             if (accepted) {
                 this.transportDurationInMillis = spanProxy.get().getTransportDurationInMillis();
-                //this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
+                this.setPriorityIfNotNull(spanProxy.get().getInboundDistributedTracePayload().priority);
             }
             return accepted;
         } else {
@@ -338,23 +336,18 @@ public class Transaction {
     //1. Is it okay to remove the setPriorityIfNotNull on lines 313 and 331?
     //2. Conversely, is it okay for the payload priority to be used even if the payload was not accepted?
     //3. Does this implementation keep us up-to-spec?
-    //4. How can the getPriorityForSamplerType be moved effectively into the DistributedTraceServiceImpl?
-    //5. How can the samplers be refactored?
     //6. When we check for inbound priority, is the priority being evaluated correctly? (taken from the priority
-    // if available, or the sampled flag if priority is not available) - RUN THROUGH TRUTH TABLES.
+    // if available, or the sampled flag if priority is not available) - RUN THROUGH TRUTH TABLES/Ask Hannah
     //7. What about TransactionCanceled?
 
     public void assignPriorityFromRemoteParent(boolean remoteParentSampled) {
         DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-        float priority = dtService.calculatePriorityRemoteParent(remoteParentSampled,  getInboundPriority());
+        float priority = dtService.calculatePriorityRemoteParent(remoteParentSampled, getInboundPriority());
         this.priority.set(priority);
     }
 
     public void assignPriorityRoot(){
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
-            //It is important to check that the priority is null.
-            //If it was set by a remote parent, or by an earlier call to createDTHeaders,
-            //we should not overwrite this value.
             if (priority.get() == null){
                 Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot();
                 priority.compareAndSet(null, samplerPriority);
@@ -375,131 +368,6 @@ public class Transaction {
         }
         return null;
     }
-
-    // ~~~ BELOW THIS LINE - AN INTERMEDIATE STATE WITH LESS REFACTORING
-
-//    public void assignPriorityFromRemoteParentState(boolean remoteParentSampled) {
-//        DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
-//        float priority;
-//        if (remoteParentSampled) {
-//            priority = getPriorityForSamplerType(dtConfig.getRemoteParentSampled());
-//        } else {
-//            priority = getPriorityForSamplerType(dtConfig.getRemoteParentNotSampled());
-//        }
-//        this.priority.set(priority);
-//        this.usedRemoteParentSamplingDecision.set(true);
-//    }
-//
-//    public void assignPriorityIfRoot(){
-//        if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
-//            //THOUGHT: should I remove the usedRemoteParentSamplingDecision and just base it off of
-//            //whether the priority is null?
-//            if (!usedRemoteParentSamplingDecision.get() && priority.get() == null){
-//                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriority();
-//                priority.compareAndSet(null, samplerPriority);
-//            }
-//        } else {
-//            priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
-//        }
-//    }
-//
-//    private float getPriorityForSamplerType(String samplerType){
-//        float priority;
-//        switch(samplerType) {
-//            case DistributedTracingConfig.SAMPLE_ALWAYS_ON:
-//                priority = 2.0f;
-//                break;
-//            case DistributedTracingConfig.SAMPLE_ALWAYS_OFF:
-//                priority = 0.0f;
-//                break;
-//            default:
-//                priority = getInboundPriorityOrCalculatePriority();
-//                break;
-//        }
-//        return priority;
-//    }
-//
-//    private float getInboundPriorityOrCalculatePriority(){
-//        DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
-//        //The payload is non-null if there were
-//        //1. valid trace state AND trace parent headers OR
-//        //2. valid new relic headers
-//        if (payload != null) {
-//            if (payload.priority != null) {
-//               return payload.priority;
-//            } else {
-//                return (payload.sampled.booleanValue() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
-//            }
-//        }
-//        //This is if the traceState was null (even if the traceParent was non-null)
-//        return ServiceFactory.getDistributedTraceService().calculatePriority();
-//    }
-
-    // ~~~~ BELOW THIS LINE CONTAINS OLDER, MORE LITERAL IMPLEMENTATIONS OF THE SAMPLER SPEC ~~~~~~~~~~
-
-//    public void assignPriorityFromRemoteParentState( W3CTraceParent traceParent, W3CTraceState traceState, DistributedTracePayloadImpl newRelicPayload){
-//        //If neither traceParent nor NR DT headers are available, then no parent-based sampling decision can be made.
-//        if (traceParent == null && newRelicPayload == null) {
-//            return;
-//        }
-//        //Get the value of the sampled flag from the remote parent.
-//        boolean remoteParentSampled = isRemoteParentSampled(traceParent, newRelicPayload);
-//        //Now, apply the remote parent config.
-//        DistributedTracingConfig dtConfig = getAgentConfig().getDistributedTracingConfig();
-//        float priority;
-//        if (remoteParentSampled) {
-//            switch(dtConfig.getRemoteParentSampled()) {
-//                case DistributedTracingConfig.SAMPLE_ALWAYS_ON:
-//                    priority = 2.0f;
-//                    break;
-//                case DistributedTracingConfig.SAMPLE_ALWAYS_OFF:
-//                    priority = 0.0f;
-//                    break;
-//                default:
-//                    priority = checkParentDataOrDoAdaptiveSampling(traceParent, traceState, newRelicPayload);
-//                    break;
-//            }
-//        } else {
-//           switch (dtConfig.getRemoteParentNotSampled()) {
-//               case DistributedTracingConfig.SAMPLE_ALWAYS_ON:
-//                   priority = 2.0f;
-//                   break;
-//               case DistributedTracingConfig.SAMPLE_ALWAYS_OFF:
-//                   priority = 0.0f;
-//                   break;
-//               default:
-//                   priority = checkParentDataOrDoAdaptiveSampling(traceParent, traceState, newRelicPayload);
-//                   break;
-//           }
-//        }
-//        this.setPriorityIfNotNull(priority);
-//        this.usedRemoteParentSamplingDecision.set(true);
-//    }
-
-//    private boolean isRemoteParentSampled(W3CTraceParent traceParent, DistributedTracePayloadImpl newRelicPayload) {
-//        if (traceParent != null ) {
-//            return traceParent.sampled();
-//        }
-//        return newRelicPayload.sampled.booleanValue();
-//    }
-
-//    private float checkParentDataOrDoAdaptiveSampling(W3CTraceParent traceParent, W3CTraceState traceState, DistributedTracePayloadImpl newRelicPayload) {
-//        DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-//        // Float priority;
-////        if (traceParent != null && traceState != null) {
-////            priority = traceState.getPriority();
-////        } else if (traceParent == null && newRelicPayload != null) {
-////            priority = newRelicPayload.priority;
-////        } else {
-////            priority = dtService.calculatePriority();
-////        }
-//        //can this ^^ be replaced with the following code?
-//        Float inboundPriority = spanProxy.get().getInboundDistributedTracePayload().priority;
-//        if (inboundPriority != null) {
-//            return inboundPriority;
-//        }
-//        return dtService.calculatePriority();
-//    }
 
     public TransportType getTransportType() {
         return transportType;
@@ -629,7 +497,6 @@ public class Transaction {
     // registered.
     private void postConstruct() {
         this.initialActivity = TransactionActivity.create(this, nextActivityId.getAndIncrement());;
-        //checkAndSetPriority();
     }
 
     private static long getGCTime() {
@@ -860,18 +727,6 @@ public class Transaction {
             priorityTransactionName = priorityTransactionName.freeze();
         }
     }
-
-//    private void applyPriorityFromSamplerIfNotSet(){
-//        if (priority.get() == null){
-//            if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
-//                DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-//                priority.compareAndSet(null, dtService.calculatePriority(null, null));
-//            } else {
-//                //DT is not turned on. Use a random priority. This will only affect whether transactions are booted from the reservoir.
-//                priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
-//            }
-//        }
-//    }
 
     private void renameTransaction() {
         if (Agent.LOG.isFinestEnabled()) {

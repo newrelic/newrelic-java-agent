@@ -18,7 +18,7 @@ public class AdaptiveSampler implements Sampler {
     private int sampledCountLast;
     private boolean firstPeriod;
 
-    private static AdaptiveSampler SAMPLER_INSTANCE;
+    private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
     protected AdaptiveSampler(int target, int reportPeriodSeconds){
         this.TARGET = target;
@@ -33,9 +33,10 @@ public class AdaptiveSampler implements Sampler {
     }
 
     /**
-     * Factory method for getting an adaptive sampler.
-     * The adaptive sampler is a singleton sampler.
-     * Its state should be shared by all contexts that need to use adaptive sampling.
+     * Factory method for getting a shared instance of the adaptive sampler.
+     * This is the instance used when a top-level sampling target only is specified.
+     * Its state may be shared across multiple contexts using adaptive sampling, which is why
+     * it is a singleton.
      *
      * Lazy-instantiated.
      * Currently managed via synchronized as it should only be accessed a few times,
@@ -43,12 +44,12 @@ public class AdaptiveSampler implements Sampler {
      *
      * @return The AdaptiveSampler instance.
      */
-    public static synchronized AdaptiveSampler getInstance(){
-        if (SAMPLER_INSTANCE == null) {
+    public static synchronized AdaptiveSampler getSharedInstance(){
+        if (SAMPLER_SHARED_INSTANCE == null) {
             AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            SAMPLER_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds());
+            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds());
         }
-        return SAMPLER_INSTANCE;
+        return SAMPLER_SHARED_INSTANCE;
     }
 
     /**
@@ -82,7 +83,7 @@ public class AdaptiveSampler implements Sampler {
         }
     }
 
-    private boolean computeSampled(){
+    protected boolean computeSampled(){
         boolean sampled;
         if (firstPeriod) {
             sampled = sampledCount < TARGET;
@@ -103,10 +104,6 @@ public class AdaptiveSampler implements Sampler {
     }
 
     //These methods are for testing only. they are not thread-safe.
-    int getSeenLastPeriod(){
-        return seenLast;
-    }
-
     int getSampledCountLastPeriod(){
         return sampledCountLast;
     }

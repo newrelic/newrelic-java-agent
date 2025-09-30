@@ -85,9 +85,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-        this.sampler = setSamplerType("default");
-        this.remoteParentSampledSampler = setSamplerType(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = setSamplerType(distributedTraceConfig.getRemoteParentNotSampled());
+        this.sampler = Sampler.getSamplerForType("default");
+        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -192,22 +192,12 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         if (parentSampler.getType().equals(Sampler.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
         }
-        return remoteParentNotSampledSampler.calculatePriority();
+        return parentSampler.calculatePriority();
     }
 
     @Override
     public float calculatePriorityRoot(){
         return sampler.calculatePriority();
-    }
-
-    private Sampler setSamplerType(String samplerType){
-        if (samplerType.equals(DistributedTracingConfig.SAMPLE_ALWAYS_ON)){
-            return new AlwaysOnSampler();
-        }
-        if (samplerType.equals(DistributedTracingConfig.SAMPLE_ALWAYS_OFF)){
-            return new AlwaysOffSampler();
-        }
-        return AdaptiveSampler.getInstance();
     }
 
     @Override
@@ -400,6 +390,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         // Override guid if this trace is sampled and spans are enabled
         // guid will be the guid of the span that is creating this payload
         boolean spansEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getSpanEventsConfig().isEnabled();
+        tx.assignPriorityRoot();
         boolean sampled = DistributedTraceUtil.isSampledPriority(tx.getPriority());
         if (sampled && spansEnabled) {
             // Need to do this in case the span that created this is a @Trace(excludeFromTransactionTrace=true)
@@ -419,11 +410,26 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         boolean wasEnabled = isEnabled();
         this.distributedTraceConfig = agentConfig.getDistributedTracingConfig();
 
+        //will we allow the sampler config to be changeable?
         if (!wasEnabled && isEnabled()) {
             StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING);
             statsService.getMetricAggregator().incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER,
                     !distributedTraceConfig.isIncludeNewRelicHeader()));
         }
+    }
+
+    // These setters are NOT thread-safe.
+    // They should NOT be used outside of testing.
+    void setRemoteParentSampledSampler(Sampler sampler) {
+        this.remoteParentSampledSampler = sampler;
+    }
+
+    void setRemoteParentNotSampledSampler(Sampler sampler) {
+        this.remoteParentNotSampledSampler = sampler;
+    }
+
+    void setRootSampler(Sampler sampler) {
+        this.sampler = sampler;
     }
 }

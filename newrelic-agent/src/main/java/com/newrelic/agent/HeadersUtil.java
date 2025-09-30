@@ -277,10 +277,8 @@ public class HeadersUtil {
             if (tracePayload != null) {
                 boolean accepted = tx.acceptDistributedTracePayload(tracePayload);
                 //REVISIT BEFORE FINALIZING
-                if (accepted) {
-                    DistributedTracePayloadImpl newRelicPayload = tx.getSpanProxy().getInboundDistributedTracePayload();
-                    tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
-                }
+                DistributedTracePayloadImpl newRelicPayload = tx.getSpanProxy().getInboundDistributedTracePayload();
+                tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
             }
         }
     }
