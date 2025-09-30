@@ -24,8 +24,6 @@ public class BuildersKt_Instrumentation {
 		Token token = Utils.getToken(context);
 		if(token != null) {
 			token.link();
-		} else {
-			Utils.setToken(context);
 		}
 		String name = Utils.getCoroutineName(context);
 		if(name != null) {
@@ -62,8 +60,6 @@ public class BuildersKt_Instrumentation {
 			Token token = Utils.getToken(context);
 			if(token != null) {
 				token.link();
-			} else {
-				Utils.setToken(context);
 			}
 			if(!(block instanceof NRFunction2SuspendWrapper)) {
                 block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
@@ -114,8 +110,6 @@ public class BuildersKt_Instrumentation {
 			Token token = Utils.getToken(context);
 			if(token != null) {
 				token.link();
-			} else {
-				Utils.setToken(context);
 			}
 			if (!(block instanceof NRFunction2SuspendWrapper)) {
                 block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(block);
@@ -142,8 +136,6 @@ public class BuildersKt_Instrumentation {
 		Token token = Utils.getToken(context);
 		if(token != null) {
 			token.link();
-		} else {
-			Utils.setToken(context);
 		}
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
             block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
