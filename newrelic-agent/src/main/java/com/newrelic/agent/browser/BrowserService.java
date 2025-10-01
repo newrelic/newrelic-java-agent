@@ -12,7 +12,7 @@ import com.newrelic.agent.service.Service;
 public interface BrowserService extends Service {
 
     /**
-     * Get the browser configuation for the application.
+     * Get the browser configuration for the application.
      */
     BrowserConfig getBrowserConfig(String appName);
 

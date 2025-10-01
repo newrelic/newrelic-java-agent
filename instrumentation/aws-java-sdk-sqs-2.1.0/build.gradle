@@ -13,7 +13,67 @@ jar {
 }
 
 verifyInstrumentation {
-    passes 'software.amazon.awssdk:sqs:[2.1.0,)'
+    /*
+        This is the original verifier range prior to this update.
+        Previously it was simply "passes"; this changes it to
+        the standard "passOnly" method.
+     */
+    passesOnly 'software.amazon.awssdk:sqs:[2.1.0,)'
+    excludeRegex ".*preview.*"
+
+    /*
+        Now, exclude the ranges we know have passed verification
+        previously. We set the range such that the last revision
+        of each minor version will still get verified.
+
+
+        For the last known minor version, we leave the verify
+        range open ended to catch any new versions released
+        (including any new major/minor versions). The verify
+        ranges will probably need to be manually inspected
+        every so often to keep the task runtime in check.
+
+        This dramatically reduces the runtime of the verification
+        task. For this module, there were over 1500 artifacts that
+        were being downloaded for each verification - AWS seems to
+        enjoy releasing new revisions of SDK artifacts every few days.
+
+        This pattern can be applied to any module that suffers from
+        large numbers of artifacts (looking at anything AWS related).
+     */
+    exclude 'software.amazon.awssdk:sqs:[2.1.0,2.1.3]'
+    // Note: There is only a single 2.2.0 version which is why that range is missing
+    exclude 'software.amazon.awssdk:sqs:[2.3.0,2.3.8]'
+    exclude 'software.amazon.awssdk:sqs:[2.4.0,2.4.16]'
+    exclude 'software.amazon.awssdk:sqs:[2.5.0,2.5.70]'
+    exclude 'software.amazon.awssdk:sqs:[2.6.0,2.6.4]'
+    exclude 'software.amazon.awssdk:sqs:[2.7.0,2.7.35]'
+    exclude 'software.amazon.awssdk:sqs:[2.8.0,2.8.6]'
+    exclude 'software.amazon.awssdk:sqs:[2.9.0,2.9.25]'
+    exclude 'software.amazon.awssdk:sqs:[2.10.0,2.10.90]'
+    exclude 'software.amazon.awssdk:sqs:[2.11.0,2.11.13]'
+    // Note: There is only a single 2.12.0 version which is why that range is missing
+    exclude 'software.amazon.awssdk:sqs:[2.13.0,2.13.75]'
+    exclude 'software.amazon.awssdk:sqs:[2.14.0,2.14.27]'
+    exclude 'software.amazon.awssdk:sqs:[2.15.0,2.15.81]'
+    exclude 'software.amazon.awssdk:sqs:[2.16.0,2.16.103]'
+    exclude 'software.amazon.awssdk:sqs:[2.17.0,2.17.294]'
+    exclude 'software.amazon.awssdk:sqs:[2.18.0,2.18.40]'
+    exclude 'software.amazon.awssdk:sqs:[2.19.0,2.19.32]'
+    exclude 'software.amazon.awssdk:sqs:[2.20.0,2.20.161]'
+    exclude 'software.amazon.awssdk:sqs:[2.21.0,2.21.45]'
+    exclude 'software.amazon.awssdk:sqs:[2.22.0,2.22.12]'
+    exclude 'software.amazon.awssdk:sqs:[2.23.0,2.23.20]'
+    exclude 'software.amazon.awssdk:sqs:[2.24.0,2.24.12]'
+    exclude 'software.amazon.awssdk:sqs:[2.25.0,2.25.69]'
+    exclude 'software.amazon.awssdk:sqs:[2.26.0,2.26.30]'
+    exclude 'software.amazon.awssdk:sqs:[2.27.0,2.27.23]'
+    exclude 'software.amazon.awssdk:sqs:[2.28.0,2.28.28]'
+    exclude 'software.amazon.awssdk:sqs:[2.29.0,2.29.51]'
+    exclude 'software.amazon.awssdk:sqs:[2.30.0,2.30.37]'
+    exclude 'software.amazon.awssdk:sqs:[2.31.0,2.31.77]'
+    exclude 'software.amazon.awssdk:sqs:[2.32.0,2.32.32]'
+    exclude 'software.amazon.awssdk:sqs:[2.33.0,2.33.12]'
 }
 
 site {

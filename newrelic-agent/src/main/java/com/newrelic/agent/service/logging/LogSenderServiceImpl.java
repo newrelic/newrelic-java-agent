@@ -555,8 +555,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
             if (key == null || value == null) {
-                Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
-                        + " Each key should be a String and each value should be a String, Number, or Boolean."
+                Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction."
+                        + " This attribute will be ignored. Each key should be a String and each value should be a String, Number, or Boolean."
                         + " Key: " + (key == null ? "[null]" : Strings.obfuscate(key)));
                 continue;
             }

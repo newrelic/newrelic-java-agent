@@ -18,10 +18,10 @@ import java.util.List;
  */
 public class InboundResponseWrapper extends ExtendedInboundHeaders {
 
-    private final ClientResponse response;
+    private final ClientResponse.Headers headers;
 
     public InboundResponseWrapper(ClientResponse response) {
-        this.response = response;
+        this.headers = response.headers();
     }
 
     @Override
@@ -32,7 +32,7 @@ public class InboundResponseWrapper extends ExtendedInboundHeaders {
     @Override
     public String getHeader(String name) {
         // header(name) will return an empty list if no header values are found
-        final List<String> header = response.headers().header(name);
+        final List<String> header = headers.header(name);
         if (!header.isEmpty()) {
             return header.get(0);
         }
@@ -41,6 +41,6 @@ public class InboundResponseWrapper extends ExtendedInboundHeaders {
 
     @Override
     public List<String> getHeaders(String name) {
-        return response.headers().header(name);
+        return headers.header(name);
     }
 }

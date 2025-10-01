@@ -4,6 +4,26 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.24.0
+## New features and improvements
+
+- Support MongoDB Reactive Streams 5.2.0 and up by @obenkenobi in [2465](https://github.com/newrelic/newrelic-java-agent/pull/2465)
+- Jedis 6 support by @kanderson250 in [2466](https://github.com/newrelic/newrelic-java-agent/pull/2466)
+
+## Fixes
+
+- CouchBase: Add skip class to prevent double instrumentation by @jtduffy in [2462](https://github.com/newrelic/newrelic-java-agent/pull/2462)
+- Spring WebClient 5.x: Only wrap headers instead of the entire response by @jtduffy in [2464](https://github.com/newrelic/newrelic-java-agent/pull/2464)
+
+## Deprecations
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
 ## Version 8.23.0
 ## New features and improvements
 - Update to support v24 of graphql by @jtduffy in [2425](https://github.com/newrelic/newrelic-java-agent/pull/2425)
