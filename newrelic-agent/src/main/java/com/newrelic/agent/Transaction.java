@@ -57,6 +57,7 @@ import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCache;
@@ -280,7 +281,7 @@ public class Transaction {
 
     // WARNING: Mutates this instance by mutating the span proxy
     public DistributedTracePayloadImpl createDistributedTracePayload(String spanId) {
-        assignPriorityRoot();
+        assignPriorityRootIfNotSet();
         SpanProxy spanProxy = this.spanProxy.get();
         long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - this.getTransactionTimer().getStartTimeInNanos());
         long txnStartTimeSinceEpochInMillis = System.currentTimeMillis() - elapsedMillis;
@@ -332,21 +333,37 @@ public class Transaction {
         }
     }
 
-    //Questions for Monday:
-    //1. Is it okay to remove the setPriorityIfNotNull on lines 313 and 331?
-    //2. Conversely, is it okay for the payload priority to be used even if the payload was not accepted?
-    //3. Does this implementation keep us up-to-spec?
-    //6. When we check for inbound priority, is the priority being evaluated correctly? (taken from the priority
-    // if available, or the sampled flag if priority is not available) - RUN THROUGH TRUTH TABLES/Ask Hannah
-    //7. What about TransactionCanceled?
-
+    /**
+     * Assigns priority to this transaction using sampling and priority data from a remote parent.
+     *
+     * There are two kinds of parent data that are used:
+     * - The remote parent sampled flag, which indicates whether the remote parent is sampled or not. This
+     * determines which parent sampler (remote_parent_sampled or remote_parent_not_sampled) to use when making the priority assignment.
+     * - Inbound priority data, which is taken from the span proxy's inbound payload if available. This
+     * will be used by the adaptive sampler if configured, and ignored by all other sampler types.
+     *
+     * @param remoteParentSampled whether the remote parent was sampled or not
+     */
     public void assignPriorityFromRemoteParent(boolean remoteParentSampled) {
         DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-        float priority = dtService.calculatePriorityRemoteParent(remoteParentSampled, getInboundPriority());
+        float priority = dtService.calculatePriorityRemoteParent(remoteParentSampled, getPriorityFromInboundSamplingDecision());
         this.priority.set(priority);
     }
 
-    public void assignPriorityRoot(){
+    /**
+     * Assigns priority to this transaction (unless previously assigned) without any information from a remote parent.
+     *
+     * If Distributed Tracing is enabled, and no priority has been set on this transaction, the configured root sampler
+     * will be used to obtain a priority for this transaction. No inbound priority data is read (because if an inbound
+     * payload was processed, it should have made a priority assignment earlier).
+     *
+     * If DT is enabled, and a priority assignment has already been made, this call is ignored. This is a required check to avoid
+     * overwriting any priority decision that was made earlier, either because a remote parent was processed or a previous
+     * call to this method was made earlier in the txn's lifecycle.
+     *
+     * If Distributed Tracing is not enabled, a random priority in [0,1] is assigned.
+     */
+    public void assignPriorityRootIfNotSet(){
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
             if (priority.get() == null){
                 Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot();
@@ -357,9 +374,22 @@ public class Transaction {
         }
     }
 
-    private Float getInboundPriority(){
+    /***
+     * Retrieve priority from inbound sampling and priority information.
+     *
+     * First, check to see if there is a sampling decision available on the inbound payload.
+     * - If there is a sampling decision, use the inbound priority if it exists or compute a new priority.
+     * - If there is no sampling decision, return null.
+     *
+     * An odd edge case is possible where the sampling decision is Unknown but the inbound priority exists.
+     * To comply with the specs, we should still compute a new sampling decision (ignoring the inbound priority).
+     *
+     * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
+     */
+
+    private Float getPriorityFromInboundSamplingDecision(){
         DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
-        if (payload != null) {
+        if (payload != null && payload.sampled != Sampled.UNKNOWN) {
             if (payload.priority != null) {
                 return payload.priority;
             } else {
@@ -1012,7 +1042,7 @@ public class Transaction {
             synchronized (lock) {
                 // this may have the side-effect of ignoring the transaction
                 freezeTransactionName();
-                assignPriorityRoot();
+                assignPriorityRootIfNotSet();
                 if (ignore) {
                     Agent.LOG.log(Level.FINER,
                             "Transaction {0} was cancelled: ignored. This is not an error condition.", this);

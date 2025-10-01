@@ -187,11 +187,6 @@ public class TransactionTest {
             }
 
             @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 1.0f;
-            }
-
-            @Override
             public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
                     String traceId, TransportType transportType, long parentTransportDuration,
                     long largestTransportDuration, String parentId, String parentSpanId, float priority) {
@@ -1246,11 +1241,6 @@ public class TransactionTest {
             @Override
             public String getApplicationId() {
                 return "1234";
-            }
-
-            @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 0.678f;
             }
 
             @Override

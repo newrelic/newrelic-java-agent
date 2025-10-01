@@ -17,9 +17,6 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
-import com.newrelic.agent.tracing.samplers.AlwaysOffSampler;
-import com.newrelic.agent.tracing.samplers.AlwaysOnSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
@@ -201,46 +198,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-        if (priority == null) {
-            if (reservoir == null) {
-                return nextTruncatedFloat();
-            }
-
-            // No inbound "priority" flag set so we need to calculate priority/sampling
-            int seen = reservoir.getNumberOfTries();
-            if (firstHarvest.get() || seen == 0) {
-                if (seen <= reservoir.getTarget()) {
-                    // Make sure we record the first 'target' events in the system
-                    return nextTruncatedFloat() + 1.0f;
-                }
-                return nextTruncatedFloat();
-            }
-
-            int seenLast = reservoir.getDecidedLast();
-            int sampled = reservoir.getSampled();
-            int target = reservoir.getTarget();
-
-            boolean shouldSample;
-            if (sampled < target) {
-                shouldSample = (seenLast <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seenLast)) < target;
-            } else if (sampled > (target * 2)) {
-                // As soon as we hit 2x the number of "target" events sampled, we need to stop
-                shouldSample = false;
-            } else {
-                int expTarget = (int) (Math.pow((float) target, (float) target / sampled) - Math.pow((float) target, 0.5));
-                shouldSample = ThreadLocalRandom.current().nextInt(seen) < expTarget;
-            }
-
-            // Add 1.0f to the priority number if we should sample based on previous throughput
-            return nextTruncatedFloat() + (shouldSample ? 1.0f : 0.0f);
-        } else {
-            // There was already a priority set on the inbound payload, don't truncate it
-            return priority;
-        }
-    }
-
-    @Override
     public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid, String traceId, TransportType transportType,
             long parentTransportDurationInMillis, long largestTransportDuration, String parentId, String parentSpanId, float priority) {
         Map<String, Object> intrinsicAttributes = new HashMap<>();
@@ -390,7 +347,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         // Override guid if this trace is sampled and spans are enabled
         // guid will be the guid of the span that is creating this payload
         boolean spansEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getSpanEventsConfig().isEnabled();
-        tx.assignPriorityRoot();
+        tx.assignPriorityRootIfNotSet();
         boolean sampled = DistributedTraceUtil.isSampledPriority(tx.getPriority());
         if (sampled && spansEnabled) {
             // Need to do this in case the span that created this is a @Trace(excludeFromTransactionTrace=true)

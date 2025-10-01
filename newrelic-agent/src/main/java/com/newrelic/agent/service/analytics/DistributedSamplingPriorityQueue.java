@@ -115,11 +115,14 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     public boolean add(E element) {
         incrementNumberOfTries();
         boolean added = data.offer(element);
-        if (added && element.decider()) {
-            decided.incrementAndGet();
-            if (DistributedTraceUtil.isSampledPriority(element.getPriority())) {
-                recorded.incrementAndGet();
-            }
+//        if (added && element.decider()) {
+//            decided.incrementAndGet();
+//            if (DistributedTraceUtil.isSampledPriority(element.getPriority())) {
+//                recorded.incrementAndGet();
+//            }
+//        }
+        if (added && DistributedTraceUtil.isSampledPriority(element.getPriority())) {
+            recorded.incrementAndGet();
         }
         return added;
     }

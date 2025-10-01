@@ -84,7 +84,7 @@ public class W3CTraceContextCrossAgentTest {
 
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> data() throws Exception {
-        JSONArray tests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/cross_agent_tests/distributed_tracing/trace_context_new.json");
+        JSONArray tests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/cross_agent_tests/distributed_tracing/trace_context.json");
         List<Object[]> result = new LinkedList<>();
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
@@ -187,6 +187,7 @@ public class W3CTraceContextCrossAgentTest {
         JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
         String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
         String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
+        String rootSamplerType = (String) testData.get("root_sampler_type");
 
         replaceConfig(spanEventsEnabled);
 
@@ -213,11 +214,14 @@ public class W3CTraceContextCrossAgentTest {
         //have to force the adaptive sampler if configured
         if (forceSampledTrue != null) {
             Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
-            if ("default".equals(remoteParentSampledSamplerType)) {
+            if ("default".equals(remoteParentSampledSamplerType) || remoteParentSampledSamplerType == null) {
                 distributedTraceService.setRemoteParentSampledSampler(forceSampler);
             }
-            if ("default".equals(remoteParentNotSampledSamplerType)) {
+            if ("default".equals(remoteParentNotSampledSamplerType) || remoteParentNotSampledSamplerType == null) {
                 distributedTraceService.setRemoteParentNotSampledSampler(forceSampler);
+            }
+            if ("default".equals(rootSamplerType) || rootSamplerType == null) {
+                distributedTraceService.setRootSampler(forceSampler);
             }
         }
 
@@ -328,8 +332,8 @@ public class W3CTraceContextCrossAgentTest {
         if (actualPriority == null) {
             fail();
         }
-        double myVal = (double) priorityBetween.get(0);
-        double myVal2 = (double) priorityBetween.get(1);
+        long myVal = (long) priorityBetween.get(0);
+        long myVal2 = (long) priorityBetween.get(1);
         float minPriority = (float) myVal;
         float maxPriority = (float) myVal2;
         System.out.println("Expected range: " + priorityBetween + " actual priority: " + actualPriority);
@@ -543,6 +547,10 @@ public class W3CTraceContextCrossAgentTest {
     }
 
     private void assertExpectedMetrics(List metrics, StatsEngine statsEngine) {
+        if (metrics == null) {
+            return;
+        }
+
         assertNotNull(statsEngine);
 
         for (Object metric : metrics) {

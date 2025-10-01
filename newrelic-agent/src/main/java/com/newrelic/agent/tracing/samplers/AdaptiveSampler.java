@@ -1,5 +1,6 @@
 package com.newrelic.agent.tracing.samplers;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -10,7 +11,8 @@ public class AdaptiveSampler implements Sampler {
     //Configured values
     private final long REPORT_PERIOD_MILLIS;
     private final int TARGET;
-    //stats.
+
+    //Instance stats - thread safety managed by synchronized methods
     private long startTimeMillis;
     private int seen;
     private int seenLast;
@@ -83,6 +85,7 @@ public class AdaptiveSampler implements Sampler {
         }
     }
 
+    @VisibleForTesting
     protected boolean computeSampled(){
         boolean sampled;
         if (firstPeriod) {
