@@ -35,13 +35,15 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - preparedSql;  {0}",  preparedSql);
+
         long start = System.currentTimeMillis();
         DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - noticeSql(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - noticeSql(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         start = System.currentTimeMillis();
         ResultSet resultSet = Weaver.callOriginal();
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - callOriginal(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - callOriginal(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         return resultSet;
     }
@@ -52,13 +54,15 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - preparedSql;  {0}",  preparedSql);
+
         long start = System.currentTimeMillis();
         DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - noticeSql(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - noticeSql(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         start = System.currentTimeMillis();
         int result = Weaver.callOriginal();
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - callOriginal(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - callOriginal(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         return result;
     }
@@ -69,13 +73,15 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - preparedSql;  {0}",  preparedSql);
+
         long start = System.currentTimeMillis();
         DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - noticeSql(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - noticeSql(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         start = System.currentTimeMillis();
         boolean result = Weaver.callOriginal();
-        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - callOriginal(); elapsed time: {1}",  System.currentTimeMillis() - start);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - callOriginal(); elapsed time: {0}",  System.currentTimeMillis() - start);
 
         return result;
     }
