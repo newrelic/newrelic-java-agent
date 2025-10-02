@@ -35,6 +35,7 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - Classname;  {0}",  this.getClass().getName());
         NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeQuery() - preparedSql;  {0}",  preparedSql);
 
         long start = System.currentTimeMillis();
@@ -54,6 +55,7 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - Classname;  {0}",  this.getClass().getName());
         NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: executeUpdate() - preparedSql;  {0}",  preparedSql);
 
         long start = System.currentTimeMillis();
@@ -73,6 +75,7 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
 
+        NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - Classname;  {0}",  this.getClass().getName());
         NewRelic.getAgent().getLogger().log(Level.INFO, "SQL_TRACE: execute() - preparedSql;  {0}",  preparedSql);
 
         long start = System.currentTimeMillis();
