@@ -4,12 +4,9 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -25,8 +22,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The adaptive sampler is non-deterministic in its behavior. Most of the tests
+ * The adaptive sampler is non-deterministic in its behavior, ie, we can almost never guarantee
+ * the exact number of things that will be sampled. Most of the tests
  * have a margin of error (the errorDelta) around the expected value TARGET for this reason.
+ * If these tests start flaking, and there is no clear cause, consider adjusting the error margin to
+ * account for the non-deterministic behavior.
  *
  * Over time, the adaptive sampler should average to TARGET sampled=true decisions per period.
  * In a given period, there could be considerable deviation from TARGET, but results should always
@@ -35,10 +35,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Also, the adaptive sampler runs on an internal timer. Most of the tests have a period
  * that runs at a more rapid pace than we'd expect in the wild, because running multiple
- * iterations of a 60sec period isn't practical.
+ * iterations of a 60sec period isn't practical. Even so, expect these tests to run for awhile.
  */
 public class AdaptiveSamplerTest {
 
+    static int DEFAULT_REQUESTS_PER_SEC = 20;
+    static float DEFAULT_ERROR_MARGIN = 0.15f;
+    static String errorMessage = "Expected %s sampled but actual sampled was %s";
 
     private MockServiceManager serviceManager;
 
@@ -51,115 +54,160 @@ public class AdaptiveSamplerTest {
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
         int DEFAULT_TARGET = 120;
         int DEFAULT_REPORT_PERIOD = 60;
+        int numPeriods = 5;
+        long testLengthMillis = DEFAULT_REPORT_PERIOD * numPeriods * 1000;
+
         AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstance();
-        int NUM_PERIODS = 5;
-        int expectedSampled = DEFAULT_TARGET * NUM_PERIODS;
-        long testLengthMillis = DEFAULT_REPORT_PERIOD * NUM_PERIODS * 1000;
-        runSingleThreadedTest(defaultSampler, testLengthMillis, expectedSampled);
+        int totalSampled = runSamplerAndGetSampled(defaultSampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
+
+        int expectedSampled = DEFAULT_TARGET * numPeriods;
+        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
+        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
+                Math.abs(expectedSampled - totalSampled) < errorDelta);
     }
 
     @Test
     public void testCalculatePriorityFastPeriod() throws InterruptedException{
-        int TARGET = 10;
-        int REPORT_PERIOD = 5;
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
-        int NUM_PERIODS = 30;
-        int expectedSampled = TARGET * NUM_PERIODS;
-        long testLengthMillis = REPORT_PERIOD * NUM_PERIODS * 1000;
-        runSingleThreadedTest(sampler, testLengthMillis, expectedSampled);
+        int target = 10;
+        int reportPeriod = 5;
+        int numPeriods = 20;
+        long testLengthMillis = reportPeriod * numPeriods * 1000;
+
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+        int totalSampled = runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
+
+        int expectedSampled = target * numPeriods;
+        int errorDelta = (int)(expectedSampled *  DEFAULT_ERROR_MARGIN);
+        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
+                Math.abs(expectedSampled - totalSampled) < errorDelta);
     }
 
     @Test
     public void testTargetIsZeroShouldSampleNothing() throws InterruptedException{
-        int TARGET = 0;
-        int REPORT_PERIOD = 5;
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
-        int NUM_PERIODS = 12;
+        int target = 0;
+        int reportPeriod = 5;
+        int numPeriods = 12;
+        long testLengthMillis = reportPeriod * numPeriods * 1000;
+
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+        int totalSampled = runSamplerAndGetSampled(sampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
+
         int expectedSampled = 0;
-        long testLengthMillis = REPORT_PERIOD * NUM_PERIODS * 1000;
-        runSingleThreadedTest(sampler, testLengthMillis, expectedSampled);
+        Assert.assertEquals(String.format(errorMessage, expectedSampled, totalSampled), expectedSampled, totalSampled);
     }
 
     @Test
     public void testFirstPeriodShouldSampleTargetExactly() throws InterruptedException {
-        int TARGET = 15;
-        int REPORT_PERIOD = 10;
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
+        int target = 15;
+        int reportPeriod = 10;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+        long testLengthMillis = 12000L; //run test for 12 seconds, just over 1 period
 
-        long testLengthMillis = 12000L; //run test for 12 seconds
         runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
 
         int sampledFirstPeriod = sampler.getSampledCountLastPeriod();
         int expectedSampled = 15;
-        Assert.assertEquals(expectedSampled, sampledFirstPeriod);
+        Assert.assertEquals(String.format(errorMessage, expectedSampled, sampledFirstPeriod), expectedSampled, sampledFirstPeriod);
     }
 
     @Test
     public void testIntermittentLoad() throws InterruptedException {
-        int TARGET = 50;
-        int REPORT_PERIOD = 5;
-        int numPeriods = 10;
+        int target = 50;
+        int reportPeriod = 5;
+        int numPeriods = 6;
+        long testLengthMillis = numPeriods * reportPeriod * 1000L; //this test runs through this twice
 
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
-
-        long testLengthMillis = numPeriods * REPORT_PERIOD * 1000L;
-        int totalSampledFirstLoad = runSamplerAndGetSampled(sampler, testLengthMillis);
-        int expectedSampledFirstLoad = TARGET * numPeriods;
-
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+        int totalSampledFirstLoad = runSamplerAndGetSampled(sampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
         Thread.sleep(13000); //sleep to stop traffic to the sampler
-
-        int totalSampledSecondLoad = runSamplerAndGetSampled(sampler, testLengthMillis);
-        int expectedSampledSecondLoad = TARGET * numPeriods;
-
-        //results
-        int expectedSampled = expectedSampledFirstLoad + expectedSampledSecondLoad;
+        int totalSampledSecondLoad = runSamplerAndGetSampled(sampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
         int totalSampled = totalSampledFirstLoad + totalSampledSecondLoad;
-        float errorMargin = 0.05f;
-        int errorDelta = (int)(errorMargin * expectedSampled);
+
+        int expectedSampled = target * numPeriods * 2;
+        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
         System.out.println("Expected: " + expectedSampled + " Actual: " + totalSampled);
-        Assert.assertTrue(Math.abs(totalSampled - expectedSampled) <= errorDelta);
+        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
     public void testDelayedLoad() throws InterruptedException {
-        int TARGET = 50;
-        int REPORT_PERIOD = 5;
-        int numPeriods = 10;
+        int target = 50;
+        int reportPeriod = 5;
+        int numPeriods = 15;
+        long testLengthMillis = numPeriods * reportPeriod * 1000L;
 
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
-
-        long testLengthMillis = numPeriods * REPORT_PERIOD * 1000L;
-
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
         Thread.sleep(12000); //sleep for a few periods initially
+        int totalSampled = runSamplerAndGetSampled(sampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
-        int totalSampled = runSamplerAndGetSampled(sampler, testLengthMillis);
-        int expectedSampled = TARGET * numPeriods;
-
-        //evaluate results
-        float errorMargin = 0.1f;
-        int errorDelta = (int)(errorMargin * expectedSampled);
-        System.out.println("Expected: " + expectedSampled + " Actual: " + totalSampled + " Max accepted difference: " + errorDelta);
-        Assert.assertTrue(Math.abs(totalSampled - expectedSampled) <= errorDelta);
+        int expectedSampled = target * numPeriods;
+        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
+        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
-    public void testCalculatePriorityMultithreaded() throws Exception{
-        //setup sampler
-        int TARGET = 10;
-        int REPORT_PERIOD = 5;
-        AdaptiveSampler sampler = new AdaptiveSampler(TARGET, REPORT_PERIOD);
-        int TOTAL_PERIODS = 30;
-        long totalTestTimeMillis = REPORT_PERIOD * TOTAL_PERIODS * 1000;
+    public void testExponentialBackoff() throws InterruptedException, ExecutionException {
+        //here, we overload the sampler aggressively for a few periods and verify that
+        //no more than 2x sampled count is sampled each time.
+        int target = 10;
+        int reportPeriod = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+
+        int overloadPhasePeriods = 10;
+        long overloadPhaseLength = 50000L; //50 seconds, 10 periods
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Integer> f = executor.submit(() -> {
+            try {
+                return runSamplerAndGetSampled(sampler, overloadPhaseLength, 1000);
+            } catch (InterruptedException e) {
+                return null;
+            }
+        });
+
+        //While the sampler runs in the background, check in each period to see how many things
+        //it sampled most recently.
+        List<Integer> sampledCountEachPeriod = new ArrayList<>();
+        for (int i = 0; i < overloadPhasePeriods; i++) {
+            Thread.sleep(reportPeriod * 1000);
+            sampledCountEachPeriod.add(sampler.getSampledCountLastPeriod());
+        }
+
+        //Block until the thread is done
+        Integer actualTotalSampled = f.get();
+
+        //assert the total seems right
+        Assert.assertNotNull(actualTotalSampled);
+        int expectedTotalSampled = target * overloadPhasePeriods;
+        int expectedDelta = (int) (expectedTotalSampled * 0.15f);
+        Assert.assertTrue(String.format(errorMessage, expectedTotalSampled, actualTotalSampled),
+                Math.abs(expectedTotalSampled - actualTotalSampled) <= expectedDelta );
+
+        //iterate over the results from each period and assert that no individual
+        //period had a result exceeding 2*target, AND that the first time through we sampled exactly target.
+        Assert.assertEquals(target, (int) sampledCountEachPeriod.get(0));
+        for (int sampledCount : sampledCountEachPeriod) {
+            Assert.assertTrue(String.format("Expected less than %s sampled for each period, but a period actually sampled %s", 2*target, sampledCount),
+                    sampledCount <= 2*target);
+        }
+    }
+
+    @Test
+    public void testCalculatePriorityMultithreaded() throws InterruptedException {
+        int target = 10;
+        int reportPeriod = 5;
+        int totalPeriods = 10;
+        long totalTestTimeMillis = reportPeriod * totalPeriods * 1000;
+
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
         int totalSampled = runSamplerConcurrentAndGetSampled(sampler, totalTestTimeMillis);
-        int expectedSampled = TARGET * TOTAL_PERIODS;
-        float errorMargin = 0.15f;
-        int errorDelta = (int)(errorMargin * expectedSampled);
-        System.out.println("Expected: " + expectedSampled + " Actual: " + totalSampled);
-        Assert.assertTrue(Math.abs(totalSampled - expectedSampled) <= errorDelta);
+
+        int expectedSampled = target * totalPeriods;
+        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
+        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
-    public void testGetAdaptiveSamplerInstance() throws InterruptedException, ExecutionException {
+    public void testGetAdaptiveSamplerInstanceFulfillsSingleton() throws InterruptedException, ExecutionException {
         //The sampler is REQUIRED to be a singleton instance.
         //This test verifies that access to the sampler always returns the same instance.
         ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -171,7 +219,7 @@ public class AdaptiveSamplerTest {
         AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
         Assert.assertNotNull(baseSampler);
         for (Future<?> f : samplerArray) {
-            Assert.assertEquals(baseSampler, f.get());
+            Assert.assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
         }
     }
 
@@ -184,26 +232,19 @@ public class AdaptiveSamplerTest {
         serviceManager.setConfigService(configService);
     }
 
-    private void runSingleThreadedTest(AdaptiveSampler sampler, long testLengthMillis, int expectedSampled) throws InterruptedException{
-        int totalSampled = runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
-        //evaluate results
-        float errorMargin = 0.15f;
-        int errorDelta = (int)(errorMargin * expectedSampled);
-        System.out.println("Expected: " + expectedSampled + " Actual: " + totalSampled);
-        Assert.assertTrue(Math.abs(totalSampled - expectedSampled) <= errorDelta);
-    }
-
-    private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis) throws InterruptedException {
+    private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
+        //fastest we're going to go for this test is 1 request per ms.
+        requestsPerSecond = Math.max(1000, requestsPerSecond);
         long testStartTime = System.currentTimeMillis();
         int totalSampled = 0;
-        int WAIT_BETWEEN_SAMPLES = 50;
+        int waitBetweenSamples = 1000 / requestsPerSecond;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
             float priority = sampler.calculatePriority();
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
             }
-            Thread.sleep(WAIT_BETWEEN_SAMPLES);
+            Thread.sleep(waitBetweenSamples);
         }
         return totalSampled;
     }

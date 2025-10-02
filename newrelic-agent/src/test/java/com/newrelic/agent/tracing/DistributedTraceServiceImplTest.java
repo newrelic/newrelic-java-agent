@@ -170,37 +170,6 @@ public class DistributedTraceServiceImplTest {
         assertEquals(3.0f, unscopedStats.getOrCreateResponseTimeStats("TransportDuration/Browser/123456/6789/HTTPS/all").getTotal(), 0.01f);
     }
 
-//    @Test
-//    public void testShouldSampleFirst10() {
-//        TransactionEventsService transactionEventsService = Mockito.mock(TransactionEventsService.class);
-//        serviceManager.setTransactionEventsService(transactionEventsService);
-//
-//        distributedTraceService = new DistributedTraceServiceImpl();
-//        serviceManager.setDistributedTraceService(distributedTraceService);
-//
-//        DistributedSamplingPriorityQueue reservoir = Mockito.mock(DistributedSamplingPriorityQueue.class);
-//        doReturn(reservoir).when(transactionEventsService).getOrCreateDistributedSamplingReservoir("Test");
-//        when(reservoir.getTarget()).thenReturn(10);
-//        for (int i = 0; i < 10; i++) {
-//            doReturn(i + 1).when(reservoir).getNumberOfTries();
-//            assertTrue(DistributedTraceUtil.isSampledPriority(
-//                    DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(null, reservoir)));
-//        }
-//
-//        // Now that we've sampled the first 10, the rest will be ignored until after the harvest
-//        doReturn(100001).when(reservoir).getNumberOfTries();
-//        doReturn(10).when(reservoir).getDecided();
-//        doReturn(100000).when(reservoir).getTarget(); // fake a very high target to ensure a sample later on
-//        assertTrue(distributedTraceService.calculatePriority(null, reservoir) < 1.0f);
-//
-//        // Fake a harvest
-//        distributedTraceService.beforeHarvest("Test", null);
-//
-//        // We should have "adaptively" sampled at least one more trace
-//        assertTrue(DistributedTraceUtil.isSampledPriority(
-//                DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(null, reservoir)));
-//    }
-
     @Test
     public void testPriorityIsUsed() {
         rpmServiceManager.getOrCreateRPMService("Test");
@@ -247,58 +216,6 @@ public class DistributedTraceServiceImplTest {
         assertTrue(events.contains(transactionEvent9));
         assertEquals(3, events.size());
     }
-
-//    @Test
-//    public void testExponentialBackoff() {
-//        rpmServiceManager.getOrCreateRPMService("Test");
-//
-//        // Create reservoir
-//        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
-//        DistributedSamplingPriorityQueue<TransactionEvent> reservoir = ServiceFactory.getTransactionEventsService()
-//                .getOrCreateDistributedSamplingReservoir("Test");
-//
-//        // First 10 traces
-//        for (int i = 0; i < 10; i++) {
-//            assertTrue(DistributedTraceUtil.isSampledPriority(distributedTraceService.calculatePriority(null, reservoir)));
-//            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-//            when(transactionEvent.getPriority()).thenReturn(1.0f);
-//            when(transactionEvent.decider()).thenReturn(true);
-//            reservoir.add(transactionEvent);
-//        }
-//
-//        distributedTraceService.beforeHarvest("Test", new StatsEngineImpl());
-//        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
-//        reservoir = ServiceFactory.getTransactionEventsService().getOrCreateDistributedSamplingReservoir("Test");
-//        assertEquals(0, reservoir.getSampled());
-//
-//        // Test that we hit target
-//        for (int i = 0; i < reservoir.getTarget(); i++) {
-//            if (DistributedTraceUtil.isSampledPriority(distributedTraceService.calculatePriority(null, reservoir))) {
-//                TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-//                when(transactionEvent.getPriority()).thenReturn(1.0f);
-//                when(transactionEvent.decider()).thenReturn(true);
-//                reservoir.add(transactionEvent);
-//            }
-//        }
-//        assertTrue("Sampled fewer than target transactions", reservoir.getSampled() >= reservoir.getTarget());
-//
-//        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
-//        distributedTraceService.beforeHarvest("Test", new StatsEngineImpl());
-//        reservoir = ServiceFactory.getTransactionEventsService().getOrCreateDistributedSamplingReservoir("Test");
-//
-//        // Test that we do not go above 2x target
-//        for (int i = 0; i < 1000 * reservoir.getTarget(); i++) {
-//            if (DistributedTraceUtil.isSampledPriority(distributedTraceService.calculatePriority(null, reservoir))) {
-//                TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-//                when(transactionEvent.getPriority()).thenReturn(1.0f);
-//                when(transactionEvent.decider()).thenReturn(true);
-//                reservoir.add(transactionEvent);
-//            }
-//        }
-//
-//        assertTrue("Sampled fewer than target transactions", reservoir.getSampled() >= reservoir.getTarget());
-//        assertTrue("Sampled more than 2x target ", reservoir.getSampled() <= (2 * reservoir.getTarget()));
-//    }
 
 //    @Test
 //    public void testEventsByPriority() {
