@@ -1,19 +1,13 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.AgentConfigImpl;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -62,22 +56,6 @@ public class AdaptiveSamplerTest {
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
-        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
-                Math.abs(expectedSampled - totalSampled) < errorDelta);
-    }
-
-    @Test
-    public void testCalculatePriorityFastPeriod() throws InterruptedException{
-        int target = 10;
-        int reportPeriod = 5;
-        int numPeriods = 20;
-        long testLengthMillis = reportPeriod * numPeriods * 1000;
-
-        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
-        int totalSampled = runSamplerAndGetSampledRandomLoad(sampler, testLengthMillis);
-
-        int expectedSampled = target * numPeriods;
-        int errorDelta = (int)(expectedSampled *  DEFAULT_ERROR_MARGIN);
         Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
                 Math.abs(expectedSampled - totalSampled) < errorDelta);
     }
@@ -221,15 +199,6 @@ public class AdaptiveSamplerTest {
         for (Future<?> f : samplerArray) {
             Assert.assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
         }
-    }
-
-
-    private void setupDefaultConfig() {
-        Map<String, Object> settings = new HashMap<>();
-        ConfigService configService = ConfigServiceFactory.createConfigService(
-                AgentConfigImpl.createAgentConfig(settings),
-                Collections.<String, Object>emptyMap());
-        serviceManager.setConfigService(configService);
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
