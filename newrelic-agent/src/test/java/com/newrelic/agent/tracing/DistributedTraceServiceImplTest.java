@@ -37,7 +37,6 @@ import com.newrelic.agent.service.analytics.TransactionEventBuilder;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.stats.SimpleStatsEngine;
 import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.stats.StatsEngineImpl;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.trace.TransactionTraceService;
@@ -217,65 +216,63 @@ public class DistributedTraceServiceImplTest {
         assertEquals(3, events.size());
     }
 
-//    @Test
-//    public void testEventsByPriority() {
-//        rpmServiceManager.getOrCreateRPMService("Test");
-//
-//        // Create reservoir
-//        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
-//
-//        DistributedSamplingPriorityQueue<TransactionEvent> reservoir =
-//                ServiceFactory.getTransactionEventsService().getOrCreateDistributedSamplingReservoir("Test");
-//
-//        float minPriority = 100.0f;
-//        float maxPriority = 0.0f;
-//
-//        for (int i = 0; i < 3000; i++) {
-//            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-//            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(null, reservoir);
-//            minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
-//            maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
-//            when(transactionEvent.getPriority()).thenReturn(priority);
-//            when(transactionEvent.decider()).thenReturn(true);
-//            reservoir.add(transactionEvent);
-//        }
-//
-//        for (int i = 0; i < 1000; i++) {
-//            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-//            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(null, reservoir);
-//            when(transactionEvent.getPriority()).thenReturn(priority);
-//            when(transactionEvent.decider()).thenReturn(false);
-//            reservoir.add(transactionEvent);
-//        }
-//
-//        assertTrue(reservoir.peek().getPriority() > minPriority);
-//        assertEquals(maxPriority, reservoir.peek().getPriority(), 0.0f);
-//        assertEquals(4000, reservoir.getNumberOfTries());
-//        assertTrue(reservoir.getSampled() >= 11);
-//
-//        List<TransactionEvent> events = reservoir.asList();
-//        int sampled = reservoir.getSampled();
-//        // verify that the number of "sampled" events equals the number of events with priority >= 1.0 where decider = true
-//        for (int i = 0; i < sampled + 1; i++) {
-//            if (i < sampled) {
-//                assertTrue(DistributedTraceUtil.isSampledPriority(events.get(i).getPriority()));
-//            } else {
-//                assertTrue(events.get(i).getPriority() < 1.0f);
-//            }
-//        }
-//
-//        //harvest in order to examine seen vs sent metrics
-//        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
-//        StatsEngine statsEngineForHarvest = ServiceFactory.getStatsService().getStatsEngineForHarvest("Test");
-//        assertTrue(statsEngineForHarvest.getStats(MetricName.create(
-//                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN)).hasData());
-//        assertTrue(statsEngineForHarvest.getStats(MetricName.create(
-//                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT)).hasData());
-//        assertEquals(reservoir.getNumberOfTries(), statsEngineForHarvest.getStats(MetricName.create(
-//                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN)).getCallCount());
-//        assertEquals(2000, statsEngineForHarvest.getStats(MetricName.create(
-//                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT)).getCallCount());
-//    }
+    @Test
+    public void testEventsByPriority() {
+        rpmServiceManager.getOrCreateRPMService("Test");
+
+        // Create reservoir
+        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
+
+        DistributedSamplingPriorityQueue<TransactionEvent> reservoir =
+                ServiceFactory.getTransactionEventsService().getOrCreateDistributedSamplingReservoir("Test");
+
+        float minPriority = 100.0f;
+        float maxPriority = 0.0f;
+
+        for (int i = 0; i < 3000; i++) {
+            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRoot();
+            minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
+            maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
+            when(transactionEvent.getPriority()).thenReturn(priority);
+            reservoir.add(transactionEvent);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRemoteParent(true, 1.5f);
+            when(transactionEvent.getPriority()).thenReturn(priority);
+            reservoir.add(transactionEvent);
+        }
+
+        assertTrue(reservoir.peek().getPriority() > minPriority);
+        assertEquals(maxPriority, reservoir.peek().getPriority(), 0.0f);
+        assertEquals(4000, reservoir.getNumberOfTries());
+        assertTrue(reservoir.getTotalSampledPriorityEvents() >= 1011);
+
+        List<TransactionEvent> events = reservoir.asList();
+        int sampled = reservoir.getTotalSampledPriorityEvents();
+        //verify that the number of "sampled" events equals the number of events with priority >= 1.0
+        for (int i = 0; i < sampled + 1; i++) {
+            if (i < sampled) {
+                assertTrue(DistributedTraceUtil.isSampledPriority(events.get(i).getPriority()));
+            } else {
+                assertTrue(events.get(i).getPriority() < 1.0f);
+            }
+        }
+
+        //harvest in order to examine seen vs sent metrics
+        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
+        StatsEngine statsEngineForHarvest = ServiceFactory.getStatsService().getStatsEngineForHarvest("Test");
+        assertTrue(statsEngineForHarvest.getStats(MetricName.create(
+                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN)).hasData());
+        assertTrue(statsEngineForHarvest.getStats(MetricName.create(
+                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT)).hasData());
+        assertEquals(reservoir.getNumberOfTries(), statsEngineForHarvest.getStats(MetricName.create(
+                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN)).getCallCount());
+        assertEquals(2000, statsEngineForHarvest.getStats(MetricName.create(
+                MetricNames.SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT)).getCallCount());
+    }
 
     @Test
     public void testConnectFields() {

@@ -69,11 +69,6 @@ public abstract class AnalyticsEvent implements PriorityAware {
     }
 
     @Override
-    public boolean decider() {
-        return false;
-    }
-
-    @Override
     public float getPriority() {
         return priority;
     }

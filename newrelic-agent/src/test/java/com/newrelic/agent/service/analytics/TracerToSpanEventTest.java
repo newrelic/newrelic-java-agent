@@ -572,7 +572,6 @@ public class TracerToSpanEventTest {
                 .putAllAgentAttributes(expectedAgentAttributes)
                 .putAllIntrinsics(expectedIntrinsicAttributes)
                 .putAllUserAttributes(expectedUserAttributes)
-                .decider(true)
                 .timestamp(timestamp)
                 .build();
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
@@ -755,7 +754,6 @@ public class TracerToSpanEventTest {
                 .putAllAgentAttributes(expectedAgentAttributes)
                 .putAllIntrinsics(expectedIntrinsicAttributes)
                 .putAllUserAttributes(expectedUserAttributes)
-                .decider(true)
                 .timestamp(timestamp)
                 .build();
     }
