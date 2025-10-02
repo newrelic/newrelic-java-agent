@@ -357,11 +357,11 @@ public class Transaction {
      * will be used to obtain a priority for this transaction. No inbound priority data is read (because if an inbound
      * payload was processed, it should have made a priority assignment earlier).
      *
-     * If DT is enabled, and a priority assignment has already been made, this call is ignored. This is a required check to avoid
+     * If a priority assignment has already been made, this call is ignored. This is a required check to avoid
      * overwriting any priority decision that was made earlier, either because a remote parent was processed or a previous
      * call to this method was made earlier in the txn's lifecycle.
      *
-     * If Distributed Tracing is not enabled, a random priority in [0,1] is assigned.
+     * If Distributed Tracing is not enabled, a random priority in [0,1) is assigned.
      */
     public void assignPriorityRootIfNotSet(){
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
@@ -375,14 +375,15 @@ public class Transaction {
     }
 
     /***
-     * Retrieve priority from inbound sampling and priority information.
+     * Retrieve priority from the inbound payload (using both sampling and priority-related information).
      *
      * First, check to see if there is a sampling decision available on the inbound payload.
      * - If there is a sampling decision, use the inbound priority if it exists or compute a new priority.
      * - If there is no sampling decision, return null.
      *
-     * An odd edge case is possible where the sampling decision is Unknown but the inbound priority exists.
-     * To comply with the specs, we should still compute a new sampling decision (ignoring the inbound priority).
+     * In the case of W3C headers, this is distinct from the remoteParentSampled decision we get from the trace parent header.
+     * The sampling and priority values in the payload come from the trace state header (and they may be missing, even if we got a sampled
+     * flag on the trace parent header).
      *
      * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
      */
