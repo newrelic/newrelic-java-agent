@@ -100,19 +100,21 @@ public final class DatastoreInstanceDetection {
 
         InetSocketAddress previousAddress = address.get();
         if (previousAddress != null && !previousAddress.equals(addressToStore)) {
+            // the only way I've been able to reproduce this is talking via JDBC to an Azure SQL DB from
+            // inside of Azure App Services, where we appear to be redirected to a worker host during the connect
+            // in  that case, the first detected address always appeared to be the requested address
+            // and the 2nd/last address was always the worker
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "Two different addresses detected: previous: {0} and new: {1}", previousAddress, addressToStore);
             MultiHostConfig multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE);
             if (MultiHostConfig.FIRST.equals(multihostPreference)) {
-                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address");
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
                 return;
             } else if (MultiHostConfig.LAST.equals(multihostPreference)) {
-                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address");
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address: "+addressToStore);
                 // just keep going, and we'll store the new address
             } else {
-                // I cannot discern why this option was necessary, but it has been left in for backward compatibility sake
-                // the only way I've been able to reproduce this is talking via JDBC to an Azure SQL DB from
-                // inside of Azure App Services, where we appear to be redirected to a worker host
+                // I cannot discern why this option was necessary, but it has been left in for backward compatibility
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Clearing address and stopping detection");
                 stopDetectingConnectionAddress();
                 return;

@@ -59,7 +59,6 @@ public class DatastoreInstanceDetectionTest {
             DatastoreInstanceDetection.detectConnectionAddress();
             DatastoreInstanceDetection.saveAddress(InetSocketAddress.createUnresolved("myhost", 1234));
             DatastoreInstanceDetection.saveAddress(InetSocketAddress.createUnresolved("someOtherHost", 9128));
-            DatastoreInstanceDetection.saveAddress(InetSocketAddress.createUnresolved("myhost", 1234));
             Connection connection = Mockito.mock(Connection.class);
             DatastoreInstanceDetection.associateAddress(connection);
             DatastoreInstanceDetection.stopDetectingConnectionAddress();
