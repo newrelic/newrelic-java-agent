@@ -205,12 +205,12 @@ public class TransactionTest {
 
             @Override
             public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
-                return 0.0f;
+                return 1.0f;
             }
 
             @Override
             public float calculatePriorityRoot(){
-                return 0.0f;
+                return 1.0f;
             }
         };
     }
@@ -1262,12 +1262,12 @@ public class TransactionTest {
 
             @Override
             public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
-                return 0.0f;
+                return 0.333f;
             }
 
             @Override
             public float calculatePriorityRoot(){
-                return 0.0f;
+                return 0.678f;
             }
         });
 
@@ -1333,6 +1333,7 @@ public class TransactionTest {
         transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
         transaction.setTransactionName(com.newrelic.api.agent.TransactionNamePriority.CUSTOM_HIGH, true, "Test", "createBeforeAcceptTxn");
         transaction.createDistributedTracePayload("spanId31238ou");
+        float priorityAfterCreate = transaction.getPriority();
 
         String inboundPayload =
                 "{" +
@@ -1349,10 +1350,13 @@ public class TransactionTest {
                         "  }" +
                         "}";
         transaction.acceptDistributedTracePayload(inboundPayload);
+        float priorityAfterAccept = transaction.getPriority();
         dispatcherTracer.finish(Opcodes.ARETURN, null);
 
         latch.await();
 
+        //should not reset priority
+        assertEquals(priorityAfterCreate, priorityAfterAccept, 0.0f);
         assertTrue(1 <= transaction.getTransactionActivity()
                 .getTransactionStats()
                 .getUnscopedStats()
