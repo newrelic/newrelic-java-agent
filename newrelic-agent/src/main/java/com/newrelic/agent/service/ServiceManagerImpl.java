@@ -31,6 +31,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
+import com.newrelic.agent.config.KotlinCoroutinesConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.deadlock.DeadlockDetectorService;
@@ -41,6 +42,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.normalization.NormalizationServiceImpl;
@@ -158,6 +160,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
     private volatile AgentControlIntegrationService agentControlIntegrationService;
+    private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -252,6 +255,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
         AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
 
+        KotlinCoroutinesConfig kotlinCoroutinesConfig = config.getKotlinCoroutinesConfig();
+        kotlinCoroutinesService = new KotlinCoroutinesService(kotlinCoroutinesConfig);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
@@ -326,6 +332,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         spanEventsService.start();
         slowTransactionService.start();
         agentControlIntegrationService.start();
+        kotlinCoroutinesService.start();
 
         startServices();
 
@@ -416,6 +423,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         spanEventsService.stop();
         slowTransactionService.stop();
         agentControlIntegrationService.stop();
+        kotlinCoroutinesService.stop();
         stopServices();
     }
 
@@ -685,6 +693,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public ExpirationService getExpirationService() {
         return expirationService;
+    }
+
+    @Override
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
     }
 
     @Override
