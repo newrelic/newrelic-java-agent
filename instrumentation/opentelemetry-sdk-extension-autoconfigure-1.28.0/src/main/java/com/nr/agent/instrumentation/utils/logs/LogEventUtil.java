@@ -8,12 +8,12 @@
 package com.nr.agent.instrumentation.utils.logs;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Severity;
+import io.opentelemetry.sdk.logs.NRLogRecord;
 import io.opentelemetry.sdk.logs.data.Body;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 
@@ -34,6 +34,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_ID;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.THREAD_NAME;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
+import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isAppLoggingContextDataEnabled;
 import static io.opentelemetry.sdk.logs.NRLogRecord.BasicLogRecordData;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_MESSAGE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_STACKTRACE;
@@ -45,9 +46,12 @@ import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_SCOPE_VERSION;
 
 public class LogEventUtil {
     private static final Set<String> OTEL_ATTRIBUTES = new HashSet<>(Arrays.asList(
-            OTEL_EXCEPTION_MESSAGE.getKey(),
-            OTEL_EXCEPTION_TYPE.getKey(),
-            OTEL_EXCEPTION_STACKTRACE.getKey())
+            NRLogRecord.OTEL_EXCEPTION_MESSAGE.getKey(),
+            NRLogRecord.OTEL_EXCEPTION_TYPE.getKey(),
+            NRLogRecord.OTEL_EXCEPTION_STACKTRACE.getKey(),
+            NRLogRecord.THREAD_NAME.getKey(),
+            NRLogRecord.THREAD_ID_LONG.getKey(),
+            NRLogRecord.THREAD_ID_STRING.getKey())
     );
 
     /**
@@ -103,7 +107,7 @@ public class LogEventUtil {
                         logEventMap.put(instrumentationLibraryVersionKey, instrumentationScopeVersion);
                     }
 
-                    if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
+                    if (isAppLoggingContextDataEnabled()) {
                         for (Map.Entry<AttributeKey<?>, Object> entry : contextAttributes.asMap().entrySet()) {
                             String key = entry.getKey().getKey();
                             // Don't add the context prefix to OTel attributes that are already defined by the OTel spec.
@@ -180,7 +184,7 @@ public class LogEventUtil {
     }
 
     private static int calculateInitialMapSize(Attributes attributes) {
-        return AppLoggingUtils.isAppLoggingContextDataEnabled() && attributes != null
+        return isAppLoggingContextDataEnabled() && attributes != null
                 ? attributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }

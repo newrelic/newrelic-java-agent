@@ -30,6 +30,9 @@ public class NRLogRecord implements ReadWriteLogRecord {
     public static final AttributeKey<String> OTEL_EXCEPTION_MESSAGE = AttributeKey.stringKey("exception.message");
     public static final AttributeKey<String> OTEL_EXCEPTION_TYPE = AttributeKey.stringKey("exception.type");
     public static final AttributeKey<String> OTEL_EXCEPTION_STACKTRACE = AttributeKey.stringKey("exception.stacktrace");
+    public static final AttributeKey<String> THREAD_NAME = AttributeKey.stringKey("thread.name");
+    public static final AttributeKey<Long> THREAD_ID_LONG = AttributeKey.longKey("thread.id");
+    public static final AttributeKey<String> THREAD_ID_STRING = AttributeKey.stringKey("thread.id");
 
     private final LogLimits logLimits; // LogLimits is not used in this implementation, but kept for compatibility
     private final Resource resource;
@@ -162,9 +165,24 @@ public class NRLogRecord implements ReadWriteLogRecord {
             this.body = body;
             this.attributes = attributes;
             this.totalAttributeCount = totalAttributeCount;
-            // Capture thread information at the time of log record creation, OTel does not provide this
-            this.threadId = Thread.currentThread().getId();
-            this.threadName = Thread.currentThread().getName();
+            // The thread.name and thread.id attributes are considered to be experimental and
+            // are not guaranteed to be present in the attributes. If they are present, they will
+            // be used. If they are not present, we generate the thread information ourselves.
+            String threadName = attributes.get(THREAD_NAME);
+            if (threadName != null && !threadName.isEmpty()) {
+                this.threadName = threadName;
+            } else {
+                this.threadName = Thread.currentThread().getName();
+            }
+            Long threadIdLong = attributes.get(THREAD_ID_LONG);
+            String threadIdString = attributes.get(THREAD_ID_STRING);
+            if (threadIdLong != null && threadIdLong > -1) {
+                this.threadId = threadIdLong;
+            } else if (threadIdString != null && !threadIdString.isEmpty()) {
+                this.threadId = Long.parseLong(threadIdString);
+            } else {
+                this.threadId = Thread.currentThread().getId();
+            }
         }
 
         static BasicLogRecordData create(
