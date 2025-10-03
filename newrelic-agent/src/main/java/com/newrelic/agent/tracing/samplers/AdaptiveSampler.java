@@ -4,13 +4,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Level;
 
 public class AdaptiveSampler implements Sampler {
     //Configured values
-    private final long REPORT_PERIOD_MILLIS;
-    private final int TARGET;
+    private final long reportPeriodMillis;
+    private final int target;
 
     //Instance stats - thread safety managed by synchronized methods
     private long startTimeMillis;
@@ -23,15 +25,16 @@ public class AdaptiveSampler implements Sampler {
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
     protected AdaptiveSampler(int target, int reportPeriodSeconds){
-        this.TARGET = target;
-        this.REPORT_PERIOD_MILLIS = reportPeriodSeconds * 1000L;
+        this.target = target;
+        this.reportPeriodMillis = reportPeriodSeconds * 1000L;
         this.startTimeMillis = System.currentTimeMillis();
         this.seen = 0;
         this.seenLast = 0;
         this.sampledCount = 0;
         this.sampledCountLast = 0;
         this.firstPeriod = true;
-        System.out.println("Initialized sampler with target: " + target + " and period: " + reportPeriodSeconds);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
+                reportPeriodSeconds);
     }
 
     /**
@@ -71,12 +74,12 @@ public class AdaptiveSampler implements Sampler {
 
     private void resetPeriodIfElapsed(){
         long now = System.currentTimeMillis();
-        if (now - startTimeMillis >= REPORT_PERIOD_MILLIS) {
-            System.out.println("Resetting sampler period. Seen: " + seen + " Sampled: " + sampledCount);
+        if (now - startTimeMillis >= reportPeriodMillis) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting sampler period. Seen: " + seen + ", Sampled: " + sampledCount);
             //Calculate elapsed periods so that the start time is consistently incremented
             //in multiples of the report period.
-            int elapsedPeriods = (int) ((now - startTimeMillis)/ REPORT_PERIOD_MILLIS);
-            startTimeMillis += elapsedPeriods * REPORT_PERIOD_MILLIS;
+            int elapsedPeriods = (int) ((now - startTimeMillis)/ reportPeriodMillis);
+            startTimeMillis += elapsedPeriods * reportPeriodMillis;
             seenLast = seen;
             seen = 0;
             sampledCountLast = sampledCount;
@@ -89,13 +92,13 @@ public class AdaptiveSampler implements Sampler {
     protected boolean computeSampled(){
         boolean sampled;
         if (firstPeriod) {
-            sampled = sampledCount < TARGET;
-        } else if (sampledCount < TARGET) {
-            sampled = (seenLast <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seenLast)) < TARGET;
-        } else if (sampledCount >= (TARGET * 2)) {
+            sampled = sampledCount < target;
+        } else if (sampledCount < target) {
+            sampled = (seenLast <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seenLast)) < target;
+        } else if (sampledCount >= (target * 2)) {
             sampled = false;
         } else {
-            int expTarget = (int) (Math.pow((float) TARGET, (float) TARGET / sampledCount) - Math.pow((float) TARGET, 0.5));
+            int expTarget = (int) (Math.pow((float) target, (float) target / sampledCount) - Math.pow((float) target, 0.5));
             //seen should never be zero here. This is an added safety guard to prevent an exception from .nextInt.
             sampled = (seen <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seen)) < expTarget;
         }
@@ -107,6 +110,7 @@ public class AdaptiveSampler implements Sampler {
     }
 
     //These methods are for testing only. they are not thread-safe.
+    @VisibleForTesting
     int getSampledCountLastPeriod(){
         return sampledCountLast;
     }
