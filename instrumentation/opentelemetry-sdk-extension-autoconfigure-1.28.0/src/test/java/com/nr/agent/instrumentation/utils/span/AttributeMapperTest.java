@@ -27,12 +27,10 @@ public class AttributeMapperTest {
 
         for (SpanKind spanKind : SpanKind.values()) {
             Map<AttributeType, List<AttributeKey>> attributeTypesBySpan = mappings.get(spanKind);
-            assertEquals(2, attributeTypesBySpan.size());
+            assertEquals(14, attributeTypesBySpan.size());
 
-            // The actual attribute key mappings...
-            for (AttributeType attributeType : AttributeType.values()) {
-                assertEquals(2, attributeTypesBySpan.get(attributeType).size());
-            }
+            assertEquals(2, attributeTypesBySpan.get(AttributeType.Port).size());
+            assertEquals(2, attributeTypesBySpan.get(AttributeType.Host).size());
         }
     }
 
@@ -66,10 +64,19 @@ public class AttributeMapperTest {
         // Comma delimited list of semantic conventions exist in the SERVER -> Port
         Map<SpanKind, Map<AttributeType, List<AttributeKey>>> attributes = attributeMapper.getMappings();
         AttributeKey  attribute = attributes.get(SpanKind.SERVER).get(AttributeType.Port).get(0);
-        assertEquals(2, attribute.getSemanticConventions().length);
+        assertEquals(3, attribute.getSemanticConventions().length);
+        assertEquals("HTTP-Server:1.23", attribute.getSemanticConventions()[0]);
+        assertEquals("HTTP-Server:1.24", attribute.getSemanticConventions()[1]);
+        assertEquals("HTTP-Server:1.25", attribute.getSemanticConventions()[2]);
 
         // Only one in SERVER -> Host
         attribute = attributes.get(SpanKind.SERVER).get(AttributeType.Host).get(0);
         assertEquals(1, attribute.getSemanticConventions().length);
+        assertEquals("HTTP-Server:1.23", attribute.getSemanticConventions()[0]);
+
+        // Handle empty semantic convention field. INTERNAL -> Port
+        attribute = attributes.get(SpanKind.INTERNAL).get(AttributeType.Port).get(0);
+        assertEquals(1, attribute.getSemanticConventions().length);
+        assertEquals("", attribute.getSemanticConventions()[0]);
     }
 }
