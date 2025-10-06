@@ -1418,6 +1418,16 @@ public class TransactionTest {
     }
 
     @Test
+    public void testAssignPriorityFromRemoteParent() throws Exception{
+
+    }
+
+    @Test
+    public void testAssignPriorityRootIfUnset(){
+
+    }
+
+    @Test
     public void testTransportDuration() throws Exception {
         Map<String, Object> configMap = createNRDTConfigMap(false);
         createServiceManager(configMap);

@@ -18,6 +18,7 @@ import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
@@ -82,9 +83,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-        this.sampler = Sampler.getSamplerForType("default");
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -137,6 +135,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
+        //set up the samplers.
+        this.sampler = Sampler.getSamplerForType("default");
+        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
