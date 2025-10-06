@@ -388,7 +388,8 @@ public class Transaction {
      * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
      */
 
-    private Float getPriorityFromInboundSamplingDecision(){
+    @VisibleForTesting
+    protected Float getPriorityFromInboundSamplingDecision(){
         DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
         if (payload != null && payload.sampled != Sampled.UNKNOWN) {
             if (payload.priority != null) {
