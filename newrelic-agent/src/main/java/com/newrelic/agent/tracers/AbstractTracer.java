@@ -21,6 +21,7 @@ import com.newrelic.api.agent.AttributeHolder;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
+import com.newrelic.api.agent.Token;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -382,6 +383,11 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
         }
     }
 
+    @Override
+    public Token getToken() {
+        return getTransaction().getToken();
+    }
+
     static int sizeof(Object value) {
         int size = 0;
         if (value == null) {
@@ -398,6 +404,16 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
             }
         }
         return size;
+    }
+
+    @Override
+    public String getTraceId() {
+        return getTransaction().getSpanProxy().getOrCreateTraceId();
+    }
+
+    @Override
+    public String getSpanId() {
+        return getGuid();
     }
 
     @Override
