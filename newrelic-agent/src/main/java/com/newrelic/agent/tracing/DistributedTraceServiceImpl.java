@@ -17,6 +17,7 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
@@ -83,6 +84,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        //initially, set up the samplers based on local config. They will be overwritten later after connect.
+        this.sampler = Sampler.getSamplerForType("default");
+        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -135,7 +140,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
-        //set up the samplers.
+        //this is a weird requirement. The adaptive sampler instance has to get nulled out.
+        AdaptiveSampler.resetSharedInstance();
+        //set up the samplers with the merged server-side config
         this.sampler = Sampler.getSamplerForType("default");
         this.remoteParentSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentSampled());
         this.remoteParentNotSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentNotSampled());

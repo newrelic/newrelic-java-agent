@@ -369,11 +369,6 @@ public class DistributedTraceServiceImplTest {
 
     @Test
     public void testConnectSetsUpDefaultSamplers() {
-
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
-
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
@@ -381,6 +376,12 @@ public class DistributedTraceServiceImplTest {
         assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
         assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
         assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
+
+        //the samplers should all be the same instance
+        Sampler baseSampler = AdaptiveSampler.getSharedInstance();
+        assertEquals(baseSampler, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
+        assertEquals(baseSampler,  DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
+        assertEquals(baseSampler,   DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
     }
 
     @Test
@@ -397,9 +398,9 @@ public class DistributedTraceServiceImplTest {
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
 
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
-        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
 
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
 
