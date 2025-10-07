@@ -972,6 +972,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private static Integer toInt(Object o) {
+        if (o == null) return null;
         if (o instanceof Number) {
             return ((Number) o).intValue();
         }
