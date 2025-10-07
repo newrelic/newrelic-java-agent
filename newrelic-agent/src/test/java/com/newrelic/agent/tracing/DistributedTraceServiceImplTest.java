@@ -19,6 +19,8 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -58,12 +60,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doReturn;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 public class DistributedTraceServiceImplTest {
@@ -218,7 +216,11 @@ public class DistributedTraceServiceImplTest {
 
     @Test
     public void testEventsByPriority() {
-        rpmServiceManager.getOrCreateRPMService("Test");
+
+        distributedTraceService.connected(
+                rpmServiceManager.getOrCreateRPMService("Test"),
+                ServiceFactory.getConfigService().getAgentConfig("Test")
+        );
 
         // Create reservoir
         ServiceFactory.getTransactionEventsService().harvestEvents("Test");
@@ -275,6 +277,76 @@ public class DistributedTraceServiceImplTest {
     }
 
     @Test
+    public void testCalculatePriorityRootShouldRouteToAdaptiveSampler(){
+        //this method doesn't do much right now. It might in the future.
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+        assertEquals(Sampler.ADAPTIVE, distributedTraceService.getRootSampler().getType());
+        //overwrite the configured sampler to ask Mockito how many times the sampler is called
+        Sampler mockAdaptiveSampler = Mockito.mock(AdaptiveSampler.class);
+        distributedTraceService.setRootSampler(mockAdaptiveSampler);
+        distributedTraceService.calculatePriorityRoot();
+        Mockito.verify(mockAdaptiveSampler, times(1)).calculatePriority();
+    }
+
+    @Test
+    public void calculatePriorityRemoteParentSampledUsesSampler(){
+        Map<String, Object> samplerSettings = new HashMap<>();
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        Map<String, Object> dtSettings = new HashMap<>();
+        dtSettings.put("sampler",  samplerSettings);
+        Map<String, Object> config = new HashMap<>();
+        config.put("distributed_tracing", dtSettings);
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+        assertEquals(Sampler.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
+
+        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(true, 1.5f), 0.0f);
+        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(true, null), 0.0f);
+    }
+
+    @Test
+    public void calculatePriorityRemoteParentNotSampledUsesSampler(){
+        Map<String, Object> samplerSettings = new HashMap<>();
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        Map<String, Object> dtSettings = new HashMap<>();
+        dtSettings.put("sampler",  samplerSettings);
+        Map<String, Object> config = new HashMap<>();
+        config.put("distributed_tracing", dtSettings);
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+        assertEquals(Sampler.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
+
+        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(false, 1.5f), 0.0f);
+        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(false, null), 0.0f);
+    }
+
+    @Test
+    public void remoteParentSamplersUseInboundPriorityWhenSetToAdaptive(){
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+        assertEquals(Sampler.ADAPTIVE, distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(Sampler.ADAPTIVE, distributedTraceService.getRemoteParentNotSampledSampler().getType());
+
+        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(true, 1.5f), 0.0f);
+        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(false, 1.5f), 0.0f);
+    }
+
+    @Test
     public void testConnectFields() {
         assertNull(DistributedTraceServiceImplTest.distributedTraceService.getApplicationId());
         assertNull(DistributedTraceServiceImplTest.distributedTraceService.getTrustKey());
@@ -293,6 +365,49 @@ public class DistributedTraceServiceImplTest {
         assertEquals("accountId", DistributedTraceServiceImplTest.distributedTraceService.getAccountId());
         assertEquals("primaryApplicationId", DistributedTraceServiceImplTest.distributedTraceService.getApplicationId());
         assertEquals("trustKey", DistributedTraceServiceImplTest.distributedTraceService.getTrustKey());
+    }
+
+    @Test
+    public void testConnectSetsUpDefaultSamplers() {
+
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
+
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
+    }
+
+    @Test
+    public void testConnectSetsUpConfiguredSamplers() {
+        Map<String, Object> samplerSettings = new HashMap<>();
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        Map<String, Object> dtSettings = new HashMap<>();
+        dtSettings.put("sampler",  samplerSettings);
+        Map<String, Object> config = new HashMap<>();
+        config.put("distributed_tracing", dtSettings);
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
+        assertNull(DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
+
+        IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
+
+        DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
+
+        assertEquals(Sampler.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
+        assertEquals(Sampler.ALWAYS_ON, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(Sampler.ALWAYS_OFF, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
     }
 
     @Test

@@ -137,8 +137,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         applicationId.compareAndSet(null, "0");
         //set up the samplers.
         this.sampler = Sampler.getSamplerForType("default");
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
+        this.remoteParentSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -390,5 +390,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     void setRootSampler(Sampler sampler) {
         this.sampler = sampler;
+    }
+
+    Sampler getRootSampler(){
+        return sampler;
+    }
+
+    Sampler getRemoteParentSampledSampler(){
+        return remoteParentSampledSampler;
+    }
+
+    Sampler getRemoteParentNotSampledSampler(){
+        return remoteParentNotSampledSampler;
     }
 }
