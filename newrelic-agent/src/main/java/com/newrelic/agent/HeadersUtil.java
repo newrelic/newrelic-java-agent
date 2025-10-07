@@ -8,6 +8,7 @@
 package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableSet;
+import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.api.agent.Headers;
 import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.tracers.DefaultTracer;
@@ -275,10 +276,12 @@ public class HeadersUtil {
         else {
             String tracePayload = HeadersUtil.getNewRelicTraceHeader(inboundHeaders);
             if (tracePayload != null) {
-                boolean accepted = tx.acceptDistributedTracePayload(tracePayload);
-                //REVISIT BEFORE FINALIZING
+                tx.acceptDistributedTracePayload(tracePayload);
                 DistributedTracePayloadImpl newRelicPayload = tx.getSpanProxy().getInboundDistributedTracePayload();
-                tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
+                boolean samplingDecisionExists = newRelicPayload.sampled != Sampled.UNKNOWN;
+                if (samplingDecisionExists) {
+                    tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
+                }
             }
         }
     }

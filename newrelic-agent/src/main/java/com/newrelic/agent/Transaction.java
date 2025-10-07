@@ -289,7 +289,6 @@ public class Transaction {
         DistributedTracePayloadImpl payload = (DistributedTracePayloadImpl) spanProxy
                 .createDistributedTracePayload(priority.get(), spanId, getGuid());
 
-        //how could the payload priority be different than this priority??? Is this a thread-safety thing?
         if (payload != null) {
             this.setPriorityIfNotNull(payload.priority);
         }
