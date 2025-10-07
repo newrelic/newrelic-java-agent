@@ -26,7 +26,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.MessageFormat;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Optional;
@@ -42,7 +41,8 @@ public class BootstrapAgent {
     private static final String WS_LOG_MANAGER = "com.ibm.ws.kernel.boot.logging.WsLogManager";
     private static final String AGENT_ENABLED_ENV_VAR = "NEW_RELIC_AGENT_ENABLED";
     private static final String AGENT_ENABLED_SYS_PROP = "newrelic.config.agent_enabled";
-    private static final String STARTUP_JAVA_ARTIFACT_SKIPS = "NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS";
+    private static final String STARTUP_JAVA_ARTIFACT_SKIPS_ENV_VAR = "NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS";
+    private static final String STARTUP_JAVA_ARTIFACT_SKIPS_SYS_PROP = "newrelic.config.startup_java_artifact_skips";
     private static final String SQL_ON_PLATFORM_LOADER_SYS_PROP = "newrelic.config.sql.platformClassloader";
 
     public static URL getAgentJarUrl() {
@@ -342,7 +342,8 @@ public class BootstrapAgent {
 
     /**
      * Extract the defined jars/classes to skip.<br>
-     * The skip list is configured via the `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS` environment variable.
+     * The skip list is configured via the `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS_ENV_VAR` environment variable
+     * or the newrelic.config.startup_java_artifact_skips system property.
      * This is a comma separated list of main classes, executable jar files or Java based tools/apps
      * that the agent should NOT instrument. For example:<br>
      * export NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS=keytool,myapp.jar,IgnoreThisClass
@@ -350,10 +351,13 @@ public class BootstrapAgent {
      * @return a String [] of defined skip tokens
      */
     private static String [] parseStartupJavaArtifactSkips() {
-        String skipString = System.getenv(STARTUP_JAVA_ARTIFACT_SKIPS);
+        String envVal = System.getenv(STARTUP_JAVA_ARTIFACT_SKIPS_ENV_VAR);
+        String sysVal = System.getProperty(STARTUP_JAVA_ARTIFACT_SKIPS_SYS_PROP);
 
-        if (skipString != null && !skipString.isEmpty()) {
-            return skipString.split(",");
+        if ((envVal != null && !envVal.isEmpty())) {
+            return envVal.split(",");
+        } else if ((sysVal != null && !sysVal.isEmpty())) {
+            return sysVal.split(",");
         }
 
         return null;
