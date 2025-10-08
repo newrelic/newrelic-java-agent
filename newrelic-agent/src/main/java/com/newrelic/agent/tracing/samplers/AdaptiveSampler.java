@@ -34,7 +34,7 @@ public class AdaptiveSampler implements Sampler {
         this.sampledCountLast = 0;
         this.firstPeriod = true;
         NewRelic.getAgent().getLogger().log(Level.FINE, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
-                reportPeriodSeconds);
+                reportPeriodSeconds + " seconds.");
     }
 
     /**

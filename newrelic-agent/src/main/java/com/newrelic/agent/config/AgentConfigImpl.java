@@ -43,10 +43,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ASYNC_TIMEOUT = "async_timeout";
     public static final String CA_BUNDLE_PATH = "ca_bundle_path";
 
-    //EXPERIMENTAL!!!!!
     public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = "adaptive_sampler_sampling_target";
     public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
-    //END EXPERIMENTAL
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
@@ -195,10 +193,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final Pattern REGION_AWARE = Pattern.compile("^.+?x");
 
     // root configs (alphabetized)
-    //EXPERIMENTAL
     private int adaptiveSamplingPeriodSeconds;
     private int adaptiveSamplingTarget;
-    //END EXPERIMENTAL
     private final long apdexTInMillis;
     private final String appName;
     private final List<String> appNames;
@@ -299,10 +295,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
-        //EXPERIMENTAL
-        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, 120);
-        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, 60);
-        //END EXPERIMENTAL
+        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
+        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);

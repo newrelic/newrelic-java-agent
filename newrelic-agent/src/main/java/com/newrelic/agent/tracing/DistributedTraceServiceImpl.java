@@ -84,8 +84,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-        //initially, set up the samplers based on local config. They will be overwritten later after connect.
-        this.sampler = Sampler.getSamplerForType("default");
+        //Initially, set up the samplers based on local config. They will be overwritten later after connect.
+        //We can't defer this until connect, because the TransactionService starts immediately and may call into the
+        //samplers to get priority for initial set of transactions that happen before connect.
+        this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
         this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
         this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
     }
@@ -140,10 +142,12 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
-        //this is a weird requirement. The adaptive sampler instance has to get nulled out.
+        //The adaptive sampler is (currently) a singleton. It needs to get nulled out
+        //on connect to replace the original singleton (which is set when the constructor of this class is called)
+        //with an updated singleton configured with values from the server-side config.
         AdaptiveSampler.resetSharedInstance();
         //set up the samplers with the merged server-side config
-        this.sampler = Sampler.getSamplerForType("default");
+        this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
         this.remoteParentSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentSampled());
         this.remoteParentNotSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentNotSampled());
     }

@@ -32,6 +32,7 @@ public class DistributedTracingConfig extends BaseConfig {
 
     //public setting values
     public static final Integer DEFAULT_ADAPTIVE_SAMPLING_TARGET = 120;
+    public static final Integer DEFAULT_ADAPTIVE_SAMPLING_PERIOD = 60;
     // note: there is no special logic for these yet, as they are just the fallback if the other values don't exist
     // if we have to add special logic, we should treat one as an alias of the other
     public static final String SAMPLE_DEFAULT = "default"; // same as 'adaptive_sampling'
