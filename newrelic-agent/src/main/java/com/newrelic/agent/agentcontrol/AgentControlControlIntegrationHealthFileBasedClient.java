@@ -69,6 +69,7 @@ public class AgentControlControlIntegrationHealthFileBasedClient implements Agen
         healthMap.put("status", agentHealth.getCurrentStatus());
         healthMap.put("start_time_unix_nano", agentHealth.getStartTimeNanos());
         healthMap.put("status_time_unix_nano", AgentControlIntegrationUtils.getPseudoCurrentTimeNanos());
+        healthMap.put("entity_guid", agentHealth.getEntityGuid() == null ? "" : agentHealth.getEntityGuid());
         if (!agentHealth.isHealthy()) {
             healthMap.put("last_error", agentHealth.getLastError());
         }

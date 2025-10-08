@@ -8,6 +8,8 @@ package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import java.util.List;
 
@@ -28,6 +30,16 @@ public class AgentControlIntegrationUtils {
     public static void reportHealthyStatus(List<HealthDataChangeListener> healthDataChangeListeners, AgentHealth.Category... categories) {
         for (HealthDataChangeListener listener : healthDataChangeListeners) {
             listener.onHealthyStatus(categories);
+        }
+    }
+
+    public static void assignEntityGuid(List<HealthDataChangeListener> healthDataChangeListeners, String connectPayloadJson) {
+        if (connectPayloadJson != null) {
+            JSONObject payload = (JSONObject) JSONValue.parse(connectPayloadJson);
+            JSONObject returnValueObject = (JSONObject) payload.get("return_value");
+            for (HealthDataChangeListener listener : healthDataChangeListeners) {
+                listener.assignEntityGuid((String) returnValueObject.get("entity_guid"));
+            }
         }
     }
 

@@ -83,4 +83,11 @@ public class AgentControlIntegrationService extends AbstractService implements H
             }
         }
     }
+
+    @Override
+    public void assignEntityGuid(String entityGuid) {
+        if (isEnabled()) {
+            agentHealth.setEntityGuid(entityGuid);
+        }
+    }
 }

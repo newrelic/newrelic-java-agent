@@ -62,6 +62,8 @@ public class AgentHealth {
 
     private final long startTimeNanos;
     private Status status;
+    private String guid = null;
+
 
     AgentHealth(long startTimeNanos) {
         this.startTimeNanos = startTimeNanos;
@@ -78,6 +80,14 @@ public class AgentHealth {
         if (category == status.category) {
             status = Status.HEALTHY;
         }
+    }
+
+    void setEntityGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public String getEntityGuid() {
+        return guid;
     }
 
     public boolean isHealthy() {
