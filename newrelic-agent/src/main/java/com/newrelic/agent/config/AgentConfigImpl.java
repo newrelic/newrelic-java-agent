@@ -120,6 +120,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -263,6 +264,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
     private final KeyTransactionConfig keyTransactionConfig;
+    private final KotlinCoroutinesConfig kotlinCoroutinesConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
     private final ReinstrumentConfig reinstrumentConfig;
@@ -358,6 +360,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
+        kotlinCoroutinesConfig = initKotlinCoroutinesConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
         applicationLoggingConfig = initApplicationLoggingConfig();
@@ -731,6 +734,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private JmxConfig initJmxConfig() {
         Map<String, Object> props = nestedProps(JMX);
         return JmxConfigImpl.createJmxConfig(props);
+    }
+
+    private KotlinCoroutinesConfig initKotlinCoroutinesConfig() {
+        Map<String, Object> props = nestedProps(KOTLIN_COROUTINES);
+        return KotlinCoroutinesConfigImpl.create(props);
     }
 
     private JarCollectorConfig initJarCollectorConfig() {
@@ -1218,6 +1226,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public JfrConfig getJfrConfig() {
         return jfrConfig;
+    }
+
+    @Override
+    public KotlinCoroutinesConfig getKotlinCoroutinesConfig() {
+        return kotlinCoroutinesConfig;
     }
 
     @Override
