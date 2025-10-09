@@ -434,10 +434,6 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         return expirationService;
     }
 
-    public KotlinCoroutinesService getKotlinCoroutinesService() {
-        return kotlinCoroutinesService;
-    }
-    
     @Override
     public KotlinCoroutinesService getKotlinCoroutinesService() {
         return kotlinCoroutinesService;
