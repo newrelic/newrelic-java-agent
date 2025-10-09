@@ -13,6 +13,7 @@ import java.util.Set;
 public class KotlinCoroutinesService extends AbstractService implements AgentConfigListener {
 
     private final Set<CoroutineConfigListener> listeners = new LinkedHashSet<>();
+    private final Set<SuspendsConfigListener> suspendListeners = new LinkedHashSet<>();
     private KotlinCoroutinesConfig coroutinesConfig;
 
     public KotlinCoroutinesService(KotlinCoroutinesConfig coroutinesConfig) {
@@ -28,6 +29,13 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
             listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(), coroutinesConfig.getIgnoredRegexScopes());
             listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(), coroutinesConfig.getIgnoredRegexDispatched());
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
+        }
+    }
+
+    public void addSuspendsConfigListener(SuspendsConfigListener listener) {
+        if(listener != null) {
+            suspendListeners.add(listener);
+            listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
         }
     }
 
@@ -60,6 +68,9 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
             listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
             listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
             listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+        }
+        for(SuspendsConfigListener listener : suspendListeners) {
+            listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
         }
 
     }

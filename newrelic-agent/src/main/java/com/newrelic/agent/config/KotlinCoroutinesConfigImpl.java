@@ -22,6 +22,8 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     private String[] ignoredRegexContinuations = null;
     private String[] ignoredRegexScopes = null;
     private String[] ignoredRegexDispatched = null;
+    private String[] ignoredSuspends = null;
+    private String[] ignoredRegexSuspends = null;
     private boolean delayedEnabled = true;
 
     public KotlinCoroutinesConfigImpl(Map<String, Object> props) {
@@ -111,6 +113,12 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     public String[] getIgnoredRegexDispatched() {
         return ignoredRegexDispatched;
     }
+
+    @Override
+    public String[] getIgnoredSuspends() { return ignoredSuspends;}
+
+    @Override
+    public String[] getIgnoredRegexSuspends() { return ignoredRegexSuspends;}
 
     @Override
     public boolean isDelayedEnabled() {

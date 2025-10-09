@@ -267,8 +267,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
-    private final KeyTransactionConfig keyTransactionConfig;
     private final KotlinCoroutinesConfig kotlinCoroutinesConfig;
+    private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
     private final ReinstrumentConfig reinstrumentConfig;
