@@ -696,8 +696,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     }
 
     @Override
-    public KotlinCoroutinesService getKotlinCoroutinesService() { return kotlinCoroutinesService; }
-
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
+    }
 
     @Override
     public synchronized void refreshDataForCRaCRestore() {

@@ -4,12 +4,80 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.24.0
+## New features and improvements
+
+- Support MongoDB Reactive Streams 5.2.0 and up by @obenkenobi in [2465](https://github.com/newrelic/newrelic-java-agent/pull/2465)
+- Jedis 6 support by @kanderson250 in [2466](https://github.com/newrelic/newrelic-java-agent/pull/2466)
+
+## Fixes
+
+- CouchBase: Add skip class to prevent double instrumentation by @jtduffy in [2462](https://github.com/newrelic/newrelic-java-agent/pull/2462)
+- Spring WebClient 5.x: Only wrap headers instead of the entire response by @jtduffy in [2464](https://github.com/newrelic/newrelic-java-agent/pull/2464)
+
+## Deprecations
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
+## Version 8.23.0
+## New features and improvements
+- Update to support v24 of graphql by @jtduffy in [2425](https://github.com/newrelic/newrelic-java-agent/pull/2425)
+- Add lettuce 6.5 instrumentation by @kanderson250 in [2430](https://github.com/newrelic/newrelic-java-agent/pull/2430)
+- Bump commons-lang version to 3.18.0 by @jtduffy in [2421](https://github.com/newrelic/newrelic-java-agent/pull/2421)
+- Add lettuce dbName to datastore params where available by @kanderson250 in [2423](https://github.com/newrelic/newrelic-java-agent/pull/2423)
+- Add an environment variable to skip implementing certain applications. The environment variable name is  `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS`. The value of it is a comma separated list of main classes, executable jar files or Java based tools/apps that the agent should NOT instrument (e.g. `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS=keytool,myapp.jar,IgnoreThisClass`) by @jtduffy in [2433](https://github.com/newrelic/newrelic-java-agent/pull/2433)
+
+## Fixes
+
+- Fix a bug where SQS messages with 8 attributes are not sent to AWS. SQS messages need less then 8 attributes to pass distributed trace headers by @obenkenobi in [2422](https://github.com/newrelic/newrelic-java-agent/pull/2422)
+- Trim the "Subscriptions" bit off the end of the topic name in azure service bus client by @jbedell-newrelic in [2440](https://github.com/newrelic/newrelic-java-agent/pull/2440)
+- Fix AutoConfiguredOpenTelemetrySdk config by @jasonjkeller in [2451](https://github.com/newrelic/newrelic-java-agent/pull/2451)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
+## Version 8.22.0
+## New features and improvements
+
+* Azure ServiceBus 7.15.0 instrumentation by @jbedell-newrelic in [2384](https://github.com/newrelic/newrelic-java-agent/pull/2384)
+* Linking metadata for Azure App services by @jbedell-newrelic in [2399](https://github.com/newrelic/newrelic-java-agent/pull/2399)
+* Connection errors now logged at SEVERE by @jtduffy in [2377](https://github.com/newrelic/newrelic-java-agent/pull/2377)
+* Log and obfuscate invalid keys added as attributes to logs and events by @jtduffy in [2388](https://github.com/newrelic/newrelic-java-agent/pull/2388)
+* Remove MonoFlatMapMain Instrumentation by @deleonenriqueta in [2400](https://github.com/newrelic/newrelic-java-agent/pull/2400)
+
+## Fixes
+
+* Relocate IntelliJ annotations library by @meiao in [2383](https://github.com/newrelic/newrelic-java-agent/pull/2383)
+* Support server side sampling_target configuration by @jtduffy in [2386](https://github.com/newrelic/newrelic-java-agent/pull/2386)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
 ## Version 8.21.0
 ## New features and improvements
 
 - Enhances visibility into Reactor `Mono.flatMap` calls in https://github.com/newrelic/newrelic-java-agent/pull/2308
 - Adds new instrumentation for Spring-Kafka and distributed tracing when using the core Kafka client library in https://github.com/newrelic/newrelic-java-agent/pull/2312
-- Adds a new Kafka instrumentation module named `kafka-clients-spans-consumer-0.11.0.0` that accepts distributed trace headers for consumers in https://github.com/newrelic/newrelic-java-agent/pull/2283
 - Adds `KafkaConsumerConfig` event support for Kafka 3.7+ in https://github.com/newrelic/newrelic-java-agent/pull/2358
 
 ## Fixes

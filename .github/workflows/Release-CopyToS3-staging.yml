@@ -3,10 +3,10 @@ name: Release - Copy to S3 (Staging)
 on:
   workflow_dispatch:
     inputs:
-      repo_name:
+      deployment_id:
         required: true
         type: string
-        description: 'The sonatype repo name. Eg. comnewrelic-1234'
+        description: 'The sonatype deployment id. Eg. x9a06328-cc91-24a5-fg13-7xa1d3669d842k'
       version_number:
         required: true
         type: string
@@ -31,4 +31,4 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3.sh ${{ inputs.repo_name }} ${{ inputs.version_number }} staging
+        run: ./automation/release/copy-to-s3.sh ${{ inputs.deployment_id }} ${{ inputs.version_number }} staging ${{ secrets.SONATYPE_USERNAME }} ${{ secrets.SONATYPE_PASSWORD }}

@@ -27,4 +27,4 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3.sh staging ${{ inputs.version_number }} default
+        run: ./automation/release/copy-to-s3-prod.sh ${{ inputs.version_number }} default

@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -34,6 +35,11 @@ public final class DatastoreInstanceDetection {
             return ConnectionState.DO_NOT_DETECT_ADDRESS;
         }
     };
+
+    public static enum MultiHostConfig {
+        NONE, FIRST, LAST
+    }
+    public static MultiHostConfig multihostConfig = MultiHostConfig.NONE;
 
     private static final ThreadLocal<InetSocketAddress> address = new ThreadLocal<>();
     private static final Map<Object, InetSocketAddress> connectionToAddress = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
@@ -94,11 +100,25 @@ public final class DatastoreInstanceDetection {
 
         InetSocketAddress previousAddress = address.get();
         if (previousAddress != null && !previousAddress.equals(addressToStore)) {
+            // the only way I've been able to reproduce this is talking via JDBC to an Azure SQL DB from
+            // inside of Azure App Services, where we appear to be redirected to a worker host during the connect
+            // in  that case, the first detected address always appeared to be the requested address
+            // and the 2nd/last address was always the worker
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
-                    "Two different addresses detected: {0} and {1}. Invalidating previously detected address.",
-                    previousAddress, address);
-            stopDetectingConnectionAddress();
-            return;
+                    "Two different addresses detected: previous: {0} and new: {1}", previousAddress, addressToStore);
+            MultiHostConfig multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE);
+            if (MultiHostConfig.FIRST.equals(multihostPreference)) {
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
+                return;
+            } else if (MultiHostConfig.LAST.equals(multihostPreference)) {
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address: "+addressToStore);
+                // just keep going, and we'll store the new address
+            } else {
+                // I cannot discern why this option was necessary, but it has been left in for backward compatibility
+                AgentBridge.getAgent().getLogger().log(Level.FINEST, "Clearing address and stopping detection");
+                stopDetectingConnectionAddress();
+                return;
+            }
         }
 
         AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing address: {0}", address);

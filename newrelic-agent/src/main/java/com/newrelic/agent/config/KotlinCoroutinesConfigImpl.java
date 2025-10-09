@@ -11,7 +11,6 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     public static final String CONTINUATIONS_ROOT = "continuations";
     public static final String SCOPES_ROOT = "scopes";
     public static final String DISPATCHED_ROOT = "dispatched";
-    public static final String SUSPENDS_ROOT = "suspends";
     public static final String IGNORE = "ignore";
     public static final String IGNORE_REGEX = "ignoreRegex";
     public static final String DELAYED_ROOT = "delayed";
@@ -23,8 +22,6 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     private String[] ignoredRegexContinuations = null;
     private String[] ignoredRegexScopes = null;
     private String[] ignoredRegexDispatched = null;
-    private String[] ignoredRegexSuspends = null;
-    private String[] ignoredSuspends = null;
     private boolean delayedEnabled = true;
 
     public KotlinCoroutinesConfigImpl(Map<String, Object> props) {
@@ -76,17 +73,6 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         } else {
             delayedEnabled = DELAY_DEFAULT;
         }
-
-        Map<String, String> suspends_root = getProperty(SUSPENDS_ROOT);
-        if (suspends_root != null) {
-            String suspendsToIgnore = suspends_root.get(IGNORE);
-            ignoredSuspends = splitString(suspendsToIgnore);
-            String suspendsToIgnoreRegex = suspends_root.get(IGNORE_REGEX);
-            ignoredRegexSuspends = splitString(suspendsToIgnoreRegex);
-        } else {
-            ignoredSuspends = new String[0];
-            ignoredRegexSuspends = new String[0];
-        }
     }
 
     static KotlinCoroutinesConfigImpl create(Map<String, Object> settings) {
@@ -129,15 +115,6 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     @Override
     public boolean isDelayedEnabled() {
         return delayedEnabled;
-    }
-
-    @Override
-    public String[] getIgnoredSuspends() {
-        return ignoredSuspends;
-    }
-
-    public String[] getIgnoredRegexSuspends() {
-        return ignoredRegexSuspends;
     }
 
     private String[] splitString(String input) {

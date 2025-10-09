@@ -74,7 +74,7 @@ dependencies {
         transitive = false
     }
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.13.0")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.15.0")
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"
@@ -85,7 +85,7 @@ dependencies {
 
     shadowIntoJar 'org.apache.httpcomponents:httpclient:4.5.13'
     // We use StringUtils. Since we still support Java 7, we can't go much higher than this.
-    shadowIntoJar("org.apache.commons:commons-lang3:3.8.1")
+    shadowIntoJar("org.apache.commons:commons-lang3:3.18.0")
 
     // for command line parsing
     shadowIntoJar 'commons-cli:commons-cli:1.2'

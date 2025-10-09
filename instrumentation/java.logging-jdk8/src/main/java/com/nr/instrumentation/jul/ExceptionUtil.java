@@ -27,7 +27,7 @@ public class ExceptionUtil {
         Throwable t = throwable;
         List<String> lines = new ArrayList<>();
         boolean inner = false;
-        while (t != null) {
+        while (t != null && lines.size() <= MAX_STACK_SIZE) {
             if (inner) {
                 lines.add(" caused by: " + t.getClass().getName() + ": " + t.getMessage());
             }
