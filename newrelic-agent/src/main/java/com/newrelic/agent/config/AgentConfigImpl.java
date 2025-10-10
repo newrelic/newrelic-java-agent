@@ -295,8 +295,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentConfigImpl(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
-        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
         securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
@@ -382,6 +380,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         slowTransactionsConfig = initSlowTransactionsConfig();
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
         agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
+        //This setting should use the locally configured distributed_tracing.sampler.adaptive_sampling_target setting
+        //until it is later merged with sampling_target from the server.
+        //If nothing is configured, it will use the local default, which is 120.
+        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, distributedTracingConfig.getAdaptiveSamplingTarget());
+        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);

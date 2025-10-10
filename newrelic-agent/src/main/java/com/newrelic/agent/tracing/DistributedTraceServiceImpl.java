@@ -16,15 +16,12 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -84,9 +81,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-        //Initially, set up the samplers based on local config. They will be overwritten later after connect.
-        //We can't defer this until connect, because the TransactionService starts immediately and may call into the
-        //samplers to get priority for initial set of transactions that happen before connect.
+        //Initially, set up the samplers based on local config.
+        //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
         this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
         this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
         this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
@@ -142,14 +138,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
-        //The adaptive sampler is (currently) a singleton. It needs to get nulled out
-        //on connect to replace the original singleton (which is set when the constructor of this class is called)
-        //with an updated singleton configured with values from the server-side config.
-        AdaptiveSampler.resetSharedInstance();
-        //set up the samplers with the merged server-side config
-        this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(dtConfig.getRemoteParentNotSampled());
+
+        //The connect response includes a server-only config, sampling_target, that MUST be used to configure the adaptive sampler shared instance.
+        AdaptiveSampler.setSharedTarget(agentConfig.getAdaptiveSamplingTarget());
     }
 
     @Override

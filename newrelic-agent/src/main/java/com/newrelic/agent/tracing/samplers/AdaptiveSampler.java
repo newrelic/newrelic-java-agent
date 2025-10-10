@@ -12,7 +12,7 @@ import java.util.logging.Level;
 public class AdaptiveSampler implements Sampler {
     //Configured values
     private final long reportPeriodMillis;
-    private final int target;
+    private int target;
 
     //Instance stats - thread safety managed by synchronized methods
     private long startTimeMillis;
@@ -57,9 +57,16 @@ public class AdaptiveSampler implements Sampler {
         return SAMPLER_SHARED_INSTANCE;
     }
 
-    public static synchronized void resetSharedInstance(){
-        NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting Adaptive Sampler.");
-        SAMPLER_SHARED_INSTANCE = null;
+    /**
+     * Updates the SHARED_SAMPLER_INSTANCE to use a new target.
+     * If the SHARED_SAMPLER_INSTANCE isn't already running, this method is a no-op.
+     * @param newTarget the new target value the shared sampler instance should use
+     */
+    public static synchronized void setSharedTarget(int newTarget) {
+        if (SAMPLER_SHARED_INSTANCE != null) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Updating shared Adaptive Sampler sampling target to " + newTarget);
+            getSharedInstance().setTarget(newTarget);
+        }
     }
 
     /**
@@ -114,10 +121,19 @@ public class AdaptiveSampler implements Sampler {
         return sampled;
     }
 
+    private synchronized void setTarget(int newTarget){
+        this.target = newTarget;
+    }
+
     //These methods are for testing only. they are not thread-safe.
     @VisibleForTesting
     int getSampledCountLastPeriod(){
         return sampledCountLast;
+    }
+
+    @VisibleForTesting
+    public int getTarget() {
+        return target;
     }
 
 }

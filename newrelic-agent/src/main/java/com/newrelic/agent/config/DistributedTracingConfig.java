@@ -94,4 +94,8 @@ public class DistributedTracingConfig extends BaseConfig {
     public String getRemoteParentNotSampled() {
         return remoteParentNotSampled;
     }
+
+    public Integer getAdaptiveSamplingTarget() {
+        return adaptiveSamplingTarget;
+    }
 }
