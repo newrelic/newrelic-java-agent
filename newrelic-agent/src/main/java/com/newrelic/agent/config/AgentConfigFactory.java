@@ -66,6 +66,8 @@ public class AgentConfigFactory {
             ApplicationLoggingConfigImpl.LOCAL_DECORATING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
     public static final String APPLICATION_LOGGING_METRICS_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
             ApplicationLoggingConfigImpl.METRICS + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_PERIOD;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_TARGET;
     @Deprecated
     public static final String SLOW_QUERY_WHITELIST = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.SLOW_QUERY_WHITELIST;
     public static final String COLLECT_SLOW_QUERIES_FROM = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM;
@@ -216,6 +218,9 @@ public class AgentConfigFactory {
 
         // Transaction event properties
         addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, serverData.get("sampling_target"), settings);
+
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, serverData.get("sampling_target_period_in_seconds"), settings);
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_TARGET, serverData.get("sampling_target"), settings);
 
         // Adding agent_run_id & account_id to config as required by Security agent
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);

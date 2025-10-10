@@ -238,6 +238,70 @@ public class ConfigServiceTest {
     }
 
     @Test
+    public void sanitizerShouldAddAdaptiveSamplingTargetIfNotSet() throws Exception{
+        //First, check if distributed_tracing.sampler.adaptive_sampling_target is added when nothing is yet there.
+        Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(settings);
+        ConfigService configService = ServiceFactory.getConfigService();
+        Map<String, Object> sanitizedSettings = configService.getSanitizedLocalSettings();
+
+        Map<String, Object> dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
+        Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
+        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+
+        //Second, put something in the dt config
+        Map<String, Object> specifyDtSettings = new HashMap<>();
+        settings.put("distributed_tracing", specifyDtSettings);
+        specifyDtSettings.put("enabled", true);
+        createServiceManager(settings);
+        configService = ServiceFactory.getConfigService();
+        sanitizedSettings = configService.getSanitizedLocalSettings();
+
+        dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
+        assertEquals(true, dtSettings.get("enabled"));
+        samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
+        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+
+        //Third, put something in the sampler config (not adaptive_sampling_target)
+        Map<String, Object> specifySamplerSettings = new HashMap<>();
+        specifyDtSettings.put("sampler", specifySamplerSettings);
+        specifySamplerSettings.put("remoteParentSampled", "always_on");
+        createServiceManager(settings);
+        configService = ServiceFactory.getConfigService();
+        sanitizedSettings = configService.getSanitizedLocalSettings();
+
+        //assert it all looks good, all the originally specified values are there.
+        dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
+        assertEquals(true, dtSettings.get("enabled"));
+        samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
+        assertEquals("always_on", samplerSettings.get("remoteParentSampled"));
+        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+    }
+
+    @Test
+    public void sanitizerShouldNotAlterAdaptiveSamplingTargetIfAlreadySet() throws Exception{
+        Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
+        Map<String, Object> specifyDtSettings = new HashMap<>();
+        Map<String, Object> specifySamplerSettings = new HashMap<>();
+        settings.put("distributed_tracing", specifyDtSettings);
+        specifyDtSettings.put("enabled", true);
+        specifyDtSettings.put("sampler", specifySamplerSettings);
+        specifySamplerSettings.put("remoteParentSampled", "always_on");
+        specifySamplerSettings.put("adaptive_sampling_target", 133);
+
+        createServiceManager(settings);
+        ConfigService configService = ServiceFactory.getConfigService();
+        Map<String, Object> sanitizedSettings = configService.getSanitizedLocalSettings();
+
+        //assert it all looks good, all the originally specified values are there.
+        Map<String, Object> dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
+        assertEquals(true, dtSettings.get("enabled"));
+        Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
+        assertEquals("always_on", samplerSettings.get("remoteParentSampled"));
+        assertEquals(133, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+    }
+
+    @Test
     public void noUsernamePasswordProxy() throws Exception {
         Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
         createServiceManager(configMap);

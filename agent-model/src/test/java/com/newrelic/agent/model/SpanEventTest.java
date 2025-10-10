@@ -53,10 +53,6 @@ public class SpanEventTest {
         assertNotEquals(span1, span5);
         assertNotEquals(span2, span5);
 
-        SpanEvent span6 = baseBuilder(now).decider(false).build();
-        assertNotEquals(span1, span6);
-        assertNotEquals(span2, span6);
-
         SpanEvent span7 = baseBuilder(now).appName("somethingDifferent").build();
         assertNotEquals(span1, span7);
         assertNotEquals(span2, span7);
@@ -128,7 +124,6 @@ public class SpanEventTest {
         assertEquals("thud", spanEvent.getName());
         assertEquals("8675zzz", spanEvent.getTransactionId());
         assertEquals("wally", spanEvent.getAppName());
-        assertEquals(true, spanEvent.decider());
     }
 
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
@@ -155,7 +150,6 @@ public class SpanEventTest {
                 .putAllUserAttributes(userAttributes)
                 .putAllAgentAttributes(agentAttributes)
                 .putAllIntrinsics(intrinsics)
-                .decider(true)
                 .appName("wally")
                 .priority(21.7f)
                 .timestamp(now);

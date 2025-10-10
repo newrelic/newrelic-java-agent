@@ -13,7 +13,7 @@ public class SpanEventImplTest {
     @Test
     public void getters_returnUnderlyingSpanEventData() throws IOException {
         SpanEvent.Builder spanEventBuilder = SpanEvent.builder();
-        SpanEvent spanEvent = spanEventBuilder.appName("appname").decider(true).priority(.1f).timestamp(100000).putIntrinsic("category", "http")
+        SpanEvent spanEvent = spanEventBuilder.appName("appname").priority(.1f).timestamp(100000).putIntrinsic("category", "http")
                 .putIntrinsic("transactionId", "transactionid").putIntrinsic("duration", 0.1f)
                 .putIntrinsic("name", "name").putIntrinsic("traceId", "traceid").putIntrinsic("guid", "guid")
                 .putIntrinsic("parentId", "parentid").putAgentAttribute("http.url", "url").putAgentAttribute("http.statusCode", 200)

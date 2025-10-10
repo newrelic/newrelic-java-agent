@@ -34,13 +34,7 @@ public interface SamplingPriorityQueue<E extends PriorityAware> {
 
     String getServiceName();
 
-    int getSampled();
-
-    int getDecided();
-
-    int getTarget();
-
-    int getDecidedLast();
+    int getTotalSampledPriorityEvents();
 
     int size();
 
