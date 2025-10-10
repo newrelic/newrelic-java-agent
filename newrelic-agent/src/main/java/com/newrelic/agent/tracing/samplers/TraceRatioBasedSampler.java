@@ -1,0 +1,79 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+package com.newrelic.agent.tracing.samplers;
+
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
+
+/**
+ * Ratio based sampler that utilizes the 16 byte hex encoded
+ * trace id string as a deterministic source of randomness.
+ * <br>
+ * The sampler is seeded with a float value that represents the sampling
+ * ratio target. The threshold (T) is calculated via:
+ * <pre>
+ *     (Long.MAX_VALUE * traceRatio)
+ * </pre>
+ * When the sampler is presented with the hex encoded trace id, a
+ * deterministic random value (R) is derived by extracting the last 8 bytes
+ * (16 characters) of the id and converting into a long value.
+ * <br>
+ * If this value is less than or equal to T, we return a priority of 2.0 which
+ * will mark this trace for sampling.
+ */
+public class TraceRatioBasedSampler implements AbstractSampler {
+    private final long threshold;
+
+    /**
+     * Construct a new TraceRatioBasedSampler with the desired ratio
+     * supplied as a float value in args[0].
+     *
+     * @param args the first and only element of this varargs array must
+     * be a valid float value between 0.0f - 1.0f, inclusive
+     */
+    public TraceRatioBasedSampler(Object... args) {
+        float traceRatio = SamplerUtils.samplingProbabilityFromVarArgs(args);
+        if (!Float.isNaN(traceRatio)) {
+            threshold = (long) (Long.MAX_VALUE * traceRatio);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "TraceRatioBasedSampler: threshold {0}", threshold);
+        } else {
+            threshold = 0L;
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "TraceRatioBasedSampler: Invalid sampling ratio supplied; setting " +
+                    "threshold to {0}", threshold);
+        }
+    }
+
+    @Override
+    public float calculatePriority(Object... args) {
+        String traceId = SamplerUtils.traceIdFromVarArgs(args);
+
+        if (traceId != null && traceId.length() == 32) {
+            try {
+                String last16Chars = traceId.substring(16);
+                return (Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold) ? 2.0f : 0.0f;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return 0.0f;
+    }
+
+    @Override
+    public String getType() {
+        return SamplerType.TRACE_RATIO.toString();
+    }
+
+    /**
+     * Retrieve the current rejection threshold value
+     *
+     * @return the calculated rejection threshold
+     */
+    public long getThreshold() {
+        return threshold;
+    }
+}

@@ -1,0 +1,79 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+package com.newrelic.agent.tracing.samplers;
+
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.logging.Level;
+
+/**
+ * Probability based sampler that utilizes the 16 byte hex encoded
+ * trace id string as a deterministic source of randomness.
+ * <br>
+ * The sampler is seeded with a float value that represents the sampling
+ * probability target. The threshold (T) is calculated via:
+ * <pre>
+ *     (1 - samplingProbability) * 2^56
+ * </pre>
+ * When the sampler is presented with the hex encoded trace id, a
+ * deterministic random value (R) is derived by extracting the last 7 bytes
+ * (14 characters) of the id and converting into a long value.
+ * <br>
+ * If this value is greater than or equal to T, we return a priority of 2.0 which
+ * will mark this trace for sampling.
+ */
+public class ProbabilityBasedSampler implements AbstractSampler {
+    private final long rejectionThreshold;
+
+    /**
+     * Construct a new ProbabilityBasedSampler with the desired probability
+     * supplied as a float value in args[0].
+     *
+     * @param args the first and only element of this varargs array must
+     * be a valid float value between 0.0f - 1.0f, inclusive
+     */
+    public ProbabilityBasedSampler(Object... args) {
+        // Validate that args[0] is actually exists and is a float type
+        float samplingProbability = SamplerUtils.samplingProbabilityFromVarArgs(args);
+        if (!Float.isNaN(samplingProbability)) {
+            this.rejectionThreshold = (long) ((1 - samplingProbability) * Math.pow(2, 56));
+            NewRelic.getAgent().getLogger().log(Level.INFO, "ProbabilityBasedSampler: rejection threshold {0}", rejectionThreshold);
+        } else {
+            this.rejectionThreshold = (long) Math.pow(2, 56);
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "ProbabilityBasedSampler: Invalid sampling probability supplied; setting " +
+                            "rejection threshold to {0}", rejectionThreshold);
+        }
+    }
+
+    @Override
+    public float calculatePriority(Object... args) {
+        String traceId = SamplerUtils.traceIdFromVarArgs(args);
+        if (traceId != null && traceId.length() == 32) {
+            try {
+                String last14Chars = traceId.substring(18);
+                return Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold ? 2.0f : 0.0f;
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return 0.0f;
+    }
+
+    @Override
+    public String getType() {
+        return AbstractSampler.SamplerType.PROBABILITY.getDescription();
+    }
+
+    /**
+     * Retrieve the current rejection threshold value
+     *
+     * @return the calculated rejection threshold
+     */
+    public long getRejectionThreshold() {
+        return rejectionThreshold;
+    }
+}
