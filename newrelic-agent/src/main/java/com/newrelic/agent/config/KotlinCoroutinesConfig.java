@@ -14,6 +14,10 @@ public interface KotlinCoroutinesConfig {
 
     public String[] getIgnoredRegexDispatched();
 
+    public String[] getIgnoredSuspends();
+
+    public String[] getIgnoredRegexSuspends();
+
     public boolean isDelayedEnabled();
 
 }
