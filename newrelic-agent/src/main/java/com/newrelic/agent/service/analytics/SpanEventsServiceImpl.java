@@ -99,11 +99,6 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
         String appName = transactionData.getApplicationName();
         SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
-        if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
-            // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
-            reservoir.incrementNumberOfTries();
-            return;
-        }
 
         SpanEvent spanEvent = tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
         storeEvent(spanEvent);

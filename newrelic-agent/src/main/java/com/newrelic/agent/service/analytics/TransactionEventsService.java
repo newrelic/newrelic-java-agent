@@ -347,13 +347,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
                         new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored, 0, target));
                 currentReservoir = reservoirForApp.get(appName);
             }
-            if (!currentReservoir.isFull() || currentReservoir.getMinPriority() < transactionData.getPriority()) {
-                // If the reservoir is not full or it is full and our current transaction
-                // is greater than the min in the reservoir we should try to create and add it
-                currentReservoir.add(createEvent(transactionData, transactionStats, getMetricName(transactionData)));
-            } else {
-                currentReservoir.incrementNumberOfTries();
-            }
+            currentReservoir.add(createEvent(transactionData, transactionStats, getMetricName(transactionData)));
         }
     }
 
