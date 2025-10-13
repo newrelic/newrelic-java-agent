@@ -45,4 +45,11 @@ public class AzureAppServiceTest {
         assertTrue(azureAppServiceData.getValueMap().containsKey("cloud.resource_id"));
     }
 
+    @Test
+    public void testGetDataReturnsEmptyWhenNotInAzureAppService() {
+        AzureAppService azureAppService = new AzureAppService(new CloudUtility());
+
+        AzureAppServiceData azureAppServiceData = azureAppService.getData();
+        assertTrue(azureAppServiceData.isEmpty());
+    }
 }

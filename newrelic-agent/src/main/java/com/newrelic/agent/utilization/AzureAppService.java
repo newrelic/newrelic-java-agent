@@ -30,6 +30,10 @@ public class AzureAppService implements CloudVendor {
         String siteName = System.getenv("WEBSITE_SITE_NAME");
         String ownerName = System.getenv("WEBSITE_OWNER_NAME");
 
+        if (resourceGroup == null && siteName == null && ownerName == null) {
+            return AzureAppServiceData.EMPTY_DATA;
+        }
+
         return parseEnvVars(resourceGroup, siteName, ownerName);
     }
 
