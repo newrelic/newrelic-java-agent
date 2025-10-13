@@ -378,7 +378,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         if (aliasName != null) {
             Config aliasConfig = getInstrumentationConfig(aliasName);
             if (aliasConfig.getProperty("enabled") != null) {
-                Agent.LOG.log(Level.INFO, "Using deprecated configuration setting {0} for instrumentation {1}", aliasName, moduleName);
+                Agent.LOG.log(Level.FINE, "An alias was used configuring instrumentation: {1} using alias {0}", aliasName, moduleName);
                 aliasEnabled = aliasConfig.getProperty("enabled");
             }
         }
