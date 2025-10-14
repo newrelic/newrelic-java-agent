@@ -11,7 +11,7 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.logging.Level;
 
 /**
- * Ratio based sampler that utilizes the 16 byte hex encoded
+ * Ratio based sampler that utilizes the hex encoded
  * trace id string as a deterministic source of randomness.
  * <br>
  * The sampler is seeded with a float value that represents the sampling
