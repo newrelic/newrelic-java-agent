@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
@@ -95,6 +96,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
     private final AtomicInteger retryCount = new AtomicInteger(0);
+    private final ReentrantLock reentrantLock = new ReentrantLock();
 
     private String rpmLink;
     private long lastReportTime;
@@ -248,47 +250,54 @@ public class RPMService extends AbstractService implements IRPMService, Environm
      * Notify RPM that this agent has launched, and obtain the agent run id
      */
     @Override
-    public synchronized void launch() throws Exception {
-        if (isConnected()) {
-            return;
-        }
-
-        Map<String, Object> data = doConnect();
-        Agent.LOG.log(Level.FINER, "Connection response : {0}", data);
-        List<String> requiredParams = new ArrayList<>(Arrays.asList(COLLECT_ERRORS_KEY, COLLECT_TRACES_KEY, DATA_REPORT_PERIOD_KEY));
-        if (!data.keySet().containsAll(requiredParams)) {
-            requiredParams.removeAll(data.keySet());
-            throw new UnexpectedException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
-        }
-        Agent.LOG.log(Level.INFO, "Agent {0} connected to {1}", toString(), getHostString());
+    public void launch() throws Exception {
+        reentrantLock.lock();
 
         try {
-            logCollectorMessages(data);
-        } catch (Exception ex) {
-            Agent.LOG.log(Level.FINEST, ex, "Error processing collector connect messages");
+            if (isConnected()) {
+                return;
+            }
+
+            Map<String, Object> data = doConnect();
+            Agent.LOG.log(Level.FINER, "Connection response : {0}", data);
+            List<String> requiredParams = new ArrayList<>(Arrays.asList(COLLECT_ERRORS_KEY, COLLECT_TRACES_KEY, DATA_REPORT_PERIOD_KEY));
+            if (!data.keySet().containsAll(requiredParams)) {
+                requiredParams.removeAll(data.keySet());
+                throw new UnexpectedException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
+            }
+            Agent.LOG.log(Level.INFO, "Agent {0} connected to {1}", toString(), getHostString());
+
+            try {
+                logCollectorMessages(data);
+            } catch (Exception ex) {
+                Agent.LOG.log(Level.FINEST, ex, "Error processing collector connect messages");
+            }
+
+            AgentConfig config = null;
+            if (connectionConfigListener != null) {
+                // Merge server-side data with local config before notifying connection listeners
+                config = connectionConfigListener.connected(this, data);
+            }
+
+            connectionTimestamp = System.nanoTime();
+            connected = true;
+            hasEverConnected = true;
+            entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
+
+            if (connectionListener != null) {
+                config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
+                connectionListener.connected(this, config);
+            }
+
+            String agentRunToken = (String) data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
+            Map<String, String> requestMetadata = (Map<String, String>) data.get(ConnectionResponse.REQUEST_HEADERS);
+            for (AgentConnectionEstablishedListener listener : agentConnectionEstablishedListeners) {
+                listener.onEstablished(appName, agentRunToken, requestMetadata);
+            }
+        } finally {
+            reentrantLock.unlock();
         }
 
-        AgentConfig config = null;
-        if (connectionConfigListener != null) {
-            // Merge server-side data with local config before notifying connection listeners
-            config = connectionConfigListener.connected(this, data);
-        }
-
-        connectionTimestamp = System.nanoTime();
-        connected = true;
-        hasEverConnected = true;
-        entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
-
-        if (connectionListener != null) {
-            config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
-            connectionListener.connected(this, config);
-        }
-
-        String agentRunToken = (String) data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
-        Map<String, String> requestMetadata = (Map<String, String>) data.get(ConnectionResponse.REQUEST_HEADERS);
-        for (AgentConnectionEstablishedListener listener : agentConnectionEstablishedListeners) {
-            listener.onEstablished(appName, agentRunToken, requestMetadata);
-        }
     }
 
     private Map<String, Object> doConnect() throws Exception {
@@ -379,15 +388,21 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
-    public synchronized void reconnect() {
-        Agent.LOG.log(Level.INFO, "{0} is reconnecting", getApplicationName());
+    public void reconnect() {
+        reentrantLock.lock();
         try {
-            shutdown();
-        } catch (Exception e) {
-            // ignore
+            Agent.LOG.log(Level.INFO, "{0} is reconnecting", getApplicationName());
+            try {
+                shutdown();
+            } catch (Exception e) {
+                // ignore
+            } finally {
+                reconnectAsync();
+            }
         } finally {
-            reconnectAsync();
+            reentrantLock.unlock();
         }
+
     }
 
     @Override
@@ -725,8 +740,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     /**
      * notify RPM that the agent is shutting down
      */
-    public synchronized void shutdown() throws Exception {
-        disconnect();
+    public void shutdown() throws Exception {
+        reentrantLock.lock();
+        try {
+            disconnect();
+        } finally {
+            reentrantLock.unlock();
+        }
     }
 
     @Override
@@ -748,17 +768,18 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
         while (!done && System.currentTimeMillis() < end) {
             try {
-                synchronized (this) {
+                if (reentrantLock.tryLock(200, TimeUnit.MILLISECONDS)) {
                     if (isConnected()) {
                         ServiceFactory.getHarvestService().harvestNow();
                         done = true;
                     }
                 }
-                Thread.sleep(200);
             } catch (InterruptedException iex) {
                 // sleep returned early - ignore it - the process is ending anyway
             } catch (Exception ex) {
                 trouble = ex;
+            } finally {
+                reentrantLock.unlock();
             }
         }
 
