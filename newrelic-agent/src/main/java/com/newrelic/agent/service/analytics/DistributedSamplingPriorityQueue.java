@@ -7,12 +7,12 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.collect.MinMaxPriorityQueue;
-import com.google.common.collect.Queues;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.agent.util.MinAwareQueue;
 import com.newrelic.agent.util.NoOpQueue;
+import com.newrelic.agent.util.SynchronizedMinAwareQueue;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,7 +21,7 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
 
     private final String appName;
     private final String serviceName;
-    private final Queue<E> data;
+    private final MinAwareQueue<E> data;
     private final AtomicInteger numberOfTries = new AtomicInteger();
     private final AtomicInteger sampled;
     private final Comparator<E> comparator;
@@ -48,14 +48,11 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
         this.maximumSize = reservoirSize;
     }
 
-    private Queue<E> createQueue(int reservoirSize, Comparator<E> comparator) {
+    private MinAwareQueue<E> createQueue(int reservoirSize, Comparator<E> comparator) {
         if (reservoirSize <= 0) {
             return new NoOpQueue<>();
         } else {
-            return Queues.synchronizedQueue(MinMaxPriorityQueue
-                    .orderedBy(comparator)
-                    .maximumSize(reservoirSize)
-                    .create());
+            return new SynchronizedMinAwareQueue<>(reservoirSize, comparator);
         }
     }
 
@@ -81,7 +78,7 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
 
     @Override
     public float getMinPriority() {
-        return data.isEmpty() ? 0.0f : data.peek().getPriority();
+        return data.isEmpty() ? 0.0f : data.peekLast().getPriority();
     }
 
     @Override

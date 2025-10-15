@@ -186,6 +186,29 @@ public class DistributedSamplingPriorityQueueTest {
         assertEquals(0, sizeZeroQueue.size());
     }
 
+    @Test
+    public void testGetMinPriority() {
+        DistributedSamplingPriorityQueue<SimplePriorityAware> queue = new DistributedSamplingPriorityQueue<>(5);
+
+        queue.add(new SimplePriorityAware(1.6f));
+        queue.add(new SimplePriorityAware(1.8f));
+        queue.add(new SimplePriorityAware(1.7f));
+        queue.add(new SimplePriorityAware(0.55f));
+        queue.add(new SimplePriorityAware(0.1f));
+        queue.add(new SimplePriorityAware(0.2f));
+        queue.add(new SimplePriorityAware(1.65f));
+
+        assertEquals(0.55f, queue.getMinPriority(), 0.0f);
+
+        queue.add(new SimplePriorityAware(0.2f));
+
+        assertEquals(0.55f, queue.getMinPriority(), 0.0f);
+
+        queue.add(new SimplePriorityAware(1.72f));
+
+        assertEquals(1.6f, queue.getMinPriority(), 0.0f);
+    }
+
     private void addSpanEvents(int numberToAdd, DistributedSamplingPriorityQueue<SpanEvent> queue) {
         SpanEvent spanEvent = new SpanEventFactory("Unit Test")
                 .setGuid("9")
