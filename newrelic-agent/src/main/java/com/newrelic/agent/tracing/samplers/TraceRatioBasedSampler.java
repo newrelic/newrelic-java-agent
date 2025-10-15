@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.Transaction;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -49,8 +50,8 @@ public class TraceRatioBasedSampler implements AbstractSampler {
     }
 
     @Override
-    public float calculatePriority(Object... args) {
-        String traceId = SamplerUtils.traceIdFromVarArgs(args);
+    public float calculatePriority(Transaction tx) {
+        String traceId = SamplerUtils.traceIdFromTransaction(tx);
 
         if (traceId != null && traceId.length() == 32) {
             try {

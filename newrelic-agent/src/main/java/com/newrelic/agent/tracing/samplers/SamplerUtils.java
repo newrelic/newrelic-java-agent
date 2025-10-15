@@ -6,6 +6,8 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.Transaction;
+
 public class SamplerUtils {
     /**
      * Validate and convert the args[0] value into a float.
@@ -23,15 +25,15 @@ public class SamplerUtils {
     }
 
     /**
-     * Validate and convert the args[0] value into a String
+     * Extract the trace id from the supplied Transaction instance
      *
-     * @param args the argument array to validate
+     * @param tx The target Transaction
      *
-     * @return the String value from args[0] or null if the value is invalid
+     * @return the extracted trace id or null if the Transaction instance is null
      */
-    static String traceIdFromVarArgs(Object... args) {
-        if (args.length == 1 && args[0] instanceof String) {
-            return (String) args[0];
+    static String traceIdFromTransaction(Transaction tx) {
+        if (tx != null) {
+            return tx.getOrCreateTraceId();
         } else {
             return null;
         }

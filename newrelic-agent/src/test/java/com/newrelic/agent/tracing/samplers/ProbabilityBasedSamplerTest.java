@@ -6,11 +6,16 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.trace.TransactionGuidFactory;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 public class ProbabilityBasedSamplerTest {
     @Test
@@ -62,7 +67,7 @@ public class ProbabilityBasedSamplerTest {
     @Test
     public void sampler_suppliedInvalidTraceId_returns0Priority() {
         ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(0.1f);
-        assertEquals(0.0f, sampler.calculatePriority("foo"), 0.0f);
+        assertEquals(0.0f, sampler.calculatePriority(null), 0.0f);
     }
 
 
@@ -70,12 +75,15 @@ public class ProbabilityBasedSamplerTest {
         int iterations = 0;
         int sampledCount = 0;
 
+        Transaction tx = mock(Transaction.class);
+        when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
+
         ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(samplingProbability);
 
         while (++iterations <= iterationCount) {
             String id = TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid();
 
-            if (sampler.calculatePriority(id) == 2.0f) {
+            if (sampler.calculatePriority(tx) == 2.0f) {
                 sampledCount++;
             }
         }

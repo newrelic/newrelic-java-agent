@@ -6,6 +6,8 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.Transaction;
+
 public interface AbstractSampler {
     /**
      * Available sampler types
@@ -32,12 +34,11 @@ public interface AbstractSampler {
      * Calculate the priority of a trace. The value returned must be in the range
      * of 0.0f - 2.0f.
      *
-     * @param args A varargs array that contains any arguments that are required to
-     * calculate the priority.
+     * @param tx the transaction to calculate the priority for
      *
      * @return a priority value between 0.0f - 2.0f, inclusive
      */
-    float calculatePriority(Object... args);
+    float calculatePriority(Transaction tx);
 
     /**
      * Get the description/name of this Sampler
