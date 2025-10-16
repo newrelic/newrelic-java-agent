@@ -26,6 +26,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -337,32 +339,56 @@ public class DockerDataTest {
     }
 
     @Test
-    public void retrieveDockerIdFromFargateMetadata_withValidUrl_returnsDockerId() throws IOException {
+    public void retrieveDockerIdFromFargateMetadata_withValidUrl_returnsDockerIdUrl() throws IOException {
         InputStream byteArrayStream = new ByteArrayInputStream(FARGATE_JSON.getBytes());
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenReturn(byteArrayStream);
 
         DockerData dockerData = new DockerData();
-        Assert.assertEquals("1e1698469422439ea356071e581e8545-2769485393", dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+        Assert.assertEquals("1e1698469422439ea356071e581e8545-2769485393", dockerData.retrieveDockerIdFromFargateMetadataUrl(mockFetcher));
     }
 
     @Test
-    public void retrieveDockerIdFromFargateMetadata_withInvalidJson_returnsNull() throws IOException {
+    public void retrieveDockerIdFromFargateMetadata_Url_withInvalidJson_returnsNull() throws IOException {
         InputStream byteArrayStream = new ByteArrayInputStream("foofoo".getBytes());
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenReturn(byteArrayStream);
 
         DockerData dockerData = new DockerData();
-        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadataUrl(mockFetcher));
     }
 
     @Test
-    public void retrieveDockerIdFromFargateMetadata_withInputStreamException_returnsNull() throws IOException {
+    public void retrieveDockerIdFromFargateMetadata_withValidFile_returnsDockerId() {
+        URL resourceUrl = getClass().getResource("/ecs_fargate_metadata.json");
+        File file = new File(resourceUrl.getFile());
+
+        DockerData dockerData = new DockerData();
+        Assert.assertEquals("b593651c4d6b44a6b2b583f45c957e15-3356213583", dockerData.retrieveDockerIdFromFargateMetadataFile(file.getAbsolutePath()));
+    }
+
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_withIncompleteJson_returnsNull() {
+        URL resourceUrl = getClass().getResource("/invalid_ecs_fargate_metadata.json");
+        File file = new File(resourceUrl.getFile());
+
+        DockerData dockerData = new DockerData();
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadataFile(file.getAbsolutePath()));
+    }
+
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_withMissingFile_returnsNull() throws IOException, URISyntaxException {
+        DockerData dockerData = new DockerData();
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadataFile("/foo.json"));
+    }
+
+    @Test
+    public void retrieveDockerIdFromFargateMetadata_Url_withInputStreamException_returnsNull() throws IOException {
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenThrow(new IOException("oops"));
 
         DockerData dockerData = new DockerData();
-        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
+        Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadataUrl(mockFetcher));
     }
 
     @Test

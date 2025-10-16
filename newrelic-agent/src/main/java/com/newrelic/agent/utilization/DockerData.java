@@ -9,7 +9,7 @@ package com.newrelic.agent.utilization;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.config.internal.SystemEnvironmentFacade;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -19,9 +19,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
@@ -53,6 +55,7 @@ public class DockerData {
 
     private static final String AWS_ECS_METADATA_UNVERSIONED_ENV_VAR = "ECS_CONTAINER_METADATA_URI";
     private static final String AWS_ECS_METADATA_V4_ENV_VAR = "ECS_CONTAINER_METADATA_URI_V4";
+    private static final String AWS_ECS_CONTAINER_METADATA_FILE_ENV_VAR = "ECS_CONTAINER_METADATA_FILE";
     private static final String FARGATE_DOCKER_ID_KEY = "DockerId";
 
     private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
@@ -63,13 +66,25 @@ public class DockerData {
         if (isLinux) {
             String result;
 
+            // Attempt to fetch info from the ECS Fargate metadata file. Note that this must be
+            // configured for the target container by the customer:
+            // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/enable-metadata.html
+            String fargateMetadataFile = System.getenv(AWS_ECS_CONTAINER_METADATA_FILE_ENV_VAR);
+            if (fargateMetadataFile != null) {
+                Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from the ECS Fargate container metadata file: {0}", fargateMetadataFile);
+                result = retrieveDockerIdFromFargateMetadataFile(fargateMetadataFile);
+                if (result == null) {
+                    return result;
+                }
+            }
+
             // Try v4 ESC Fargate metadata call, then fallback to the un-versioned call
             String fargateUrl = null;
             try {
                 fargateUrl = System.getenv(AWS_ECS_METADATA_V4_ENV_VAR);
                 if (fargateUrl != null) {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (v4): {0}", fargateUrl);
-                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    result = retrieveDockerIdFromFargateMetadataUrl(new AwsFargateMetadataFetcher(fargateUrl));
                     if (result != null) {
                         return result;
                     }
@@ -78,7 +93,7 @@ public class DockerData {
                 fargateUrl = System.getenv(AWS_ECS_METADATA_UNVERSIONED_ENV_VAR);
                 if (fargateUrl != null) {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (unversioned): {0}", fargateUrl);
-                    return retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    return retrieveDockerIdFromFargateMetadataUrl(new AwsFargateMetadataFetcher(fargateUrl));
                 }
             } catch (MalformedURLException e) {
                 Agent.LOG.log(Level.FINEST, "Invalid AWS Fargate metadata URL: {0}", fargateUrl);
@@ -205,23 +220,31 @@ public class DockerData {
     }
 
     @VisibleForTesting
-    String retrieveDockerIdFromFargateMetadata(AwsFargateMetadataFetcher awsFargateMetadataFetcher) {
+    String retrieveDockerIdFromFargateMetadataFile(String metadataFile) {
         String dockerId = null;
-        StringBuilder jsonBlob = new StringBuilder();
+        StringBuilder jsonBlob;
 
         try {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(awsFargateMetadataFetcher.openStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    jsonBlob.append(line);
-                }
-            }
+            File fileInstance =  new File(metadataFile);
+            if (fileInstance.exists()) {
+                jsonBlob = readJsonBlob(Files.newInputStream(fileInstance.toPath()));
+                Agent.LOG.log(Level.INFO, "ECS Fargate JSON blob from metadata file:\n {0} ", jsonBlob.toString());
 
-            JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
-            dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
-            Agent.LOG.log(Level.INFO, "ECS Fargate container id: {0} ", dockerId);
+                JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
+                JSONArray containers = (JSONArray) jsonObject.get("Containers");
+                if (containers != null) {
+                    Object maybeDockerId = ((JSONObject) containers.get(0)).get("DockerId");
+                    if (maybeDockerId != null) {
+                        dockerId = (String) maybeDockerId;
+                    }
+                }
+
+                Agent.LOG.log(Level.INFO, "ECS Fargate container id from metadata file: {0} ", dockerId);
+            } else {
+                Agent.LOG.log(Level.INFO, "ECS Fargate metadata file {0} does not exist", fileInstance.getAbsolutePath());
+            }
         } catch (IOException e) {
-            Agent.LOG.log(Level.WARNING, "Error opening input stream retrieving AWS Fargate metadata");
+            Agent.LOG.log(Level.WARNING, "Error opening File input stream retrieving AWS Fargate metadata: {0}",  e.getMessage());
         } catch (ParseException e) {
             Agent.LOG.log(Level.WARNING, "Error parsing JSON blob for AWS Fargate metadata");
         }
@@ -229,4 +252,38 @@ public class DockerData {
         return dockerId;
     }
 
+    @VisibleForTesting
+    String retrieveDockerIdFromFargateMetadataUrl(AwsFargateMetadataFetcher awsFargateMetadataFetcher) {
+        String dockerId = null;
+
+        try {
+            StringBuilder jsonBlob = readJsonBlob(awsFargateMetadataFetcher.openStream());
+            JSONObject jsonObject = (JSONObject) new JSONParser().parse(jsonBlob.toString());
+            dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
+            Agent.LOG.log(Level.INFO, "ECS Fargate container id: {0} ", dockerId);
+        } catch (IOException e) {
+            Agent.LOG.log(Level.WARNING, "Error opening input stream retrieving AWS Fargate metadata: {0}",  e.getMessage());
+        } catch (ParseException e) {
+            Agent.LOG.log(Level.WARNING, "Error parsing JSON blob for AWS Fargate metadata");
+        }
+
+        return dockerId;
+    }
+
+    private StringBuilder readJsonBlob(InputStream inputStream) {
+        StringBuilder jsonBlob = new StringBuilder();
+
+        try {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBlob.append(line);
+                }
+            }
+        } catch (IOException e) {
+            Agent.LOG.log(Level.WARNING, "Error opening input stream to parse AWS Fargate metadata blob: {0}", e.getMessage());
+        }
+
+        return jsonBlob;
+    }
 }
