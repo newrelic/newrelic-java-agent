@@ -12,9 +12,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -34,8 +37,7 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
     static {
         try {
             HEALTH_FILE_LOCATION = new URI("file://" + System.getProperty("user.dir"));
-        } catch (URISyntaxException e) {
-            // ignored
+        } catch (URISyntaxException ignored) {
         }
     }
 
@@ -76,6 +78,33 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
         assertNull(parsedYaml.get("last_error"));
 
         assertTrue(client.isValid());
+    }
+
+    @Test
+    public void sendHealthMessage_withValidConfig_WithKeysInProperOrder() throws IOException {
+        when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
+        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
+        final String [] ORDERED_KEYS = {"entity_guid", "healthy", "status", "start_time_unix_nano", "status_time_unix_nano"};
+
+
+        long startTime = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
+        AgentHealth agentHealth = new AgentHealth(startTime);
+
+        client.sendHealthMessage(agentHealth);
+        File[] yamlFiles = getGeneratedHealthFiles();
+        try (FileInputStream fis = new FileInputStream(yamlFiles[0]);
+             InputStreamReader isr = new InputStreamReader(fis);
+             BufferedReader br = new BufferedReader(isr)) {
+
+            String line;
+            int idx = 0;
+            while ((line = br.readLine()) != null) {
+                assertTrue(line.contains(ORDERED_KEYS[idx++]));
+            }
+        } catch (IOException ignored) {
+        }
+
+
     }
 
     @Test
