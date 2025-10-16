@@ -60,4 +60,11 @@ public class AgentHealthTest {
         agentHealth.setUnhealthyStatus(AgentHealth.Status.HTTP_ERROR, "404", "whatever");
         assertEquals("HTTP error response code [404] received from New Relic while sending data type [whatever]", agentHealth.getCurrentStatus());
     }
+
+    @Test
+    public void entityGuidSetGet() {
+        AgentHealth agentHealth = new AgentHealth(AgentControlIntegrationUtils.getPseudoCurrentTimeNanos());
+        agentHealth.setEntityGuid("1234");
+        assertEquals("1234", agentHealth.getEntityGuid());
+    }
 }

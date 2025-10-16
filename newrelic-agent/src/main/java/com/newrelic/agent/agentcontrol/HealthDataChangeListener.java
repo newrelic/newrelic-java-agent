@@ -10,4 +10,6 @@ public interface HealthDataChangeListener {
     void onUnhealthyStatus(AgentHealth.Status newStatus, String... additionalInfo);
 
     void onHealthyStatus(AgentHealth.Category... category);
+
+    void assignEntityGuid(String entityGuid);
 }
