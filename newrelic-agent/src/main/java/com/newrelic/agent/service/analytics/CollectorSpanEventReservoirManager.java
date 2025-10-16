@@ -64,6 +64,11 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
 
         // save a reference to the old reservoir to finish harvesting, and create a new one
         final SamplingPriorityQueue<SpanEvent> toSend = spanReservoirsForApp.get(appName);
+
+        if (toSend != null){
+            toSend.logReservoirStats();
+        }
+
         spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName));
 
         if (toSend == null || toSend.size() <= 0) {

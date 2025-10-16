@@ -358,13 +358,16 @@ public class Transaction {
      *
      * If a priority assignment has already been made, this call is ignored. This is a required check to avoid
      * overwriting any priority decision that was made earlier, either because a remote parent was processed or a previous
-     * call to this method was made earlier in the txn's lifecycle.
+     * call to this method was made earlier in the txn's lifecycle. It is also required to avoid accidentally running the
+     * adaptive sampler twice on the same transaction.
      *
-     * If Distributed Tracing is not enabled, a random priority in [0,1) is assigned.
+     * If Distributed Tracing is not enabled, or this is a synthetic transaction, a random priority in [0,1) is assigned.
      */
     public void assignPriorityRootIfNotSet(){
         if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
             if (priority.get() == null){
+                //The "if" check above is required even though we do compareAndSet(null) below.
+                //Its purpose is to avoid running the sampler more than once for the same txn.
                 Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot();
                 priority.compareAndSet(null, samplerPriority);
             }

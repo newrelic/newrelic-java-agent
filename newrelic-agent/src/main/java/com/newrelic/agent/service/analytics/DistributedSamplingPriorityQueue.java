@@ -13,9 +13,11 @@ import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.util.MinAwareQueue;
 import com.newrelic.agent.util.NoOpQueue;
 import com.newrelic.agent.util.SynchronizedMinAwareQueue;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public class DistributedSamplingPriorityQueue<E extends PriorityAware> implements SamplingPriorityQueue<E> {
 
@@ -144,6 +146,11 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     @Override
     public void clear() {
         data.clear();
+    }
+
+    public void logReservoirStats() {
+        NewRelic.getAgent().getLogger().log(Level.FINER, "Application {0} saw {1} events for {2}, added {3} of sampling priority.",
+                appName, getNumberOfTries(), serviceName, getTotalSampledPriorityEvents());
     }
 
 }

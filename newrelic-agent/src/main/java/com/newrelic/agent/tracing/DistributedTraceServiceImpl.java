@@ -371,7 +371,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         boolean wasEnabled = isEnabled();
         this.distributedTraceConfig = agentConfig.getDistributedTracingConfig();
 
-        //will we allow the sampler config to be changeable?
         if (!wasEnabled && isEnabled()) {
             StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING);

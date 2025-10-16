@@ -39,4 +39,6 @@ public interface SamplingPriorityQueue<E extends PriorityAware> {
     int size();
 
     void clear();
+
+    void logReservoirStats();
 }

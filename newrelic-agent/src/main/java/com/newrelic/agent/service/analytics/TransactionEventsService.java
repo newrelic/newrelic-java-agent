@@ -186,7 +186,10 @@ public class TransactionEventsService extends AbstractService implements EventSe
         long startTimeInNanos = System.nanoTime();
         beforeHarvestSynthetics(appName);
 
-        DistributedSamplingPriorityQueue<TransactionEvent> currentReservoir;
+        DistributedSamplingPriorityQueue<TransactionEvent> currentReservoir = reservoirForApp.get(appName);
+        if (currentReservoir != null){
+            currentReservoir.logReservoirStats();
+        }
 
         // Now the reservoir for per-transaction analytic events from ordinary non-synthetic transactions
         final DistributedSamplingPriorityQueue<TransactionEvent> reservoirToSend = reservoirForApp.put(appName,
@@ -256,7 +259,9 @@ public class TransactionEventsService extends AbstractService implements EventSe
 
     private void beforeHarvestSynthetics(String appName) {
         DistributedSamplingPriorityQueue<TransactionEvent> currentReservoir = syntheticsListForApp.get(appName);
-
+        if (currentReservoir != null){
+            currentReservoir.logReservoirStats();
+        }
         DistributedSamplingPriorityQueue<TransactionEvent> current = syntheticsListForApp.put(appName,
                 new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Synthetics Event Service", MAX_SYNTHETIC_EVENTS_PER_APP));
         if (current != null && current.size() > 0) {
