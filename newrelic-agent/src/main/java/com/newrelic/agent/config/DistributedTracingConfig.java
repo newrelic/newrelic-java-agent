@@ -15,9 +15,9 @@ import java.util.logging.Level;
 public class DistributedTracingConfig extends BaseConfig {
 
     private static final boolean DEFAULT_DISTRIBUTED_TRACING = true;
-    private static final Integer DEFAULT_ADAPTIVE_SAMPLING_TARGET = 120;
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.distributed_tracing.";
 
+    //public setting names
     public static final String ENABLED = "enabled";
     public static final String TRUSTED_ACCOUNT_KEY = "trusted_account_key";
     public static final String ACCOUNT_ID = "account_id";
@@ -26,17 +26,19 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String ENABLED_ENV_KEY = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED";
     public static final String EXCLUDE_NEWRELIC_HEADER = "exclude_newrelic_header";
     public static final String SAMPLER = "sampler";
+    public static final String ADAPTIVE_SAMPLING_TARGET = "adaptive_sampling_target";  // see below
     public static final String REMOTE_PARENT_SAMPLED = "remote_parent_sampled";
     public static final String REMOTE_PARENT_NOT_SAMPLED = "remote_parent_not_sampled";
-    public static final String SAMPLE_ALWAYS_ON = "always_on";
-    public static final String SAMPLE_ALWAYS_OFF = "always_off";
 
+    //public setting values
+    public static final Integer DEFAULT_ADAPTIVE_SAMPLING_TARGET = 120;
+    public static final Integer DEFAULT_ADAPTIVE_SAMPLING_PERIOD = 60;
     // note: there is no special logic for these yet, as they are just the fallback if the other values don't exist
     // if we have to add special logic, we should treat one as an alias of the other
     public static final String SAMPLE_DEFAULT = "default"; // same as 'adaptive_sampling'
-    public static final String SAMPLE_ADAPTIVE_SAMPLING = "adaptive_sampling"; // same as 'default'
-
-    public static final String ADAPTIVE_SAMPLING_TARGET = "adaptive_sampling_target";  // see below
+    public static final String SAMPLE_ADAPTIVE_SAMPLING = "adaptive_sampling";
+    public static final String SAMPLE_ALWAYS_ON = "always_on";
+    public static final String SAMPLE_ALWAYS_OFF = "always_off";// same as 'default'
 
     private final boolean enabled;
     private final String trustedAccountKey;
@@ -91,5 +93,9 @@ public class DistributedTracingConfig extends BaseConfig {
 
     public String getRemoteParentNotSampled() {
         return remoteParentNotSampled;
+    }
+
+    public Integer getAdaptiveSamplingTarget() {
+        return adaptiveSamplingTarget;
     }
 }

@@ -111,7 +111,7 @@ public class SpanEventsServiceTest {
         spanEventsService.dispatcherTransactionFinished(transactionData, new TransactionStats());
 
         SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
-        assertEquals(1, reservoir.getSampled());
+        assertEquals(1, reservoir.getTotalSampledPriorityEvents());
     }
 
     @Test
@@ -122,7 +122,6 @@ public class SpanEventsServiceTest {
 
         final SpanEvent event = new SpanEventFactory(APP_NAME)
                 .setCategory(SpanCategory.generic)
-                .setDecider(true)
                 .setPriority(1.23f)
                 .setDurationInSeconds(1.3f)
                 .setServerAddress("yourHost")
@@ -175,7 +174,7 @@ public class SpanEventsServiceTest {
         spanEventsService.dispatcherTransactionFinished(transactionData, null);
 
         SamplingPriorityQueue<SpanEvent> reservoir = spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
-        assertEquals(0, reservoir.getSampled());
+        assertEquals(0, reservoir.getTotalSampledPriorityEvents());
     }
 
     @Test
