@@ -7,6 +7,8 @@
 
 package org.apache.kafka.clients.producer;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.Headers;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -21,7 +23,8 @@ public class KafkaProducer_Instrumentation<K, V> {
 
     @Trace
     private Future<RecordMetadata> doSend(ProducerRecord record, Callback callback) {
-        if (NewRelic.getAgent().getTransaction() != null) {
+        final Transaction transaction = AgentBridge.getAgent().getTransaction(false);
+        if (transaction != null) {
             Headers dtHeaders = new HeadersWrapper(record.headers());
             NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(dtHeaders);
         }
