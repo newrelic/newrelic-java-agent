@@ -70,31 +70,71 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Tracer rootTracer = transactionData.getRootTracer();
-            storeSafely(transactionData, rootTracer, true, transactionStats);
+            SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats);
 
-            Collection<Tracer> tracers = transactionData.getTracers();
-            for (Tracer tracer : tracers) {
-                if (tracer.isTransactionSegment()) {
-                    storeSafely(transactionData, tracer, false, transactionStats);
-                }
+            if (rootSpan == null) {
+                Agent.LOG.log(Level.FINER, "Root span not created for tx: {0} no other spans will be created", transactionData);
+                return;
+            }
+
+            boolean isPartialGranularity = false; // TODO
+
+            List<SpanEvent> spans = isPartialGranularity ?
+                    createPartialGranularitySpanEvents(transactionData, transactionStats, rootSpan) :
+                    createFullGranularitySpanEvents(transactionData, transactionStats);
+
+            for (SpanEvent span : spans) {
+                storeEvent(span);
             }
         }
     }
 
-    private void storeSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats) {
+    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, SpanEvent rootSpan) {
+        boolean removeAttrs = true; // TODO
+        boolean groupExternals = false; // TODO
+        Collection<Tracer> tracers = transactionData.getTracers();
+        List<SpanEvent> spans = new ArrayList<>();
+        for (Tracer tracer : tracers) {
+            if (tracer.getExternalParameters() == null) continue;  // is this right?
+            // TODO all the partial granularity logic
+            if (tracer.isTransactionSegment()) {
+                // TODO assign parent as the root span
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats);
+                if (span != null) spans.add(span);
+            }
+        }
+
+        return spans;
+    }
+
+    private List<SpanEvent> createFullGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats) {
+        Collection<Tracer> tracers = transactionData.getTracers();
+        List<SpanEvent> spans = new ArrayList<>(tracers.size());
+        for (Tracer tracer : tracers) {
+            if (tracer.isTransactionSegment()) {
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats);
+                if (span != null) spans.add(span);
+            }
+        }
+
+        return spans;
+    }
+
+    private SpanEvent createSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats) {
         try {
-            createAndStoreSpanEvent(rootTracer, transactionData, isRoot, transactionStats);
+            return createSpanEvent(rootTracer, transactionData, isRoot, transactionStats);
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINER, t, "An error occurred creating span event for tracer: {0} in tx: {1}", rootTracer, transactionData);
         }
+        return null;
     }
 
-    private void createAndStoreSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
+    private SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
             TransactionStats transactionStats) {
         boolean crossProcessOnly = spanEventsConfig.isCrossProcessOnly();
         if (crossProcessOnly && !isCrossProcessTracer(tracer)) {
             // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
-            return;
+            return null;
         }
 
         String appName = transactionData.getApplicationName();
@@ -102,11 +142,10 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
-            return;
+            return null;
         }
 
-        SpanEvent spanEvent = tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
-        storeEvent(spanEvent);
+        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
     }
 
     private boolean isCrossProcessTracer(Tracer tracer) {
