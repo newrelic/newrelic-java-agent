@@ -279,6 +279,15 @@ public class Transaction {
         return Math.max(transportDurationInMillis, 0);
     }
 
+    // TODO does this contract work for everyone?
+    public enum PartialSampleType {
+        REDUCED,
+        ESSENTIAL,
+        COMPACT
+    }
+
+    private PartialSampleType partialSampleType; // null if either not sampled or full granularity sample, value set if partally sampled
+
     // WARNING: Mutates this instance by mutating the span proxy
     public DistributedTracePayloadImpl createDistributedTracePayload(String spanId) {
         assignPriorityRootIfNotSet();
@@ -2646,5 +2655,13 @@ public class Transaction {
 
     public SecurityMetaData getSecurityMetaData() {
         return securityMetaData;
+    }
+
+    public PartialSampleType getPartialSampleType() {
+        return partialSampleType;
+    }
+
+    public void setPartialSampleType(PartialSampleType partialSampleType) {
+        this.partialSampleType = partialSampleType;
     }
 }

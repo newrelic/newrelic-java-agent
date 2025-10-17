@@ -10,6 +10,7 @@ package com.newrelic.agent.service.analytics;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionListener;
 import com.newrelic.agent.config.AgentConfig;
@@ -77,10 +78,10 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 return;
             }
 
-            boolean isPartialGranularity = false; // TODO
+            Transaction.PartialSampleType partialSampleType = transactionData.getPartialSampleType();
 
-            List<SpanEvent> spans = isPartialGranularity ?
-                    createPartialGranularitySpanEvents(transactionData, transactionStats, rootSpan) :
+            List<SpanEvent> spans = partialSampleType != null ?
+                    createPartialGranularitySpanEvents(transactionData, transactionStats, rootSpan, partialSampleType) :
                     createFullGranularitySpanEvents(transactionData, transactionStats);
 
             for (SpanEvent span : spans) {
@@ -89,7 +90,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         }
     }
 
-    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, SpanEvent rootSpan) {
+    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, SpanEvent rootSpan, Transaction.PartialSampleType partialSampleType) {
         boolean removeAttrs = true; // TODO
         boolean groupExternals = false; // TODO
         Collection<Tracer> tracers = transactionData.getTracers();
