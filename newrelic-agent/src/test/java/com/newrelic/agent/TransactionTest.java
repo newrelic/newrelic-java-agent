@@ -16,9 +16,7 @@ import com.newrelic.agent.dispatchers.OtherDispatcher;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.AnalyticsEvent;
-import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
@@ -187,11 +185,6 @@ public class TransactionTest {
             }
 
             @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 1.0f;
-            }
-
-            @Override
             public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
                     String traceId, TransportType transportType, long parentTransportDuration,
                     long largestTransportDuration, String parentId, String parentSpanId, float priority) {
@@ -206,6 +199,16 @@ public class TransactionTest {
             @Override
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 1.1f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 1.2f;
             }
         };
     }
@@ -1239,11 +1242,6 @@ public class TransactionTest {
             }
 
             @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 0.678f;
-            }
-
-            @Override
             public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
                     String traceId, TransportType transportType, long parentTransportDuration,
                     long largestTransportDuration, String parentId, String parentSpanId, float priority) {
@@ -1258,6 +1256,16 @@ public class TransactionTest {
             @Override
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 0.333f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 0.678f;
             }
         });
 
@@ -1323,6 +1331,7 @@ public class TransactionTest {
         transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
         transaction.setTransactionName(com.newrelic.api.agent.TransactionNamePriority.CUSTOM_HIGH, true, "Test", "createBeforeAcceptTxn");
         transaction.createDistributedTracePayload("spanId31238ou");
+        float priorityAfterCreate = transaction.getPriority();
 
         String inboundPayload =
                 "{" +
@@ -1339,10 +1348,13 @@ public class TransactionTest {
                         "  }" +
                         "}";
         transaction.acceptDistributedTracePayload(inboundPayload);
+        float priorityAfterAccept = transaction.getPriority();
         dispatcherTracer.finish(Opcodes.ARETURN, null);
 
         latch.await();
 
+        //should not reset priority
+        assertEquals(priorityAfterCreate, priorityAfterAccept, 0.0f);
         assertTrue(1 <= transaction.getTransactionActivity()
                 .getTransactionStats()
                 .getUnscopedStats()
@@ -1401,6 +1413,239 @@ public class TransactionTest {
         transaction.acceptDistributedTracePayload(inboundPayload);
         dispatcherTracer.finish(Opcodes.ARETURN, null);
         assertTrue(DistributedTraceUtil.isSampledPriority(transaction.getPriority()));
+    }
+
+    @Test
+    public void assignPriorityFromRemoteParentShouldOverwritePriority() throws Exception{
+        //setup: configure the mock DT service to use always-on for the remote parent.
+        useAlwaysOnRemoteParent();
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        transaction.setPriorityIfNotNull(1.232f);
+        assertEquals(1.232f, transaction.getPriority(), 0.0f);
+
+        transaction.assignPriorityFromRemoteParent(true); //remote parent was sampled
+        assertEquals(2.0f, transaction.getPriority(), 0.0f);
+
+        finishTransaction(transaction, dispatcherTracer);
+    }
+
+    @Test
+    public void assignPriorityRootIfNotSetShouldNotOverwritePriority() throws Exception{
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        transaction.setPriorityIfNotNull(1.232f);
+        assertEquals(1.232f, transaction.getPriority(), 0.0f);
+
+        transaction.assignPriorityRootIfNotSet();
+        assertEquals(1.232f, transaction.getPriority(), 0.0f);
+
+        finishTransaction(transaction, dispatcherTracer);
+    }
+
+    @Test
+    public void createDtPayloadAssignsPriorityWhenNotSet() throws Exception {
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        assertEquals(0.0f, transaction.getPriority(), 0.0f); //the priority getter return 0.0f if the Float is null
+        transaction.createDistributedTracePayload("27856f70d3d314b7");
+        assertEquals(1.2f, transaction.getPriority(), 0.0f);
+
+        finishTransaction(transaction, dispatcherTracer);
+    }
+
+    @Test
+    public void transactionFinishedAssignsPriorityIfUnset() throws Exception {
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        assertEquals(0.0f, transaction.getPriority(), 0.0f);
+
+        finishTransaction(transaction, dispatcherTracer);
+        assertEquals(1.2f, transaction.getPriority(), 0.0f);
+    }
+
+    @Test
+    public void priorityAssigningActionsShouldOnlyCalculateRootPriorityOnce() throws Exception{
+        //need to mock this was to use the mockito verifier
+        mockDistributedTraceService = Mockito.mock(DistributedTraceService.class);
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        //all three of the actions below are capable of asking to calculate root priority.
+        //it is important we only actually ask for priority once, to avoid running the adaptive sampler twice
+        //and messing up its stats.
+        transaction.createDistributedTracePayload("27856f70d3d314b7");
+        float priority1 = transaction.getPriority();
+        transaction.assignPriorityRootIfNotSet();
+        float priority2 = transaction.getPriority();
+        finishTransaction(transaction, dispatcherTracer);
+        float priority3 = transaction.getPriority();
+
+        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriorityRoot();
+        assertEquals(priority1, priority2, 0.0f);
+        assertEquals(priority1, priority3, 0.0f);
+    }
+
+    @Test
+    public void testGetPriorityFromInboundSamplingDecision() throws Exception{
+        //I don't want to make a million different tests so I'm going to test a bunch of behavior here.
+        //The assertions in this test are permutations of what we might expect from the sampled and priority flags
+        //on an inbound payload.
+        Map<String, Object> configMap = createConfigMap();
+        configMap.put(AgentConfigImpl.DISTRIBUTED_TRACING, ImmutableMap.of("enabled", Boolean.TRUE));
+        createServiceManager(configMap);
+        serviceManager.setDistributedTraceService(mockDistributedTraceService);
+
+        //Case 1: a transaction with no inbound payload
+        Transaction.clearTransaction();
+        BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        finishTransaction(transaction, dispatcherTracer);
+
+        //Case 2: Accept a Payload with inbound sampling and priority information on it.
+        Transaction.clearTransaction();
+        dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        String inboundPayload =
+                "{" +
+                        "  \"v\": [0,2]," +
+                        "  \"d\": {" +
+                        "    \"ty\": \"Mobile\"," +
+                        "    \"ac\": \"9123\"," +
+                        "    \"tk\": \"67890\"," +
+                        "    \"ap\": \"51424\"" +
+                        "    \"id\": \"27856f70d3d314b7\"," +
+                        "    \"tr\": \"3221bf09aa0bcf0d\"," +
+                        "    \"pr\": 0.567," +
+                        "    \"sa\": true," +
+                        "    \"ti\": 1482959525577," +
+                        "  }" +
+                        "}";
+
+        transaction.acceptDistributedTracePayload(inboundPayload);
+        assertEquals(0.567f, transaction.getPriorityFromInboundSamplingDecision(), 0.0f);
+        finishTransaction(transaction, dispatcherTracer);
+
+        //Case 3: a payload that is missing inbound priority but has a sampled decision
+        Transaction.clearTransaction();
+        dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        inboundPayload =
+                "{" +
+                        "  \"v\": [0,2]," +
+                        "  \"d\": {" +
+                        "    \"ty\": \"Mobile\"," +
+                        "    \"ac\": \"9123\"," +
+                        "    \"tk\": \"67890\"," +
+                        "    \"ap\": \"51424\"" +
+                        "    \"id\": \"27856f70d3d314b7\"," +
+                        "    \"tr\": \"3221bf09aa0bcf0d\"," +
+                        "    \"sa\": false," +
+                        "    \"ti\": 1482959525577," +
+                        "  }" +
+                        "}";
+
+        transaction.acceptDistributedTracePayload(inboundPayload);
+        Float priority =  transaction.getPriorityFromInboundSamplingDecision();
+        //sampled is false, we should have generated a random priority less than 1 without the use of the sampler.
+        assertTrue(priority > 0.0f);
+        assertTrue(priority < 1.0f);
+        finishTransaction(transaction, dispatcherTracer);
+
+        //Case 4: a payload that is missing a sampled decision but has an inbound priority.
+        //In this case, a new sampling decision needs to be made (regardless of the priority value).
+        Transaction.clearTransaction();
+        dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        inboundPayload =
+                "{" +
+                        "  \"v\": [0,2]," +
+                        "  \"d\": {" +
+                        "    \"ty\": \"Mobile\"," +
+                        "    \"ac\": \"9123\"," +
+                        "    \"tk\": \"67890\"," +
+                        "    \"ap\": \"51424\"" +
+                        "    \"id\": \"27856f70d3d314b7\"," +
+                        "    \"tr\": \"3221bf09aa0bcf0d\"," +
+                        "    \"ti\": 1482959525577," +
+                        "    \"pr\": 0.567," +
+                        "  }" +
+                        "}";
+
+        transaction.acceptDistributedTracePayload(inboundPayload);
+        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        finishTransaction(transaction, dispatcherTracer);
+
+        //Case 5: a payload that is missing both an inbound priority and a sampling decision
+        Transaction.clearTransaction();
+        dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        inboundPayload =
+                "{" +
+                        "  \"v\": [0,2]," +
+                        "  \"d\": {" +
+                        "    \"ty\": \"Mobile\"," +
+                        "    \"ac\": \"9123\"," +
+                        "    \"tk\": \"67890\"," +
+                        "    \"ap\": \"51424\"" +
+                        "    \"id\": \"27856f70d3d314b7\"," +
+                        "    \"tr\": \"3221bf09aa0bcf0d\"," +
+                        "    \"ti\": 1482959525577," +
+                        "  }" +
+                        "}";
+
+        transaction.acceptDistributedTracePayload(inboundPayload);
+        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        finishTransaction(transaction, dispatcherTracer);
     }
 
     @Test
@@ -1673,6 +1918,122 @@ public class TransactionTest {
         Transaction tx = Transaction.getTransaction();
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), id, "()V");
         return new DefaultTracer(tx, sig, this, new SimpleMetricNameFormat("Custom/myname" + id));
+    }
+
+    private void useAlwaysOnRemoteParent(){
+        mockDistributedTraceService = new DistributedTraceService() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+
+            @Override
+            public int getMajorSupportedCatVersion() {
+                return 1;
+            }
+
+            @Override
+            public int getMinorSupportedCatVersion() {
+                return 0;
+            }
+
+            @Override
+            public String getAccountId() {
+                return "9123";
+            }
+
+            @Override
+            public String getApplicationId() {
+                return "1234";
+            }
+
+            @Override
+            public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
+                    String traceId, TransportType transportType, long parentTransportDuration,
+                    long largestTransportDuration, String parentId, String parentSpanId, float priority) {
+                return null;
+            }
+
+            @Override
+            public String getTrustKey() {
+                return "67890";
+            }
+
+            @Override
+            public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
+                return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 2.0f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 1.0f;
+            }
+        };
+    }
+
+    private void useDefaultRemoteParent(){
+        mockDistributedTraceService = new DistributedTraceService() {
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
+
+            @Override
+            public int getMajorSupportedCatVersion() {
+                return 1;
+            }
+
+            @Override
+            public int getMinorSupportedCatVersion() {
+                return 0;
+            }
+
+            @Override
+            public String getAccountId() {
+                return "9123";
+            }
+
+            @Override
+            public String getApplicationId() {
+                return "1234";
+            }
+
+            @Override
+            public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
+                    String traceId, TransportType transportType, long parentTransportDuration,
+                    long largestTransportDuration, String parentId, String parentSpanId, float priority) {
+                return null;
+            }
+
+            @Override
+            public String getTrustKey() {
+                return "67890";
+            }
+
+            @Override
+            public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
+                return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                if (inboundPriority == null){
+                    return 1.0f;
+                } else {
+                    return inboundPriority;
+                }
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 1.0f;
+            }
+        };
     }
 
 }

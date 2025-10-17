@@ -626,6 +626,9 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
         AgentControlIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.HARVEST, AgentHealth.Category.CONFIG);
+        if (method.equals(CollectorMethods.CONNECT)) {
+            AgentControlIntegrationUtils.assignEntityGuid(healthDataChangeListeners, payloadJsonReceived);
+        }
 
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);

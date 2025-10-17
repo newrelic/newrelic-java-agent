@@ -79,11 +79,6 @@ public class BaseDistributedTraceTest {
             }
 
             @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 1.0f;
-            }
-
-            @Override
             public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
                     String traceId, TransportType transportType,
                     long parentTransportDuration, long largestTransportDuration,
@@ -99,6 +94,16 @@ public class BaseDistributedTraceTest {
             @Override
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
+            }
+
+            @Override
+            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+                return 0.0f;
+            }
+
+            @Override
+            public float calculatePriorityRoot(){
+                return 0.0f;
             }
         };
         serviceManager.setDistributedTraceService(distributedTraceService);

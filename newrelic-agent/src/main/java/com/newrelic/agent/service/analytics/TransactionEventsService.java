@@ -186,13 +186,14 @@ public class TransactionEventsService extends AbstractService implements EventSe
         long startTimeInNanos = System.nanoTime();
         beforeHarvestSynthetics(appName);
 
-        int targetStored = config.getTargetSamplesStored();
         DistributedSamplingPriorityQueue<TransactionEvent> currentReservoir = reservoirForApp.get(appName);
-        int decidedLast = AdaptiveSampling.decidedLast(currentReservoir, targetStored);
+        if (currentReservoir != null){
+            currentReservoir.logReservoirStats();
+        }
 
         // Now the reservoir for per-transaction analytic events from ordinary non-synthetic transactions
         final DistributedSamplingPriorityQueue<TransactionEvent> reservoirToSend = reservoirForApp.put(appName,
-                new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored, decidedLast, targetStored));
+                new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored));
 
         if (reservoirToSend != null && reservoirToSend.size() > 0) {
             try {
@@ -258,11 +259,11 @@ public class TransactionEventsService extends AbstractService implements EventSe
 
     private void beforeHarvestSynthetics(String appName) {
         DistributedSamplingPriorityQueue<TransactionEvent> currentReservoir = syntheticsListForApp.get(appName);
-        int decidedLast = AdaptiveSampling.decidedLast(currentReservoir, config.getTargetSamplesStored());
-
+        if (currentReservoir != null){
+            currentReservoir.logReservoirStats();
+        }
         DistributedSamplingPriorityQueue<TransactionEvent> current = syntheticsListForApp.put(appName,
-                new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Synthetics Event Service", MAX_SYNTHETIC_EVENTS_PER_APP, decidedLast,
-                        config.getTargetSamplesStored()));
+                new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Synthetics Event Service", MAX_SYNTHETIC_EVENTS_PER_APP));
         if (current != null && current.size() > 0) {
             if (pendingSyntheticsHeaps.size() < MAX_UNSENT_SYNTHETICS_HOLDERS) {
                 pendingSyntheticsHeaps.add(current);
@@ -324,13 +325,12 @@ public class TransactionEventsService extends AbstractService implements EventSe
 
         boolean persisted = false;
 
-        int target = config.getTargetSamplesStored();
         if (transactionData.isSyntheticTransaction()) {
             DistributedSamplingPriorityQueue<TransactionEvent> currentSyntheticsList = syntheticsListForApp.get(appName);
             while (currentSyntheticsList == null) {
                 // I don't think this loop can actually execute more than once, but it's prudent to assume it can.
                 syntheticsListForApp.putIfAbsent(appName,
-                        new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Synthetics Event Service", MAX_SYNTHETIC_EVENTS_PER_APP, 0, target));
+                        new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Synthetics Event Service", MAX_SYNTHETIC_EVENTS_PER_APP));
                 currentSyntheticsList = syntheticsListForApp.get(appName);
             }
 
@@ -344,7 +344,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
             while (currentReservoir == null) {
                 // I don't think this loop can actually execute more than once, but it's prudent to assume it can.
                 reservoirForApp.putIfAbsent(appName,
-                        new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored, 0, target));
+                        new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored));
                 currentReservoir = reservoirForApp.get(appName);
             }
             if (!currentReservoir.isFull() || currentReservoir.getMinPriority() < transactionData.getPriority()) {
@@ -399,10 +399,6 @@ public class TransactionEventsService extends AbstractService implements EventSe
                 .setPriority(transactionData.getPriority());
 
         if (distributedTracingEnabled) {
-            DistributedTracePayloadImpl inboundDistributedTracePayload = transactionData.getInboundDistributedTracePayload();
-            eventBuilder = eventBuilder
-                    .setDecider(inboundDistributedTracePayload == null || inboundDistributedTracePayload.priority == null);
-
             Map<String, Object> distributedTraceServiceIntrinsics = transactionDataToDistributedTraceIntrinsics.buildDistributedTracingIntrinsics(transactionData,
                     true);
             eventBuilder = eventBuilder.setDistributedTraceIntrinsics(distributedTraceServiceIntrinsics);
@@ -529,9 +525,8 @@ public class TransactionEventsService extends AbstractService implements EventSe
     public DistributedSamplingPriorityQueue<TransactionEvent> getOrCreateDistributedSamplingReservoir(String appName) {
         DistributedSamplingPriorityQueue<TransactionEvent> reservoir = reservoirForApp.get(appName);
         if (reservoir == null) {
-            int target = config.getTargetSamplesStored();
             reservoir = reservoirForApp.putIfAbsent(appName,
-                    new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored, 0, target));
+                    new DistributedSamplingPriorityQueue<TransactionEvent>(appName, "Transaction Event Service", maxSamplesStored));
             if (reservoir == null) {
                 reservoir = reservoirForApp.get(appName);
             }

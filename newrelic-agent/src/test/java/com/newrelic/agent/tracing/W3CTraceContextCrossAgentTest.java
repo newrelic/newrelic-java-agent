@@ -13,6 +13,8 @@ import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Instrumentation;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
 import com.newrelic.agent.core.CoreService;
@@ -34,6 +36,7 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.test.marker.RequiresFork;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -179,8 +182,13 @@ public class W3CTraceContextCrossAgentTest {
         String transportType = (String) testData.get("transport_type");
         Boolean webTransaction = (Boolean) testData.get("web_transaction");
         Boolean raisesException = (Boolean) testData.get("raises_exception");
-        Boolean forceSampledTrue = (Boolean) testData.get("force_sampled_true");
+        Boolean forceSampledTrue = (Boolean) testData.get("force_adaptive_sampled_true");
         Boolean spanEventsEnabled = (Boolean) testData.get("span_events_enabled");
+        JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
+        String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
+        String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
+        String rootSamplerType = (String) testData.get("root_sampler_type");
+
         replaceConfig(spanEventsEnabled);
 
         System.out.println("Running test: " + testName);
@@ -202,6 +210,20 @@ public class W3CTraceContextCrossAgentTest {
         connectInfo.put(DistributedTracingConfig.PRIMARY_APPLICATION_ID, "2827902");
         AgentConfig agentConfig = AgentHelper.createAgentConfig(true, Collections.<String, Object>emptyMap(), connectInfo);
         distributedTraceService.connected(null, agentConfig);
+
+        //have to force the adaptive sampler if configured
+        if (forceSampledTrue != null) {
+            Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
+            if ("default".equals(remoteParentSampledSamplerType) || remoteParentSampledSamplerType == null) {
+                distributedTraceService.setRemoteParentSampledSampler(forceSampler);
+            }
+            if ("default".equals(remoteParentNotSampledSamplerType) || remoteParentNotSampledSamplerType == null) {
+                distributedTraceService.setRemoteParentNotSampledSampler(forceSampler);
+            }
+            if ("default".equals(rootSamplerType) || rootSamplerType == null) {
+                distributedTraceService.setRootSampler(forceSampler);
+            }
+        }
 
         Transaction.clearTransaction();
         TransactionActivity.clear();
@@ -257,9 +279,6 @@ public class W3CTraceContextCrossAgentTest {
 
         setTransportType(tx, transportType);
 
-        if (forceSampledTrue && tx.getPriority() < 1) {
-            tx.setPriorityIfNotNull(new Random().nextFloat() + 1.0f);
-        }
         if (outbound_payloads != null) {
 
             for (Object assertion : outbound_payloads) {
@@ -288,6 +307,13 @@ public class W3CTraceContextCrossAgentTest {
         TransactionEvent transactionEvent = serviceManager.getTransactionEventsService().createEvent(transactionData, transactionStats, "wat");
         JSONObject txnEvents = serializeAndParseEvents(transactionEvent);
 
+        if (priorityRange != null) {
+            assertPriorityBetween(priorityRange, transactionEvent.getPriority());
+            for (SpanEvent s : spans) {
+                assertPriorityBetween(priorityRange, s.getPriority());
+            }
+        }
+
         StatsEngine statsEngine = statsService.getStatsEngineForHarvest(APP_NAME);
         assertExpectedMetrics(expectedMetrics, statsEngine);
 
@@ -300,6 +326,18 @@ public class W3CTraceContextCrossAgentTest {
                 assertSpanEvents(commonAssertions, spans);
             }
         }
+    }
+
+    private void assertPriorityBetween(JSONArray priorityBetween, Float actualPriority) {
+        if (actualPriority == null) {
+            fail();
+        }
+        long myVal = (long) priorityBetween.get(0);
+        long myVal2 = (long) priorityBetween.get(1);
+        float minPriority = (float) myVal;
+        float maxPriority = (float) myVal2;
+        System.out.println("Expected range: " + priorityBetween + " actual priority: " + actualPriority);
+        assertTrue(minPriority <= actualPriority && maxPriority >= actualPriority);
     }
 
     private void replaceConfig(boolean spanEventsEnabled) {
@@ -509,6 +547,10 @@ public class W3CTraceContextCrossAgentTest {
     }
 
     private void assertExpectedMetrics(List metrics, StatsEngine statsEngine) {
+        if (metrics == null) {
+            return;
+        }
+
         assertNotNull(statsEngine);
 
         for (Object metric : metrics) {
@@ -537,4 +579,30 @@ public class W3CTraceContextCrossAgentTest {
         return (JSONObject) json.get(0);
     }
 
+    //Our cross-agent tests include the setting force_adaptive_sampling_true option.
+    //This is a bit tricky as it describes the sampling decision ONLY of the adaptive sampler,
+    //and ONLY when the sampler is required to actually make a decision.
+    //To avoid making any changes to our real adaptive sampler, this subclass overrides
+    //the computeSampled method of the Adaptive Sampler.
+    //This means that the ForceSampledAdaptiveSampler will still run on a period/with a target,
+    //but will make deterministic sampling decisions as described by the forceSampled setting,
+    //instead of following the sampling algorithm.
+    private Sampler getDefaultForceSampledAdaptiveSampler(boolean forceSampled){
+        AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        return new ForceSampledAdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), forceSampled);
+    }
+
+    private static class ForceSampledAdaptiveSampler extends AdaptiveSampler {
+        boolean forceSampled;
+
+        private ForceSampledAdaptiveSampler(int target, int reportPeriodSeconds, boolean forceSampled) {
+            super(target, reportPeriodSeconds);
+            this.forceSampled = forceSampled;
+        }
+
+        @Override
+        protected boolean computeSampled() {
+            return forceSampled;
+        }
+    }
 }

@@ -15,7 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -63,8 +63,8 @@ public class AgentControlControlIntegrationHealthFileBasedClient implements Agen
     }
 
     private Map<String, Object> createHeathMessageMap(AgentHealth agentHealth) {
-        Map<String, Object> healthMap = new HashMap<>();
-
+        Map<String, Object> healthMap = new LinkedHashMap<>();
+        healthMap.put("entity_guid", agentHealth.getEntityGuid() == null ? "" : agentHealth.getEntityGuid());
         healthMap.put("healthy", agentHealth.isHealthy());
         healthMap.put("status", agentHealth.getCurrentStatus());
         healthMap.put("start_time_unix_nano", agentHealth.getStartTimeNanos());

@@ -55,6 +55,10 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     boolean isAutoTransactionNamingEnabled();
 
+    int getAdaptiveSamplingTarget();
+
+    int getAdaptiveSamplingPeriodSeconds();
+
     /**
      * Get the ApdexT value sent by New Relic, or the default value.
      */

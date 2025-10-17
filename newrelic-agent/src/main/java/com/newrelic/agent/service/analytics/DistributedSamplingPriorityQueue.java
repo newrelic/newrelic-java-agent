@@ -7,72 +7,54 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.collect.MinMaxPriorityQueue;
-import com.google.common.collect.Queues;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.agent.util.MinAwareQueue;
 import com.newrelic.agent.util.NoOpQueue;
+import com.newrelic.agent.util.SynchronizedMinAwareQueue;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 public class DistributedSamplingPriorityQueue<E extends PriorityAware> implements SamplingPriorityQueue<E> {
 
     private final String appName;
     private final String serviceName;
-    private final Queue<E> data;
+    private final MinAwareQueue<E> data;
     private final AtomicInteger numberOfTries = new AtomicInteger();
-    private final AtomicInteger recorded;
-    // the number of times the decider was used on an event on this application. That meaning, the number of
-    // events that started on this application that did not accept a payload.
-    private final AtomicInteger decided;
-
-    private final int decidedLast;
-    private final int target;
+    private final AtomicInteger sampled;
     private final Comparator<E> comparator;
     private final int maximumSize;
 
     public DistributedSamplingPriorityQueue(int reservoirSize) {
-        this("", "", reservoirSize, 0, 0, null);
+        this("", "", reservoirSize, null);
     }
 
     public DistributedSamplingPriorityQueue(String appName, String serviceName, int reservoirSize) {
-        this(appName, serviceName, reservoirSize, 0, 0, null);
+        this(appName, serviceName, reservoirSize, null);
     }
 
-    public DistributedSamplingPriorityQueue(int reservoirSize, int decidedLast, int target) {
-        this("", "", reservoirSize, decidedLast, target, null);
+    public DistributedSamplingPriorityQueue(int reservoirSize, Comparator<E> comparator) {
+        this("", "", reservoirSize, comparator);
     }
 
-    public DistributedSamplingPriorityQueue(String appName, String serviceName, int reservoirSize, int decidedLast, int target) {
-        this(appName, serviceName, reservoirSize, decidedLast, target, null);
-    }
-
-    public DistributedSamplingPriorityQueue(int reservoirSize, int decidedLast, int target, Comparator<E> comparator) {
-        this("", "", reservoirSize, decidedLast, target, comparator);
-    }
-
-    public DistributedSamplingPriorityQueue(String appName, String serviceName, int reservoirSize, int decidedLast, int target, Comparator<E> comparator) {
+    public DistributedSamplingPriorityQueue(String appName, String serviceName, int reservoirSize, Comparator<E> comparator) {
         this.appName = appName;
         this.serviceName = serviceName;
         this.comparator = comparator == null ? (left, right) -> Float.compare(right.getPriority(), left.getPriority()) : comparator;
         this.data = createQueue(reservoirSize, this.comparator);
-        this.recorded = new AtomicInteger(0);
-        this.decidedLast = decidedLast;
-        this.target = target;
-        this.decided = new AtomicInteger(0);
+        this.sampled = new AtomicInteger(0);
         this.maximumSize = reservoirSize;
     }
 
-    private Queue<E> createQueue(int reservoirSize, Comparator<E> comparator) {
+    private MinAwareQueue<E> createQueue(int reservoirSize, Comparator<E> comparator) {
         if (reservoirSize <= 0) {
             return new NoOpQueue<>();
         } else {
-            return Queues.synchronizedQueue(MinMaxPriorityQueue
-                    .orderedBy(comparator)
-                    .maximumSize(reservoirSize)
-                    .create());
+            return new SynchronizedMinAwareQueue<>(reservoirSize, comparator);
         }
     }
 
@@ -98,7 +80,7 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
 
     @Override
     public float getMinPriority() {
-        return data.isEmpty() ? 0.0f : data.peek().getPriority();
+        return data.isEmpty() ? 0.0f : data.peekLast().getPriority();
     }
 
     @Override
@@ -115,11 +97,8 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     public boolean add(E element) {
         incrementNumberOfTries();
         boolean added = data.offer(element);
-        if (added && element.decider()) {
-            decided.incrementAndGet();
-            if (DistributedTraceUtil.isSampledPriority(element.getPriority())) {
-                recorded.incrementAndGet();
-            }
+        if (added && DistributedTraceUtil.isSampledPriority(element.getPriority())) {
+            sampled.incrementAndGet();
         }
         return added;
     }
@@ -155,23 +134,8 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     }
 
     @Override
-    public int getSampled() {
-        return recorded.get();
-    }
-
-    @Override
-    public int getDecided() {
-        return decided.get();
-    }
-
-    @Override
-    public int getTarget() {
-        return target;
-    }
-
-    @Override
-    public int getDecidedLast() {
-        return decidedLast;
+    public int getTotalSampledPriorityEvents(){
+        return sampled.get();
     }
 
     @Override
@@ -182,6 +146,11 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
     @Override
     public void clear() {
         data.clear();
+    }
+
+    public void logReservoirStats() {
+        NewRelic.getAgent().getLogger().log(Level.FINER, "Application {0} saw {1} events for {2}, added {3} of sampling priority.",
+                appName, getNumberOfTries(), serviceName, getTotalSampledPriorityEvents());
     }
 
 }
