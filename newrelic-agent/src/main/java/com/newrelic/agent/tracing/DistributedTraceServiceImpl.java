@@ -18,6 +18,7 @@ import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerFactory;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
@@ -83,9 +84,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
         //Initially, set up the samplers based on local config.
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-        this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
+        this.sampler = SamplerFactory.createSampler(SamplerFactory.DEFAULT);
+        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampled());
+        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampled());
     }
 
     @Override
@@ -190,15 +191,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     @Override
     public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority){
         Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
-        if (parentSampler.getType().equals(Sampler.ADAPTIVE) && inboundPriority != null) {
+        if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
         }
-        return parentSampler.calculatePriority();
+        return parentSampler.calculatePriority(null);
     }
 
     @Override
     public float calculatePriorityRoot(){
-        return sampler.calculatePriority();
+        return sampler.calculatePriority(null);
     }
 
     @Override

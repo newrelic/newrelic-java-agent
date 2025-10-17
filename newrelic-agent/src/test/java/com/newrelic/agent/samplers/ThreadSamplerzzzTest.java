@@ -17,7 +17,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ThreadSamplerTest {
+public class ThreadSamplerzzzTest {
     @Before
     public void setup() {
         MockServiceManager serviceManager = new MockServiceManager();

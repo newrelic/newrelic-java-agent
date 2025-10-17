@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.Map;

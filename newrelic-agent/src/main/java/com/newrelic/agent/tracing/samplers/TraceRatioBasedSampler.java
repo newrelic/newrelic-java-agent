@@ -27,7 +27,7 @@ import java.util.logging.Level;
  * If this value is less than or equal to T, we return a priority of 2.0 which
  * will mark this trace for sampling.
  */
-public class TraceRatioBasedSampler implements AbstractSampler {
+public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
 
     /**
@@ -66,7 +66,7 @@ public class TraceRatioBasedSampler implements AbstractSampler {
 
     @Override
     public String getType() {
-        return SamplerType.TRACE_RATIO.toString();
+        return SamplerFactory.TRACE_RATIO;
     }
 
     /**

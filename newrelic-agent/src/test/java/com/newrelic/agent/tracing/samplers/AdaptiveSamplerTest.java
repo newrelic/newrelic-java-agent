@@ -208,7 +208,7 @@ public class AdaptiveSamplerTest {
         int totalSampled = 0;
         int waitBetweenSamples = 1000 / requestsPerSecond;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
-            float priority = sampler.calculatePriority();
+            float priority = sampler.calculatePriority(null);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -227,7 +227,7 @@ public class AdaptiveSamplerTest {
         long testStartTime = System.currentTimeMillis();
         int totalSampled = 0;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
-            float priority = sampler.calculatePriority();
+            float priority = sampler.calculatePriority(null);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -249,7 +249,7 @@ public class AdaptiveSamplerTest {
         for (int i = 0; i < nThreads ; i++) {
             executor.submit(() -> {
                 while(System.currentTimeMillis() - startTime < totalTestTimeMillis) {
-                    float priority = sampler.calculatePriority();
+                    float priority = sampler.calculatePriority(null);
                     boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
                     if (sampled) {
                         totalSampled.incrementAndGet();

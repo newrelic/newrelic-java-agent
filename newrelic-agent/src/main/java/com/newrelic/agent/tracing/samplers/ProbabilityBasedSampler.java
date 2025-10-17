@@ -27,7 +27,7 @@ import java.util.logging.Level;
  * If this value is greater than or equal to T, we return a priority of 2.0 which
  * will mark this trace for sampling.
  */
-public class ProbabilityBasedSampler implements AbstractSampler {
+public class ProbabilityBasedSampler implements Sampler {
     private final long rejectionThreshold;
 
     /**
@@ -66,7 +66,7 @@ public class ProbabilityBasedSampler implements AbstractSampler {
 
     @Override
     public String getType() {
-        return AbstractSampler.SamplerType.PROBABILITY.getDescription();
+        return SamplerFactory.PROBABILITY;
     }
 
     /**
