@@ -38,11 +38,13 @@ public class KafkaStreams26SpansTest {
 
     @Before
     public void before() {
+
         kafkaContainer.start();
     }
 
     @After
     public void after() {
+        System.out.println(kafkaContainer.getLogs());
         kafkaContainer.stop();
     }
 

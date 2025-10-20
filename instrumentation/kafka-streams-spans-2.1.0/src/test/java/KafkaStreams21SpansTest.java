@@ -43,6 +43,7 @@ public class KafkaStreams21SpansTest {
 
     @After
     public void after() {
+        System.out.println(kafkaContainer.getLogs());
         kafkaContainer.stop();
     }
 
