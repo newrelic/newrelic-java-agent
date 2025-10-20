@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProfileSamplerzzzTest {
+public class ProfileSamplerTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {

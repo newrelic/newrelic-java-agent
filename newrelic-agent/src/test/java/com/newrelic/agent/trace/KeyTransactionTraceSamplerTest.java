@@ -37,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class KeyTransactionTraceSamplerzzzTest {
+public class KeyTransactionTraceSamplerTest {
 
     private static final String APP_NAME = "Unit Test";
 

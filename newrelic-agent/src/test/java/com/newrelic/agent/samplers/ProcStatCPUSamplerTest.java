@@ -13,7 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 
-public class ProcStatCPUSamplerzzzTest {
+public class ProcStatCPUSamplerTest {
     @Before
     public void setup() {
         MockServiceManager serviceManager = new MockServiceManager();

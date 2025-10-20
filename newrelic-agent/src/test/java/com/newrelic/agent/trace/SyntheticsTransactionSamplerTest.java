@@ -37,7 +37,7 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SyntheticsTransactionSamplerzzzTest {
+public class SyntheticsTransactionSamplerTest {
 
     // There can really only be one test in this class so it'd better be a good one. ;-)
 

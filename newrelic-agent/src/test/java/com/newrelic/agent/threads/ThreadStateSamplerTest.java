@@ -20,7 +20,7 @@ import java.lang.management.ManagementFactory;
 
 import static org.junit.Assert.assertTrue;
 
-public class ThreadStateSamplerzzzTest {
+public class ThreadStateSamplerTest {
 
     @Test
     public void testCpuTimeMetrics() {

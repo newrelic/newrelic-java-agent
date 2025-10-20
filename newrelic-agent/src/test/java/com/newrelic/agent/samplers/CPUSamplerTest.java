@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CPUSamplerzzzTest {
+public class CPUSamplerTest {
 
     private MockServiceManager createServiceManager(Map<String, Object> map) throws Exception {
 
