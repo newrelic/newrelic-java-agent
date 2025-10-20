@@ -16,16 +16,10 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
-import com.newrelic.agent.config.SamplerConfig;
-import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
-import com.newrelic.agent.tracing.samplers.AlwaysOffSampler;
-import com.newrelic.agent.tracing.samplers.AlwaysOnSampler;
-import com.newrelic.agent.tracing.samplers.Sampler;
-import com.newrelic.agent.tracing.samplers.TraceIdRatioBasedSampler;
-import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.AbstractService;
@@ -35,7 +29,13 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.AbstractTracer;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOffSampler;
+import com.newrelic.agent.tracing.samplers.AlwaysOnSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.TraceIdRatioBasedSampler;
 import com.newrelic.api.agent.DistributedTracePayload;
+import com.newrelic.api.agent.TransportType;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -87,9 +87,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        this.rootSampler = initSampler(distributedTraceConfig.getRootSamplerConfig());
         this.remoteParentSampledSampler = initSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
         this.remoteParentNotSampledSampler = initSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
-        this.rootSampler = initSampler(distributedTraceConfig.getRootSamplerConfig());
     }
 
     @Override
@@ -304,20 +304,22 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         return next;
     }
 
-    private Sampler initSampler(SamplerConfig config){
+    private Sampler initSampler(SamplerConfig config) {
         String samplerType = config.getSamplerType();
-        Float samplerRatio = config.getSamplingRatio();
-        if (SamplerConfig.ALWAYS_ON.equals(samplerType)){
+        if (SamplerConfig.ALWAYS_ON.equals(samplerType)) {
             return new AlwaysOnSampler();
         }
-        if (SamplerConfig.ALWAYS_OFF.equals(samplerType)){
+        if (SamplerConfig.ALWAYS_OFF.equals(samplerType)) {
             return new AlwaysOffSampler();
         }
-        if (SamplerConfig.TRACE_ID_RATIO_BASED.equals(samplerType)){
+        if (SamplerConfig.TRACE_ID_RATIO_BASED.equals(samplerType)) {
+            Float samplerRatio = config.getSamplerRatio();
+            // FIXME is TraceIdRatioBasedSampler.validRatio necessary if the config validation is working properly?
             if (samplerRatio != null && TraceIdRatioBasedSampler.validRatio(samplerRatio)) {
                 return new TraceIdRatioBasedSampler(samplerRatio);
             } else {
                 //log something?
+                // FIXME is this logic necessary if the config validation is working properly? getSamplerType should always return the actual valid type
                 return new AdaptiveSampler(this);
             }
         }
@@ -429,11 +431,11 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         return this.remoteParentSampledSampler;
     }
 
-    public Sampler getRemoteParentNotSampledSampler(){
+    public Sampler getRemoteParentNotSampledSampler() {
         return this.remoteParentNotSampledSampler;
     }
 
-    public Sampler getRootSampler(){
+    public Sampler getRootSampler() {
         return this.rootSampler;
     }
 }

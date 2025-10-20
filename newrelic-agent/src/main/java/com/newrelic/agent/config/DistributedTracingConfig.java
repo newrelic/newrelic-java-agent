@@ -7,7 +7,12 @@
 
 package com.newrelic.agent.config;
 
+import java.util.Collections;
 import java.util.Map;
+
+import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.config.SamplerConfig.ROOT;
 
 public class DistributedTracingConfig extends BaseConfig {
 
@@ -21,10 +26,6 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String DISTRIBUTED_TRACING_ENABLED = SYSTEM_PROPERTY_ROOT + ENABLED;
     public static final String ENABLED_ENV_KEY = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED";
     public static final String EXCLUDE_NEWRELIC_HEADER = "exclude_newrelic_header";
-    public static final String SAMPLER = "sampler";
-    public static final String REMOTE_PARENT_SAMPLED = "remote_parent_sampled";
-    public static final String REMOTE_PARENT_NOT_SAMPLED = "remote_parent_not_sampled";
-    public static final String ROOT = "root";
 
     private final boolean enabled;
     private final String trustedAccountKey;
@@ -42,9 +43,9 @@ public class DistributedTracingConfig extends BaseConfig {
         this.accountId = getProperty(ACCOUNT_ID);
         this.primaryApplicationId = getProperty(PRIMARY_APPLICATION_ID);
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
-        this.remoteParentSampledConfig = initSamplerConfig(REMOTE_PARENT_SAMPLED);
-        this.remoteParentNotSampledConfig = initSamplerConfig(REMOTE_PARENT_NOT_SAMPLED);
-        this.rootSamplerConfig = initSamplerConfig(ROOT);
+        this.rootSamplerConfig = createSamplerConfig(ROOT);
+        this.remoteParentSampledConfig = createSamplerConfig(REMOTE_PARENT_SAMPLED);
+        this.remoteParentNotSampledConfig = createSamplerConfig(REMOTE_PARENT_NOT_SAMPLED);
     }
 
     public String getTrustedAccountKey() {
@@ -67,21 +68,20 @@ public class DistributedTracingConfig extends BaseConfig {
         return includeNewRelicHeader;
     }
 
+    private SamplerConfig createSamplerConfig(String samplerType) {
+        Map<String, Object> samplerProps = getProperty(SamplerConfig.SAMPLER_CONFIG_ROOT, Collections.emptyMap());
+        return new SamplerConfig(samplerType, samplerProps, systemPropertyPrefix);
+    }
+
+    public SamplerConfig getRootSamplerConfig() {
+        return rootSamplerConfig;
+    }
+
     public SamplerConfig getRemoteParentSampledSamplerConfig() {
         return remoteParentSampledConfig;
     }
 
     public SamplerConfig getRemoteParentNotSampledSamplerConfig() {
         return remoteParentNotSampledConfig;
-    }
-
-    public SamplerConfig getRootSamplerConfig(){
-        return rootSamplerConfig;
-    }
-
-    private SamplerConfig initSamplerConfig(String subsection) {
-        String prefix = this.systemPropertyPrefix + subsection + ".";
-        Object val = getProperty(subsection);
-        return SamplerConfig.createSamplerConfig(val, prefix);
     }
 }
