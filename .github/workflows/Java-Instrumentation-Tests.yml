@@ -54,6 +54,12 @@ jobs:
         run: echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
 
       # GHA run instrumentation tests
+      - name: Run individual kafka-streams-2.6.0 tests for Java ${{ matrix.java-version }}
+        id: run_individual_test
+        continue-on-error: true
+        timeout-minutes: 35
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:kafka-streams-spans-2.6.0:test -Ptest${{ matrix.java-version }} --continue
+
 
       - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 1)
         id: run_tests_1
