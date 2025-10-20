@@ -38,7 +38,7 @@ public class KafkaStreams26SpansTest {
 
     @Before
     public void before() {
-
+        System.out.println("Debug: Starting KafkaStreams26SpansTest");
         kafkaContainer.start();
     }
 

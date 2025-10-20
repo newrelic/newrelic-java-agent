@@ -58,32 +58,32 @@ jobs:
         id: run_individual_test
         continue-on-error: true
         timeout-minutes: 35
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:kafka-streams-spans-2.6.0:test -Ptest${{ matrix.java-version }} --continue
+        run: ./gradlew $GRADLE_OPTIONS :instrumentation:kafka-streams-spans-2.6.0:test -Ptest${{ matrix.java-version }} --info --continue
 
-
-      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 1)
-        id: run_tests_1
-        continue-on-error: true
-        timeout-minutes: 35
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
-
-      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 2)
-        id: run_tests_2
-        continue-on-error: true
-        timeout-minutes: 35
-        if: steps.run_tests_1.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
-
-      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 3)
-        timeout-minutes: 35
-        if: steps.run_tests_2.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
+#
+#      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 1)
+#        id: run_tests_1
+#        continue-on-error: true
+#        timeout-minutes: 35
+#        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
+#
+#      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 2)
+#        id: run_tests_2
+#        continue-on-error: true
+#        timeout-minutes: 35
+#        if: steps.run_tests_1.outcome == 'failure'
+#        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
+#
+#      - name: Run instrumentation tests for Java ${{ matrix.java-version }} (attempt 3)
+#        timeout-minutes: 35
+#        if: steps.run_tests_2.outcome == 'failure'
+#        run: ./gradlew $GRADLE_OPTIONS :instrumentation:test -Ptest${{ matrix.java-version }} --continue
 
       # Capture HTML build result in artifacts
-      - name: Capture build reports
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
-        with:
-          name: instrumentation-tests-results-java-${{ matrix.java-version }}
-          path: |
-            instrumentation/**/build/reports/tests/*
+#      - name: Capture build reports
+#        if: ${{ failure() }}
+#        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+#        with:
+#          name: instrumentation-tests-results-java-${{ matrix.java-version }}
+#          path: |
+#            instrumentation/**/build/reports/tests/*
