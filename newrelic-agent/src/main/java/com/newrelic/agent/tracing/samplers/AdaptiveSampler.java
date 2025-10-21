@@ -1,8 +1,10 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -35,6 +37,10 @@ public class AdaptiveSampler implements Sampler {
         this.firstPeriod = true;
         NewRelic.getAgent().getLogger().log(Level.FINE, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
                 reportPeriodSeconds + " seconds.");
+
+        ServiceFactory.getStatsService()
+                .doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) this.target).floatValue()),
+                        MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
     }
 
     /**
@@ -66,6 +72,10 @@ public class AdaptiveSampler implements Sampler {
         if (SAMPLER_SHARED_INSTANCE != null) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Updating shared Adaptive Sampler sampling target to " + newTarget);
             getSharedInstance().setTarget(newTarget);
+
+            ServiceFactory.getStatsService()
+                    .doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
+                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
         }
     }
 
