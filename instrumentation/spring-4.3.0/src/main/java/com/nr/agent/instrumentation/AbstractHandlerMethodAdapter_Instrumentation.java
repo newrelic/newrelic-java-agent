@@ -19,9 +19,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Weave(type = MatchType.BaseClass, originalName = "org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter")
 public class AbstractHandlerMethodAdapter_Instrumentation {
@@ -34,42 +31,54 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             Class<?> controllerClass = handlerMethod.getBeanType();
             Method controllerMethod = handlerMethod.getMethod();
 
-            //If this setting is false, attempt to name transactions the way the legacy point cut
-            //named them
-            boolean isEnhancedNaming =
-                    NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
+            // Check if we should use controller class name + method name for transaction naming
+            boolean useControllerClassForNaming =
+                    NewRelic.getAgent().getConfig().getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false);
 
-            String httpMethod = request.getMethod();
-            if (httpMethod != null) {
-                httpMethod = httpMethod.toUpperCase();
+            // If the new config is enabled, always use controller class + method name with dot notation
+            if (useControllerClassForNaming) {
+                String controllerName = controllerClass.getSimpleName();
+                String methodName = controllerMethod.getName();
+                String txnName = controllerName + "." + methodName;
+                transaction.setTransactionName(com.newrelic.agent.bridge.TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
             } else {
-                httpMethod = "Unknown";
-            }
+                //If this setting is false, attempt to name transactions the way the legacy point cut
+                //named them
+                boolean isEnhancedNaming =
+                        NewRelic.getAgent().getConfig().getValue("class_transformer.enhanced_spring_transaction_naming", false);
 
-            //Optimization - If a class doesn't have @Controller/@RestController directly on the controller class
-            //the transaction is named in point cut style (when enhanced naming set to false)
-            if (!isEnhancedNaming && !SpringControllerUtility.doesClassContainControllerAnnotations(controllerClass, false)) {
-                SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
-            } else {    //Normal flow to check for annotations based on enhanced naming config flag
-                String rootPath;
-                String methodPath;
-
-                //From this point, look for annotations on the class/method, respecting the config flag that controls if the
-                //annotation has to exist directly on the class/method or can be inherited.
-
-                //Handle typical controller methods with class and method annotations. Those annotations
-                //can come from implemented interfaces, extended controller classes or be on the controller class itself.
-                //Note that only RequestMapping mapping annotations can apply to a class (not Get/Post/etc)
-                rootPath = SpringControllerUtility.retrieveRootMappingPathFromController(controllerClass, isEnhancedNaming);
-
-                //Retrieve the mapping that applies to the target method
-                methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod, httpMethod, isEnhancedNaming);
-
-                if (rootPath != null || methodPath != null) {
-                    SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);
+                String httpMethod = request.getMethod();
+                if (httpMethod != null) {
+                    httpMethod = httpMethod.toUpperCase();
                 } else {
-                    //Name based on class + method
+                    httpMethod = "Unknown";
+                }
+
+                //Optimization - If a class doesn't have @Controller/@RestController directly on the controller class
+                //the transaction is named in point cut style (when enhanced naming set to false)
+                if (!isEnhancedNaming && !SpringControllerUtility.doesClassContainControllerAnnotations(controllerClass, false)) {
                     SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
+                } else {    //Normal flow to check for annotations based on enhanced naming config flag
+                    String rootPath;
+                    String methodPath;
+
+                    //From this point, look for annotations on the class/method, respecting the config flag that controls if the
+                    //annotation has to exist directly on the class/method or can be inherited.
+
+                    //Handle typical controller methods with class and method annotations. Those annotations
+                    //can come from implemented interfaces, extended controller classes or be on the controller class itself.
+                    //Note that only RequestMapping mapping annotations can apply to a class (not Get/Post/etc)
+                    rootPath = SpringControllerUtility.retrieveRootMappingPathFromController(controllerClass, isEnhancedNaming);
+
+                    //Retrieve the mapping that applies to the target method
+                    methodPath = SpringControllerUtility.retrieveMappingPathFromHandlerMethod(controllerMethod, httpMethod, isEnhancedNaming);
+
+                    if (rootPath != null || methodPath != null) {
+                        SpringControllerUtility.assignTransactionNameFromControllerAndMethodRoutes(transaction, httpMethod, rootPath, methodPath);
+                    } else {
+                        //Name based on class + method
+                        SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
+                    }
                 }
             }
             transaction.getTracedMethod().setMetricName("Spring", "Java",
