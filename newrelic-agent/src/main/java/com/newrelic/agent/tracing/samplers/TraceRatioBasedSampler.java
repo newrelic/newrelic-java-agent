@@ -7,6 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -34,11 +35,10 @@ public class TraceRatioBasedSampler implements Sampler {
      * Construct a new TraceRatioBasedSampler with the desired ratio
      * supplied as a float value in args[0].
      *
-     * @param args the first and only element of this varargs array must
-     * be a valid float value between 0.0f - 1.0f, inclusive
+     * @param samplerConfig the agent's finalized sampler configuration
      */
-    public TraceRatioBasedSampler(Object... args) {
-        float traceRatio = SamplerUtils.samplingProbabilityFromVarArgs(args);
+    public TraceRatioBasedSampler(SamplerConfig samplerConfig) {
+        float traceRatio = samplerConfig.getSamplerRatio();
         if (!Float.isNaN(traceRatio)) {
             threshold = (long) (Long.MAX_VALUE * traceRatio);
             NewRelic.getAgent().getLogger().log(Level.INFO, "TraceRatioBasedSampler: threshold {0}", threshold);

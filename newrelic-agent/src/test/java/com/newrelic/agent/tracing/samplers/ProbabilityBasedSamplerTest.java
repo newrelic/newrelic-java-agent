@@ -7,7 +7,9 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.trace.TransactionGuidFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -18,6 +20,14 @@ import static org.mockito.Mockito.when;
 
 
 public class ProbabilityBasedSamplerTest {
+    SamplerConfig mockSamplerConfig;
+
+    @Before
+    public void setup() {
+        mockSamplerConfig = mock(SamplerConfig.class);
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.PROBABILITY);
+    }
+
     @Test
     public void samplerHonorsConfiguredProbability() {
         int iterations = 10000;
@@ -49,25 +59,29 @@ public class ProbabilityBasedSamplerTest {
 
     @Test
     public void sampler_configuredWith100PercentProbability_hasThresholdValueOf0() {
-        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(1.0f);
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(1.0f);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
         assertEquals(0, sampler.getRejectionThreshold());
     }
 
     @Test
-    public void sampler_configuredWith0PercentProbability_hasMaxThresholdValue() {
-        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(0.0f);
+    public void sampler_initializedWithInvalidRatioArg_returnsMaxThreshold() {
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(Float.NaN);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
         assertEquals((long) Math.pow(2, 56), sampler.getRejectionThreshold());
     }
 
     @Test
-    public void sampler_initializedWithInvalidProbabilityArg_hasMaxThresholdValue() {
-        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler("foo");
+    public void sampler_configuredWith0PercentProbability_hasMaxThresholdValue() {
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.0f);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
         assertEquals((long) Math.pow(2, 56), sampler.getRejectionThreshold());
     }
 
     @Test
     public void sampler_suppliedInvalidTraceId_returns0Priority() {
-        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(0.1f);
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
         assertEquals(0.0f, sampler.calculatePriority(null), 0.0f);
     }
 
@@ -79,7 +93,8 @@ public class ProbabilityBasedSamplerTest {
         Transaction tx = mock(Transaction.class);
         when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
 
-        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(samplingProbability);
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(samplingProbability);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
 
         while (++iterations <= iterationCount) {
             when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());

@@ -6,6 +6,8 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.config.SamplerConfig;
+
 /**
  * Factory to create instances of the various samplers used by the agent.
  */
@@ -20,13 +22,12 @@ public class SamplerFactory {
     /**
      * Factory method to create an instance of a Sampler
      *
-     * @param type the SamplerType to create as a String
-     * @param args a varargs array that contains parameters used to initialize the target sampler
+     * @param samplerConfig the agent's finalized sampler configuration
      *
      * @return the constructed Sampler instance
      */
-    public static Sampler createSampler(String type, Object... args) {
-        switch (type) {
+    public static Sampler createSampler(SamplerConfig samplerConfig) {
+        switch (samplerConfig.getSamplerType()) {
             case "always_on":
                 return new AlwaysOnSampler();
 
@@ -34,10 +35,10 @@ public class SamplerFactory {
                 return new AlwaysOffSampler();
 
             case "probability":
-                return new ProbabilityBasedSampler(args);
+                return new ProbabilityBasedSampler(samplerConfig);
 
             case "trace_ratio":
-                return new TraceRatioBasedSampler(args);
+                return new TraceRatioBasedSampler(samplerConfig);
 
             default:
                 return AdaptiveSampler.getSharedInstance();

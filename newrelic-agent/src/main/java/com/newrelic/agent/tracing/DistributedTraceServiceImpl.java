@@ -85,9 +85,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
 
         // Initialize samplers
-        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig().getSamplerType());
-        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig().getSamplerType());
-        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig().getSamplerType());
+        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig());
+        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
+        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
     }
 
     @Override

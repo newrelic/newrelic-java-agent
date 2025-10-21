@@ -7,7 +7,9 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.trace.TransactionGuidFactory;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -17,6 +19,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TraceRatioBasedSamplerTest {
+    SamplerConfig mockSamplerConfig;
+
+    @Before
+    public void setup() {
+        mockSamplerConfig = mock(SamplerConfig.class);
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO);
+    }
+
     @Test
     public void samplerHonorsConfiguredRatio() {
         int iterations = 10000;
@@ -47,13 +57,15 @@ public class TraceRatioBasedSamplerTest {
     }
     @Test
     public void sampler_initializedWithInvalidRatioArg_returns0Threshold() {
-        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler("foo");
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(Float.NaN);
+        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(mockSamplerConfig);
         assertEquals(0L, sampler.getThreshold());
     }
 
     @Test
     public void sampler_suppliedInvalidTraceId_returns0Priority() {
-        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(0.1f);
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
+        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(mockSamplerConfig);
         assertEquals(0.0f, sampler.calculatePriority(null), 0.0f);
     }
 
@@ -63,7 +75,8 @@ public class TraceRatioBasedSamplerTest {
 
         Transaction tx = mock(Transaction.class);
 
-        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(samplingRatio);
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(samplingRatio);
+        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(mockSamplerConfig);
 
         while (++iterations <= iterationCount) {
             when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());

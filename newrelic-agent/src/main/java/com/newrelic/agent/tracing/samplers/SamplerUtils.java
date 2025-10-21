@@ -10,21 +10,6 @@ import com.newrelic.agent.Transaction;
 
 public class SamplerUtils {
     /**
-     * Validate and convert the args[0] value into a float.
-     *
-     * @param args the argument array to validate
-     *
-     * @return the float value from args[0] or Float.NaN if the value is invalid
-     */
-    static float samplingProbabilityFromVarArgs(Object... args) {
-        if (args.length == 1 && args[0] instanceof Float) {
-            return (float) args[0];
-        } else {
-            return Float.NaN;
-        }
-    }
-
-    /**
      * Extract the trace id from the supplied Transaction instance
      *
      * @param tx The target Transaction
@@ -37,5 +22,16 @@ public class SamplerUtils {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Determine if the supplied float value is a valid value for the ratio value
+     *
+     * @param ratio the ration value to check
+     *
+     * @return true if the ratio is valid; false otherwise
+     */
+    static boolean isValidTraceRatio(float ratio) {
+        return ratio >= 0.0f && ratio <= 1.0f;
     }
 }

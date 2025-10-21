@@ -7,6 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -34,12 +35,10 @@ public class ProbabilityBasedSampler implements Sampler {
      * Construct a new ProbabilityBasedSampler with the desired probability
      * supplied as a float value in args[0].
      *
-     * @param args the first and only element of this varargs array must
-     * be a valid float value between 0.0f - 1.0f, inclusive
+     * @param samplerConfig the agent's finalized sampler configuration
      */
-    public ProbabilityBasedSampler(Object... args) {
-        // Validate that args[0] is actually exists and is a float type
-        float samplingProbability = SamplerUtils.samplingProbabilityFromVarArgs(args);
+    public ProbabilityBasedSampler(SamplerConfig samplerConfig) {
+        float samplingProbability = samplerConfig.getSamplerRatio();
         if (!Float.isNaN(samplingProbability)) {
             this.rejectionThreshold = (long) ((1 - samplingProbability) * Math.pow(2, 56));
             NewRelic.getAgent().getLogger().log(Level.INFO, "ProbabilityBasedSampler: rejection threshold {0}", rejectionThreshold);
