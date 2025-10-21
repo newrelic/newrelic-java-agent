@@ -130,10 +130,15 @@ public class SamplerConfig extends BaseConfig {
                     samplerType = ALWAYS_ON;
                 } else if (samplerProps.equals(ALWAYS_OFF)) {
                     samplerType = ALWAYS_OFF;
+                } else if (samplerProps.equals(ADAPTIVE)) {
+                    samplerType = ADAPTIVE;
                 } else if (samplerProps.equals(TRACE_ID_RATIO_BASED)) {
                     samplerType = TRACE_ID_RATIO_BASED;
-                } else {
+                } else if (samplerProps.equals(DEFAULT)) {
                     samplerType = DEFAULT_SAMPLER_TYPE;
+                } else {
+                    // invalid sampler type specified
+                    logInvalidSamplerTypeAndSetToDefault();
                 }
             } else if (samplerProps instanceof Map) {
                 Map<String, Object> props = (Map<String, Object>) samplerProps;
@@ -142,10 +147,15 @@ public class SamplerConfig extends BaseConfig {
                         samplerType = ALWAYS_ON;
                     } else if (props.containsKey(ALWAYS_OFF)) {
                         samplerType = ALWAYS_OFF;
+                    } else if (props.containsKey(ADAPTIVE)) {
+                        samplerType = ADAPTIVE;
                     } else if (props.containsKey(TRACE_ID_RATIO_BASED)) {
                         samplerType = TRACE_ID_RATIO_BASED;
-                    } else {
+                    } else if (props.containsKey(DEFAULT)) {
                         samplerType = DEFAULT_SAMPLER_TYPE;
+                    } else {
+                        // invalid sampler type specified
+                        logInvalidSamplerTypeAndSetToDefault();
                     }
                 } else {
                     // multiple sampler types specified
