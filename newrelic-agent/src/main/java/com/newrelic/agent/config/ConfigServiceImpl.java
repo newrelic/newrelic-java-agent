@@ -222,8 +222,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
             Map<String, Object> dtSettings = (Map<String, Object>) settings.get("distributed_tracing");
             dtSettings.putIfAbsent("sampler", new HashMap<>());
             Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
-            samplerSettings.putIfAbsent(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        } catch (Exception e){
+            samplerSettings.putIfAbsent(SamplerConfig.ADAPTIVE_SAMPLING_TARGET, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
+        } catch (Exception e) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "Error adding default adaptive sampling target settings to agent config.");
         }
     }
