@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DistributedTracingConfig;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
@@ -32,7 +33,10 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Category(RequiresFork.class)
 public class HeadersUtilTest {
@@ -109,7 +113,7 @@ public class HeadersUtilTest {
 
     @Test
     public void testInboundParentSampledTrueConfigAlwaysOn() {
-        Transaction tx = setupAndCreateTx(DistributedTracingConfig.SAMPLE_ALWAYS_ON, DistributedTracingConfig.SAMPLE_DEFAULT);
+        Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_ON, SamplerConfig.DEFAULT);
         InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
                 "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-01", // last entry is the sampled flag = true
                 "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
@@ -124,7 +128,7 @@ public class HeadersUtilTest {
 
     @Test
     public void testInboundParentSampledTrueConfigAlwaysOff() {
-        Transaction tx = setupAndCreateTx(DistributedTracingConfig.SAMPLE_ALWAYS_OFF, DistributedTracingConfig.SAMPLE_DEFAULT);
+        Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_OFF, SamplerConfig.DEFAULT);
         InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
                 "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-01", // last entry is the sampled flag = true
                 "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
@@ -139,7 +143,7 @@ public class HeadersUtilTest {
 
     @Test
     public void testInboundParentSampledFalseConfigAlwaysOn() {
-        Transaction tx = setupAndCreateTx(DistributedTracingConfig.SAMPLE_DEFAULT, DistributedTracingConfig.SAMPLE_ALWAYS_ON);
+        Transaction tx = setupAndCreateTx(SamplerConfig.DEFAULT, SamplerConfig.ALWAYS_ON);
         InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
                 "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-00", // last entry is the sampled flag = true
                 "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
@@ -154,7 +158,7 @@ public class HeadersUtilTest {
 
     @Test
     public void testInboundParentSampledFalseConfigAlwaysOff() {
-        Transaction tx = setupAndCreateTx(DistributedTracingConfig.SAMPLE_DEFAULT, DistributedTracingConfig.SAMPLE_ALWAYS_OFF);
+        Transaction tx = setupAndCreateTx(SamplerConfig.DEFAULT, SamplerConfig.ALWAYS_OFF);
         InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
                 "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-00", // last entry is the sampled flag = true
                 "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
@@ -168,7 +172,7 @@ public class HeadersUtilTest {
     }
 
     private Transaction setupAndCreateTx(String remoteParentSampled, String remoteParentNotSampled) {
-        System.out.println("Setting up config: "+remoteParentSampled+"; "+remoteParentNotSampled);
+        System.out.println("Setting up config: " + remoteParentSampled + "; " + remoteParentNotSampled);
         ConfigService mockConfigService = new MockConfigService(AgentConfigImpl.createAgentConfig(
                 ImmutableMap.of(
                         AgentConfigImpl.APP_NAME,
@@ -176,10 +180,10 @@ public class HeadersUtilTest {
                         AgentConfigImpl.DISTRIBUTED_TRACING,
                         ImmutableMap.of(
                                 DistributedTracingConfig.ENABLED, true,
-                                DistributedTracingConfig.SAMPLER,
+                                SamplerConfig.SAMPLER_CONFIG_ROOT,
                                 ImmutableMap.of(
-                                        DistributedTracingConfig.REMOTE_PARENT_SAMPLED, remoteParentSampled,
-                                        DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampled)
+                                        SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampled,
+                                        SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampled)
                         ),
                         AgentConfigImpl.SPAN_EVENTS,
                         ImmutableMap.of(

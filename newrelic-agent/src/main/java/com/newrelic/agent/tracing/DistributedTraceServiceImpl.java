@@ -16,9 +16,6 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
-import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
-import com.newrelic.agent.tracing.samplers.Sampler;
-import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
@@ -29,7 +26,10 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.AbstractTracer;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.DistributedTracePayload;
+import com.newrelic.api.agent.TransportType;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -55,10 +55,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     private DistributedTracingConfig distributedTraceConfig;
 
-    private Sampler sampler;
+    private Sampler rootSampler;
     private Sampler remoteParentSampledSampler;
     private Sampler remoteParentNotSampledSampler;
-
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
@@ -81,11 +80,11 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-        //Initially, set up the samplers based on local config.
-        //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-        this.sampler = Sampler.getSamplerForType(DistributedTracingConfig.SAMPLE_DEFAULT);
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampled());
+
+        // Initialize samplers
+        this.rootSampler = Sampler.getSamplerForType(distributedTraceConfig.getRootSamplerConfig().getSamplerType());
+        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampledSamplerConfig().getSamplerType());
+        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig().getSamplerType());
     }
 
     @Override
@@ -188,7 +187,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority){
+    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
         Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
         if (parentSampler.getType().equals(Sampler.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
@@ -197,8 +196,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRoot(){
-        return sampler.calculatePriority();
+    public float calculatePriorityRoot() {
+        return rootSampler.calculatePriority();
     }
 
     @Override
@@ -381,6 +380,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     // These setters are NOT thread-safe.
     // They should NOT be used outside of testing.
+    void setRootSampler(Sampler sampler) {
+        this.rootSampler = sampler;
+    }
+
     void setRemoteParentSampledSampler(Sampler sampler) {
         this.remoteParentSampledSampler = sampler;
     }
@@ -389,19 +392,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         this.remoteParentNotSampledSampler = sampler;
     }
 
-    void setRootSampler(Sampler sampler) {
-        this.sampler = sampler;
+    Sampler getRootSampler() {
+        return rootSampler;
     }
 
-    Sampler getRootSampler(){
-        return sampler;
-    }
-
-    Sampler getRemoteParentSampledSampler(){
+    Sampler getRemoteParentSampledSampler() {
         return remoteParentSampledSampler;
     }
 
-    Sampler getRemoteParentNotSampledSampler(){
+    Sampler getRemoteParentNotSampledSampler() {
         return remoteParentNotSampledSampler;
     }
 }
