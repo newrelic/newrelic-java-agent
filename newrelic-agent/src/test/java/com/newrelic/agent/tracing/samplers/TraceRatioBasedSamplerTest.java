@@ -31,6 +31,7 @@ public class TraceRatioBasedSamplerTest {
                 "Allowable error margin: %d\n", iterations, expectedToBeSampled, sampledCount, errorMargin);
 
         assertTrue(expectedToBeSampled + errorMargin >= sampledCount);
+        assertTrue(Math.abs(expectedToBeSampled - sampledCount) <= errorMargin);
     }
 
     @Test
@@ -61,11 +62,11 @@ public class TraceRatioBasedSamplerTest {
         int sampledCount = 0;
 
         Transaction tx = mock(Transaction.class);
-        when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
 
         TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(samplingRatio);
 
         while (++iterations <= iterationCount) {
+            when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
             if (sampler.calculatePriority(tx) == 2.0f) {
                 sampledCount++;
             }

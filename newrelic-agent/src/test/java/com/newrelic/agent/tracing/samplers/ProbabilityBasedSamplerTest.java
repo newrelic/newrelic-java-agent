@@ -32,6 +32,7 @@ public class ProbabilityBasedSamplerTest {
                 "Allowable error margin: %d\n", iterations, expectedToBeSampled, sampledCount, errorMargin);
 
         assertTrue(expectedToBeSampled + errorMargin >= sampledCount);
+        assertTrue(Math.abs(expectedToBeSampled - sampledCount) <= errorMargin);
     }
 
     @Test
@@ -81,8 +82,7 @@ public class ProbabilityBasedSamplerTest {
         ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(samplingProbability);
 
         while (++iterations <= iterationCount) {
-            String id = TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid();
-
+            when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
             if (sampler.calculatePriority(tx) == 2.0f) {
                 sampledCount++;
             }
