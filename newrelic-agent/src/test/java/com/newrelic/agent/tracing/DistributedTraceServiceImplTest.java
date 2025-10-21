@@ -19,6 +19,7 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.tracing.samplers.SamplerFactory;
@@ -294,8 +295,8 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void calculatePriorityRemoteParentSampledUsesSampler(){
         Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
         Map<String, Object> dtSettings = new HashMap<>();
         dtSettings.put("sampler",  samplerSettings);
         Map<String, Object> config = new HashMap<>();
@@ -318,8 +319,8 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void calculatePriorityRemoteParentNotSampledUsesSampler(){
         Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
         Map<String, Object> dtSettings = new HashMap<>();
         dtSettings.put("sampler",  samplerSettings);
         Map<String, Object> config = new HashMap<>();
@@ -391,8 +392,8 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void testDTServiceSetsUpConfiguredSamplers() {
         Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
         Map<String, Object> dtSettings = new HashMap<>();
         dtSettings.put("sampler",  samplerSettings);
         Map<String, Object> config = new HashMap<>();
@@ -412,8 +413,8 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void testConnectResetsDefaultAdaptiveSamplingTarget() {
         Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(DistributedTracingConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
+        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
         Map<String, Object> dtSettings = new HashMap<>();
         dtSettings.put("sampler",  samplerSettings);
         Map<String, Object> config = new HashMap<>();

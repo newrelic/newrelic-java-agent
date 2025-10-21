@@ -56,10 +56,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     private DistributedTracingConfig distributedTraceConfig;
 
-    private Sampler sampler;
+    private Sampler rootSampler;
     private Sampler remoteParentSampledSampler;
     private Sampler remoteParentNotSampledSampler;
-
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
@@ -84,9 +83,11 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
         //Initially, set up the samplers based on local config.
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-        this.sampler = SamplerFactory.createSampler(SamplerFactory.DEFAULT);
-        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampled());
-        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampled());
+
+        // Initialize samplers
+        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig().getSamplerType());
+        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig().getSamplerType());
+        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig().getSamplerType());
     }
 
     @Override
@@ -189,7 +190,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority){
+    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
         Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
         if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
@@ -199,7 +200,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     @Override
     public float calculatePriorityRoot(){
-        return sampler.calculatePriority(null);
+        return rootSampler.calculatePriority(null);
     }
 
     @Override
@@ -382,6 +383,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     // These setters are NOT thread-safe.
     // They should NOT be used outside of testing.
+    void setRootSampler(Sampler sampler) {
+        this.rootSampler = sampler;
+    }
+
     void setRemoteParentSampledSampler(Sampler sampler) {
         this.remoteParentSampledSampler = sampler;
     }
@@ -390,19 +395,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         this.remoteParentNotSampledSampler = sampler;
     }
 
-    void setRootSampler(Sampler sampler) {
-        this.sampler = sampler;
+    Sampler getRootSampler() {
+        return rootSampler;
     }
 
-    Sampler getRootSampler(){
-        return sampler;
-    }
-
-    Sampler getRemoteParentSampledSampler(){
+    Sampler getRemoteParentSampledSampler() {
         return remoteParentSampledSampler;
     }
 
-    Sampler getRemoteParentNotSampledSampler(){
+    Sampler getRemoteParentNotSampledSampler() {
         return remoteParentNotSampledSampler;
     }
 }
