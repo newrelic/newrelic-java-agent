@@ -37,10 +37,6 @@ public class AdaptiveSampler implements Sampler {
         this.firstPeriod = true;
         NewRelic.getAgent().getLogger().log(Level.FINE, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
                 reportPeriodSeconds + " seconds.");
-
-        ServiceFactory.getStatsService()
-                .doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) this.target).floatValue()),
-                        MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
     }
 
     /**
