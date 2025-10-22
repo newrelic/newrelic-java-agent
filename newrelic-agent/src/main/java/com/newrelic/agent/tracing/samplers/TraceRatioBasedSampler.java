@@ -51,7 +51,7 @@ public class TraceRatioBasedSampler implements Sampler {
 
     @Override
     public float calculatePriority(Transaction tx) {
-        String traceId = SamplerUtils.traceIdFromTransaction(tx);
+        String traceId = Sampler.traceIdFromTransaction(tx);
 
         if (traceId != null && traceId.length() == 32) {
             try {

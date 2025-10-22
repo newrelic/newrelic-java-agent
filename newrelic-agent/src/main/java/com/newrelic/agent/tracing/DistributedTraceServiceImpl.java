@@ -81,10 +81,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+
         //Initially, set up the samplers based on local config.
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-
-        // Initialize samplers
         this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig());
         this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
         this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());

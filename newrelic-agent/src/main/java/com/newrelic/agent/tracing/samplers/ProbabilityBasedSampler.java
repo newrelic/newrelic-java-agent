@@ -51,7 +51,7 @@ public class ProbabilityBasedSampler implements Sampler {
 
     @Override
     public float calculatePriority(Transaction tx) {
-        String traceId = SamplerUtils.traceIdFromTransaction(tx);
+        String traceId = Sampler.traceIdFromTransaction(tx);
         if (traceId != null && traceId.length() == 32) {
             try {
                 String last14Chars = traceId.substring(18);

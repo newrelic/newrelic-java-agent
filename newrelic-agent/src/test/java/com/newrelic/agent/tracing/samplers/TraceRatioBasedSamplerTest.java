@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.mock;
@@ -67,6 +69,28 @@ public class TraceRatioBasedSamplerTest {
         when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
         TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(mockSamplerConfig);
         assertEquals(0.0f, sampler.calculatePriority(null), 0.0f);
+    }
+
+    @Test
+    public void isValidTraceRatio_returnsCorrectValue() {
+        assertTrue(Sampler.isValidTraceRatio(0.0f));
+        assertTrue(Sampler.isValidTraceRatio(0.5f));
+        assertTrue(Sampler.isValidTraceRatio(1.0f));
+
+        assertFalse(Sampler.isValidTraceRatio(-0.1f));
+        assertFalse(Sampler.isValidTraceRatio(1.1f));
+    }
+
+    @Test
+    public void traceIdFromTransaction_withValildTxn_returnsTraceId() {
+        Transaction tx = mock(Transaction.class);
+        when(tx.getOrCreateTraceId()).thenReturn("123");
+        assertEquals("123", Sampler.traceIdFromTransaction(tx));
+    }
+
+    @Test
+    public void traceIdFromTransaction_withNullTxn_returnsNull() {
+        assertNull(Sampler.traceIdFromTransaction(null));
     }
 
     private int runSamplerWith(int iterationCount, float samplingRatio) {

@@ -10,6 +10,28 @@ import com.newrelic.agent.Transaction;
 
 public interface Sampler {
     /**
+     * Extract the trace id from the supplied Transaction instance
+     *
+     * @param tx The target Transaction
+     *
+     * @return the extracted trace id or null if the Transaction instance is null
+     */
+    static String traceIdFromTransaction(Transaction tx) {
+        return (tx != null ? tx.getOrCreateTraceId() : null);
+    }
+
+    /**
+     * Determine if the supplied float value is a valid value for the ratio value
+     *
+     * @param ratio the ration value to check
+     *
+     * @return true if the ratio is valid; false otherwise
+     */
+    static boolean isValidTraceRatio(float ratio) {
+        return ratio >= 0.0f && ratio <= 1.0f;
+    }
+
+    /**
      * Calculate the priority of a trace. The value returned must be in the range
      * of 0.0f - 2.0f.
      *
