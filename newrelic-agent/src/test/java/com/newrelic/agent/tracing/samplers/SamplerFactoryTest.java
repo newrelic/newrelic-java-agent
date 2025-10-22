@@ -28,24 +28,24 @@ public class SamplerFactoryTest {
         when(mockSamplerConfig.getSamplerRatio()).thenReturn(.5f);
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ALWAYS_ON);
-        assertEquals("always_on", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("always_on", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ALWAYS_OFF);
-        assertEquals("always_off", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("always_off", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.PROBABILITY);
-        assertEquals("probability", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("probability", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO);
-        assertEquals("trace_ratio", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("trace_ratio", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ADAPTIVE);
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.DEFAULT);
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn("foo");
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig));
+        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
     }
 }
