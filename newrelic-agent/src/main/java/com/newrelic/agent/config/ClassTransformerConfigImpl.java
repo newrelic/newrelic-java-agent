@@ -333,7 +333,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     }
 
     @Override
-    public boolean useControllerClassForSpringTransactionNaming() {
+    public boolean useControllerClassAndMethodForSpringTransactionNaming() {
         return useControllerClassForSpringTransactionNaming;
     }
 
