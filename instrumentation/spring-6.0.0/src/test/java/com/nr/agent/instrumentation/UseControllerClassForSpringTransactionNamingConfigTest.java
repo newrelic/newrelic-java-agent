@@ -46,12 +46,12 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
         AgentBridge.agent = originalAgent;
     }
 
-    // class_transformer.use_controller_class_for_spring_transaction_naming set to true
+    // class_transformer.use_controller_class_and_method_for_spring_transaction_naming set to true
     // Should always use ControllerClassName/methodName format regardless of enhanced_spring_transaction_naming
 
     @Test
     public void handleInternal_useControllerClassEnabled_namesWithControllerClassAndMethod() throws Exception {
-        when(mockConfig.getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false)).thenReturn(true);
+        when(mockConfig.getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false)).thenReturn(true);
         when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(false);
 
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
@@ -69,15 +69,15 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
         cut.handleInternal(mockReq, mockResp, handlerMethod);
 
         verify(mockTxn).getTracedMethod();
-        // Should use controller class + method name format with dot notation, not request mapping format
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings.get");
+        // Should use controller class + method name format with slash delimiter, not request mapping format
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/get");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
     }
 
     @Test
     public void handleInternal_useControllerClassEnabled_overridesEnhancedNaming() throws Exception {
         // Even with enhanced_spring_transaction_naming=true, use_controller_class_for_spring_transaction_naming should take precedence
-        when(mockConfig.getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false)).thenReturn(true);
+        when(mockConfig.getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false)).thenReturn(true);
         when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
 
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
@@ -96,13 +96,13 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not the enhanced naming format "/root/get (GET)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "ControllerClassWithInterface.get");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "ControllerClassWithInterface/get");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/get");
     }
 
     @Test
     public void handleInternal_useControllerClassEnabled_withUrlParams() throws Exception {
-        when(mockConfig.getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false)).thenReturn(true);
+        when(mockConfig.getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false)).thenReturn(true);
         when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
 
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
@@ -121,13 +121,13 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not "/root/get/{id} (GET)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings.get2");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/get2");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
     }
 
     @Test
     public void handleInternal_useControllerClassEnabled_withPostMapping() throws Exception {
-        when(mockConfig.getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false)).thenReturn(true);
+        when(mockConfig.getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false)).thenReturn(true);
         when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
 
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();
@@ -146,14 +146,14 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not "/root/post (POST)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings.post");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/post");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
     }
 
     @Test
     public void handleInternal_useControllerClassDisabled_usesLegacyBehavior() throws Exception {
         // When use_controller_class_for_spring_transaction_naming is false, should use legacy behavior
-        when(mockConfig.getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false)).thenReturn(false);
+        when(mockConfig.getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false)).thenReturn(false);
         when(mockConfig.getValue("class_transformer.enhanced_spring_transaction_naming", false)).thenReturn(true);
 
         AbstractHandlerMethodAdapter_Instrumentation cut = new AbstractHandlerMethodAdapter_Instrumentation();

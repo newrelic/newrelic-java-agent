@@ -8,7 +8,6 @@ package com.nr.agent.instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
@@ -32,16 +31,12 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
             Class<?> controllerClass = handlerMethod.getBeanType();
             Method controllerMethod = handlerMethod.getMethod();
 
-            // Check if we should use controller class name + method name for transaction naming
-            boolean useControllerClassForNaming =
-                    NewRelic.getAgent().getConfig().getValue("class_transformer.use_controller_class_for_spring_transaction_naming", false);
+            // Check if we should use controllerClass/methodName for transaction naming
+            boolean useControllerClassAndMethodForNaming =
+                    NewRelic.getAgent().getConfig().getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false);
 
-            // If the new config is enabled, always use controller class + method name with dot notation
-            if (useControllerClassForNaming) {
-                String controllerName = controllerClass.getSimpleName();
-                String methodName = controllerMethod.getName();
-                String txnName = controllerName + "." + methodName;
-                transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
+            if (useControllerClassAndMethodForNaming) {
+                SpringControllerUtility.setTransactionNameUsingControllerClassAndMethod(transaction, controllerClass, controllerMethod);
             } else {
                 //If this setting is false, attempt to name transactions the way the legacy point cut
                 //named them

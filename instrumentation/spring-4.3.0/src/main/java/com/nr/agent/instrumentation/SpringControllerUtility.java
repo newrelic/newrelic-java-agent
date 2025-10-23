@@ -6,7 +6,6 @@
  */
 package com.nr.agent.instrumentation;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
@@ -182,6 +181,19 @@ public class SpringControllerUtility {
                             "with FRAMEWORK_HIGH and override false, txn {1}.", txnName, transaction.toString());
         }
 
+        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
+    }
+
+    /**
+     * Set a transaction name using controller class name and method name with a forward slash delimiter.
+     * This naming format helps prevent transaction name cardinality issues with complex URI patterns.
+     *
+     * @param transaction the transaction to set the name for
+     * @param controllerClass the target controller class
+     * @param method the method being invoked on the controller
+     */
+    public static void setTransactionNameUsingControllerClassAndMethod(Transaction transaction, Class<?> controllerClass, Method method) {
+        String txnName = getControllerClassAndMethodString(controllerClass, method, false);
         transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
     }
 
