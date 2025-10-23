@@ -7,22 +7,28 @@
 package com.nr.agent.instrumentation.utils.span;
 
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import io.opentelemetry.api.trace.SpanKind;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Level;
 
 public class AttributeMapper {
     private static final String MAPPING_RESOURCE = "attribute-mappings.json";
+    private static final String INSTRUMENTATION_JAR_LOCATION = "instrumentation/opentelemetry-sdk-extension-autoconfigure-1.28.0-1.0";
 
     private static volatile AttributeMapper instance;
     private final Map<SpanKind, Map<AttributeType, List<AttributeKey>>> mappings = new HashMap<>();
@@ -42,29 +48,28 @@ public class AttributeMapper {
         if (instance == null) {
             synchronized (AttributeMapper.class) {
                 if (instance == null) {
-                    try (InputStream inputStream = AttributeMapper.class.getClassLoader().getResourceAsStream(MAPPING_RESOURCE);
-                         InputStreamReader reader = new InputStreamReader(inputStream)) {
+                    try {
+                        JSONArray rootArray = parseJsonResourceFromAgentJar(INSTRUMENTATION_JAR_LOCATION, MAPPING_RESOURCE);
 
-                        instance = new AttributeMapper();
+                        if (rootArray != null) {
+                            instance = new AttributeMapper();
 
-                        JSONParser parser = new JSONParser();
-                        JSONArray rootArray = (JSONArray) parser.parse(reader);
+                            for (Object spanKindObj : rootArray) {
+                                // Span kind and a list of attribute types
+                                JSONObject spanKindObject = (JSONObject) spanKindObj;
+                                SpanKind spanKind = SpanKind.valueOf((String) spanKindObject.get("spanKind"));
+                                JSONArray jsonAttributeTypes = (JSONArray) spanKindObject.get("attributeTypes");
 
-                        for (Object spanKindObj : rootArray) {
-                            // Span kind and a list of attribute types
-                            JSONObject spanKindObject = (JSONObject) spanKindObj;
-                            SpanKind spanKind = SpanKind.valueOf((String) spanKindObject.get("spanKind"));
-                            JSONArray jsonAttributeTypes = (JSONArray) spanKindObject.get("attributeTypes");
+                                for (Object typeObj : jsonAttributeTypes) {
+                                    JSONObject categoryObject = (JSONObject) typeObj;
 
-                            for (Object typeObj : jsonAttributeTypes) {
-                                JSONObject categoryObject = (JSONObject) typeObj;
-
-                                // Grab the attribute type (Port, Host, etc) and then iterate over the actual attribute keys
-                                AttributeType attributeType = AttributeType.valueOf((String) categoryObject.get("attributeType"));
-                                JSONArray jsonAttributes = (JSONArray) categoryObject.get("attributes");
-                                for (Object jsonAttribute : jsonAttributes) {
-                                    JSONObject attribute = (JSONObject) jsonAttribute;
-                                    instance.addAttributeMapping(spanKind, attributeType, new AttributeKey((String) attribute.get("name"), (String) attribute.get("version")));
+                                    // Grab the attribute type (Port, Host, etc) and then iterate over the actual attribute keys
+                                    AttributeType attributeType = AttributeType.valueOf((String) categoryObject.get("attributeType"));
+                                    JSONArray jsonAttributes = (JSONArray) categoryObject.get("attributes");
+                                    for (Object jsonAttribute : jsonAttributes) {
+                                        JSONObject attribute = (JSONObject) jsonAttribute;
+                                        instance.addAttributeMapping(spanKind, attributeType, new AttributeKey((String) attribute.get("name"), (String) attribute.get("version")));
+                                    }
                                 }
                             }
                         }
@@ -77,6 +82,34 @@ public class AttributeMapper {
         }
 
         return instance;
+    }
+
+    public static JSONArray parseJsonResourceFromAgentJar(String instrumentationJarLocation, String jsonResourceName) {
+        try (JarFile instrumentationJarFile = new JarFile(EmbeddedJarFilesImpl.INSTANCE.getJarFileInAgent(instrumentationJarLocation))) {
+            JarEntry jsonFileJarEntry = instrumentationJarFile.getJarEntry(jsonResourceName);
+
+            if (jsonFileJarEntry != null) {
+                StringBuilder jsonStringBuilder = new StringBuilder();
+                try (InputStream inputStream = instrumentationJarFile.getInputStream(jsonFileJarEntry)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        jsonStringBuilder.append(new String(buffer, 0, bytesRead, StandardCharsets.UTF_8));
+                    }
+                }
+                String jsonString = jsonStringBuilder.toString();
+
+                JSONParser parser = new JSONParser();
+                return (JSONArray) parser.parse(jsonString);
+            } else {
+                System.out.println("JarEntry '" + jsonResourceName + "' not found in the " + instrumentationJarLocation + " Jar file.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // TODO log something useful
+        } catch (ParseException e) {
+            throw new RuntimeException(e); // TODO log something useful, don't throw
+        }
+        return null;
     }
 
     /**
