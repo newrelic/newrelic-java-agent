@@ -8,6 +8,7 @@ package com.nr.agent.instrumentation;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
@@ -40,7 +41,7 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
                 String controllerName = controllerClass.getSimpleName();
                 String methodName = controllerMethod.getName();
                 String txnName = controllerName + "." + methodName;
-                transaction.setTransactionName(com.newrelic.agent.bridge.TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
+                transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
             } else {
                 //If this setting is false, attempt to name transactions the way the legacy point cut
                 //named them
