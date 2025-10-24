@@ -112,21 +112,21 @@ public class SamplerConfigTest {
         assertEquals(SamplerConfig.ROOT, rootSamplerConfig.getSampler());
         // Should use the default sampling type
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, rootSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(rootSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentSampledSamplerConfig = distributedTracingConfig.getRemoteParentSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampledSamplerConfig.getSampler());
         // Should use the trace_id_ratio_based sampling type
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, remoteParentSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         assertEquals(Float.valueOf(0.07F), remoteParentSampledSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentNotSampledSamplerConfig = distributedTracingConfig.getRemoteParentNotSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampledSamplerConfig.getSampler());
         // Should use the always_off sampling type
         assertEquals(SamplerConfig.ALWAYS_OFF, remoteParentNotSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(remoteParentNotSampledSamplerConfig.getSamplerRatio());
     }
 
@@ -471,21 +471,21 @@ public class SamplerConfigTest {
         assertEquals(SamplerConfig.ROOT, rootSamplerConfig.getSampler());
         // Should use the default sampling type
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, rootSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(rootSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentSampledSamplerConfig = distributedTracingConfig.getRemoteParentSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampledSamplerConfig.getSampler());
         // Should use the trace_id_ratio_based sampling type
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, remoteParentSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         assertEquals(Float.valueOf(0.07F), remoteParentSampledSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentNotSampledSamplerConfig = distributedTracingConfig.getRemoteParentNotSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampledSamplerConfig.getSampler());
         // Should use the always_off sampling type
         assertEquals(SamplerConfig.ALWAYS_OFF, remoteParentNotSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(remoteParentNotSampledSamplerConfig.getSamplerRatio());
     }
 
@@ -731,21 +731,21 @@ public class SamplerConfigTest {
         assertEquals(SamplerConfig.ROOT, rootSamplerConfig.getSampler());
         // Should use the default sampling type
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, rootSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(rootSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentSampledSamplerConfig = distributedTracingConfig.getRemoteParentSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampledSamplerConfig.getSampler());
         // Should use the trace_id_ratio_based sampling type
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, remoteParentSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         assertEquals(Float.valueOf(0.07F), remoteParentSampledSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentNotSampledSamplerConfig = distributedTracingConfig.getRemoteParentNotSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampledSamplerConfig.getSampler());
         // Should use the always_off sampling type
         assertEquals(SamplerConfig.ALWAYS_OFF, remoteParentNotSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(remoteParentNotSampledSamplerConfig.getSamplerRatio());
     }
 
@@ -1024,14 +1024,14 @@ public class SamplerConfigTest {
         assertEquals(SamplerConfig.ROOT, rootSamplerConfig.getSampler());
         // Should use the always_off sampling type, local config overridden by system property
         assertEquals(SamplerConfig.ALWAYS_OFF, rootSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(rootSamplerConfig.getSamplerRatio());
 
         SamplerConfig remoteParentSampledSamplerConfig = distributedTracingConfig.getRemoteParentSampledSamplerConfig();
         assertEquals(SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampledSamplerConfig.getSampler());
         // Should use the trace_id_ratio_based sampling type
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, remoteParentSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         // local config and system property are both overridden by environment variable
         assertEquals(Float.valueOf(0.09F), remoteParentSampledSamplerConfig.getSamplerRatio());
 
@@ -1039,7 +1039,7 @@ public class SamplerConfigTest {
         assertEquals(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampledSamplerConfig.getSampler());
         // Should use the always_off sampling type
         assertEquals(SamplerConfig.ALWAYS_OFF, remoteParentNotSampledSamplerConfig.getSamplerType());
-        assertEquals(9, rootSamplerConfig.getAdaptiveSamplingTarget());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         Assert.assertNull(remoteParentNotSampledSamplerConfig.getSamplerRatio());
     }
 }

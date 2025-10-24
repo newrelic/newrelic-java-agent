@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 /**
@@ -83,9 +84,16 @@ public class SamplerConfig extends BaseConfig {
     private final String sampler;
     private String samplerType;
     private Float samplerRatio;
+    private final SamplerConfig configDelegate;
+    private final AtomicBoolean shouldUseConfigDelegate = new AtomicBoolean(false);
 
     public SamplerConfig(String sampler, Map<String, Object> props, String parentRoot) {
-        super(props, parentRoot + SAMPLER_CONFIG_ROOT + ".");
+       this(sampler, props, parentRoot, null);
+    }
+
+    public SamplerConfig(String sampler, Map<String, Object> props, String parentRoot, SamplerConfig configDelegate) {
+        super(props, parentRoot);
+        this.configDelegate = configDelegate; //MAY BE NULL
         this.sampler = sampler;
         this.samplerProps = getProperty(sampler);
         this.samplerType = initSamplerType();
@@ -96,10 +104,6 @@ public class SamplerConfig extends BaseConfig {
                 .log(Level.INFO,
                         "The " + this.sampler + " sampler was configured to use the " + this.samplerType + " sampler type" +
                                 (this.samplerRatio != null ? " with a ratio of " + this.samplerRatio : "") + ".");
-    }
-
-    public int getAdaptiveSamplingTarget() {
-        return getProperty(ADAPTIVE_SAMPLING_TARGET, DEFAULT_ADAPTIVE_SAMPLING_TARGET);
     }
 
     public String getSampler() {
@@ -122,7 +126,14 @@ public class SamplerConfig extends BaseConfig {
     private String initSamplerType() {
         if (samplerType == null) {
             if (samplerProps == null) {
-                samplerType = DEFAULT_SAMPLER_TYPE;
+                //In the default case (nothing specified), fall back to the config delegate if set.
+                //This is the only scenario in which the delegate should be switched into "in use".
+                if (configDelegate != null) {
+                    shouldUseConfigDelegate.set(true);
+                    samplerType = configDelegate.getSamplerType();
+                } else {
+                    samplerType = DEFAULT_SAMPLER_TYPE;
+                }
             } else if (samplerProps instanceof String) {
                 if (samplerProps.equals(ALWAYS_ON)) {
                     samplerType = ALWAYS_ON;
@@ -183,7 +194,9 @@ public class SamplerConfig extends BaseConfig {
      * @return Float The sampler ratio.
      */
     private Float initSamplerRatio() {
-        if (samplerRatio == null && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
+        if (shouldUseConfigDelegate.get() && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
+            samplerRatio = configDelegate.getSamplerRatio();
+        } else if (samplerRatio == null && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
             // look for ratio from system property or environment variable
             Object ratioValue = getProperty(sampler + "." + TRACE_ID_RATIO_BASED + "." + RATIO);
             if (ratioValue != null) {

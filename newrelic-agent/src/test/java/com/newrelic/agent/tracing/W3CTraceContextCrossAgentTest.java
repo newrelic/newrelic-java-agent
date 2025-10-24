@@ -187,7 +187,7 @@ public class W3CTraceContextCrossAgentTest {
         JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
         String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
         String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
-        String rootSamplerType = (String) testData.get("root_sampler_type");
+        String rootSamplerType = (String) testData.get("root");
 
         replaceConfig(spanEventsEnabled);
 
