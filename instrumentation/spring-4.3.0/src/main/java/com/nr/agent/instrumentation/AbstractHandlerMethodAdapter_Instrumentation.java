@@ -36,7 +36,7 @@ public class AbstractHandlerMethodAdapter_Instrumentation {
                     NewRelic.getAgent().getConfig().getValue("class_transformer.use_controller_class_and_method_for_spring_transaction_naming", false);
 
             if (useControllerClassAndMethodForNaming) {
-                SpringControllerUtility.setTransactionNameUsingControllerClassAndMethod(transaction, controllerClass, controllerMethod);
+                SpringControllerUtility.assignTransactionNameFromControllerAndMethod(transaction, controllerClass, controllerMethod);
             } else {
                 //If this setting is false, attempt to name transactions the way the legacy point cut
                 //named them

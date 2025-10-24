@@ -185,19 +185,6 @@ public class SpringControllerUtility {
     }
 
     /**
-     * Set a transaction name using controller class name and method name with a forward slash delimiter.
-     * This naming format helps prevent transaction name cardinality issues with complex URI patterns.
-     *
-     * @param transaction the transaction to set the name for
-     * @param controllerClass the target controller class
-     * @param method the method being invoked on the controller
-     */
-    public static void setTransactionNameUsingControllerClassAndMethod(Transaction transaction, Class<?> controllerClass, Method method) {
-        String txnName = getControllerClassAndMethodString(controllerClass, method, false);
-        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", txnName);
-    }
-
-    /**
      * Return a String composed of the Controller class name + "/" + method name
      *
      * @param controllerClass the target controller class

@@ -70,7 +70,7 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format with slash delimiter, not request mapping format
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/get");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/StandardControllerWithAllRequestMappings/get");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get");
     }
 
@@ -96,7 +96,7 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not the enhanced naming format "/root/get (GET)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "ControllerClassWithInterface/get");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/ControllerClassWithInterface/get");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$ControllerClassWithInterface/get");
     }
 
@@ -121,7 +121,7 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not "/root/get/{id} (GET)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/get2");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/StandardControllerWithAllRequestMappings/get2");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/get2");
     }
 
@@ -146,7 +146,7 @@ public class UseControllerClassForSpringTransactionNamingConfigTest {
 
         verify(mockTxn).getTracedMethod();
         // Should use controller class + method name format, not "/root/post (POST)"
-        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "StandardControllerWithAllRequestMappings/post");
+        verify(mockTxn).setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, false, "SpringController", "/StandardControllerWithAllRequestMappings/post");
         verify(mockTracedMethod).setMetricName("Spring", "Java", "com.nr.agent.instrumentation.TestControllerClasses$StandardControllerWithAllRequestMappings/post");
     }
 
