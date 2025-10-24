@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.Map;
@@ -189,7 +190,9 @@ public class SamplerConfig extends BaseConfig {
             if (ratioValue != null) {
                 if (ratioValue instanceof Number) {
                     samplerRatio = ((Number) ratioValue).floatValue();
-                    // TODO validate ratio and logInvalidRatioAndSetToDefault(samplerRatio) if invalid
+                    if (!Sampler.isValidTraceRatio(samplerRatio)) {
+                        logInvalidRatioAndSetToDefault(samplerRatio);
+                    }
                 } else {
                     // invalid non-numeric ratio specified
                     logInvalidRatioAndSetToDefault(samplerRatio);
@@ -204,7 +207,9 @@ public class SamplerConfig extends BaseConfig {
                         ratioValue = ratioProps.get(RATIO);
                         if (ratioValue instanceof Number) {
                             samplerRatio = ((Number) ratioValue).floatValue();
-                            // TODO validate ratio and logInvalidRatioAndSetToDefault(samplerRatio) if invalid
+                            if (!Sampler.isValidTraceRatio(samplerRatio)) {
+                                logInvalidRatioAndSetToDefault(samplerRatio);
+                            }
                         } else {
                             // invalid non-numeric ratio specified
                             logInvalidRatioAndSetToDefault(ratioValue);

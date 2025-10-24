@@ -189,17 +189,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+    public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
         Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
         if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
         }
-        return parentSampler.calculatePriority(null);
+        return parentSampler.calculatePriority(tx);
     }
 
     @Override
-    public float calculatePriorityRoot(){
-        return rootSampler.calculatePriority(null);
+    public float calculatePriorityRoot(Transaction tx){
+        return rootSampler.calculatePriority(tx);
     }
 
     @Override

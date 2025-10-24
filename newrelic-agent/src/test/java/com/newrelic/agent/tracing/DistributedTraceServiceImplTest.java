@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -235,7 +236,7 @@ public class DistributedTraceServiceImplTest {
 
         for (int i = 0; i < 3000; i++) {
             TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRoot();
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRoot(Mockito.mock(Transaction.class));
             minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
             maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
             when(transactionEvent.getPriority()).thenReturn(priority);
@@ -244,7 +245,7 @@ public class DistributedTraceServiceImplTest {
 
         for (int i = 0; i < 1000; i++) {
             TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRemoteParent(true, 1.5f);
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f);
             when(transactionEvent.getPriority()).thenReturn(priority);
             reservoir.add(transactionEvent);
         }
@@ -288,8 +289,8 @@ public class DistributedTraceServiceImplTest {
         //overwrite the configured sampler to ask Mockito how many times the sampler is called
         Sampler mockAdaptiveSampler = Mockito.mock(AdaptiveSampler.class);
         distributedTraceService.setRootSampler(mockAdaptiveSampler);
-        distributedTraceService.calculatePriorityRoot();
-        Mockito.verify(mockAdaptiveSampler, times(1)).calculatePriority(null);
+        distributedTraceService.calculatePriorityRoot(Mockito.mock(Transaction.class));
+        Mockito.verify(mockAdaptiveSampler, times(1)).calculatePriority(isA(Transaction.class));
     }
 
     @Test
@@ -312,8 +313,8 @@ public class DistributedTraceServiceImplTest {
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
         assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
 
-        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(true, 1.5f), 0.0f);
-        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(true, null), 0.0f);
+        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f), 0.0f);
+        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, null), 0.0f);
     }
 
     @Test
@@ -336,8 +337,8 @@ public class DistributedTraceServiceImplTest {
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
         assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
 
-        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(false, 1.5f), 0.0f);
-        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(false, null), 0.0f);
+        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, 1.5f), 0.0f);
+        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, null), 0.0f);
     }
 
     @Test
@@ -348,8 +349,8 @@ public class DistributedTraceServiceImplTest {
         assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getRemoteParentSampledSampler().getType());
         assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getRemoteParentNotSampledSampler().getType());
 
-        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(true, 1.5f), 0.0f);
-        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(false, 1.5f), 0.0f);
+        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f), 0.0f);
+        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, 1.5f), 0.0f);
     }
 
     @Test

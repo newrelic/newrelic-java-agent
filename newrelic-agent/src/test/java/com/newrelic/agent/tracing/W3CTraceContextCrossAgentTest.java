@@ -104,7 +104,21 @@ public class W3CTraceContextCrossAgentTest {
         Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
+        // Configure the sampler based on the cross agent test data
+        // This is gross, but we need to extract the value for "ratio" and if present,
+        // it gets added as a sub-option to any sampler type of "trace_id_ratio_based".
+        // Currently, if the "ratio" key exists, it will be a valid float so we can skip
+        // validation.
+        Object maybeRatio = testData.get("ratio");
+        Map<String, Object> ratioConfig = maybeRatio == null ? null : Collections.singletonMap("ratio", maybeRatio);
+        Map<String, Object> samplerConfig = new HashMap<>();
+        samplerConfig.put("root", testData.get("root"));
+        samplerConfig.put("remote_parent_sampled", testData.get("remote_parent_sampled"));
+        samplerConfig.put("remote_parent_not_sampled", testData.get("remote_parent_not_sampled"));
+        addRatioSubOptionIfRequired(samplerConfig, ratioConfig);
+
         Map<String, Object> dtConfig = new HashMap<>();
+        dtConfig.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfig);
         dtConfig.put("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
@@ -186,7 +200,7 @@ public class W3CTraceContextCrossAgentTest {
         JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
         String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
         String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
-        String rootSamplerType = (String) testData.get("root_sampler_type");
+        String rootSamplerType = (String) testData.get("root");
 
         replaceConfig(spanEventsEnabled);
 
@@ -576,6 +590,19 @@ public class W3CTraceContextCrossAgentTest {
 
         JSONArray json = (JSONArray) new JSONParser().parse(new String(out.toByteArray()));
         return (JSONObject) json.get(0);
+    }
+
+    private void addRatioSubOptionIfRequired(Map<String, Object> samplerConfig, Map<String, Object> ratioConfig) {
+        String [] samplerTypes = {SamplerConfig.ROOT, SamplerConfig.REMOTE_PARENT_SAMPLED, SamplerConfig.REMOTE_PARENT_NOT_SAMPLED};
+
+        if (ratioConfig != null) {
+            for (String samplerType : samplerTypes) {
+                if (samplerConfig.get(samplerType).equals(SamplerConfig.TRACE_ID_RATIO_BASED)) {
+                    Map<String, Object> traceRatioMap = Collections.singletonMap(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfig);
+                    samplerConfig.put(samplerType, traceRatioMap);
+                }
+            }
+        }
     }
 
     //Our cross-agent tests include the setting force_adaptive_sampling_true option.

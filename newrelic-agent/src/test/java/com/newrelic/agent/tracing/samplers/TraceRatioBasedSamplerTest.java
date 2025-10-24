@@ -26,7 +26,7 @@ public class TraceRatioBasedSamplerTest {
     @Before
     public void setup() {
         mockSamplerConfig = mock(SamplerConfig.class);
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO);
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO_ID_BASED);
     }
 
     @Test

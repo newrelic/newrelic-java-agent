@@ -16,7 +16,7 @@ public class SamplerFactory {
     public static final String  ALWAYS_ON = "always_on";
     public static final String  ALWAYS_OFF = "always_off";
     public static final String  PROBABILITY = "probability";
-    public static final String  TRACE_RATIO = "trace_ratio";
+    public static final String TRACE_RATIO_ID_BASED = "trace_id_ratio_based";
     public static final String  DEFAULT = "default";
 
     /**
@@ -28,16 +28,16 @@ public class SamplerFactory {
      */
     public static Sampler createSampler(SamplerConfig samplerConfig) {
         switch (samplerConfig.getSamplerType()) {
-            case "always_on":
+            case ALWAYS_ON:
                 return new AlwaysOnSampler();
 
-            case "always_off":
+            case ALWAYS_OFF:
                 return new AlwaysOffSampler();
 
-            case "probability":
+            case PROBABILITY:
                 return new ProbabilityBasedSampler(samplerConfig);
 
-            case "trace_ratio":
+            case TRACE_RATIO_ID_BASED:
                 return new TraceRatioBasedSampler(samplerConfig);
 
             default:
