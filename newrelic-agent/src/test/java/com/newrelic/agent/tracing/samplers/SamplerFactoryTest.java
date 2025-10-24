@@ -37,7 +37,7 @@ public class SamplerFactoryTest {
         assertEquals("probability", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO_ID_BASED);
-        assertEquals("trace_ratio", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        assertEquals("trace_id_ratio_based", SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ADAPTIVE);
         assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
