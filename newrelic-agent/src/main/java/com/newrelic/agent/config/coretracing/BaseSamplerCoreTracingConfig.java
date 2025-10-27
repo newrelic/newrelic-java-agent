@@ -1,4 +1,4 @@
-package com.newrelic.agent.config;
+package com.newrelic.agent.config.coretracing;
 
 import java.util.Map;
 
@@ -7,14 +7,16 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
     public static final String SHARED_ADAPTIVE_SAMPLING_TARGET = "adaptive_sampling_target";
     public static final int SHARED_ADAPTIVE_SAMPLING_TARGET_DEFAULT = 120;
 
+    public static final boolean BASE_SAMPLER_ENABLED_DEFAULT = true;
+
     private final int sharedAdaptiveSamplingTarget;
-    private final CoreTracingConfig fullGranularityConfig;
-    private final CoreTracingConfig partialGranularityConfig;
+    private final FullGranularityConfig fullGranularityConfig;
+    private final PartialGranularityConfig partialGranularityConfig;
 
     public BaseSamplerCoreTracingConfig(Map<String, Object> props, String dtSystemPropertyRoot) {
-        super(props, dtSystemPropertyRoot + SAMPLER_SYSTEM_PROPERTY_ROOT, BASE);
-        this.fullGranularityConfig = new CoreTracingConfig(nestedProps(FULL_GRANULARITY), this.systemPropertyPrefix, FULL_GRANULARITY, this);
-        this.partialGranularityConfig = new CoreTracingConfig(nestedProps(PARTIAL_GRANULARITY), this.systemPropertyPrefix , PARTIAL_GRANULARITY);
+        super(props, dtSystemPropertyRoot + SAMPLER_SYSTEM_PROPERTY_ROOT, BASE_SAMPLER_ENABLED_DEFAULT);
+        this.fullGranularityConfig = new FullGranularityConfig(nestedProps(FULL_GRANULARITY), this.systemPropertyPrefix, this);
+        this.partialGranularityConfig = new PartialGranularityConfig(nestedProps(PARTIAL_GRANULARITY), this.systemPropertyPrefix);
         this.sharedAdaptiveSamplingTarget = getProperty(SHARED_ADAPTIVE_SAMPLING_TARGET, SHARED_ADAPTIVE_SAMPLING_TARGET_DEFAULT);
     }
 
@@ -22,11 +24,11 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
         return sharedAdaptiveSamplingTarget;
     }
 
-    public CoreTracingConfig getFullGranularityConfig(){
+    public FullGranularityConfig getFullGranularityConfig(){
         return fullGranularityConfig;
     }
 
-    public CoreTracingConfig getPartialGranularityConfig(){
+    public PartialGranularityConfig getPartialGranularityConfig(){
         return partialGranularityConfig;
     }
 }

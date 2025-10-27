@@ -9,6 +9,7 @@ package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

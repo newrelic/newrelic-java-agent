@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;

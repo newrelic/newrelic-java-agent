@@ -7,6 +7,11 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.config.coretracing.BaseSamplerCoreTracingConfig;
+import com.newrelic.agent.config.coretracing.CoreTracingConfig;
+import com.newrelic.agent.config.coretracing.PartialGranularityConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
+
 import java.util.Map;
 
 public class DistributedTracingConfig extends BaseConfig {
@@ -77,7 +82,7 @@ public class DistributedTracingConfig extends BaseConfig {
         return baseSamplerConfig.getFullGranularityConfig();
     }
 
-    public CoreTracingConfig getPartialGranularityConfig() {
+    public PartialGranularityConfig getPartialGranularityConfig() {
         return baseSamplerConfig.getPartialGranularityConfig();
     }
 
