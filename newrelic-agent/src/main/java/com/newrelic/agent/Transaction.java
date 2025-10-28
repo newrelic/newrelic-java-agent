@@ -354,7 +354,7 @@ public class Transaction {
      */
     public void assignPriorityFromRemoteParent(boolean remoteParentSampled) {
         DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-        float priority = dtService.calculatePriorityRemoteParent(remoteParentSampled, getPriorityFromInboundSamplingDecision());
+        float priority = dtService.calculatePriorityRemoteParent(this, remoteParentSampled, getPriorityFromInboundSamplingDecision());
         this.priority.set(priority);
     }
 
@@ -377,7 +377,7 @@ public class Transaction {
             if (priority.get() == null){
                 //The "if" check above is required even though we do compareAndSet(null) below.
                 //Its purpose is to avoid running the sampler more than once for the same txn.
-                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot();
+                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot(this);
                 priority.compareAndSet(null, samplerPriority);
             }
         } else {

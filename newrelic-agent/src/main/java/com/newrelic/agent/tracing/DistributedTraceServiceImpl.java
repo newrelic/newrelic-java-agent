@@ -16,6 +16,10 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerFactory;
+import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
@@ -26,10 +30,7 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.AbstractTracer;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
-import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.DistributedTracePayload;
-import com.newrelic.api.agent.TransportType;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -81,10 +82,11 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
 
-        // Initialize samplers
-        this.rootSampler = Sampler.getSamplerForType(distributedTraceConfig.getRootSamplerConfig().getSamplerType());
-        this.remoteParentSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentSampledSamplerConfig().getSamplerType());
-        this.remoteParentNotSampledSampler = Sampler.getSamplerForType(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig().getSamplerType());
+        //Initially, set up the samplers based on local config.
+        //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
+        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig());
+        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
+        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
     }
 
     @Override
@@ -187,17 +189,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+    public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
         Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
-        if (parentSampler.getType().equals(Sampler.ADAPTIVE) && inboundPriority != null) {
+        if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
             return inboundPriority;
         }
-        return parentSampler.calculatePriority();
+        return parentSampler.calculatePriority(tx);
     }
 
     @Override
-    public float calculatePriorityRoot() {
-        return rootSampler.calculatePriority();
+    public float calculatePriorityRoot(Transaction tx){
+        return rootSampler.calculatePriority(tx);
     }
 
     @Override

@@ -1,8 +1,11 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -66,6 +69,10 @@ public class AdaptiveSampler implements Sampler {
         if (SAMPLER_SHARED_INSTANCE != null) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Updating shared Adaptive Sampler sampling target to " + newTarget);
             getSharedInstance().setTarget(newTarget);
+
+            ServiceFactory.getStatsService()
+                    .doStatsWork(StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
+                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
         }
     }
 
@@ -74,14 +81,14 @@ public class AdaptiveSampler implements Sampler {
      * @return A float in [0.0f, 2.0f]
      */
     @Override
-    public synchronized float calculatePriority(){
+    public synchronized float calculatePriority(Transaction tx){
         resetPeriodIfElapsed();
         return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
     }
 
     @Override
     public String getType(){
-        return Sampler.ADAPTIVE;
+        return SamplerFactory.ADAPTIVE;
     }
 
     private void resetPeriodIfElapsed(){
