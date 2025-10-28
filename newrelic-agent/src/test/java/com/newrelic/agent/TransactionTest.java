@@ -54,6 +54,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 
 @SuppressWarnings("deprecation")
 public class TransactionTest {
@@ -202,12 +203,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
                 return 1.1f;
             }
 
             @Override
-            public float calculatePriorityRoot(){
+            public float calculatePriorityRoot(Transaction tx){
                 return 1.2f;
             }
         };
@@ -844,10 +845,10 @@ public class TransactionTest {
         tx.getTransactionActivity().tracerStarted(tracer);
         tx.getTransactionActivity().tracerFinished(tracer, 0);
         Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionFinished(
-                Mockito.any(TransactionData.class), Mockito.any(TransactionStats.class));
-        Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionStarted(Mockito.any(Transaction.class));
-        Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionFinished(Mockito.any(
-                TransactionData.class), Mockito.any(TransactionStats.class));
+                any(TransactionData.class), any(TransactionStats.class));
+        Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionStarted(any(Transaction.class));
+        Mockito.verify(transactionService, Mockito.atLeastOnce()).transactionFinished(any(
+                TransactionData.class), any(TransactionStats.class));
         Mockito.verifyNoMoreInteractions(transactionService);
     }
 
@@ -1259,12 +1260,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
                 return 0.333f;
             }
 
             @Override
-            public float calculatePriorityRoot(){
+            public float calculatePriorityRoot(Transaction tx){
                 return 0.678f;
             }
         });
@@ -1520,7 +1521,7 @@ public class TransactionTest {
         finishTransaction(transaction, dispatcherTracer);
         float priority3 = transaction.getPriority();
 
-        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriorityRoot();
+        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriorityRoot(any());
         assertEquals(priority1, priority2, 0.0f);
         assertEquals(priority1, priority3, 0.0f);
     }
@@ -1965,12 +1966,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
                 return 2.0f;
             }
 
             @Override
-            public float calculatePriorityRoot(){
+            public float calculatePriorityRoot(Transaction tx){
                 return 1.0f;
             }
         };
@@ -2021,7 +2022,7 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(boolean remoteParentSampled, Float inboundPriority) {
+            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
                 if (inboundPriority == null){
                     return 1.0f;
                 } else {
@@ -2030,10 +2031,9 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRoot(){
+            public float calculatePriorityRoot(Transaction tx){
                 return 1.0f;
             }
         };
     }
-
 }

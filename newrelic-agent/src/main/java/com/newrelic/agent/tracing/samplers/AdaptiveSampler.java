@@ -1,6 +1,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
@@ -80,14 +81,14 @@ public class AdaptiveSampler implements Sampler {
      * @return A float in [0.0f, 2.0f]
      */
     @Override
-    public synchronized float calculatePriority(){
+    public synchronized float calculatePriority(Transaction tx){
         resetPeriodIfElapsed();
         return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
     }
 
     @Override
     public String getType(){
-        return Sampler.ADAPTIVE;
+        return SamplerFactory.ADAPTIVE;
     }
 
     private void resetPeriodIfElapsed(){
