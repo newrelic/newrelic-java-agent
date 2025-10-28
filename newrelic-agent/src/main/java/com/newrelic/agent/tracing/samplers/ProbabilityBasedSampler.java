@@ -33,7 +33,7 @@ public class ProbabilityBasedSampler implements Sampler {
 
     /**
      * Construct a new ProbabilityBasedSampler with the desired probability
-     * supplied as a float value in args[0].
+     * supplied as a float value in the SamplerConfig instance.
      *
      * @param samplerConfig the agent's finalized sampler configuration
      */

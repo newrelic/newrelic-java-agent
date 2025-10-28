@@ -33,7 +33,7 @@ public class TraceRatioBasedSampler implements Sampler {
 
     /**
      * Construct a new TraceRatioBasedSampler with the desired ratio
-     * supplied as a float value in args[0].
+     * supplied as a float value in the SamplerConfig instance.
      *
      * @param samplerConfig the agent's finalized sampler configuration
      */

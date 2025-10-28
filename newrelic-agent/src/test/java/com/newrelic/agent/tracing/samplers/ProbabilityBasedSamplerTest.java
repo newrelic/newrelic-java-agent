@@ -41,7 +41,6 @@ public class ProbabilityBasedSamplerTest {
         System.out.printf("Sample size: %d; Expected to be sampled: %d; Actual sampled count: %d; " +
                 "Allowable error margin: %d\n", iterations, expectedToBeSampled, sampledCount, errorMargin);
 
-        assertTrue(expectedToBeSampled + errorMargin >= sampledCount);
         assertTrue(Math.abs(expectedToBeSampled - sampledCount) <= errorMargin);
     }
 
