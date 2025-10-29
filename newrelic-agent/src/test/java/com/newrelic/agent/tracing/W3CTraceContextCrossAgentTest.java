@@ -17,6 +17,7 @@ import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;

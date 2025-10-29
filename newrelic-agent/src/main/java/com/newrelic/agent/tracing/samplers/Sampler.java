@@ -32,6 +32,17 @@ public interface Sampler {
     }
 
     /**
+     * Determine if the supplied int value is a valid value for the adaptive sampling target
+     *
+     * @param target the target value to check
+     *
+     * @return true if the target is valid; false otherwise
+     */
+    static boolean isValidSamplingTarget(int target) {
+        return target >= 0 && target <= 120;
+    }
+
+    /**
      * Calculate the priority of a trace. The value returned must be in the range
      * of 0.0f - 2.0f.
      *

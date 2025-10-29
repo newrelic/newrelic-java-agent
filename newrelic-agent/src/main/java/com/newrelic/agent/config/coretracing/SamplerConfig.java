@@ -8,6 +8,7 @@
 package com.newrelic.agent.config.coretracing;
 
 import com.newrelic.agent.config.BaseConfig;
+import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.Map;
@@ -202,19 +203,68 @@ public class SamplerConfig extends BaseConfig {
             if (shouldUseConfigDelegate.get()) {
                 samplerRatio = configDelegate.getSamplerRatio();
             } else {
-                Object ratioVal = getSamplerSuboption(TRACE_ID_RATIO_BASED, RATIO);
-                validateRatioOrSetToDefault(ratioVal);
+                Object ratio = getSamplerSuboption(TRACE_ID_RATIO_BASED, RATIO);
+                //validation section
+                if (ratio != null) {
+                    if (ratio instanceof Number) {
+                        samplerRatio = ((Number) ratio).floatValue();
+                        if (!Sampler.isValidTraceRatio(samplerRatio)) {
+                            logInvalidRatioAndSetToDefault(samplerRatio);
+                        }
+                    } else {
+                        logInvalidRatioAndSetToDefault(ratio);
+                    }
+                } else {
+                    logInvalidRatioAndSetToDefault("ratio not set");
+                }
             }
         }
         return samplerRatio;
     }
 
+    private void logInvalidRatioAndSetToDefault(Object ratioValue) {
+        // There is no default value for ratio; if trace_id_ratio_based is configured and ratio is
+        // not valid, the agent should log an error and fall back to using default sampler type.
+        samplerRatio = null;
+        samplerType = DEFAULT_SAMPLER_TYPE;
+
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.WARNING,
+                        "The " + sampler + " sampler was configured to use the trace_id_ratio_based sampler type with an invalid ratio: " + ratioValue +
+                                ". Configuring it to use the default " + DEFAULT_SAMPLER_TYPE + " sampler type.");
+    }
+
     private Integer initSamplingTarget() {
         if (samplingTarget == null && ADAPTIVE.equals(getSamplerType())) {
-            Object targetVal = getSamplerSuboption(ADAPTIVE, SAMPLING_TARGET);
-            validateSamplingTargetOrSetToDefault(targetVal);
+            Object target = getSamplerSuboption(ADAPTIVE, SAMPLING_TARGET);
+            //validation section
+            if (target != null) {
+                if (target instanceof Number) {
+                    samplingTarget = ((Number) target).intValue();
+                    if (!Sampler.isValidSamplingTarget(samplingTarget)) {
+                        logInvalidSamplingTargetAndSetToDefault(samplingTarget);
+                    }
+                } else {
+                    logInvalidSamplingTargetAndSetToDefault(target);
+                }
+            } else {
+                //target was missing. This is actually okay: in this case, we'll use the shared adaptive sampler.
+                samplingTarget = USE_SHARED_ADAPTIVE_SAMPLING_TARGET;
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Sampler {0} was not configured with a sampling_target. " +
+                        "Sampler will use the shared adaptive sampler instance.", sampler);
+            }
         }
         return samplingTarget;
+    }
+
+    private void logInvalidSamplingTargetAndSetToDefault(Object target){
+        samplingTarget = DEFAULT_SAMPLING_TARGET;
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.WARNING,
+                        "The {0} sampler was configured to use the adaptive sampler type with an invalid sampling target: {1}. " +
+                                "Configuring it to use the default sampling target {2}", sampler, target, DEFAULT_SAMPLING_TARGET);
     }
 
     private Object getSamplerSuboption(String samplerName, String samplerSuboption){
@@ -233,155 +283,4 @@ public class SamplerConfig extends BaseConfig {
         }
         return suboptionValue;
     }
-
-    private void validateRatioOrSetToDefault(Object ratio){
-        if (ratio != null) {
-            if (ratio instanceof Number) {
-                samplerRatio = ((Number) ratio).floatValue();
-                // TODO validate ratio and logInvalidRatioAndSetToDefault(samplerRatio) if invalid
-            } else {
-                // invalid ratio specified
-                logInvalidRatioAndSetToDefault(ratio);
-            }
-        } else {
-            //ratio was missing
-            logInvalidRatioAndSetToDefault("ratio not set");
-        }
-    }
-
-    private void logInvalidRatioAndSetToDefault(Object ratioValue) {
-        // There is no default value for ratio; if trace_id_ratio_based is configured and ratio is
-        // not valid, the agent should log an error and fall back to using default sampler type.
-        samplerRatio = null;
-        samplerType = DEFAULT_SAMPLER_TYPE;
-
-        NewRelic.getAgent()
-                .getLogger()
-                .log(Level.WARNING,
-                        "The " + sampler + " sampler was configured to use the trace_id_ratio_based sampler type with an invalid ratio: " + ratioValue +
-                                ". Configuring it to use the default " + DEFAULT_SAMPLER_TYPE + " sampler type.");
-    }
-
-    private void validateSamplingTargetOrSetToDefault(Object target){
-        if (target != null) {
-            if (target instanceof Number) {
-                samplingTarget = ((Number) target).intValue();
-                // TODO validate sampling target and logInvalidRatioAndSetToDefault(samplerRatio) if invalid?
-            } else {
-                // invalid non-numeric target specified, use the default 120 instead.
-                samplingTarget = DEFAULT_SAMPLING_TARGET;
-                NewRelic.getAgent()
-                        .getLogger()
-                        .log(Level.WARNING,
-                                "The {0} sampler was configured to use the adaptive sampler type with an invalid sampling target: {1}. " +
-                                        "Configuring it to use the default sampling target {2}", sampler, target, DEFAULT_SAMPLING_TARGET);
-            }
-        } else {
-            //target was missing. This is actually okay: in this case, we'll use the shared adaptive sampler.
-            samplingTarget = USE_SHARED_ADAPTIVE_SAMPLING_TARGET;
-            NewRelic.getAgent().getLogger().log(Level.INFO, "Sampler {0} was not configured with a sampling_target. " +
-                    "Sampler will use the shared adaptive sampler instance.", sampler);
-        }
-    }
-
-//    /**
-//     * Initialize the sampler ratio for trace_id_ratio_based sampler type.
-//     *
-//     * @return Float The sampler ratio.
-//     */
-//    private Float initSamplerRatio() {
-//        if (shouldUseConfigDelegate.get() && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
-//            samplerRatio = configDelegate.getSamplerRatio();
-//        } else if (samplerRatio == null && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
-//            // look for ratio from system property or environment variable
-//            Object ratioValue = getProperty(sampler + "." + TRACE_ID_RATIO_BASED + "." + RATIO);
-//            if (ratioValue != null) {
-//                if (ratioValue instanceof Number) {
-//                    samplerRatio = ((Number) ratioValue).floatValue();
-//                    // TODO validate ratio and logInvalidRatioAndSetToDefault(samplerRatio) if invalid
-//                } else {
-//                    // invalid non-numeric ratio specified
-//                    logInvalidRatioAndSetToDefault(samplerRatio);
-//                }
-//            } else {
-//                // look for ratio from yaml config
-//                if (samplerProps != null && samplerProps instanceof Map) {
-//                    Map<String, Object> traceIdRatioBasedProps = (Map<String, Object>) samplerProps;
-//                    Object ratioObj = traceIdRatioBasedProps.get(TRACE_ID_RATIO_BASED);
-//                    if (ratioObj instanceof Map) {
-//                        Map<String, Object> ratioProps = (Map<String, Object>) ratioObj;
-//                        ratioValue = ratioProps.get(RATIO);
-//                        if (ratioValue instanceof Number) {
-//                            samplerRatio = ((Number) ratioValue).floatValue();
-//                            // TODO validate ratio and logInvalidRatioAndSetToDefault(samplerRatio) if invalid
-//                        } else {
-//                            // invalid non-numeric ratio specified
-//                            logInvalidRatioAndSetToDefault(ratioValue);
-//                        }
-//                    } else {
-//                        // no ratio value specified
-//                        logInvalidRatioAndSetToDefault("ratio value not set");
-//                    }
-//                } else {
-//                    // no ratio specified
-//                    logInvalidRatioAndSetToDefault("ratio not set");
-//                }
-//            }
-//        }
-//        return samplerRatio;
-//    }
-//
-
-//
-//    private int initSamplingTarget(){
-//        if (samplingTarget == null && ADAPTIVE.equals(getSamplerType())) {
-//            // look for ratio from system property or environment variable
-//            Object samplingValue = getProperty(sampler + "." + ADAPTIVE + "." + SAMPLING_TARGET);
-//            if (samplingValue != null) {
-//                if (samplingValue instanceof Number) {
-//                    samplingTarget = ((Number) samplingValue).intValue();
-//                    // TODO validate sampling target and do logging if invalid
-//                } else {
-//                    // invalid non-numeric target specified
-//                    logInvalidSamplingTargetAndSetToDefault(samplingTarget);
-//                }
-//            } else {
-//                // look for ratio from yaml config
-//                if (samplerProps != null && samplerProps instanceof Map) {
-//                    Map<String, Object> adaptiveSamplerProps = (Map<String, Object>) samplerProps;
-//                    Object samplingTargetObj = adaptiveSamplerProps.get(ADAPTIVE);
-//                    if (samplingTargetObj instanceof Map) {
-//                        Map<String, Object> ratioProps = (Map<String, Object>) samplingTargetObj;
-//                        samplingValue = ratioProps.get(SAMPLING_TARGET);
-//                        if (samplingValue instanceof Number) {
-//                            samplingTarget = ((Number) samplingValue).intValue();
-//                            // TODO validate target and logInvalidSamplingTargetAndSetToDefault(samplingTarget) if invalid
-//                        } else {
-//                            // invalid non-numeric sampling target specified
-//                            logInvalidSamplingTargetAndSetToDefault(samplingValue);
-//                        }
-//                    } else {
-//                        // sampling target prop was there but no sampling target value specified
-//                        logInvalidSamplingTargetAndSetToDefault("sampling target value not set");
-//                    }
-//                } else {
-//                    // no sampling target was specified. That is fine. The shared sampler instance should be used.
-//                    // here, samplingTarget will be NULL and that is EXPECTED.
-//                    samplingTarget = USE_SHARED_ADAPTIVE_SAMPLING_TARGET;
-//                    NewRelic.getAgent().getLogger().log(Level.FINE, "The {0} sampler was configured to use the shared adaptive sampling target", sampler);
-//                }
-//            }
-//        }
-//        return samplingTarget;
-//    }
-
-//    private void logInvalidSamplingTargetAndSetToDefault(Object samplingValue) {
-//        samplingTarget = DEFAULT_SAMPLING_TARGET;
-//
-//        NewRelic.getAgent()
-//                .getLogger()
-//                .log(Level.WARNING,
-//                        "The {0} sampler was configured to use the adaptive sampler type with an invalid sampling target: {1}. " +
-//                                "Configuring it to use the default sampling target {2}", sampler, samplingValue, DEFAULT_SAMPLING_TARGET);
-//    }
 }

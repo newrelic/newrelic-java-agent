@@ -7,7 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;

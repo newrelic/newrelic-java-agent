@@ -6,7 +6,7 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 
 /**
  * Factory to create instances of the various samplers used by the agent.
