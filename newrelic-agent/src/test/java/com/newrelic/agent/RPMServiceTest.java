@@ -1225,6 +1225,154 @@ public class RPMServiceTest {
         doForceRestartException();
     }
 
+    @Test(timeout = 15000)
+    public void concurrentHarvestAndShutdown_willNotDeadlock() throws Exception {
+        final RPMService rmpService = createAndLaunchRPMService();
+
+        final AtomicReference<Throwable> harvestError = new AtomicReference<>();
+        final AtomicReference<Throwable> shutdownError = new AtomicReference<>();
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(2);
+
+        // This thread calls harvestNow()
+        Thread harvestThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                rmpService.harvestNow();
+            } catch (Throwable t) {
+                harvestError.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "harvest");
+
+        // This one calls shutdown()
+        Thread shutdownThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                rmpService.shutdown();
+            } catch (Throwable t) {
+                shutdownError.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "shutdown");
+
+        // Fire off both threads and start them both simultaneously by triggering the startLatch instance
+        harvestThread.start();
+        shutdownThread.start();
+        startLatch.countDown();
+
+        // Wait for both to complete (or timeout after 15 seconds)
+        boolean completed = doneLatch.await(15, TimeUnit.SECONDS);
+
+        assertTrue("harvest() and shutdown() should both complete without timeout (no deadlock)", completed);
+
+        // Verify no unexpected exceptions (IllegalMonitorStateException should not occur)
+        if (harvestError.get() != null && !(harvestError.get() instanceof InterruptedException)) {
+            assertFalse("harvest() should not throw IllegalMonitorStateException",
+                    harvestError.get() instanceof IllegalMonitorStateException);
+        }
+        if (shutdownError.get() != null) {
+            assertFalse("shutdown() should not throw IllegalMonitorStateException",
+                    shutdownError.get() instanceof IllegalMonitorStateException);
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void multipleConcurrentShutdownCalls_doNotDeadlock() throws Exception {
+        final RPMService rpmService = createAndLaunchRPMService();
+
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(3);
+        final AtomicInteger successCount = new AtomicInteger(0);
+
+        // 3 threads all try to shutdown() simultaneously
+        for (int i = 0; i < 3; i++) {
+            new Thread(() -> {
+                try {
+                    startLatch.await();
+                    rpmService.shutdown();
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    // Expected that some may fail, but should not deadlock
+                } finally {
+                    doneLatch.countDown();
+                }
+            }, "shutdown-" + i).start();
+        }
+
+        startLatch.countDown();
+        boolean completed = doneLatch.await(10, TimeUnit.SECONDS);
+
+        assertTrue("All shutdown() calls should complete without deadlock", completed);
+        assertTrue("At least one shutdown should succeed", successCount.get() >= 1);
+    }
+
+    @Test(timeout = 15000)
+    public void reconnect_duringHarvest_shouldNotDeadlock() throws Exception {
+        final RPMService rpmService = createAndLaunchRPMService();
+
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(2);
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+
+        // Simulate harvest cycle
+        Thread harvestThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                for (int i = 0; i < 5 && !Thread.interrupted(); i++) {
+                    Thread.sleep(100);
+                }
+                rpmService.harvestNow();
+            } catch (Throwable t) {
+                if (!(t instanceof InterruptedException)) {
+                    error.set(t);
+                }
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "harvest");
+
+        // Reconnect call
+        Thread reconnectThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                Thread.sleep(50); // Let harvest start first
+                rpmService.reconnect();
+            } catch (Throwable t) {
+                error.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "reconnect");
+
+        harvestThread.start();
+        reconnectThread.start();
+
+        startLatch.countDown();
+
+        boolean completed = doneLatch.await(15, TimeUnit.SECONDS);
+        assertTrue("Operations should complete without deadlock", completed);
+
+        if (error.get() != null) {
+            assertFalse("Should not throw IllegalMonitorStateException",
+                    error.get() instanceof IllegalMonitorStateException);
+        }
+
+        rpmService.shutdown();
+    }
+
+    private RPMService createAndLaunchRPMService() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false);
+        createServiceManager(config);
+
+        List<String> appNames = singletonList("MyApplication");
+        RPMService rpmService = new RPMService(appNames, null, null, Collections.emptyList());
+        rpmService.launch();
+        return rpmService;
+    }
+
     private void doForceRestartException() throws Exception {
         MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
         DataSenderFactory.setDataSenderFactory(dataSenderFactory);

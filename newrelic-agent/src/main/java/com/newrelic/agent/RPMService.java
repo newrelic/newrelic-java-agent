@@ -741,11 +741,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
      * notify RPM that the agent is shutting down
      */
     public void shutdown() throws Exception {
-        reentrantLock.lock();
-        try {
-            disconnect();
-        } finally {
-            reentrantLock.unlock();
+        if (reentrantLock.tryLock(5, TimeUnit.SECONDS)) {
+            try {
+                disconnect();
+            } finally {
+                reentrantLock.unlock();
+            }
+        } else {
+            Agent.LOG.log(Level.WARNING, "Unable to acquire lock for shutdown within timeout - shutdown may already be in progress");
         }
     }
 
@@ -760,6 +763,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         //
         // Note: even if we are not connected, we don't need to initiate a connection attempt - although there are
         // several cases, bottom line is that the Agent should already be attempting to connect.
+        //
+        // Update: Replaced the synchronized block with a reentrant lock with timeout. Same thing in the
+        // shutdown() method, so threads can now fail gracefully rather than deadlocking indefinitely.
 
         final int MAX_WAIT_SECONDS = 10;
         final long end = System.currentTimeMillis() + MAX_WAIT_SECONDS * 1000L;
@@ -767,8 +773,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         Throwable trouble = null;
 
         while (!done && System.currentTimeMillis() < end) {
+            boolean lockAcquired = false;
             try {
                 if (reentrantLock.tryLock(200, TimeUnit.MILLISECONDS)) {
+                    lockAcquired = true;
                     if (isConnected()) {
                         ServiceFactory.getHarvestService().harvestNow();
                         done = true;
@@ -779,7 +787,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             } catch (Exception ex) {
                 trouble = ex;
             } finally {
-                reentrantLock.unlock();
+                if (lockAcquired) {
+                    reentrantLock.unlock();
+                }
             }
         }
 
