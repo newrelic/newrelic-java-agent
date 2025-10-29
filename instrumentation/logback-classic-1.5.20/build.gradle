@@ -18,6 +18,14 @@ java {
     }
 }
 
+test {
+    useJUnitPlatform()
+    // These instrumentation tests only run on Java 11+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}
+
 site {
     title 'Logback'
     type 'Framework'
