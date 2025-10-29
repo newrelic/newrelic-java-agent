@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.agent.instrumentation.logbackclassic12;
+package com.nr.agent.instrumentation.logbackclassic1520;
 
 import ch.qos.logback.classic.Logger;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;

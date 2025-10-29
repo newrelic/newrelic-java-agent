@@ -1,4 +1,4 @@
-package com.nr.agent.instrumentation.logbackclassic12;
+package com.nr.agent.instrumentation.logbackclassic1520;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

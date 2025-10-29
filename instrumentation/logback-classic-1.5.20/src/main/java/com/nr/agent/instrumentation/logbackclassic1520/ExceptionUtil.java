@@ -1,4 +1,4 @@
-package com.nr.agent.instrumentation.logbackclassic12;
+package com.nr.agent.instrumentation.logbackclassic1520;
 
 import java.util.ArrayList;
 import java.util.Collection;

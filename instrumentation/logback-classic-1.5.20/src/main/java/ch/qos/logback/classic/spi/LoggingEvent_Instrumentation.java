@@ -22,7 +22,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isAppLoggingCont
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingEnabled;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingForwardingEnabled;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isApplicationLoggingLocalDecoratingEnabled;
-import static com.nr.agent.instrumentation.logbackclassic12.AgentUtil.recordNewRelicLogEvent;
+import static com.nr.agent.instrumentation.logbackclassic1520.AgentUtil.recordNewRelicLogEvent;
 
 @Weave(originalName = "ch.qos.logback.classic.spi.LoggingEvent", type = MatchType.ExactClass)
 public class LoggingEvent_Instrumentation {
