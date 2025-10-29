@@ -5,12 +5,15 @@ import ch.qos.logback.classic.Logger;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.MetricsHelper;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 
 @RunWith(InstrumentationTestRunner.class)
+@Category({ Java8IncompatibleTest.class })
 @InstrumentationTestConfig(includePrefixes = { "ch.qos.logback" }, configName = "application_logging_enabled.yml")
 public class Logger_InstrumentationTest {
 

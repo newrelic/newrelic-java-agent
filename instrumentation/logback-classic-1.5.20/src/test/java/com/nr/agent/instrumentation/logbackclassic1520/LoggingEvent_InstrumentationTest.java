@@ -6,8 +6,10 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.model.LogEvent;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.*;
 
 @RunWith(InstrumentationTestRunner.class)
+@Category({ Java8IncompatibleTest.class })
 @InstrumentationTestConfig(includePrefixes = { "ch.qos.logback" }, configName = "application_logging_enabled.yml")
 public class LoggingEvent_InstrumentationTest {
     private static final String CAPTURED = "This log message should be captured";

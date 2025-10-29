@@ -1,12 +1,15 @@
 package com.nr.agent.instrumentation.logbackclassic1520;
 
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+@Category({ Java8IncompatibleTest.class })
 public class ExceptionUtilTest {
 
     @Test
