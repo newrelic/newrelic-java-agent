@@ -451,6 +451,7 @@ common: &default_settings
     # and method name (e.g., "/CustomerController/edit") instead of using request mappings
     # (e.g., "/api/v1/customer (POST)"). This setting takes precedence over enhanced_spring_transaction_naming.
     # This helps prevent transaction name cardinality issues with complex URI patterns.
+    # Applies to Spring 4.3.x+ (spring-4.3.0 module) and Spring 6.x+ (spring-6.0.0 module).
     # Default is false.
     use_controller_class_and_method_for_spring_transaction_naming: false
 
