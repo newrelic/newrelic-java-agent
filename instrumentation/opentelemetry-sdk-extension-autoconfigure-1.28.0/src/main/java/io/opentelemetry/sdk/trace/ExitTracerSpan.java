@@ -285,12 +285,12 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     private AttributeKey<String> generateStringAttributeKey(SpanKind spanKind, com.nr.agent.instrumentation.utils.span.AttributeType attributeType) {
         return AttributeKey.stringKey(
-                attributeMapper.findProperOtelKey(SpanKind.CLIENT, attributeType, attributes.keySet()));
+                attributeMapper.findProperOtelKey(spanKind, attributeType, attributes.keySet()));
     }
 
     private AttributeKey<Long> generateLongAttributeKey(SpanKind spanKind, com.nr.agent.instrumentation.utils.span.AttributeType attributeType) {
         return AttributeKey.longKey(
-                attributeMapper.findProperOtelKey(SpanKind.CLIENT, attributeType, attributes.keySet()));
+                attributeMapper.findProperOtelKey(spanKind, attributeType, attributes.keySet()));
     }
 
 
