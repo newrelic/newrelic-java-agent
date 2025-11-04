@@ -41,7 +41,7 @@ public class SamplerFactory {
                 return new TraceRatioBasedSampler(samplerConfig);
 
             default:
-                return AdaptiveSampler.getSharedInstance();
+                return AdaptiveSampler.getAdaptiveSampler(samplerConfig);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -60,6 +61,16 @@ public class AdaptiveSampler implements Sampler {
         return SAMPLER_SHARED_INSTANCE;
     }
 
+    public static AdaptiveSampler getAdaptiveSampler(SamplerConfig config){
+        Integer target = config.getSamplingTarget();
+        if (target == null) {
+            return getSharedInstance();
+        } else {
+            //Is this right (the sampling period in seconds)?? or should it use a hard-coded default?
+            return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
+        }
+    }
+
     /**
      * Updates the SHARED_SAMPLER_INSTANCE to use a new target.
      * If the SHARED_SAMPLER_INSTANCE isn't already running, this method is a no-op.
@@ -83,6 +94,10 @@ public class AdaptiveSampler implements Sampler {
     @Override
     public synchronized float calculatePriority(Transaction tx){
         resetPeriodIfElapsed();
+        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision();
+        if (inboundPriority != null) {
+            return inboundPriority;
+        }
         return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
     }
 

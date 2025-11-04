@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.tracing;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ConnectionListener;
 import com.newrelic.agent.ExtendedTransactionListener;
@@ -16,6 +18,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.config.coretracing.CoreTracingConfig;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.tracing.samplers.SamplerFactory;
@@ -56,9 +59,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     private DistributedTracingConfig distributedTraceConfig;
 
-    private Sampler rootSampler;
-    private Sampler remoteParentSampledSampler;
-    private Sampler remoteParentNotSampledSampler;
+    private ImmutableMap<SamplerCase, Sampler> fullGranularitySamplers;
+    private ImmutableMap<SamplerCase, Sampler> partialGranularitySamplers;
+    private final Transaction.PartialSampleType partialSampleType;
+
+    public enum SamplerCase {
+        ROOT,
+        REMOTE_PARENT_SAMPLED,
+        REMOTE_PARENT_NOT_SAMPLED
+    }
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
@@ -84,9 +93,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         //Initially, set up the samplers based on local config.
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig());
-        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
-        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
+        fullGranularitySamplers = initSamplers(distributedTraceConfig.getFullGranularityConfig());
+        partialGranularitySamplers = initSamplers(distributedTraceConfig.getPartialGranularityConfig());
+        partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
     }
 
     @Override
@@ -189,17 +198,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-        Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
-        if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
-            return inboundPriority;
+    public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+        float priority = fullGranularitySamplers.get(samplerCase).calculatePriority(tx);
+        if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)){
+            priority = partialGranularitySamplers.get(samplerCase).calculatePriority(tx);
+            if (DistributedTraceUtil.isSampledPriority(priority)){
+                tx.setPartialSampleType(partialSampleType);
+            }
         }
-        return parentSampler.calculatePriority(tx);
-    }
-
-    @Override
-    public float calculatePriorityRoot(Transaction tx){
-        return rootSampler.calculatePriority(tx);
+        return priority;
     }
 
     @Override
@@ -380,29 +387,35 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         }
     }
 
-    // These setters are NOT thread-safe.
-    // They should NOT be used outside of testing.
-    void setRootSampler(Sampler sampler) {
-        this.rootSampler = sampler;
+    private ImmutableMap<SamplerCase, Sampler> initSamplers(CoreTracingConfig coreTracingConfig) {
+         return ImmutableMap.of(
+                SamplerCase.ROOT, SamplerFactory.createSampler(coreTracingConfig.getRootSampler()),
+                SamplerCase.REMOTE_PARENT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentSampledSampler()),
+                SamplerCase.REMOTE_PARENT_NOT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentNotSampledSampler())
+        );
     }
 
-    void setRemoteParentSampledSampler(Sampler sampler) {
-        this.remoteParentSampledSampler = sampler;
+    private boolean isPartialGranularityEnabled(){
+        return distributedTraceConfig.getPartialGranularityConfig().isEnabled();
     }
 
-    void setRemoteParentNotSampledSampler(Sampler sampler) {
-        this.remoteParentNotSampledSampler = sampler;
+
+    //Testing-only utility methods. These are NOT thread-safe.
+
+    @VisibleForTesting
+    ImmutableMap<SamplerCase, Sampler> getFullGranularitySamplers() {
+        return fullGranularitySamplers;
     }
 
-    Sampler getRootSampler() {
-        return rootSampler;
+    @VisibleForTesting
+    ImmutableMap<SamplerCase, Sampler> getPartialGranularitySamplers() {
+        return partialGranularitySamplers;
     }
 
-    Sampler getRemoteParentSampledSampler() {
-        return remoteParentSampledSampler;
-    }
-
-    Sampler getRemoteParentNotSampledSampler() {
-        return remoteParentNotSampledSampler;
+    @VisibleForTesting
+    void setFullGranularitySampler(SamplerCase samplerCase, Sampler sampler) {
+        Map<SamplerCase, Sampler> newSamplers = new HashMap<>(fullGranularitySamplers);
+        newSamplers.put(samplerCase, sampler);
+        fullGranularitySamplers = ImmutableMap.copyOf(newSamplers);
     }
 }

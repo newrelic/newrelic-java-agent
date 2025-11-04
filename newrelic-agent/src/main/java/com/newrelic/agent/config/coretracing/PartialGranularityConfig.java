@@ -1,6 +1,7 @@
 package com.newrelic.agent.config.coretracing;
 
 import java.util.Map;
+import com.newrelic.agent.Transaction.PartialSampleType;
 
 public class PartialGranularityConfig extends CoreTracingConfig {
 
@@ -15,23 +16,23 @@ public class PartialGranularityConfig extends CoreTracingConfig {
     public static final boolean PARTIAL_GRANULARITY_ENABLED_DEFAULT = false;
     public static final String PARTIAL_GRANULARITY_DEFAULT_TYPE=ESSENTIAL;
 
-    private final String type;
+    private final PartialSampleType type;
 
     public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot) {
         super(props, samplerSystemPropertyRoot + CoreTracingConfig.PARTIAL_GRANULARITY + ".", PARTIAL_GRANULARITY_ENABLED_DEFAULT);
         this.type = initType();
     }
 
-    public String getType() {
+    public PartialSampleType getType() {
         return type;
     }
 
-    private String initType() {
+    private PartialSampleType initType() {
         switch (getProperty(TYPE, PARTIAL_GRANULARITY_DEFAULT_TYPE)) {
-            case ESSENTIAL: return ESSENTIAL;
-            case REDUCED: return REDUCED;
-            case COMPACT: return COMPACT;
-            default: return PARTIAL_GRANULARITY_DEFAULT_TYPE;
+            case ESSENTIAL: return PartialSampleType.ESSENTIAL;
+            case REDUCED: return PartialSampleType.REDUCED;
+            case COMPACT: return PartialSampleType.COMPACT;
+            default: return PartialSampleType.ESSENTIAL;
         }
     }
 }

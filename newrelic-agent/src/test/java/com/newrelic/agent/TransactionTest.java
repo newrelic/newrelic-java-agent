@@ -36,6 +36,7 @@ import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.SegmentTest;
@@ -55,6 +56,7 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @SuppressWarnings("deprecation")
 public class TransactionTest {
@@ -203,13 +205,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 1.1f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.2f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 1.2f;
+                } else {
+                    return 1.1f;
+                }
             }
         };
     }
@@ -1260,13 +1261,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 0.333f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 0.678f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 0.678f;
+                } else {
+                    return 0.333f;
+                }
             }
         });
 
@@ -1521,7 +1521,7 @@ public class TransactionTest {
         finishTransaction(transaction, dispatcherTracer);
         float priority3 = transaction.getPriority();
 
-        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriorityRoot(any());
+        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriority(any(), eq(SamplerCase.ROOT));
         assertEquals(priority1, priority2, 0.0f);
         assertEquals(priority1, priority3, 0.0f);
     }
@@ -1966,13 +1966,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 2.0f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.0f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 1.0f;
+                } else {
+                    return 2.0f;
+                }
             }
         };
     }
@@ -2022,17 +2021,13 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                if (inboundPriority == null){
-                    return 1.0f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                Float priority = tx.getPriorityFromInboundSamplingDecision();
+                if (priority != null){
+                    return priority;
                 } else {
-                    return inboundPriority;
+                    return 1.0f;
                 }
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.0f;
             }
         };
     }
