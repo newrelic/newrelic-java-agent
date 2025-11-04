@@ -7,17 +7,19 @@
 
 package com.newrelic.agent.config;
 
-import com.newrelic.api.agent.NewRelic;
-
+import java.util.Collections;
 import java.util.Map;
-import java.util.logging.Level;
+
+import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.config.SamplerConfig.ROOT;
 
 public class DistributedTracingConfig extends BaseConfig {
 
     private static final boolean DEFAULT_DISTRIBUTED_TRACING = true;
-    private static final Integer DEFAULT_ADAPTIVE_SAMPLING_TARGET = 120;
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.distributed_tracing.";
 
+    //public setting names
     public static final String ENABLED = "enabled";
     public static final String TRUSTED_ACCOUNT_KEY = "trusted_account_key";
     public static final String ACCOUNT_ID = "account_id";
@@ -25,26 +27,16 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String DISTRIBUTED_TRACING_ENABLED = SYSTEM_PROPERTY_ROOT + ENABLED;
     public static final String ENABLED_ENV_KEY = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED";
     public static final String EXCLUDE_NEWRELIC_HEADER = "exclude_newrelic_header";
-    public static final String SAMPLER = "sampler";
-    public static final String REMOTE_PARENT_SAMPLED = "remote_parent_sampled";
-    public static final String REMOTE_PARENT_NOT_SAMPLED = "remote_parent_not_sampled";
-    public static final String SAMPLE_ALWAYS_ON = "always_on";
-    public static final String SAMPLE_ALWAYS_OFF = "always_off";
-
-    // note: there is no special logic for these yet, as they are just the fallback if the other values don't exist
-    // if we have to add special logic, we should treat one as an alias of the other
-    public static final String SAMPLE_DEFAULT = "default"; // same as 'adaptive_sampling'
-    public static final String SAMPLE_ADAPTIVE_SAMPLING = "adaptive_sampling"; // same as 'default'
-
-    public static final String ADAPTIVE_SAMPLING_TARGET = "adaptive_sampling_target";  // see below
 
     private final boolean enabled;
     private final String trustedAccountKey;
     private final String accountId;
     private final String primaryApplicationId;
     private final boolean includeNewRelicHeader;
-    private final String remoteParentSampled;
-    private final String remoteParentNotSampled;
+
+    private final SamplerConfig rootSamplerConfig;
+    private final SamplerConfig remoteParentSampledConfig;
+    private final SamplerConfig remoteParentNotSampledConfig;
 
     // will be passed up on connect and come back down as just 'sampling_target'
     // which will get assigned to transaction_events.target_samples_stored
@@ -59,10 +51,13 @@ public class DistributedTracingConfig extends BaseConfig {
         this.primaryApplicationId = getProperty(PRIMARY_APPLICATION_ID);
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
 
-        BaseConfig samplerConfig = new BaseConfig(nestedProps(SAMPLER), SYSTEM_PROPERTY_ROOT+SAMPLER+".");
-        this.adaptiveSamplingTarget = samplerConfig.getProperty(ADAPTIVE_SAMPLING_TARGET, DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        this.remoteParentSampled = samplerConfig.getProperty(REMOTE_PARENT_SAMPLED, SAMPLE_DEFAULT);
-        this.remoteParentNotSampled = samplerConfig.getProperty(REMOTE_PARENT_NOT_SAMPLED, SAMPLE_DEFAULT);
+        this.rootSamplerConfig = createSamplerConfig(ROOT);
+        this.remoteParentSampledConfig = createSamplerConfig(REMOTE_PARENT_SAMPLED);
+        this.remoteParentNotSampledConfig = createSamplerConfig(REMOTE_PARENT_NOT_SAMPLED);
+
+        // The adaptive_sampling_target can be retrieved from any of the SamplerConfigs as
+        // they'll all return the same value. Here we use the root sampler SamplerConfig instance.
+        this.adaptiveSamplingTarget = this.rootSamplerConfig.getAdaptiveSamplingTarget();
     }
 
     public String getTrustedAccountKey() {
@@ -85,11 +80,24 @@ public class DistributedTracingConfig extends BaseConfig {
         return includeNewRelicHeader;
     }
 
-    public String getRemoteParentSampled() {
-        return remoteParentSampled;
+    public Integer getAdaptiveSamplingTarget() {
+        return adaptiveSamplingTarget;
     }
 
-    public String getRemoteParentNotSampled() {
-        return remoteParentNotSampled;
+    private SamplerConfig createSamplerConfig(String samplerType) {
+        Map<String, Object> samplerProps = getProperty(SamplerConfig.SAMPLER_CONFIG_ROOT, Collections.emptyMap());
+        return new SamplerConfig(samplerType, samplerProps, systemPropertyPrefix);
+    }
+
+    public SamplerConfig getRootSamplerConfig() {
+        return rootSamplerConfig;
+    }
+
+    public SamplerConfig getRemoteParentSampledSamplerConfig() {
+        return remoteParentSampledConfig;
+    }
+
+    public SamplerConfig getRemoteParentNotSampledSamplerConfig() {
+        return remoteParentNotSampledConfig;
     }
 }

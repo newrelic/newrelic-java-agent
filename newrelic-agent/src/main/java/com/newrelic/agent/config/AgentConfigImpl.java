@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
+import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -43,9 +44,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ASYNC_TIMEOUT = "async_timeout";
     public static final String CA_BUNDLE_PATH = "ca_bundle_path";
 
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = "adaptive_sampler_sampling_target";
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
+    public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
     public static final String ENABLED = "enabled";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
@@ -121,6 +125,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
     public static final String OTEL = "opentelemetry";
+    public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -137,6 +142,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
+    public static final DatastoreInstanceDetection.MultiHostConfig DEFAULT_DATASTORE_MULTIHOST_PREFERNCE = DatastoreInstanceDetection.MultiHostConfig.NONE;
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
@@ -192,6 +198,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final Pattern REGION_AWARE = Pattern.compile("^.+?x");
 
     // root configs (alphabetized)
+    private int adaptiveSamplingPeriodSeconds;
+    private int adaptiveSamplingTarget;
     private final long apdexTInMillis;
     private final String appName;
     private final List<String> appNames;
@@ -202,6 +210,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
+    private final DatastoreInstanceDetection.MultiHostConfig datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
     private final boolean enabled;
@@ -263,6 +272,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
+    private final KotlinCoroutinesConfig kotlinCoroutinesConfig;
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
@@ -301,6 +311,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
+        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERNCE);
         debug = DebugFlag.DEBUG;
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
@@ -360,6 +371,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
+        kotlinCoroutinesConfig = initKotlinCoroutinesConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
         applicationLoggingConfig = initApplicationLoggingConfig();
@@ -379,6 +391,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
         otelConfig = initOtelConfig();
         agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
+        //This setting should use the locally configured distributed_tracing.sampler.adaptive_sampling_target setting
+        //until it is later merged with sampling_target from the server.
+        //If nothing is configured, it will use the local default, which is 120.
+        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, distributedTracingConfig.getAdaptiveSamplingTarget());
+        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -736,6 +753,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return JmxConfigImpl.createJmxConfig(props);
     }
 
+    private KotlinCoroutinesConfig initKotlinCoroutinesConfig() {
+        Map<String, Object> props = nestedProps(KOTLIN_COROUTINES);
+        return KotlinCoroutinesConfigImpl.create(props);
+    }
+
     private JarCollectorConfig initJarCollectorConfig() {
         Map<String, Object> props = nestedProps(JAR_COLLECTOR);
         return JarCollectorConfigImpl.createJarCollectorConfig(props);
@@ -852,6 +874,16 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private AgentControlIntegrationConfig initAgentControlHealthCheckConfig() {
         return new AgentControlIntegrationConfigImpl(nestedProps(AgentControlIntegrationConfigImpl.ROOT));
+    }
+
+    @Override
+    public int getAdaptiveSamplingTarget() {
+        return adaptiveSamplingTarget;
+    }
+
+    @Override
+    public int getAdaptiveSamplingPeriodSeconds() {
+        return adaptiveSamplingPeriodSeconds;
     }
 
     @Override
@@ -1226,6 +1258,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public JfrConfig getJfrConfig() {
         return jfrConfig;
+    }
+
+    @Override
+    public KotlinCoroutinesConfig getKotlinCoroutinesConfig() {
+        return kotlinCoroutinesConfig;
     }
 
     @Override

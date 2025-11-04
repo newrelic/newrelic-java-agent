@@ -46,6 +46,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final String SHUTDOWN_DELAY = "shutdown_delay";
     public static final String GRANT_PACKAGE_ACCESS = "grant_package_access";
     public static final String ENHANCED_SPRING_TRANSACTION_NAMING = "enhanced_spring_transaction_naming";
+    public static final String USE_CONTROLLER_CLASS_AND_METHOD_FOR_SPRING_TRANSACTION_NAMING = "use_controller_class_and_method_for_spring_transaction_naming";
     public static final boolean DEFAULT_COMPUTE_FRAMES = true;
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_DISABLED = false;
@@ -55,6 +56,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final boolean DEFAULT_PREVALIDATE_WEAVE_PACKAGES = true;
     public static final boolean DEFAULT_PREMATCH_WEAVE_METHODS = true;
     public static final boolean DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING = false;
+    public static final boolean DEFAULT_USE_CONTROLLER_CLASS_AND_METHOD_FOR_SPRING_TRANSACTION_NAMING = false;
 
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.class_transformer.";
 
@@ -98,6 +100,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final boolean preValidateWeavePackages;
     private final boolean preMatchWeaveMethods;
     private final boolean isEnhancedSpringTransactionNaming;
+    private final boolean useControllerClassForSpringTransactionNaming;
 
     private final AnnotationMatcher ignoreTransactionAnnotationMatcher;
     private final AnnotationMatcher ignoreApdexAnnotationMatcher;
@@ -128,6 +131,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         defaultMethodTracingEnabled = getProperty("default_method_tracing_enabled", true);
         autoAsyncLinkRateLimit = getProperty("auto_async_link_rate_limit", TimeUnit.SECONDS.toMillis(1));
         isEnhancedSpringTransactionNaming = getProperty(ENHANCED_SPRING_TRANSACTION_NAMING, DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING);
+        useControllerClassForSpringTransactionNaming = getProperty(USE_CONTROLLER_CLASS_AND_METHOD_FOR_SPRING_TRANSACTION_NAMING, DEFAULT_USE_CONTROLLER_CLASS_AND_METHOD_FOR_SPRING_TRANSACTION_NAMING);
 
         this.traceAnnotationMatcher = customTracingEnabled ? initializeTraceAnnotationMatcher(props) : new NoMatchAnnotationMatcher();
         this.ignoreTransactionAnnotationMatcher = new ClassNameAnnotationMatcher(AnnotationNames.NEW_RELIC_IGNORE_TRANSACTION, false);
@@ -328,6 +332,11 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         return isEnhancedSpringTransactionNaming;
     }
 
+    @Override
+    public boolean useControllerClassAndMethodForSpringTransactionNaming() {
+        return useControllerClassForSpringTransactionNaming;
+    }
+
     public static final String JDBC_STATEMENTS_PROPERTY = "jdbc_statements";
 
     @Override
@@ -378,7 +387,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         if (aliasName != null) {
             Config aliasConfig = getInstrumentationConfig(aliasName);
             if (aliasConfig.getProperty("enabled") != null) {
-                Agent.LOG.log(Level.INFO, "Using deprecated configuration setting {0} for instrumentation {1}", aliasName, moduleName);
+                Agent.LOG.log(Level.FINE, "An alias was used configuring instrumentation: {1} using alias {0}", aliasName, moduleName);
                 aliasEnabled = aliasConfig.getProperty("enabled");
             }
         }

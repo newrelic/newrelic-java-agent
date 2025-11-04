@@ -38,7 +38,6 @@ public class TransactionEventBuilder {
     private float priority;
     private final Map<String, Object> userAttributes = new HashMap<>();
     private Map<String, Object> distributedTraceIntrinsics;
-    private boolean decider;
     private float timeToFirstByte = UNASSIGNED_FLOAT;
     private float timeToLastByte = UNASSIGNED_FLOAT;
     private PathHashes pathHashes;
@@ -112,11 +111,6 @@ public class TransactionEventBuilder {
 
     public TransactionEventBuilder setPriority(float priority) {
         this.priority = priority;
-        return this;
-    }
-
-    public TransactionEventBuilder setDecider(boolean decider) {
-        this.decider = decider;
         return this;
     }
 
@@ -198,6 +192,6 @@ public class TransactionEventBuilder {
 
         return new TransactionEvent(appName, userAttributes, timestamp, name, timing, guid, referringGuid, port, tripId,
                 pathHashes, apdexPerfZone, syntheticsIds, syntheticsInfo, error, timeoutCause,
-                priority, distributedTraceIntrinsics, decider);
+                priority, distributedTraceIntrinsics);
     }
 }

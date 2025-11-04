@@ -446,6 +446,15 @@ common: &default_settings
     # present on the actual class, will still get named based on route and HTTP method.
     enhanced_spring_transaction_naming: false
 
+    # Use controller class and method for Spring transaction naming.
+    # When true, all Spring Controller transactions will be named using the controller class name
+    # and method name (e.g., "/CustomerController/edit") instead of using request mappings
+    # (e.g., "/api/v1/customer (POST)"). This setting takes precedence over enhanced_spring_transaction_naming.
+    # This helps prevent transaction name cardinality issues with complex URI patterns.
+    # Applies to Spring 4.3.x+ (spring-4.3.0 module) and Spring 6.x+ (spring-6.0.0 module).
+    # Default is false.
+    use_controller_class_and_method_for_spring_transaction_naming: false
+
     # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
     # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
     # to true will result in the transaction name reflecting the actual base actuator endpoint URI.

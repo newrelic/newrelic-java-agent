@@ -55,6 +55,10 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     boolean isAutoTransactionNamingEnabled();
 
+    int getAdaptiveSamplingTarget();
+
+    int getAdaptiveSamplingPeriodSeconds();
+
     /**
      * Get the ApdexT value sent by New Relic, or the default value.
      */
@@ -147,6 +151,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * @return JMX configuration settings.
      */
     JmxConfig getJmxConfig();
+
+    /**
+     * Gets the Kotlin Coroutines configuration settings.
+     *
+     * @return Kotlin Coroutines configuration settings
+     */
+    KotlinCoroutinesConfig getKotlinCoroutinesConfig();
 
     /**
      * Gets the JarCollectorService configuration settings.

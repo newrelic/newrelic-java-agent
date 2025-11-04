@@ -10,11 +10,14 @@ package com.newrelic.agent.config;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils;
 import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.ConnectionResponse;
 
@@ -57,7 +60,7 @@ public class AgentConfigFactory {
     public static final String COLLECT_SPAN_EVENTS = SPAN_EVENTS_PREFIX + SpanEventsConfig.COLLECT_SPAN_EVENTS;
     public static final String COLLECT_CUSTOM_INSIGHTS_EVENTS = CUSTOM_INSIGHT_EVENTS_PREFIX + InsightsConfigImpl.COLLECT_CUSTOM_EVENTS;
     public static final String RECORD_SQL = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.RECORD_SQL;
-    public static final String APPLICATION_LOGGING_ENABLED =  AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR + ApplicationLoggingConfigImpl.ENABLED;
+    public static final String APPLICATION_LOGGING_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR + ApplicationLoggingConfigImpl.ENABLED;
     public static final String APPLICATION_LOGGING_FORWARDING_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
             ApplicationLoggingConfigImpl.FORWARDING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
     public static final String APPLICATION_LOGGING_FORWARDING_MAX_SAMPLES_STORED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
@@ -66,6 +69,8 @@ public class AgentConfigFactory {
             ApplicationLoggingConfigImpl.LOCAL_DECORATING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
     public static final String APPLICATION_LOGGING_METRICS_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
             ApplicationLoggingConfigImpl.METRICS + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_PERIOD;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_TARGET;
     @Deprecated
     public static final String SLOW_QUERY_WHITELIST = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.SLOW_QUERY_WHITELIST;
     public static final String COLLECT_SLOW_QUERIES_FROM = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM;
@@ -215,7 +220,18 @@ public class AgentConfigFactory {
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
 
         // Transaction event properties
-        addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, serverData.get("sampling_target"), settings);
+        Object samplingTarget = serverData.get("sampling_target");
+        addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, samplingTarget, settings);
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, serverData.get("sampling_target_period_in_seconds"), settings);
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_TARGET, samplingTarget, settings);
+
+        if (samplingTarget instanceof Number) {
+            ServiceFactory.getStatsService()
+                    .doStatsWork(
+                            StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE,
+                                    ((Number) samplingTarget).floatValue()),
+                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE);
+        }
 
         // Adding agent_run_id & account_id to config as required by Security agent
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
@@ -259,9 +275,9 @@ public class AgentConfigFactory {
 
         // when log forwarding is disabled account wide, the backend will inform the agent by setting the harvest limit to 0
         if (eventHarvestConfig instanceof Map) {
-            Object harvestLimits = ((Map<?,?>) eventHarvestConfig).get(HarvestServiceImpl.HARVEST_LIMITS);
+            Object harvestLimits = ((Map<?, ?>) eventHarvestConfig).get(HarvestServiceImpl.HARVEST_LIMITS);
             if (harvestLimits instanceof Map) {
-                Object logLimit = ((Map<?,?>) harvestLimits).get(CollectorMethods.LOG_EVENT_DATA);
+                Object logLimit = ((Map<?, ?>) harvestLimits).get(CollectorMethods.LOG_EVENT_DATA);
                 if (logLimit instanceof Number && ((Number) logLimit).intValue() == 0) {
                     String loggingForwardingEnabled = AgentConfigImpl.APPLICATION_LOGGING + "." + ApplicationLoggingConfigImpl.FORWARDING + "." +
                             ApplicationLoggingForwardingConfig.ENABLED;
@@ -269,7 +285,6 @@ public class AgentConfigFactory {
                 }
             }
         }
-
 
         // Browser settings
         addServerProp(BrowserConfig.BROWSER_KEY, serverData.get(BrowserConfig.BROWSER_KEY), settings);

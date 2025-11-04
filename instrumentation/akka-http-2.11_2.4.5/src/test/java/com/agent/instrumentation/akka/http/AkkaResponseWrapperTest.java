@@ -14,7 +14,7 @@ import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java21IncompatibleTest;
-import com.newrelic.test.marker.Java24IncompatibleTest;
+import com.newrelic.test.marker.Java25IncompatibleTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -30,7 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 // Not compatible with Java 11+ and Scala 2.13+ https://github.com/scala/bug/issues/12340
-@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java24IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java25IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"akka", "scala"})
 public class AkkaResponseWrapperTest {

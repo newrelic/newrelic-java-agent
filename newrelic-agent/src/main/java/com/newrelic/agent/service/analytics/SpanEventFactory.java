@@ -355,11 +355,6 @@ public class SpanEventFactory {
         return value;
     }
 
-    public SpanEventFactory setDecider(boolean decider) {
-        builder.decider(decider);
-        return this;
-    }
-
     private void setErrorClass(Class<?> throwableClass, Integer errorStatus) {
         if (filter.shouldIncludeAgentAttribute(appName, "error.class")) {
             if (throwableClass != null) {
