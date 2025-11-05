@@ -379,6 +379,12 @@ jobs:
           path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
 
+      - name: Upload ingest metrics artifacts
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          path: ${{ github.workspace }}/ingest-*.txt
+          if-no-files-found: ignore
+
   notify-if-negative-values:
     needs: [ tests ]
     runs-on: ubuntu-22.04
