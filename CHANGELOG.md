@@ -93,7 +93,7 @@ The following instrumentation modules are deprecated and will be removed in the 
         frame_read_listener:
           start_transaction: true
   ```
-  - 8.20 had a logic error in the agent config so the fix is only official in this agent version 8.21 and up.
+  - 8.20 has a logic error in the agent config so the fix is only official in agent version 8.21 and up.
 - Adds a restriction on when to add distributed trace headers for SQS messages. This is based on how large the contents of a message is in bytes and the and the size of attributes. Messages with size greater than 251 KB and/or with 9 or more attributes are excluded from getting distributed trace headers added in https://github.com/newrelic/newrelic-java-agent/pull/2353
 - Allows the `org.crac` JAR to be shadowed to prevent conflicts with customer environments. by @jbedell-newrelic in https://github.com/newrelic/newrelic-java-agent/pull/2344
 - Backports changes made in PR #1927 to prevent `NullPointerExceptions` to older versions of the `vertx-core` instrumentation in https://github.com/newrelic/newrelic-java-agent/pull/2327
