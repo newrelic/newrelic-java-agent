@@ -1,9 +1,9 @@
 package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableMap;
+import com.newrelic.agent.DistributedTracingConfigTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
-import com.newrelic.agent.config.coretracing.CoreTracingConfig;
-import com.newrelic.agent.config.coretracing.PartialGranularityConfig;
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,37 +17,19 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
 public class CoreTracingConfigTest {
-    private final Map<String, Object> samplerConfigProps = new HashMap<>();
-    private final Map<String, Object> traceIdRatioBasedConfigProps = new HashMap<>();
-    private final Map<String, Object> ratioConfigProps = new HashMap<>();
-    private final Map<String, Object> nullValueConfigProps = new HashMap<>();
-    private final Map<String, Object> localConfigProps = new HashMap<>();
-    private final Map<String, Object> fullGranularityProps = new HashMap<>();
-    private final Map<String, Object> partialGranularityProps = new HashMap<>();
 
     private DistributedTracingConfig distributedTracingConfig;
 
     @Before
     public void setup() {
-        resetConfig();
-
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade()));
     }
 
-    public void resetConfig() {
-        localConfigProps.clear();
-        samplerConfigProps.clear();
-        traceIdRatioBasedConfigProps.clear();
-        ratioConfigProps.clear();
-        nullValueConfigProps.clear();
-        distributedTracingConfig = null;
-    }
-
     @Test
     public void testDefaultConfigValues() {
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
         assertTrue(distributedTracingConfig.isEnabled());
         //full granularity samplers should all be adaptive by default.
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
@@ -80,17 +62,15 @@ public class CoreTracingConfigTest {
          *      remote_parent_not_sampled:
          *        always_off:
          */
-        samplerConfigProps.put(SamplerConfig.ADAPTIVE_SAMPLING_TARGET, 9);
-        samplerConfigProps.put(SamplerConfig.ROOT, SamplerConfig.DEFAULT);
-        ratioConfigProps.put(SamplerConfig.RATIO, 0.07);
-        traceIdRatioBasedConfigProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfigProps);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, traceIdRatioBasedConfigProps);
-        nullValueConfigProps.put(SamplerConfig.ALWAYS_OFF, null);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, nullValueConfigProps);
 
-        // Local config props
-        localConfigProps.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfigProps);
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("adaptive_sampling_target", 9)
+                .withSamplerSetting("root", "default")
+                .withSamplerSetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 0.07)
+                .withSamplerSetting("remote_parent_not_sampled", "always_off", "", "")
+                .buildDtConfig();
+
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
         //Should have picked up the new adaptive sampling target
         assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
@@ -103,7 +83,7 @@ public class CoreTracingConfigTest {
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
 
         //partial granularity should be disabled
-        Assert.assertFalse(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertFalse(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
     }
 
     @Test
@@ -127,24 +107,16 @@ public class CoreTracingConfigTest {
          *
          */
 
-        //full granularity
-        samplerConfigProps.put(CoreTracingConfig.FULL_GRANULARITY, fullGranularityProps);
-        fullGranularityProps.put(SamplerConfig.ROOT, traceIdRatioBasedConfigProps);
-        traceIdRatioBasedConfigProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfigProps);
-        ratioConfigProps.put(SamplerConfig.RATIO, 0.25f);
-        fullGranularityProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, nullValueConfigProps);
-        nullValueConfigProps.put(SamplerConfig.ALWAYS_ON, null);
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.25)
+                .withFullGranularitySetting("remote_parent_sampled", "always_on")
+                .withPartialGranularitySetting("enabled", true)
+                .withPartialGranularitySetting("type", "compact")
+                .withPartialGranularitySetting("root", "default")
+                .withPartialGranularitySetting("remote_parent_not_sampled", "always_off")
+                .buildDtConfig();
 
-        //partial granularity
-        samplerConfigProps.put(CoreTracingConfig.PARTIAL_GRANULARITY, partialGranularityProps);
-        partialGranularityProps.put(CoreTracingConfig.ENABLED, true);
-        partialGranularityProps.put(PartialGranularityConfig.TYPE, PartialGranularityConfig.COMPACT);
-        partialGranularityProps.put(SamplerConfig.ROOT, SamplerConfig.DEFAULT);
-        partialGranularityProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_OFF);
-
-        // Local config props
-        localConfigProps.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfigProps);
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
         //now all the tests!
 
@@ -160,7 +132,7 @@ public class CoreTracingConfigTest {
 
         //partial granularity assertions
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
-        assertEquals(PartialGranularityConfig.COMPACT, distributedTracingConfig.getPartialGranularityConfig().getType());
+        assertEquals(Transaction.PartialSampleType.COMPACT, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
@@ -185,23 +157,14 @@ public class CoreTracingConfigTest {
          *          always_on:
          */
 
-        samplerConfigProps.put(SamplerConfig.ROOT, traceIdRatioBasedConfigProps);
-        ratioConfigProps.put(SamplerConfig.RATIO, 0.25);
-        traceIdRatioBasedConfigProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfigProps);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_OFF);
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .withFullGranularitySetting("root", "adaptive", "sampling_target", 110)
+                .withFullGranularitySetting("remote_parent_sampled", "always_on", "", "")
+                .buildDtConfig();
 
-        Map<String, Object> rootSamplerProps = new HashMap<>();
-        Map<String, Object> adaptiveSamplerProps = new HashMap<>();
-        rootSamplerProps.put(SamplerConfig.ADAPTIVE, adaptiveSamplerProps);
-        adaptiveSamplerProps.put(SamplerConfig.SAMPLING_TARGET, 110);
-        samplerConfigProps.put(CoreTracingConfig.FULL_GRANULARITY, fullGranularityProps);
-        fullGranularityProps.put(SamplerConfig.ROOT, rootSamplerProps);
-        fullGranularityProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, nullValueConfigProps);
-        nullValueConfigProps.put(SamplerConfig.ALWAYS_ON, null);
-
-        // Local config props
-        localConfigProps.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfigProps);
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
         //all the assertions!
         assertEquals(120, distributedTracingConfig.getAdaptiveSamplingTarget());
@@ -228,18 +191,17 @@ public class CoreTracingConfigTest {
          *        //no samplers
          */
 
-        samplerConfigProps.put(SamplerConfig.ROOT, SamplerConfig.ALWAYS_ON);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, SamplerConfig.ALWAYS_ON);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_ON);
-        samplerConfigProps.put(CoreTracingConfig.PARTIAL_GRANULARITY, partialGranularityProps);
-        partialGranularityProps.put(CoreTracingConfig.ENABLED, true);
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "always_on")
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
+                .withPartialGranularitySetting("enabled", true)
+                .buildDtConfig();
 
-        // Local config props
-        localConfigProps.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfigProps);
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
-        assertEquals(PartialGranularityConfig.PARTIAL_GRANULARITY_DEFAULT_TYPE, distributedTracingConfig.getPartialGranularityConfig().getType());
+        assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertNull(distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplingTarget());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
@@ -285,50 +247,23 @@ public class CoreTracingConfigTest {
          *          always_off
          */
 
-        // Base sampler config
-        samplerConfigProps.put(SamplerConfig.ADAPTIVE_SAMPLING_TARGET, 10);
-        samplerConfigProps.put(SamplerConfig.ROOT, traceIdRatioBasedConfigProps);
-        traceIdRatioBasedConfigProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfigProps);
-        ratioConfigProps.put(SamplerConfig.RATIO, 0.1);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, SamplerConfig.ALWAYS_OFF);
-        samplerConfigProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_ON);
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("adaptive_sampling_target", 10)
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.1)
+                .withSamplerSetting("remote_parent_sampled", "always_off")
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
+                .withFullGranularitySetting("enabled", true)
+                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.2)
+                .withFullGranularitySetting("remote_parent_sampled", "adaptive", "sampling_target", 20)
+                .withFullGranularitySetting("remote_parent_not_sampled", "always_off")
+                .withPartialGranularitySetting("enabled", true)
+                .withPartialGranularitySetting("type", "essential")
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.4)
+                .withPartialGranularitySetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 1.0)
+                .withPartialGranularitySetting("remote_parent_not_sampled", "always_off")
+                .buildDtConfig();
 
-        // Full granularity config
-        Map<String, Object> fullGranularityRootRatioProps = new HashMap<>();
-        Map<String, Object> fullGranularityRootTraceIdProps = new HashMap<>();
-        Map<String, Object> fullGranularityRemoteParentSampledProps = new HashMap<>();
-        Map<String, Object> fullGranularityRemoteParentSampledAdaptiveProps = new HashMap<>();
-
-        fullGranularityProps.put(CoreTracingConfig.ENABLED, true);
-        fullGranularityRootRatioProps.put(SamplerConfig.RATIO, 0.2);
-        fullGranularityRootTraceIdProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, fullGranularityRootRatioProps);
-        fullGranularityProps.put(SamplerConfig.ROOT, fullGranularityRootTraceIdProps);
-        fullGranularityRemoteParentSampledAdaptiveProps.put(SamplerConfig.SAMPLING_TARGET, 20);
-        fullGranularityRemoteParentSampledProps.put(SamplerConfig.ADAPTIVE, fullGranularityRemoteParentSampledAdaptiveProps);
-        fullGranularityProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, fullGranularityRemoteParentSampledProps);
-        fullGranularityProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_OFF);
-        samplerConfigProps.put(CoreTracingConfig.FULL_GRANULARITY, fullGranularityProps);
-
-        // Partial granularity config
-        Map<String, Object> partialGranularityRootRatioProps = new HashMap<>();
-        Map<String, Object> partialGranularityRootTraceIdProps = new HashMap<>();
-        Map<String, Object> partialGranularityRemoteParentSampledRatioProps = new HashMap<>();
-        Map<String, Object> partialGranularityRemoteParentSampledTraceIdProps = new HashMap<>();
-
-        partialGranularityProps.put(CoreTracingConfig.ENABLED, true);
-        partialGranularityProps.put(PartialGranularityConfig.TYPE, PartialGranularityConfig.ESSENTIAL);
-        partialGranularityRootRatioProps.put(SamplerConfig.RATIO, 0.4);
-        partialGranularityRootTraceIdProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, partialGranularityRootRatioProps);
-        partialGranularityProps.put(SamplerConfig.ROOT, partialGranularityRootTraceIdProps);
-        partialGranularityRemoteParentSampledRatioProps.put(SamplerConfig.RATIO, 1.0);
-        partialGranularityRemoteParentSampledTraceIdProps.put(SamplerConfig.TRACE_ID_RATIO_BASED, partialGranularityRemoteParentSampledRatioProps);
-        partialGranularityProps.put(SamplerConfig.REMOTE_PARENT_SAMPLED, partialGranularityRemoteParentSampledTraceIdProps);
-        partialGranularityProps.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, SamplerConfig.ALWAYS_OFF);
-        samplerConfigProps.put(CoreTracingConfig.PARTIAL_GRANULARITY, partialGranularityProps);
-
-        // Local config props
-        localConfigProps.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfigProps);
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
         // Then: Validate all configuration values
 
@@ -345,7 +280,7 @@ public class CoreTracingConfigTest {
 
         // Partial granularity assertions
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
-        assertEquals(PartialGranularityConfig.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
+        assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(0.4f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
@@ -401,7 +336,7 @@ public class CoreTracingConfigTest {
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
         ));
 
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
 
         //all the assertions!
         //top level configs
@@ -414,7 +349,7 @@ public class CoreTracingConfigTest {
         assertEquals(SamplerConfig.ALWAYS_ON, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
         //partial granularity configs
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
-        assertEquals(PartialGranularityConfig.REDUCED, distributedTracingConfig.getPartialGranularityConfig().getType());
+        assertEquals(Transaction.PartialSampleType.REDUCED, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(0.8f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
@@ -477,7 +412,7 @@ public class CoreTracingConfigTest {
         ));
 
         // When: Config is created from environment variables
-        distributedTracingConfig = new DistributedTracingConfig(localConfigProps);
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
 
         // Then: All environment variable settings are applied correctly
         assertTrue(distributedTracingConfig.isEnabled());
@@ -497,7 +432,7 @@ public class CoreTracingConfigTest {
 
         // Partial granularity assertions - enabled via env var
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
-        assertEquals(PartialGranularityConfig.REDUCED,
+        assertEquals(Transaction.PartialSampleType.REDUCED,
                 distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE,
                 distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());

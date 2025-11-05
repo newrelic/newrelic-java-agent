@@ -83,7 +83,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             List<SpanEvent> spans = partialSampleType != null ?
                     createPartialGranularitySpanEvents(transactionData, transactionStats, rootSpan, partialSampleType) :
                     createFullGranularitySpanEvents(transactionData, transactionStats);
-
+            storeEvent(rootSpan);
             for (SpanEvent span : spans) {
                 storeEvent(span);
             }

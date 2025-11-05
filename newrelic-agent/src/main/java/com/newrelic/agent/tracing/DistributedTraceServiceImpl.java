@@ -199,7 +199,12 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     @Override
     public float calculatePriority(Transaction tx, SamplerCase samplerCase){
-        float priority = fullGranularitySamplers.get(samplerCase).calculatePriority(tx);
+        float priority;
+        if (distributedTraceConfig.getFullGranularityConfig().isEnabled()){
+            priority = fullGranularitySamplers.get(samplerCase).calculatePriority(tx);
+        } else {
+            priority = nextTruncatedFloat();
+        }
         if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)){
             priority = partialGranularitySamplers.get(samplerCase).calculatePriority(tx);
             if (DistributedTraceUtil.isSampledPriority(priority)){
