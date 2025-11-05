@@ -379,10 +379,20 @@ jobs:
           path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
 
-      - name: Upload ingest metrics artifacts
+      - name: Process ingest metrics files
+        run: |
+          echo "Combining ingest metric files into ingest-aggregate.txt..."
+          cat ingest-*.txt > ingest-aggregate.txt
+          echo "Calculating sum and creating ingest-sum.txt..."
+          cat ingest-*.txt | awk -F'/' '/BytesSent/ { sum += $5 } END { print sum }' > ingest-sum.txt
+
+      - name: Upload Processed Artifacts
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
-          path: ${{ github.workspace }}/ingest-*.txt
+          name: processed-ingest-files
+          path: |
+            ingest-aggregate.txt
+            ingest-sum.txt
           if-no-files-found: ignore
 
   notify-if-negative-values:
