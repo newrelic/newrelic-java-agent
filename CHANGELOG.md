@@ -84,7 +84,16 @@ The following instrumentation modules are deprecated and will be removed in the 
 
 - Fixes the `distributed_tracing.sampler` config in https://github.com/newrelic/newrelic-java-agent/pull/2330
 - Fixes an Illegal Access Error that can occur when using Scala 2.12 and JDK 11. In cases where Scala 2.12 is not detectable by the agent (we check the system classloader for this - notably, sbt will load Scala classes into custom Scala loaders), there is also a feature flag to manually enable the fix via system property `-Dnewrelic.config.class_transformer.illegal_access_fix=true` in https://github.com/newrelic/newrelic-java-agent/pull/2334
-- Fixes a logic error with the `netty.http2.frame_read_listener.start_transaction` configuration for the `netty-4.1.16` instrumentation module in https://github.com/newrelic/newrelic-java-agent/pull/2355
+- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274) [2355](https://github.com/newrelic/newrelic-java-agent/pull/2355)
+  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
+
+  ```yaml
+    netty:
+      http2:
+        frame_read_listener:
+          start_transaction: true
+  ```
+  - 8.20 had a logic error in the agent config so the fix is only official in this agent version 8.21 and up.
 - Adds a restriction on when to add distributed trace headers for SQS messages. This is based on how large the contents of a message is in bytes and the and the size of attributes. Messages with size greater than 251 KB and/or with 9 or more attributes are excluded from getting distributed trace headers added in https://github.com/newrelic/newrelic-java-agent/pull/2353
 - Allows the `org.crac` JAR to be shadowed to prevent conflicts with customer environments. by @jbedell-newrelic in https://github.com/newrelic/newrelic-java-agent/pull/2344
 - Backports changes made in PR #1927 to prevent `NullPointerExceptions` to older versions of the `vertx-core` instrumentation in https://github.com/newrelic/newrelic-java-agent/pull/2327
@@ -133,9 +142,8 @@ Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.7.0
 
 ## Fixes
 
-- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)
-  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
-
+- ~Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)~
+ 	- ~This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting~:
   ```yaml
     netty:
       http2:
