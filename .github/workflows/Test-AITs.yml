@@ -384,7 +384,7 @@ jobs:
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: ingest-raw-data   # The action is smart enough to aggregate all uploaded files to this artifact name across all test runs
-          path: agent-integration-tests/ingest-*.txt
+          path: ${{ github.workspace }}/ingest-*.txt
           if-no-files-found: ignore
 
   process-ingest-metric-files:
