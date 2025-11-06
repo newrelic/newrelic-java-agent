@@ -443,6 +443,7 @@ public class DistributedTraceServiceImplTest {
         assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
         assertEquals(SamplerFactory.ALWAYS_OFF, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
         assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(ROOT).getType());
+        assertEquals(15, ((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(ROOT)).getTarget());
         assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
         assertEquals(SamplerFactory.TRACE_RATIO_ID_BASED, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
     }
@@ -573,15 +574,14 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void testFullAndPartialGranularityWorkTogether(){
 
-        float fullRatio = 0.5f;
-        float partialRatio = 0.9f;
-        float effectiveRatio = (1 - partialRatio) * fullRatio + partialRatio;
-        int numberOfTraces = 1000;
+        float fullRatio = 0.4f;
+        float partialRatio = 0.2f;
+        int numberOfTraces = 10000;
 
         Map<String, Object> config = new DTConfigMapBuilder()
-                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.5)
+                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", fullRatio)
                 .withPartialGranularitySetting("enabled", "true")
-                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", effectiveRatio)
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", partialRatio)
                 .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
@@ -600,7 +600,7 @@ public class DistributedTraceServiceImplTest {
             }
         }
 
-        int expectedSampledCount = (int) (numberOfTraces * fullRatio + numberOfTraces * (1 - fullRatio) * partialRatio);
+        int expectedSampledCount = 5200;
         int maxError = (int)( 0.05f * numberOfTraces);
         assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
 
