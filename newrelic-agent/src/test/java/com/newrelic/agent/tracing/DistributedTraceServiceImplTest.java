@@ -20,6 +20,7 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.tracing.samplers.SamplerFactory;
@@ -567,6 +568,42 @@ public class DistributedTraceServiceImplTest {
             assertTrue(DistributedTraceUtil.isSampledPriority(priority));
             Mockito.verify(tx, Mockito.times(1)).setPartialSampleType(Transaction.PartialSampleType.ESSENTIAL);
         }
+    }
+
+    @Test
+    public void testFullAndPartialGranularityWorkTogether(){
+
+        float fullRatio = 0.5f;
+        float partialRatio = 0.9f;
+        float effectiveRatio = (1 - partialRatio) * fullRatio + partialRatio;
+        int numberOfTraces = 1000;
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.5)
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", effectiveRatio)
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        int sampledCount = 0;
+        for (int i = 0; i < numberOfTraces; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
+            Mockito.when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
+            if (DistributedTraceUtil.isSampledPriority(distributedTraceService.calculatePriority(tx, ROOT))){
+                sampledCount++;
+            }
+        }
+
+        int expectedSampledCount = (int) (numberOfTraces * fullRatio + numberOfTraces * (1 - fullRatio) * partialRatio);
+        int maxError = (int)( 0.05f * numberOfTraces);
+        assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
+
     }
 
     @Test
