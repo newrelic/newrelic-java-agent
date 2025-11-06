@@ -414,6 +414,11 @@ jobs:
           
           echo "Summing bytes sent across the full test run.."
           cat ingest-*.txt | awk -F'/' '/BytesSent/ { sum += $5 } END { if (sum == "") sum = 0; print sum }' > ../ingest-sum.txt
+          cat ../ingest-sum.txt
+          
+          # Write total to summary page
+          TOTAL_SUM=$(cat ../ingest-sum.txt)
+          echo "## Ingest across all tests: $TOTAL_SUM" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload processed artifacts
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
