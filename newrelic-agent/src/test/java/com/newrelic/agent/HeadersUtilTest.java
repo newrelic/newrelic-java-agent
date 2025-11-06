@@ -13,23 +13,32 @@ import com.google.gson.JsonObject;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DistributedTracingConfig;
+import com.newrelic.agent.config.SamplerConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.transaction.TransactionTimer;
 import com.newrelic.agent.util.MockDistributedTraceService;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mockito;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+@Category(RequiresFork.class)
 public class HeadersUtilTest {
     @Test
     public void createDTHeadersSetsSpanIdEvenIfTxNotSampled() {
@@ -100,6 +109,97 @@ public class HeadersUtilTest {
 
         assertEquals(synthInfoValue, HeadersUtil.getSyntheticsInfoHeader(createInboundHeaders
                 (ImmutableMap.of("X-NewRelic-Synthetics-Info", synthInfoValue), HeaderType.HTTP)));
+    }
+
+    @Test
+    public void testInboundParentSampledTrueConfigAlwaysOn() {
+        Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_ON, SamplerConfig.DEFAULT);
+        InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
+                "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-01", // last entry is the sampled flag = true
+                "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
+        ), HeaderType.HTTP);
+
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
+        assertTrue(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
+        assertTrue(tx.getPriority() == 2.0f);
+
+        Transaction.clearTransaction();
+    }
+
+    @Test
+    public void testInboundParentSampledTrueConfigAlwaysOff() {
+        Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_OFF, SamplerConfig.DEFAULT);
+        InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
+                "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-01", // last entry is the sampled flag = true
+                "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
+        ), HeaderType.HTTP);
+
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
+        assertTrue(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
+        assertTrue(tx.getPriority() == 0.0f);
+
+        Transaction.clearTransaction();
+    }
+
+    @Test
+    public void testInboundParentSampledFalseConfigAlwaysOn() {
+        Transaction tx = setupAndCreateTx(SamplerConfig.DEFAULT, SamplerConfig.ALWAYS_ON);
+        InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
+                "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-00", // last entry is the sampled flag = true
+                "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
+        ), HeaderType.HTTP);
+
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
+        assertFalse(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
+        assertTrue(tx.getPriority() == 2.0f);
+
+        Transaction.clearTransaction();
+    }
+
+    @Test
+    public void testInboundParentSampledFalseConfigAlwaysOff() {
+        Transaction tx = setupAndCreateTx(SamplerConfig.DEFAULT, SamplerConfig.ALWAYS_OFF);
+        InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
+                "traceparent", "01-0123456789abcdef0123456789abcdef-0123456789abcdef-00", // last entry is the sampled flag = true
+                "tracestate", "trustyrusty@nr=0-0-709288-8599547-f85f42fd82a4cf1d-164d3b4b0d09cb05164d3b4b0d09cb05--0.5-1563574856827"
+        ), HeaderType.HTTP);
+
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
+        assertFalse(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
+        assertTrue(tx.getPriority() == 0.0f);
+
+        Transaction.clearTransaction();
+    }
+
+    private Transaction setupAndCreateTx(String remoteParentSampled, String remoteParentNotSampled) {
+        System.out.println("Setting up config: " + remoteParentSampled + "; " + remoteParentNotSampled);
+        ConfigService mockConfigService = new MockConfigService(AgentConfigImpl.createAgentConfig(
+                ImmutableMap.of(
+                        AgentConfigImpl.APP_NAME,
+                        "Unit Test",
+                        AgentConfigImpl.DISTRIBUTED_TRACING,
+                        ImmutableMap.of(
+                                DistributedTracingConfig.ENABLED, true,
+                                SamplerConfig.SAMPLER_CONFIG_ROOT,
+                                ImmutableMap.of(
+                                        SamplerConfig.REMOTE_PARENT_SAMPLED, remoteParentSampled,
+                                        SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, remoteParentNotSampled)
+                        ),
+                        AgentConfigImpl.SPAN_EVENTS,
+                        ImmutableMap.of(
+                                SpanEventsConfig.ENABLED, true,
+                                SpanEventsConfig.COLLECT_SPAN_EVENTS, true)
+                )));
+        MockServiceManager mockServiceManager = new MockServiceManager(mockConfigService);
+        mockServiceManager.setDistributedTraceService(new MockDistributedTraceService());
+        ServiceFactory.setServiceManager(mockServiceManager);
+        Transaction tx = Mockito.spy(Transaction.getTransaction());
+        TransactionTimer timer = Mockito.mock(TransactionTimer.class);
+        Mockito.when(timer.getStartTimeInNanos()).thenReturn(System.nanoTime());
+        Mockito.when(tx.getTransactionTimer()).thenReturn(timer);
+        tx.setPriorityIfNotNull(0.5f);  // something > 0 and < 1
+
+        return tx;
     }
 
     private InboundHeaders createInboundHeaders(final Map<String, String> map, final HeaderType type) {

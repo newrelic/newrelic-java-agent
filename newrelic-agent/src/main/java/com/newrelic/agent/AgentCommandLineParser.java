@@ -44,7 +44,8 @@ class AgentCommandLineParser {
         commandOptionsMap.put(VERIFY_INSTRUMENTATION, getVerifyInstrumentationOptions());
 
         commandDescriptions = new HashMap<>();
-        commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment");
+        commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment. Note: This command is deprecated and will be removed " +
+                "in the next major release.");
         commandDescriptions.put(INSTRUMENT_COMMAND, "[OPTIONS]                Validates a custom instrumentation xml configuration file.");
     }
 

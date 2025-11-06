@@ -484,7 +484,7 @@ public class DefaultSqlTracerClmTest {
         DatastoreInstanceDetection.associateAddress(connection, new InetSocketAddress("dbserver.nerd.us", 9945));
         DatastoreInstanceDetection.stopDetectingConnectionAddress();
 
-        String longQueryString = "SELECT price, name FROM BOOKS WHERE name = " + Strings.repeat("a", 4000);
+        String longQueryString = "SELECT price, name FROM BOOKS WHERE name = " + Strings.repeat("a", 5000);
         DefaultSqlTracer tracer = newInstanceDBTracer(longQueryString, connection, "MySQL", "mysql");
         tracer.finish(Opcodes.ARETURN, new DummyResultSet());
 
@@ -503,7 +503,7 @@ public class DefaultSqlTracerClmTest {
         assertEquals("MySQL", spanEvent.getAgentAttributes().get("db.system"));
         assertEquals("dbserver.nerd.us", spanEvent.getAgentAttributes().get("peer.hostname"));
         assertEquals("dbserver.nerd.us:9945", spanEvent.getAgentAttributes().get("peer.address"));
-        assertEquals(2000, spanEvent.getAgentAttributes().get("db.statement").toString().length());
+        assertEquals(4095, spanEvent.getAgentAttributes().get("db.statement").toString().length());
         assertTrue(spanEvent.getAgentAttributes().get("db.statement").toString().endsWith("a..."));
         assertEquals("books", spanEvent.getAgentAttributes().get("db.collection"));
         assertEquals("client", spanEvent.getIntrinsics().get("span.kind"));

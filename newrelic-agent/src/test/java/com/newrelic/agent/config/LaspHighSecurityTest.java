@@ -24,11 +24,6 @@ public class LaspHighSecurityTest {
 
     private static final String APP_NAME = "Unit Test";
 
-    @Before
-    public void before() throws ConfigurationException {
-
-    }
-
     @Test
     public void laspAndHsmEnabled() throws ConfigurationException {
         Map<String, Object> settings = createSecurityProps();
@@ -40,7 +35,7 @@ public class LaspHighSecurityTest {
         assertTrue(agentConfig.laspEnabled());
         assertTrue(agentConfig.isHighSecurity());
         try {
-            ConfigServiceFactory.validateConfig(agentConfig);
+            ConfigServiceFactory.validateConfig(agentConfig, null);
             fail();
         } catch (ForceDisconnectException ex) {
         }

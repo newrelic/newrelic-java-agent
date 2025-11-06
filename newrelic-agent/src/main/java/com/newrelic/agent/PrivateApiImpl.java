@@ -14,13 +14,9 @@ import com.newrelic.agent.bridge.PrivateApi;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.jmx.JmxApiImpl;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.tracing.DistributedTracePayloadParser;
 import com.newrelic.agent.util.AgentCollectionFactory;
-import com.newrelic.api.agent.DistributedTraceParser;
-import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.Logger;
 
-import com.newrelic.api.agent.NewRelic;
 import javax.management.MBeanServer;
 import java.io.Closeable;
 import java.util.Map;
@@ -122,6 +118,14 @@ public class PrivateApiImpl implements PrivateApi {
         Transaction currentTxn = Transaction.getTransaction(false);
         if (currentTxn != null) {
             currentTxn.getTransactionActivity().getLastTracer().setAgentAttribute(key, value);
+        }
+    }
+
+    @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+        Transaction currentTxn = Transaction.getTransaction(false);
+        if (currentTxn != null) {
+            currentTxn.getTransactionActivity().getLastTracer().setAgentAttribute(key, value, addToSpan);
         }
     }
 

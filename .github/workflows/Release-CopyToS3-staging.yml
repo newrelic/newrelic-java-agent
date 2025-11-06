@@ -3,10 +3,10 @@ name: Release - Copy to S3 (Staging)
 on:
   workflow_dispatch:
     inputs:
-      repo_name:
+      deployment_id:
         required: true
         type: string
-        description: 'The sonatype repo name. Eg. comnewrelic-1234'
+        description: 'The sonatype deployment id. Eg. x9a06328-cc91-24a5-fg13-7xa1d3669d842k'
       version_number:
         required: true
         type: string
@@ -15,14 +15,14 @@ on:
 jobs:
   copy-to-s3:
     name: Copy ${{ inputs.version_number }} to S3 (Staging)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Self
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         # This always checkouts main. So the script will be run from main.
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }}
@@ -31,4 +31,4 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3.sh ${{ inputs.repo_name }} ${{ inputs.version_number }} staging
+        run: ./automation/release/copy-to-s3.sh ${{ inputs.deployment_id }} ${{ inputs.version_number }} staging ${{ secrets.SONATYPE_USERNAME }} ${{ secrets.SONATYPE_PASSWORD }}

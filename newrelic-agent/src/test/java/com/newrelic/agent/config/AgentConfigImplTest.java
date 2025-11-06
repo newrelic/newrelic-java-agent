@@ -7,7 +7,9 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Mocks;
+import com.newrelic.agent.SaveSystemPropertyProviderRule;
 import com.newrelic.agent.config.internal.MapEnvironmentFacade;
 import com.newrelic.agent.config.internal.MapSystemProps;
 import com.newrelic.bootstrap.BootstrapAgent;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
@@ -266,6 +269,21 @@ public class AgentConfigImplTest {
         AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
 
         assertEquals(AgentConfigImpl.DEFAULT_SSL_PORT, config.getApiPort());
+    }
+
+    @Test
+    public void proxyScheme() {
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put(AgentConfigImpl.PROXY_SCHEME, "foo");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+
+        assertEquals("foo", config.getProxyScheme());
+    }
+
+    @Test
+    public void proxySchemeDefault() {
+        AgentConfig config = AgentConfigImpl.createAgentConfig(new HashMap<>());
+        assertEquals(AgentConfigImpl.DEFAULT_PROXY_SCHEME, config.getProxyScheme());
     }
 
     @Test
@@ -1291,6 +1309,49 @@ public class AgentConfigImplTest {
 
         assertFalse(ApplicationLoggingConfigImpl.DEFAULT_ENABLED &&
                 config.getTransactionTracerConfig().isEnabled());
+    }
+
+    @Test
+    public void logFilePriorityOrder() {
+        // lowest priority: file property
+        Map<String, Object> prop = Collections.singletonMap("log_file_name", "propval");
+
+        AgentConfig config = AgentConfigImpl.createAgentConfig(prop);
+        assertEquals("propval", config.getLogFileName());
+
+        // next-higher priority: system property
+        Properties sysProps = new Properties();
+        sysProps.put("newrelic.config.log_file_name", "sysprop");
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(sysProps),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
+        ));
+
+        config = AgentConfigImpl.createAgentConfig(prop);
+        assertEquals("sysprop", config.getLogFileName());
+
+        // second-highest priority: standard environment variable
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(sysProps),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(Collections.singletonMap(
+                        "NEW_RELIC_LOG_FILE_NAME", "standard-env-var"
+                ))
+        ));
+
+        config = AgentConfigImpl.createAgentConfig(prop);
+        assertEquals("standard-env-var", config.getLogFileName());
+
+        // highest priority: classic environment variable
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(sysProps),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(ImmutableMap.of(
+                        "NEW_RELIC_LOG_FILE_NAME", "standard-env-var",
+                        "NEW_RELIC_LOG", "classic-env-var"
+                ))
+        ));
+
+        config = AgentConfigImpl.createAgentConfig(prop);
+        assertEquals("classic-env-var", config.getLogFileName());
     }
 
     private static EnvironmentFacade createEnvironmentFacade(

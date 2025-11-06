@@ -8,8 +8,6 @@
 package com.newrelic.agent.bridge;
 
 import com.newrelic.agent.bridge.ExtensionHolderFactory.NoOpExtensionHolderFactory;
-import com.newrelic.api.agent.DistributedTraceParser;
-import com.newrelic.api.agent.DistributedTracePayload;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 
@@ -17,6 +15,13 @@ import java.lang.reflect.InvocationHandler;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * This implementation of {@link CollectionFactory} will only be used if the agent-bridge
+ * is being used by an application and the agent is NOT being loaded. Thus, it is unlikely
+ * that the objects created by this implementation are going to receive much use.
+ * So methods in this implementation do not need to implement all functional requirements
+ * of the methods in the interface, but they should not break under low use.
+ */
 public final class AgentBridge {
     /**
      * Calls to methods on these classes will automatically be logged at FINEST.
@@ -37,6 +42,8 @@ public final class AgentBridge {
 
     public static volatile AsyncApi asyncApi = new NoOpAsyncApi();
 
+    public static volatile CloudApi cloud = NoOpCloud.INSTANCE;
+
     public static volatile CollectionFactory collectionFactory = new DefaultCollectionFactory();
 
     /**
@@ -45,18 +52,6 @@ public final class AgentBridge {
     public static volatile InvocationHandler agentHandler;
 
     public static volatile Agent agent = NoOpAgent.INSTANCE;
-
-    /**
-     * @deprecated  functionality was removed.
-     */
-    @Deprecated
-    public static DistributedTraceParser distributedTraceParser = new DistributedTraceParser() {
-        @Override
-        public DistributedTracePayload parseDistributedTracePayload(String payload) {
-            // The default case returns null until the agent is hooked up and opentracing is enabled, then it will be overridden with a call to the agent
-            return null;
-        }
-    };
 
     public static Agent getAgent() {
         return agent;

@@ -16,12 +16,13 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerFactory;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -55,6 +56,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     private DistributedTracingConfig distributedTraceConfig;
 
+    private Sampler rootSampler;
+    private Sampler remoteParentSampledSampler;
+    private Sampler remoteParentNotSampledSampler;
+
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
     private static final ThreadLocal<DecimalFormat> FORMATTER =
@@ -76,6 +81,12 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+
+        //Initially, set up the samplers based on local config.
+        //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
+        this.rootSampler = SamplerFactory.createSampler(distributedTraceConfig.getRootSamplerConfig());
+        this.remoteParentSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentSampledSamplerConfig());
+        this.remoteParentNotSampledSampler = SamplerFactory.createSampler(distributedTraceConfig.getRemoteParentNotSampledSamplerConfig());
     }
 
     @Override
@@ -128,6 +139,9 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
+
+        //The connect response includes a server-only config, sampling_target, that MUST be used to configure the adaptive sampler shared instance.
+        AdaptiveSampler.setSharedTarget(agentConfig.getAdaptiveSamplingTarget());
     }
 
     @Override
@@ -175,43 +189,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-        if (priority == null) {
-            if (reservoir == null) {
-                return nextTruncatedFloat();
-            }
-
-            // No inbound "priority" flag set so we need to calculate priority/sampling
-            int seen = reservoir.getNumberOfTries();
-            if (firstHarvest.get() || seen == 0) {
-                if (seen <= reservoir.getTarget()) {
-                    // Make sure we record the first 'target' events in the system
-                    return nextTruncatedFloat() + 1.0f;
-                }
-                return nextTruncatedFloat();
-            }
-
-            int seenLast = reservoir.getDecidedLast();
-            int sampled = reservoir.getSampled();
-            int target = reservoir.getTarget();
-
-            boolean shouldSample;
-            if (sampled < target) {
-                shouldSample = (seenLast <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seenLast)) < target;
-            } else if (sampled > (target * 2)) {
-                // As soon as we hit 2x the number of "target" events sampled, we need to stop
-                shouldSample = false;
-            } else {
-                int expTarget = (int) (Math.pow((float) target, (float) target / sampled) - Math.pow((float) target, 0.5));
-                shouldSample = ThreadLocalRandom.current().nextInt(seen) < expTarget;
-            }
-
-            // Add 1.0f to the priority number if we should sample based on previous throughput
-            return nextTruncatedFloat() + (shouldSample ? 1.0f : 0.0f);
-        } else {
-            // There was already a priority set on the inbound payload, don't truncate it
-            return priority;
+    public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
+        Sampler parentSampler = remoteParentSampled ? remoteParentSampledSampler : remoteParentNotSampledSampler;
+        if (parentSampler.getType().equals(SamplerFactory.ADAPTIVE) && inboundPriority != null) {
+            return inboundPriority;
         }
+        return parentSampler.calculatePriority(tx);
+    }
+
+    @Override
+    public float calculatePriorityRoot(Transaction tx){
+        return rootSampler.calculatePriority(tx);
     }
 
     @Override
@@ -364,6 +352,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         // Override guid if this trace is sampled and spans are enabled
         // guid will be the guid of the span that is creating this payload
         boolean spansEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getSpanEventsConfig().isEnabled();
+        tx.assignPriorityRootIfNotSet();
         boolean sampled = DistributedTraceUtil.isSampledPriority(tx.getPriority());
         if (sampled && spansEnabled) {
             // Need to do this in case the span that created this is a @Trace(excludeFromTransactionTrace=true)
@@ -389,5 +378,31 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
             statsService.getMetricAggregator().incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING_EXCLUDE_NEWRELIC_HEADER,
                     !distributedTraceConfig.isIncludeNewRelicHeader()));
         }
+    }
+
+    // These setters are NOT thread-safe.
+    // They should NOT be used outside of testing.
+    void setRootSampler(Sampler sampler) {
+        this.rootSampler = sampler;
+    }
+
+    void setRemoteParentSampledSampler(Sampler sampler) {
+        this.remoteParentSampledSampler = sampler;
+    }
+
+    void setRemoteParentNotSampledSampler(Sampler sampler) {
+        this.remoteParentNotSampledSampler = sampler;
+    }
+
+    Sampler getRootSampler() {
+        return rootSampler;
+    }
+
+    Sampler getRemoteParentSampledSampler() {
+        return remoteParentSampledSampler;
+    }
+
+    Sampler getRemoteParentNotSampledSampler() {
+        return remoteParentNotSampledSampler;
     }
 }

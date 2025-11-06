@@ -55,10 +55,8 @@ public class VertxClientTest {
         server = vertx.createHttpServer().requestHandler(request -> {
             final String statusCode = request.getHeader("statusCode");
             if (statusCode == null) {
-                System.out.println("statusCode is null");
                 request.response().end("response");
             } else {
-                System.out.println("statusCode is NOT null -- " + statusCode);
                 if (request.absoluteURI().equals("/redirect")) {
                     request.headers().clear();
                     request.response().putHeader("Location", "http://localhost:" + port + "/other");

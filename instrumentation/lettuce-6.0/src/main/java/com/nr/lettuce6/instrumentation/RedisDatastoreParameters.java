@@ -9,7 +9,7 @@ public class RedisDatastoreParameters {
         if (uri != null) {
 
             params = DatastoreParameters.product("Redis").collection(null).operation(operation)
-                    .instance(uri.getHost(), uri.getPort()).noDatabaseName().build();
+                    .instance(uri.getHost(), uri.getPort()).databaseName(String.valueOf(uri.getDatabase())).build();
         } else {
             params = DatastoreParameters.product("Redis").collection(null).operation(operation).noInstance()
                     .noDatabaseName().noSlowQuery().build();

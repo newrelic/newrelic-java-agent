@@ -19,7 +19,10 @@ import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.api.agent.DatastoreParameters;
+import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;
@@ -32,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,13 +78,13 @@ public class SpanEventFactoryTest {
     }
 
     @Test
-    public void shouldTruncate3KDBStatementTo2K() {
-        char[] data = new char[3000];
-        String threeKStatement = new String(data);
+    public void shouldTruncate5KDBStatementTo4K() {
+        char[] data = new char[5000];
+        String fiveKStatement = new String(data);
 
-        SpanEvent target = spanEventFactory.setDatabaseStatement(threeKStatement).build();
+        SpanEvent target = spanEventFactory.setDatabaseStatement(fiveKStatement).build();
 
-        assertEquals(2000,
+        assertEquals(4095,
                 target.getAgentAttributes().get("db.statement").toString().length());
     }
 
@@ -113,6 +117,7 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetHttpParameters() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         HttpParameters mockParameters = mock(HttpParameters.class);
         when(mockParameters.getLibrary()).thenReturn("library");
         when(mockParameters.getProcedure()).thenReturn("procedure");
@@ -138,13 +143,34 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetStatusCode() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
 
         assertEquals(418, spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertEquals(418, spanEvent.getAgentAttributes().get("httpResponseCode"));
+    }
+
+    @Test
+    public void shouldSetStandardStatusCode() {
+        mockAttributeConfig(HttpAttrMode.STANDARD);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
+
+        assertEquals(418, spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseCode"));
+    }
+
+    @Test
+    public void shouldSetLegacyStatusCode() {
+        mockAttributeConfig(HttpAttrMode.LEGACY);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusCode(418).build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusCode"));
+        assertEquals(418, spanEvent.getAgentAttributes().get("httpResponseCode"));
     }
 
     @Test
     public void shouldNotSetStatusCodeWhenFiltering() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
         SpanEvent spanEvent = factory.setHttpStatusCode(418).build();
 
@@ -160,17 +186,39 @@ public class SpanEventFactoryTest {
 
     @Test
     public void shouldSetStatusText() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
 
         assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("http.statusText"));
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("httpResponseMessage"));
+    }
+
+    @Test
+    public void shouldSetStandardStatusText() {
+        mockAttributeConfig(HttpAttrMode.STANDARD);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
+
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("http.statusText"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseMessage"));
+    }
+
+    @Test
+    public void shouldSetLegacyStatusText() {
+        mockAttributeConfig(HttpAttrMode.LEGACY);
+        SpanEvent spanEvent = spanEventFactory.setHttpStatusText("I'm a teapot.").build();
+
+        assertNull(spanEvent.getAgentAttributes().get("http.statusText"));
+        assertEquals("I'm a teapot.", spanEvent.getAgentAttributes().get("httpResponseMessage"));
     }
 
     @Test
     public void shouldNotSetStatusTextWhenFiltering() {
+        mockAttributeConfig(HttpAttrMode.BOTH);
         SpanEventFactory factory = new SpanEventFactory("blerb", new PassNothingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
         SpanEvent spanEvent = factory.setHttpStatusText("I'm a teapot.").build();
 
         assertNull(spanEvent.getAgentAttributes().get("http.statusText"));
+        assertNull(spanEvent.getAgentAttributes().get("httpResponseMessage"));
     }
 
     @Test
@@ -178,6 +226,7 @@ public class SpanEventFactoryTest {
         SpanEvent spanEvent = spanEventFactory.setHttpStatusText(null).build();
 
         assertFalse(spanEvent.getAgentAttributes().containsKey("http.statusText"));
+        assertFalse(spanEvent.getAgentAttributes().containsKey("httpResponseMessage"));
     }
 
     @Test
@@ -189,6 +238,7 @@ public class SpanEventFactoryTest {
         when(mockParameters.getProduct()).thenReturn("MySQL");
         when(mockParameters.getHost()).thenReturn("dbserver");
         when(mockParameters.getPort()).thenReturn(3306);
+        when(mockParameters.getCloudResourceId()).thenReturn("123456789");
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
@@ -200,6 +250,61 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+        assertEquals("123456789", target.getAgentAttributes().get("cloud.resource_id"));
+    }
+
+    @Test
+    public void shouldSetInstanceOnSpanFromMessageProduceParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageProduceParameters mockParameters = mock(MessageProduceParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("producer", target.getIntrinsics().get("span.kind"));
+    }
+
+    @Test
+    public void shouldSetInstanceOnSpanFromMessageConsumeParameters() {
+        String expectedHost = "example.com";
+        Integer expectedPort = 8080;
+        MessageConsumeParameters mockParameters = mock(MessageConsumeParameters.class);
+        when(mockParameters.getLibrary()).thenReturn("SQS");
+        when(mockParameters.getDestinationName()).thenReturn("queueName");
+        when(mockParameters.getDestinationType()).thenReturn(DestinationType.NAMED_QUEUE);
+        when(mockParameters.getHost()).thenReturn(expectedHost);
+        when(mockParameters.getPort()).thenReturn(expectedPort);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedHost, agentAttrs.get("server.address"));
+        assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
+        assertEquals(expectedPort, agentAttrs.get("server.port"));
+        assertEquals("consumer", target.getIntrinsics().get("span.kind"));
+    }
+
+    @Test
+    public void shouldSetCloudResourceIdOnSpanFromDatastoreParameters() {
+        String expectedArn = "arn:aws:dynamodb:us-west-1:123456789012:tableName";
+        DatastoreParameters mockParameters = mock(DatastoreParameters.class);
+        when(mockParameters.getOperation()).thenReturn("putItem");
+        when(mockParameters.getCollection()).thenReturn("tableName");
+        when(mockParameters.getProduct()).thenReturn("DynamoDB");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(1234);
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
     }
 
     @Test
@@ -277,5 +382,26 @@ public class SpanEventFactoryTest {
         public Map<String, ?> filterUserAttributes(String appName, Map<String, ?> userAttributes) {
             return Collections.emptyMap();
         }
+    }
+
+    /**
+     * These should never be both false.
+     */
+    private void mockAttributeConfig(HttpAttrMode httpAttrMode) {
+        MockServiceManager serviceManager = new MockServiceManager();
+        AgentConfig agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        serviceManager.setConfigService(new MockConfigService(agentConfig));
+
+        when(agentConfig.getAttributesConfig().isStandardHttpAttr())
+                .thenReturn(httpAttrMode != HttpAttrMode.LEGACY);
+
+        when(agentConfig.getAttributesConfig().isLegacyHttpAttr())
+                .thenReturn(httpAttrMode != HttpAttrMode.STANDARD);
+    }
+
+    private enum HttpAttrMode {
+        BOTH,
+        STANDARD,
+        LEGACY,
     }
 }

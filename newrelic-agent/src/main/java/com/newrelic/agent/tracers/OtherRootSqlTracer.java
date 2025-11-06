@@ -62,4 +62,15 @@ public class OtherRootSqlTracer extends DefaultSqlTracer implements TransactionA
             transaction.setThrowable(throwable, TransactionErrorPriority.TRACER, false);
         }
     }
+
+    /***
+     * This API method allows leaves to be excluded outside the constructor in DefaultTracer.
+     * For now, we don't want to give this capability to root tracers. The existing agent pattern is to force
+     * root tracers to be included (see TracerFlags.forceMandatoryRootFlags, which ignores excludeFromTransactionTrace).
+     *
+     * This can be reevaluated in the future if we find a use case for excluding root tracers.
+     */
+
+    @Override
+    public void excludeLeaf() {}
 }

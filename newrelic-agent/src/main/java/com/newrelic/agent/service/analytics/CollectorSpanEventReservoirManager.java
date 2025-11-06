@@ -36,7 +36,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir(String appName) {
        SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
         if (reservoir == null) {
-            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0));
+            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName));
             if (reservoir == null) {
                 reservoir = spanReservoirsForApp.get(appName);
             }
@@ -44,10 +44,8 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         return reservoir;
     }
 
-    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName, int decidedLast) {
-        SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
-        int target = spanEventsConfig.getTargetSamplesStored();
-        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
+    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName) {
+        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, SPAN_EVENT_COMPARATOR);
     }
 
     @Override
@@ -63,11 +61,15 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         }
 
         SpanEventsConfig config = configService.getAgentConfig(appName).getSpanEventsConfig();
-        int decidedLast = AdaptiveSampling.decidedLast(spanReservoirsForApp.get(appName), config.getTargetSamplesStored());
 
         // save a reference to the old reservoir to finish harvesting, and create a new one
         final SamplingPriorityQueue<SpanEvent> toSend = spanReservoirsForApp.get(appName);
-        spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName, decidedLast));
+
+        if (toSend != null){
+            toSend.logReservoirStats();
+        }
+
+        spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName));
 
         if (toSend == null || toSend.size() <= 0) {
             return null;
@@ -107,7 +109,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     public void setMaxSamplesStored(int newMax) {
         maxSamplesStored = newMax;
         ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> newMaxSpanReservoirs = new ConcurrentHashMap<>();
-        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
+        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName)));
         spanReservoirsForApp = newMaxSpanReservoirs;
     }
 

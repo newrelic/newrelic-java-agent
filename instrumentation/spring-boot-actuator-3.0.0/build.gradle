@@ -1,0 +1,37 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework.boot:spring-boot-actuator:3.0.0")
+    implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-boot-actuator-3.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly('org.springframework.boot:spring-boot-actuator:[3.0.0,4.0.0-M1)') {
+        implementation('jakarta.servlet:jakarta.servlet-api:5.0.0')
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Spring'
+    type 'Framework'
+}

@@ -22,13 +22,6 @@ public class ClassNameFilterFuncTest {
     }
 
     @Test
-    public void process() {
-        PointCutClassTransformer classTransformer = ServiceFactory.getClassTransformerService().getClassTransformer();
-        Assert.assertTrue(classTransformer.getClassNameFilter().isIncluded("java/lang/UNIXProcess"));
-        Assert.assertTrue(classTransformer.getClassNameFilter().isIncluded("java/lang/ProcessImpl"));
-    }
-
-    @Test
     public void lifecycleImpl() {
         PointCutClassTransformer classTransformer = ServiceFactory.getClassTransformerService().getClassTransformer();
         Assert.assertTrue(classTransformer.getClassNameFilter().isIncluded("com/sun/faces/lifecycle/LifecycleImpl"));

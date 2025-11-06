@@ -63,6 +63,20 @@ public interface Agent {
      */
     Insights getInsights();
 
+    /**
+     * Provides access to the AI Monitoring custom events API.
+     *
+     * @return Object for recording custom events.
+     */
+    AiMonitoring getAiMonitoring();
+
+    /**
+     * Provides access to the Cloud API.
+     *
+     * @since 8.15.0
+     */
+    Cloud getCloud();
+
     ErrorApi getErrorApi();
 
     /**

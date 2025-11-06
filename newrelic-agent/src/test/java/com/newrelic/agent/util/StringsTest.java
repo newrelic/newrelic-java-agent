@@ -68,4 +68,14 @@ public class StringsTest {
         Assert.assertEquals("___string_with_dots_AND_hyphens_at_ends__",
                 Strings.replaceDotHyphenWithUnderscore("-.-string.with-dots-AND.hyphens.at_ends.-"));
     }
+
+    @Test
+    public void obfuscate() {
+        Assert.assertNull(Strings.obfuscate(null));
+        Assert.assertEquals("f", Strings.obfuscate("f"));
+        Assert.assertEquals("fo", Strings.obfuscate("fo"));
+        Assert.assertEquals("foo", Strings.obfuscate("foo"));
+        Assert.assertEquals("b***r", Strings.obfuscate("barbar"));
+        Assert.assertEquals("l***g", Strings.obfuscate("long-long-string"));
+    }
 }

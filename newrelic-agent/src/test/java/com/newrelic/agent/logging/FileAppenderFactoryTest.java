@@ -5,9 +5,9 @@ import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.appender.FileManager;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
 import org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy;
-import org.apache.logging.log4j.core.appender.rolling.CronTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.NoOpTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
+import org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,7 +21,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyTrueAndByteLimitGreaterThanZero_createsDailyRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true);
+        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "0", true, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -30,15 +30,15 @@ public class FileAppenderFactoryTest {
         Assert.assertEquals(FILENAME + "0", rollingFileAppender.getFileName());
 
         CompositeTriggeringPolicy policy = rollingFileAppender.getTriggeringPolicy();
-        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[0] instanceof SizeBasedTriggeringPolicy));
-        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[1] instanceof SizeBasedTriggeringPolicy));
     }
 
     @Test
     public void build_withLogDailyTrueAndByteLimitEqualZero_createsDailyRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "1", true);
+        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "1", true, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -47,15 +47,15 @@ public class FileAppenderFactoryTest {
         Assert.assertEquals(FILENAME + "1", rollingFileAppender.getFileName());
 
         CompositeTriggeringPolicy policy = rollingFileAppender.getTriggeringPolicy();
-        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[0] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[0] instanceof NoOpTriggeringPolicy));
-        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof CronTriggeringPolicy) ||
+        Assert.assertTrue((policy.getTriggeringPolicies()[1] instanceof TimeBasedTriggeringPolicy) ||
                 (policy.getTriggeringPolicies()[1] instanceof NoOpTriggeringPolicy));
     }
 
     @Test
     public void build_withLogDailyFalseAndByteLimitGreaterThanZero_createsSizeBasedRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "2", false);
+        FileAppenderFactory factory = new FileAppenderFactory(1, BYTE_LIMIT, FILENAME + "2", false, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         RollingFileAppender rollingFileAppender = (RollingFileAppender) fileAppender;
 
@@ -69,7 +69,7 @@ public class FileAppenderFactoryTest {
 
     @Test
     public void build_withLogDailyFalseAndByteLimitEqualZero_createsSizeBasedRollingFileAppender() {
-        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "3", false);
+        FileAppenderFactory factory = new FileAppenderFactory(1, 0, FILENAME + "3", false, "newrelic.log");
         AbstractOutputStreamAppender<? extends FileManager> fileAppender = factory.build();
         FileAppender rollingFileAppender = (FileAppender) fileAppender;
 

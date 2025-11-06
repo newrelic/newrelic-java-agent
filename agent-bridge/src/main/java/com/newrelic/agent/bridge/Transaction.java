@@ -23,6 +23,7 @@ import java.util.Map;
 public interface Transaction extends com.newrelic.api.agent.Transaction {
 
     Map<String, Object> getAgentAttributes();
+    Map<String, Object> getUserAttributes();
 
     /**
      * Sets the current transaction's name.

@@ -46,7 +46,6 @@ public class AnalyticsEventTest {
         Assert.assertEquals(0.9F, event.getPriority(), .1);
         Assert.assertEquals("type", event.getType());
         Assert.assertTrue(event.isValid());
-        Assert.assertFalse(event.decider());
     }
 
     @Test

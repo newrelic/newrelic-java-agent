@@ -79,3 +79,12 @@ transaction_events_disabled_attribute_filtering:
   span_events.attributes.enabled: true
 
   span_events.attributes.exclude: txAttrib5,spanAttrib1
+
+exclude_newrelic_header_test:
+
+  distributed_tracing:
+    enabled: true
+    exclude_newrelic_header: true
+
+  span_events:
+    enabled: true

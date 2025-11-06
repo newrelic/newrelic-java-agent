@@ -17,12 +17,22 @@ val shadowJar = tasks.getByName<ShadowJar>("shadowJar") {
     archiveClassifier.set("")
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+val javadocJar by tasks
+val sourcesJar by tasks
+
 PublishConfig.config(
         project,
         "New Relic OpenTelemetry Java Agent Extension",
         "Extension for OpenTelemetry Java Agent") {
     artifactId = "newrelic-opentelemetry-agent-extension"
     artifact(shadowJar)
+    artifact(javadocJar)
+    artifact(sourcesJar)
 
     // Update artifact version to include "-alpha" suffix
     var artifactVersion = version

@@ -465,6 +465,8 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         DistributedTraceService distributedTraceService = ServiceFactory.getDistributedTraceService();
         DistributedTracingConfig distributedTracingConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
 
+        joinedIntrinsics.put("guid", td.getGuid());
+
         if (distributedTracingConfig.isEnabled()) {
             joinedIntrinsics.putAll(distributedTraceService.getIntrinsics(
                     td.getInboundDistributedTracePayload(), td.getGuid(), td.getTraceId(), td.getTransportType(),

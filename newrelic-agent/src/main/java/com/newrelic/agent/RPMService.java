@@ -14,6 +14,7 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.BrowserMonitoringConfig;
 import com.newrelic.agent.config.BrowserMonitoringConfigImpl;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.environment.AgentIdentity;
@@ -36,6 +37,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.ConnectionResponse;
@@ -46,6 +48,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.utilization.UtilizationData;
+import com.newrelic.api.agent.NewRelic;
 import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
@@ -65,7 +68,8 @@ import java.util.logging.Level;
 /**
  * The RPMService acts as a stub for communication between the agent and New Relic.
  */
-public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener, AgentConfigListener {
+public class RPMService extends AbstractService implements IRPMService, EnvironmentChangeListener,
+        AgentConfigListener {
 
     public static final String COLLECT_TRACES_KEY = "collect_traces";
     public static final String COLLECT_ERRORS_KEY = "collect_errors";
@@ -967,6 +971,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
+    private static Integer toInt(Object o) {
+        if (o == null) return null;
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        }
+        return ((Double)Double.parseDouble((String)o)).intValue();
+    }
+
     @Override
     protected void doStop() {
         removeHarvestablesFromServices(appName);
@@ -987,6 +999,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
+    public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
+        return (HealthDataProducer) dataSender;
+    }
+
+    @Override
     public long getConnectionTimestamp() {
         return connectionTimestamp;
     }
@@ -1004,5 +1021,4 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         // reset our error logging so that something will show up at info level if data failures persist
         last503Error.set(0);
     }
-
 }

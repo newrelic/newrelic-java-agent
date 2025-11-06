@@ -440,26 +440,7 @@ public class NewRelicApiImplementation implements PublicApi {
      * @see com.newrelic.agent.tracers.jasper.GeneratorVisitTracerFactory
      */
     public static String getBrowserTimingFooterForContentType(String contentType) {
-        Transaction tx = Transaction.getTransaction(false);
-        try {
-            if (tx == null) {
-                Agent.LOG.finer("Unable to inject browser timing footer in a JSP: not running in a transaction");
-                return "";
-            }
-            String footer = null;
-            synchronized (tx) {
-                footer = tx.getBrowserTransactionState().getBrowserTimingFooter();
-            }
-            if (Agent.LOG.isLoggable(Level.FINER)) {
-                String msg = MessageFormat.format("Injecting browser timing footer in a JSP: {0}", footer);
-                Agent.LOG.log(Level.FINER, msg);
-            }
-            return footer;
-        } catch (Throwable t) {
-            String msg = MessageFormat.format("Error injecting browser timing footer in a JSP: {0}", t);
-            logException(msg, t);
-            return "";
-        }
+        return "";
     }
 
     @Override
@@ -469,30 +450,7 @@ public class NewRelicApiImplementation implements PublicApi {
 
     @Override
     public String getBrowserTimingFooter(String nonce) {
-        Transaction tx = Transaction.getTransaction(false);
-        try {
-            if (tx == null) {
-                Agent.LOG.finer("Unable to get browser timing footer in NewRelic API: not running in a transaction");
-                return "";
-            }
-            String footer = null;
-            synchronized (tx) {
-                if (nonce == null) {
-                    footer = tx.getBrowserTransactionState().getBrowserTimingFooter();
-                } else {
-                    footer = tx.getBrowserTransactionState().getBrowserTimingFooter(nonce);
-                }
-            }
-            if (Agent.LOG.isLoggable(Level.FINER)) {
-                String msg = MessageFormat.format("Got browser timing footer in NewRelic API: {0}", footer);
-                Agent.LOG.log(Level.FINER, msg);
-            }
-            return footer;
-        } catch (Throwable t) {
-            String msg = MessageFormat.format("Error getting browser timing footer in NewRelic API: {0}", t);
-            logException(msg, t);
-            return "";
-        }
+        return "";
     }
 
     /**

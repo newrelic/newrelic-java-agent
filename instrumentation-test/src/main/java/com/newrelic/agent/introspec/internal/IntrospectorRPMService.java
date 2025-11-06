@@ -20,6 +20,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
@@ -160,6 +161,11 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
 
     @Override
     public void sendErrorData(List<TracedError> tracedErrors) {
+    }
+
+    @Override
+    public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
+        return null;
     }
 
     @Override

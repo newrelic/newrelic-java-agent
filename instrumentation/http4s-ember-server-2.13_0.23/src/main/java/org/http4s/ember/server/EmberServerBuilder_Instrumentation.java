@@ -7,7 +7,6 @@ import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.http4s.TransactionMiddleware$;
 import org.http4s.Request;
 import org.http4s.Response;
-import org.http4s.ember.server.EmberServerBuilder;
 
 @Weave(originalName = "org.http4s.ember.server.EmberServerBuilder")
 public class EmberServerBuilder_Instrumentation<F> {

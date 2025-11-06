@@ -19,17 +19,15 @@ import com.newrelic.agent.TraceMetadataImpl;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
-import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.attributes.LogAttributeValidator;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.ApplicationLoggingConfig;
-import com.newrelic.agent.config.ApplicationLoggingContextDataConfig;
-import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -40,6 +38,8 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
+import com.newrelic.agent.util.NoOpQueue;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.Logs;
 
 import java.text.MessageFormat;
@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -60,10 +61,19 @@ import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 public class LogSenderServiceImpl extends AbstractService implements LogSenderService {
     // Whether the service as a whole is enabled. Disabling shuts down all log events.
     private volatile boolean forwardingEnabled;
+    // Whether the labels are enabled for log events
+    private static boolean logLabelsEnabled;
+    // Labels to be added to log events
+    private static Map<String, String> labels;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
     private volatile int maxSamplesStored;
+    // Number of millis between harvest/reporting cycles.
+    // when the maxSamplesStores changes from the config file, it is set as per minute.  This value is needed
+    // to properly calculate the per harvest cycle maxSamplesStored
+    // we'll default to 5000, unless overridden
+    volatile long reportPeriodInMillis = 5000;
     // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
@@ -110,17 +120,17 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             // if the config has changed for the app, just remove it and regenerate enabled next transaction
             isEnabledForApp.remove(appName);
 
-            maxSamplesStored = appLoggingConfig.getMaxSamplesStored();
+            maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
             forwardingEnabled = appLoggingConfig.isForwardingEnabled();
             contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
 
             boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
             boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
-            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled);
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled);
         }
     };
 
-    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled) {
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled) {
         StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
 
         if (forwardingEnabled) {
@@ -140,6 +150,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         } else {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED);
         }
+
+        if (logLabelsEnabled) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED);
+        } else {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED);
+        }
     }
 
     private final List<Harvestable> harvestables = new ArrayList<>();
@@ -149,9 +165,11 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
         ApplicationLoggingConfig appLoggingConfig = config.getApplicationLoggingConfig();
 
-        maxSamplesStored = appLoggingConfig.getMaxSamplesStored();
+        maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
         forwardingEnabled = appLoggingConfig.isForwardingEnabled();
         contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+        logLabelsEnabled = appLoggingConfig.isLogLabelsEnabled();
+        labels = appLoggingConfig.removeExcludedLogLabels(config.getLabelsConfig().getLabels());
 
         isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
     }
@@ -278,6 +296,10 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     public void setMaxSamplesStored(int maxSamplesStored) {
         this.maxSamplesStored = maxSamplesStored;
+    }
+
+    public void setReportPeriodInMillis(long reportPeriodInMillis) {
+        this.reportPeriodInMillis = reportPeriodInMillis;
     }
 
     public void clearReservoir() {
@@ -510,6 +532,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // Initialize new logEventAttributes map with agent linking metadata
         Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
 
+        if (labels != null && logLabelsEnabled) {
+            for (Map.Entry<String, String> label : labels.entrySet()) {
+                String labelKey = "tags." + label.getKey();
+                logEventAttributes.put(labelKey, label.getValue());
+            }
+        }
+
         LogEvent event = new LogEvent(logEventAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
@@ -522,11 +551,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
             LogAttributeKey logAttrKey = entry.getKey();
             Object value = entry.getValue();
+            String key = logAttrKey.getKey();
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
-            if (logAttrKey == null || logAttrKey.getKey() == null || value == null) {
-                Agent.LOG.log(Level.WARNING, "Log event with invalid attributes key or value of null was reported for a transaction but ignored."
-                        + " Each key should be a String and each value should be a String, Number, or Boolean.");
+            if (key == null || value == null) {
+                Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction."
+                        + " This attribute will be ignored. Each key should be a String and each value should be a String, Number, or Boolean."
+                        + " Key: " + (key == null ? "[null]" : Strings.obfuscate(key)));
                 continue;
             }
 
@@ -560,7 +591,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         private final Map<String, Object> logEventAttributes;
 
         public LogEventAttributeSender(Map<String, Object> logEventAttributes) {
-            super(new AttributeValidator(ATTRIBUTE_TYPE));
+            super(new LogAttributeValidator(ATTRIBUTE_TYPE));
             this.logEventAttributes = logEventAttributes;
             setTransactional(false);
         }
@@ -588,12 +619,12 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * Used to record LogEvents on Transactions
      */
     public static final class TransactionLogs implements Logs {
-        private final LinkedBlockingQueue<LogEvent> events;
+        private final Queue<LogEvent> events;
         private final ExcludeIncludeFilter contextDataKeyFilter;
 
         TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
             int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
-            events = new LinkedBlockingQueue<>(maxSamplesStored);
+            events = maxSamplesStored == 0 ? NoOpQueue.getInstance() : new LinkedBlockingQueue<>(maxSamplesStored);
             this.contextDataKeyFilter = contextDataKeyFilter;
         }
 

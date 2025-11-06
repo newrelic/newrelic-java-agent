@@ -9,10 +9,9 @@ package org.eclipse.jetty.ee8.nested;
 
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee8.servlet.ServerHelper;
+import com.nr.agent.instrumentation.jetty12.ee8.servlet.ServerHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

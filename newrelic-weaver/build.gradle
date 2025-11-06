@@ -3,6 +3,7 @@ import com.nr.builder.publish.PublishConfig
 plugins {
     id("maven-publish")
     id("signing")
+    id("kotlin")
 }
 
 configurations {
@@ -12,6 +13,7 @@ configurations {
 }
 
 apply from: '../gradle/script/spotbugs-config.gradle'
+apply from: '../gradle/script/jacoco.gradle'
 
 repositories {
     // hack to allow us to resolve the ':tools' dependency
@@ -34,6 +36,10 @@ dependencies {
 
     // used to test weaving java 1.4 class files
     testImplementation("org.apache.struts:struts-core:1.3.5")
+
+    //testing kotlin coroutines weaving
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.21")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
 
 jar {

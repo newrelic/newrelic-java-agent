@@ -83,6 +83,20 @@ common: &default_settings
   # Default is the logs directory in the newrelic.jar parent directory.
   #log_file_path:
 
+  # AI Monitoring captures insights on the performance, quality, and cost of interactions with LLM models made with instrumented SDKs.
+  ai_monitoring:
+
+    # Provides control over all AI Monitoring functionality. Set as true to enable all AI Monitoring features.
+    # Default is false.
+    enabled: false
+
+    # Provides control over whether attributes for the input and output content should be added to LLM events.
+    record_content:
+
+      # Set as false to disable attributes for the input and output content.
+      # Default is true.
+      enabled: true
+
   # Provides the ability to forward application logs to New Relic, generate log usage metrics,
   # and decorate local application log files with agent metadata for use with third party log forwarders.
   # The application_logging.forwarding and application_logging.local_decorating should not be used together.
@@ -104,6 +118,19 @@ common: &default_settings
       # events are sampled to maintain an even distribution across the harvest cycle.
       # Default is 10000. Setting to 0 will disable.
       #max_samples_stored: 10000
+
+      # Provides the ability to add custom tags(labels) to agent forwarded logs. Labels are
+      # pulled from the top-level 'labels' section (located near the bottom of this config file).
+      # Default is false.
+      labels:
+
+        # When true, custom tags (labels) will be added to agent forwarded logs.
+        enabled: false
+
+        # A comma separated list of label keys that should NOT be added to application logs.
+        # Example:
+        #   exclude: label_name1,label_name2
+        exclude:
 
       # Whether the log events should include context from loggers with support for that.
       context_data:
@@ -172,6 +199,12 @@ common: &default_settings
     # not be sent to New Relic.
     #exclude:
 
+
+    # Defines which sets of http attributes the agent will send: standard, legacy or both (default).
+    # Having the agent send both sets will increase ingestion.
+    # Having the agent send only legacy may impact current or future functionality.
+    http_attribute_mode: both
+
   # Transaction tracer captures deep information about slow
   # transactions and sends this to the New Relic service once a
   # minute. Included in the transaction is the exact call sequence of
@@ -191,6 +224,12 @@ common: &default_settings
     # (greater than four times the apdex_t value).
     # Default is apdex_f.
     transaction_threshold: apdex_f
+
+    # For large SQL statements, executing the regular expressions that attempt to parse exec and
+    # call statements can take a significant amount of time. Setting this to true will disable the
+    # execution of these complex regular expressions.
+    # Default is false.
+    exec_call_sql_regex_disabled: false
 
     # When transaction tracer is on, SQL statements can optionally be
     # recorded. The recorder has three modes, "off" which sends no
@@ -278,6 +317,21 @@ common: &default_settings
     # Default is false.
     exclude_newrelic_header: false
 
+    # Agent version 8.20.0+ utilize these settings for controlling how to sample when we have a remote parent
+    # involved. That is, if there is a valid traceparent with a value in the sampled flag on the inbound headers.
+    # If the inbound traceparent is marked as sampled then the remote_parent_sampled setting will be used.
+    # If the inbound traceparent is marked as NOT sampled then the remote_parent_not_sampled setting will be used.
+    # Otherwise New Relic's standard sampling will be used.
+    # Note: Reservoir limits are still in effect on top of these settings, so spans may be dropped even if they
+    # are marked for sampling, if the reservoir reaches its limit (max_samples_stored).
+    # Possible values:
+    #   default: New Relic's standard sampling rules will be used.
+    #   always_on: Always sample spans in this case.
+    #   always_off: Always skip sampling in this case.
+    sampler:
+      remote_parent_sampled: default
+      remote_parent_not_sampled: default
+
   # New Relic's distributed tracing UI uses Span events to display traces across different services.
   # Span events capture attributes that describe execution context and provide linking metadata.
   # Span events require distributed tracing to be enabled.
@@ -327,6 +381,33 @@ common: &default_settings
     # Set this attribute to false to turn off this behavior.
     auto_instrument: true
 
+    # For pages that emit the <head> tag via a JSP tag library, enabling this setting
+    # will monitor JspWriter print/println calls for output of the <head> element and
+    # inject the RUM script automatically.
+    tag_lib_instrument: false
+
+    # If tag_lib_instrument is true, this is the regex pattern that will be used to detect HTML start head elements. Modify
+    # the regex if you have more complex start head elements (attributes for example). The defined pattern is case-insensitive.
+    tag_lib_head_pattern: '<head>'
+
+  # By default, the agent sends JVM input arguments to New Relic, where they are visible as Environment data.
+  # Set to false to disable the sending of JVM props.
+  send_jvm_props: true
+
+  # Before sending JVM props to New Relic, the agent will obfuscate all data in a prop after an = sign.
+  # For example, the property -Dmy.prop=my-value will be sent to New Relic as -Dmy.prop=obfuscated.
+  # By default, the standard and extended JVM props (those beginning with -X*) are sent unobfuscated.
+  # Available since agent 8.16.0.
+  obfuscate_jvm_props:
+    #To disable this feature, and send all JVM props unobfuscated, set enabled to false. The default is true.
+    #enabled: true
+
+    # A comma separated list of JVM property names whose values should be sent to New Relic unobfuscated.
+    #allow:
+
+    # A comma separated list of JVM property names whose values should be sent to New Relic obfuscated.
+    #block:
+
   # Class transformer can be used to disable all agent instrumentation or specific instrumentation modules.
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
   class_transformer:
@@ -354,6 +435,34 @@ common: &default_settings
       org.mvel2.optimizers.impl.asm.ASMAccessorOptimizer$ContextClassLoader,
       gw.internal.gosu.compiler.SingleServingGosuClassLoader,
 
+    # Enhanced Spring transaction naming.
+    # This feature will name any transaction that originates from a Spring controller after
+    # the defined route and HTTP method. For example: "/customer/v1/edit (POST)".
+    # This includes controllers that implement or extend interfaces/classes with WebMVC related
+    # annotations (@RestController, @Controller, @RequestMapping, etc). By default, this is configured
+    # to false, which will name transactions for those types of controllers based on the controller
+    # class name and method. For example; "CustomerController/edit". This is the naming logic carried
+    # over from previous agent versions. "Standard" controllers, with all relevant annotations
+    # present on the actual class, will still get named based on route and HTTP method.
+    enhanced_spring_transaction_naming: false
+
+    # Use controller class and method for Spring transaction naming.
+    # When true, all Spring Controller transactions will be named using the controller class name
+    # and method name (e.g., "/CustomerController/edit") instead of using request mappings
+    # (e.g., "/api/v1/customer (POST)"). This setting takes precedence over enhanced_spring_transaction_naming.
+    # This helps prevent transaction name cardinality issues with complex URI patterns.
+    # Applies to Spring 4.3.x+ (spring-4.3.0 module) and Spring 6.x+ (spring-6.0.0 module).
+    # Default is false.
+    use_controller_class_and_method_for_spring_transaction_naming: false
+
+    # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
+    # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
+    # to true will result in the transaction name reflecting the actual base actuator endpoint URI.
+    # For example, invoking "/actuator/loggers" or "actuator/loggers/com.newrelic" will result in the
+    # transaction name "actuator/loggers (GET)". This is to prevent MGI.
+    # Default is false.
+    name_actuator_endpoints: false
+
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metrics to the ingest endpoint configured by
   # metric_ingest_uri and events to the ingest endpoint configured by event_ingest_uri.
@@ -371,6 +480,18 @@ common: &default_settings
     # Default is false.
     audit_logging: false
 
+    # The time interval, in seconds, of how often JFR data is sent to New Relic.
+    # The default is 10 seconds.
+    harvest_interval: 10
+
+    # The size of the queue used to store JFR events. Increasing this can reduce gaps in JFR reported data
+    # but can also cause resource issues in the agent or cause data to be dropped if backend pipeline
+    # limits are exceeded.
+    # See: https://docs.newrelic.com/docs/data-apis/ingest-apis/event-api/introduction-event-api/#limits
+    #      https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/metric-api-limits-restricted-attributes/
+    # Default is 250000
+    queue_size: 250000
+
   # User-configurable custom labels for this agent.  Labels are name-value pairs.
   # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.
   # Names and values may not contain colons (:) or semicolons (;).
@@ -385,11 +506,6 @@ common: &default_settings
     # true, the security module will run but data will not be sent. Default is false.
     enabled: false
 
-    # Determines whether the low priority attack/vulnerability modules will instrument or not.
-    # When this is disabled instrumentation of such modules will be skipped and vice versa, default is false.
-    low-priority-instrumentation:
-      enabled: false
-
     # New Relic Security provides two modes: IAST and RASP
     # Default is IAST. Due to the invasive nature of IAST scanning, DO NOT enable this mode in either a
     # production environment or an environment where production data is processed.
@@ -403,21 +519,86 @@ common: &default_settings
     agent:
       enabled: false
 
-    # These are the category of security events that can be detected. Set to false to disable detection of
-    # individual event types. Default is true for each event type.
-    detection:
-      rci:
-        enabled: true
-      rxss:
-        enabled: true
-      deserialization:
-        enabled: true
+    # This configuration allows users to specify a unique test identifier when running IAST Scan with CI/CD
+    # iast_test_identifier: 'run-id'
 
-  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's time exceeds the threshold value
-  # (in ms). A transaction will only be reported once.
+      # Security controllers
+    scan_controllers:
+      # The scan_request_rate_limit configuration allows to specify maximum number of replay request played per minute.
+      # The maximum is 3600 and the minimum is 12 replay request per minute.
+      iast_scan_request_rate_limit: 3600 # Number of IAST replay request played per minute, Default is 3600
+      # This configuration allows users to the number of application instances for a specific entity where IAST analysis is performed.
+      scan_instance_count: 0 # Values are 1 or 0, 0 signifies run on all application instances
+
+    # The scan_schedule configuration allows to specify when IAST scans should be executed
+    scan_schedule:
+      # The delay field specifies the delay in minutes before the IAST scan starts. This allows to schedule the scan to start at a later time.
+      delay: 0        #In minutes, default is 0 min
+      # The duration field specifies the duration of the IAST scan in minutes. This determines how long the scan will run.
+      duration: 0      #In minutes, default is forever
+
+      # The schedule field specifies a cron expression that defines when the IAST scan should start.
+      #schedule: ""   #By default, schedule is inactive
+
+      # Allow continuously sample collection of IAST events
+      always_sample_traces: false # Default is false
+
+    # The exclude_from_iast_scan configuration allows to specify APIs, parameters, and categories that should not be scanned by Security Agents.
+    exclude_from_iast_scan:
+      # The api field specifies list of APIs using regular expression (regex) patterns that follow the syntax of Perl 5. The regex pattern should provide a complete match for the URL without the endpoint.
+      # Example:
+      #   api:
+      #    - .*account.*
+      #    - .*/\api\/v1\/.*?\/login
+      api: [ ]
+
+      # The parameters configuration allows users to specify headers, query parameters, and body keys that should be excluded from IAST scans.
+      # Example:
+      #   http_request_parameters:
+      #    header:
+      #      - X-Forwarded-For
+      #    query:
+      #      - username
+      #      - password
+      #    body:
+      #      - account.email
+      #      - account.contact
+      http_request_parameters:
+        # A list of HTTP header keys. If a request includes any headers with these keys, the corresponding IAST scan will be skipped.
+        header: [ ]
+        # A list of query parameter keys. The presence of these parameters in the request's query string will lead to skipping the IAST scan.
+        query: [ ]
+        # A list of keys within the request body. If these keys are found in the body content, the IAST scan will be omitted.
+        body: [ ]
+
+      # The iast_detection_category configuration allows to specify which categories of vulnerabilities should not be detected by Security Agents.
+      # If any of these categories are set to true, Security Agents will not generate events or flag vulnerabilities for that category.
+      iast_detection_category:
+        insecure_settings: false
+        invalid_file_access: false
+        sql_injection: false
+        nosql_injection: false
+        ldap_injection: false
+        javascript_injection: false
+        command_injection: false
+        xpath_injection: false
+        ssrf: false
+        rxss: false
+        unsafe_deserialization: false
+        unsafe_reflection: false
+
+  # Slow transaction detection will report an event to New Relic ("SlowTransaction") whenever a Transaction's
+  # time exceeds the threshold value (in ms). A transaction will only be reported once and by default, only
+  # transactions that are in-process during a harvest cycle will be checked. Only the slowest single transaction
+  # will be reported even if multiple transactions exceed the threshold.
   slow_transactions:
-    enabled: false
-    threshold: 1000
+    enabled: true
+    threshold: 600000
+
+    # If this is set to true, every transaction will be checked for exceeding the defined threshold on
+    # transaction completion. Note that this can be computationally expensive since a stack trace is sent
+    # with every SlowTransaction event, if a large number of transaction exceed the threshold.
+    evaluate_completed_transactions: false
 
 # Application Environments
 # ------------------------------------------

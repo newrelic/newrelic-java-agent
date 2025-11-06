@@ -9,10 +9,16 @@ package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils;
 import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.ConnectionResponse;
 
 import java.util.ArrayList;
@@ -50,9 +56,21 @@ public class AgentConfigFactory {
     public static final String MAX_ERROR_EVENT_SAMPLES_STORED = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.MAX_EVENT_SAMPLES_STORED;
     public static final String COLLECT_TRACES = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_TRACES;
     public static final String COLLECT_TRANSACTION_EVENTS = TRANSACTION_EVENTS_PREFIX + "collect_analytics_events";
+    public static final String TRANSACTION_TARGET_SAMPLES_STORED = TRANSACTION_EVENTS_PREFIX + "target_samples_stored";
     public static final String COLLECT_SPAN_EVENTS = SPAN_EVENTS_PREFIX + SpanEventsConfig.COLLECT_SPAN_EVENTS;
     public static final String COLLECT_CUSTOM_INSIGHTS_EVENTS = CUSTOM_INSIGHT_EVENTS_PREFIX + InsightsConfigImpl.COLLECT_CUSTOM_EVENTS;
     public static final String RECORD_SQL = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.RECORD_SQL;
+    public static final String APPLICATION_LOGGING_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR + ApplicationLoggingConfigImpl.ENABLED;
+    public static final String APPLICATION_LOGGING_FORWARDING_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
+            ApplicationLoggingConfigImpl.FORWARDING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
+    public static final String APPLICATION_LOGGING_FORWARDING_MAX_SAMPLES_STORED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
+            ApplicationLoggingConfigImpl.FORWARDING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED;
+    public static final String APPLICATION_LOGGING_LOCAL_DECORATING_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
+            ApplicationLoggingConfigImpl.LOCAL_DECORATING + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
+    public static final String APPLICATION_LOGGING_METRICS_ENABLED = AgentConfigImpl.APPLICATION_LOGGING + DOT_SEPARATOR +
+            ApplicationLoggingConfigImpl.METRICS + DOT_SEPARATOR + ApplicationLoggingForwardingConfig.ENABLED;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_PERIOD;
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = AgentConfigImpl.ADAPTIVE_SAMPLER_SAMPLING_TARGET;
     @Deprecated
     public static final String SLOW_QUERY_WHITELIST = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.SLOW_QUERY_WHITELIST;
     public static final String COLLECT_SLOW_QUERIES_FROM = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM;
@@ -181,6 +199,7 @@ public class AgentConfigFactory {
         addServerProp(COLLECT_ERROR_EVENTS, serverData.get(ErrorCollectorConfigImpl.COLLECT_EVENTS), settings);
         addServerProp(CAPTURE_ERROR_EVENTS, serverData.get(ErrorCollectorConfigImpl.CAPTURE_EVENTS), settings);
         addServerProp(MAX_ERROR_EVENT_SAMPLES_STORED, serverData.get(ErrorCollectorConfigImpl.MAX_EVENT_SAMPLES_STORED), settings);
+        addServerProp(AiMonitoringUtils.COLLECT_AI, serverData.get(AiMonitoringUtils.COLLECT_AI), settings);
         addServerProp(COLLECT_TRACES, serverData.get(TransactionTracerConfigImpl.COLLECT_TRACES), settings);
         addServerProp(COLLECT_TRANSACTION_EVENTS, serverData.get("collect_analytics_events"), settings);
         addServerProp(COLLECT_CUSTOM_INSIGHTS_EVENTS, serverData.get(InsightsConfigImpl.COLLECT_CUSTOM_EVENTS), settings);
@@ -200,10 +219,32 @@ public class AgentConfigFactory {
         addServerProp(EXPECTED_CLASSES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_CLASSES), settings);
         addServerProp(EXPECTED_STATUS_CODES, serverData.get(ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES), settings);
 
+        // Transaction event properties
+        Object samplingTarget = serverData.get("sampling_target");
+        addServerProp(TRANSACTION_TARGET_SAMPLES_STORED, samplingTarget, settings);
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, serverData.get("sampling_target_period_in_seconds"), settings);
+        addServerProp(ADAPTIVE_SAMPLER_SAMPLING_TARGET, samplingTarget, settings);
+
+        if (samplingTarget instanceof Number) {
+            ServiceFactory.getStatsService()
+                    .doStatsWork(
+                            StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE,
+                                    ((Number) samplingTarget).floatValue()),
+                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE);
+        }
+
         // Adding agent_run_id & account_id to config as required by Security agent
         addServerProp(ConnectionResponse.AGENT_RUN_ID_KEY, serverData.get(ConnectionResponse.AGENT_RUN_ID_KEY), settings);
         addServerProp(DistributedTracingConfig.ACCOUNT_ID, serverData.get(DistributedTracingConfig.ACCOUNT_ID), settings);
         addServerProp("agent_home", ConfigFileHelper.getNewRelicDirectory().getAbsolutePath(), settings);
+
+        // Application logging
+        addServerProp(APPLICATION_LOGGING_ENABLED, agentData.get(APPLICATION_LOGGING_ENABLED), settings);
+        addServerProp(APPLICATION_LOGGING_FORWARDING_ENABLED, agentData.get(APPLICATION_LOGGING_FORWARDING_ENABLED), settings);
+        addServerProp(APPLICATION_LOGGING_FORWARDING_MAX_SAMPLES_STORED, agentData.get(APPLICATION_LOGGING_FORWARDING_MAX_SAMPLES_STORED), settings);
+        addServerProp(APPLICATION_LOGGING_LOCAL_DECORATING_ENABLED, agentData.get(APPLICATION_LOGGING_LOCAL_DECORATING_ENABLED), settings);
+        addServerProp(APPLICATION_LOGGING_METRICS_ENABLED, agentData.get(APPLICATION_LOGGING_METRICS_ENABLED), settings);
+
         if (AgentJarHelper.getAgentJarDirectory() != null) {
             addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
         }
@@ -229,7 +270,21 @@ public class AgentConfigFactory {
         }
 
         // Copy "event_harvest_config" over from the serverData since it doesn't live in the "agent_config" subsection (it's a top level property from the collector)
-        addServerProp(AgentConfigFactory.EVENT_HARVEST_CONFIG, serverData.get(EVENT_HARVEST_CONFIG), settings);
+        Object eventHarvestConfig = serverData.get(EVENT_HARVEST_CONFIG);
+        addServerProp(AgentConfigFactory.EVENT_HARVEST_CONFIG, eventHarvestConfig, settings);
+
+        // when log forwarding is disabled account wide, the backend will inform the agent by setting the harvest limit to 0
+        if (eventHarvestConfig instanceof Map) {
+            Object harvestLimits = ((Map<?, ?>) eventHarvestConfig).get(HarvestServiceImpl.HARVEST_LIMITS);
+            if (harvestLimits instanceof Map) {
+                Object logLimit = ((Map<?, ?>) harvestLimits).get(CollectorMethods.LOG_EVENT_DATA);
+                if (logLimit instanceof Number && ((Number) logLimit).intValue() == 0) {
+                    String loggingForwardingEnabled = AgentConfigImpl.APPLICATION_LOGGING + "." + ApplicationLoggingConfigImpl.FORWARDING + "." +
+                            ApplicationLoggingForwardingConfig.ENABLED;
+                    addServerProp(loggingForwardingEnabled, false, settings);
+                }
+            }
+        }
 
         // Browser settings
         addServerProp(BrowserConfig.BROWSER_KEY, serverData.get(BrowserConfig.BROWSER_KEY), settings);

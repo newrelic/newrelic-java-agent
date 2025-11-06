@@ -7,8 +7,6 @@
 
 package org.jboss.netty.bootstrap;
 
-import java.util.logging.Level;
-
 import com.agent.instrumentation.netty38.RequestWrapper;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
@@ -20,10 +18,12 @@ import com.newrelic.api.agent.weaver.internal.WeavePackageType;
 import org.jboss.netty.channel.ChannelHandlerContext_Instrumentation;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 
+import java.util.logging.Level;
+
 /**
  * This isn't a netty class. This is an agent ChannelUpstreamHandler which will start a transaction on i/o read. It's
  * best to put this handler in front of "interesting" (e.g. ServerBootstrap) pipelines.
- * 
+ * <p>
  * Since this class creates a tracer, its class+method name will show in the TT, hence the class name.
  */
 public class NettyDispatcher {
@@ -61,15 +61,15 @@ public class NettyDispatcher {
             }
 
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
+
             if (tx != null) {
                 tx.setWebRequest(new RequestWrapper((DefaultHttpRequest) msg));
             }
-            
-        } catch(Throwable t) {
+
+        } catch (Throwable t) {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         } finally {
             AgentBridge.currentApiSource.remove();
         }
     }
-
 }

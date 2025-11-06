@@ -14,6 +14,11 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.logging.Level;
 
+import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
+
+/**
+ * SSL/TLS debug logging is handled by this class when using -Dnewrelic.debug=true
+ */
 public class ApacheCommonsAdaptingLogFactory extends LogFactory {
 
     public static final IAgentLogger LOG = AgentLogManager.getLogger();
@@ -98,84 +103,84 @@ public class ApacheCommonsAdaptingLogFactory extends LogFactory {
         @Override
         public void trace(Object message) {
             if (isDebugEnabled()) {
-                logger.trace(message.toString());
+                logger.trace(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void trace(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.FINEST, t, message.toString());
+                logger.log(Level.FINEST, t, obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void debug(Object message) {
             if (isDebugEnabled()) {
-                logger.debug(message.toString());
+                logger.debug(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void debug(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.FINEST, "{0} : {1}", message, t);
+                logger.log(Level.FINEST, "{0} : {1}", obfuscateLicenseKey(message.toString()), t);
             }
         }
 
         @Override
         public void info(Object message) {
             if (isDebugEnabled()) {
-                logger.info(message.toString());
+                logger.info(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void info(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.INFO, "{0} : {1}", message, t);
+                logger.log(Level.INFO, "{0} : {1}", obfuscateLicenseKey(message.toString()), t);
             }
         }
 
         @Override
         public void warn(Object message) {
             if (isDebugEnabled()) {
-                logger.warning(message.toString());
+                logger.warning(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void warn(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.WARNING, "{0} : {1}", message, t);
+                logger.log(Level.WARNING, "{0} : {1}", obfuscateLicenseKey(message.toString()), t);
             }
         }
 
         @Override
         public void error(Object message) {
             if (isDebugEnabled()) {
-                logger.error(message.toString());
+                logger.error(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void error(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.SEVERE, "{0} : {1}", message, t);
+                logger.log(Level.SEVERE, "{0} : {1}", obfuscateLicenseKey(message.toString()), t);
             }
         }
 
         @Override
         public void fatal(Object message) {
             if (isDebugEnabled()) {
-                logger.severe(message.toString());
+                logger.severe(obfuscateLicenseKey(message.toString()));
             }
         }
 
         @Override
         public void fatal(Object message, Throwable t) {
             if (isDebugEnabled()) {
-                logger.log(Level.SEVERE, "{0} : {1}", message, t);
+                logger.log(Level.SEVERE, "{0} : {1}", obfuscateLicenseKey(message.toString()), t);
             }
         }
     }

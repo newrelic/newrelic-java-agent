@@ -1,0 +1,21 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.kafka:kafka-clients:3.7.0")
+
+    testImplementation("org.testcontainers:kafka:1.21.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-metrics-3.7.0',
+            'Implementation-Title-Alias': 'kafka-clients-metrics' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-clients:[3.7.0,3.9.0)'
+}
+
+site {
+    title 'Kafka'
+    type 'Messaging'
+}

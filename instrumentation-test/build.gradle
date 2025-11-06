@@ -1,5 +1,7 @@
 evaluationDependsOn(":newrelic-agent")
 
+apply from: '../gradle/script/jacoco.gradle'
+
 dependencies {
     // Instrumentation-test (this project) serves as a consolidation point for
     // multiple types of dependencies. Beyond the introspector, many of these dependencies

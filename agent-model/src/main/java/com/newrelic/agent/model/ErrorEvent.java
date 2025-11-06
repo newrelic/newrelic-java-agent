@@ -247,6 +247,7 @@ public class ErrorEvent extends AnalyticsEvent implements JSONStreamAware {
         }
         if (transactionGuid != null) {
             obj.put("nr.transactionGuid", transactionGuid); // prefixed to be hidden by Insights
+            obj.put("guid", transactionGuid);
         }
         if (referringTransactionGuid != null) {
             obj.put("nr.referringTransactionGuid", referringTransactionGuid); // prefixed to be hidden by Insights

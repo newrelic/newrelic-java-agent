@@ -1,0 +1,15 @@
+# Dependabot Configuration
+#
+# This configuration file specifies the settings for Dependabot Scanning.
+# It monitors the Gradle dependencies in the specified subproject and runs checks
+# on a weekly basis. This will not create pull requests for version updates, but
+# can be updated to create pull requests.
+
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directories:
+      - "/newrelic-agent"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0

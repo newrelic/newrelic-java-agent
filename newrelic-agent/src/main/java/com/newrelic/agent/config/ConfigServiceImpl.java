@@ -18,6 +18,7 @@ import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.api.agent.NewRelic;
 import org.json.simple.JSONObject;
 
 import java.io.File;
@@ -139,6 +140,8 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
             settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
         }
+        //if there is no adaptive_sampling_target set, set it here.
+        addAdaptiveSamplerDefaultIfNotSet(settings);
         return settings;
     }
 
@@ -211,6 +214,18 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
 
         // This ensures that all listeners are notified and that configuration is updated across the app
         replaceServerConfig(defaultAppName, fileSettings, savedServerData, laspPolicies);
+    }
+
+    private void addAdaptiveSamplerDefaultIfNotSet(Map<String, Object> settings) {
+        try {
+            settings.putIfAbsent("distributed_tracing", new HashMap<>());
+            Map<String, Object> dtSettings = (Map<String, Object>) settings.get("distributed_tracing");
+            dtSettings.putIfAbsent("sampler", new HashMap<>());
+            Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
+            samplerSettings.putIfAbsent(SamplerConfig.ADAPTIVE_SAMPLING_TARGET, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
+        } catch (Exception e) {
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Error adding default adaptive sampling target settings to agent config.");
+        }
     }
 
     private void updateDynamicAuditAndLogConfig(AgentConfig localAgentConfig, Map<String, Object> settings) {

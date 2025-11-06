@@ -1,0 +1,21 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-bedrock-runtime-2.20' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'software.amazon.awssdk:bedrockruntime:2.20.157'
+
+    testImplementation 'software.amazon.awssdk:bedrockruntime:2.20.157'
+    testImplementation 'org.mockito:mockito-inline:4.11.0'
+    testImplementation 'org.json:json:20240303'
+}
+
+verifyInstrumentation {
+    passes 'software.amazon.awssdk:bedrockruntime:[2.20.157,)'
+}
+
+site {
+    title 'AWS Bedrock'
+    type 'Other'
+}

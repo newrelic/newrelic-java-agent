@@ -51,8 +51,13 @@ public class DatastoreParameters implements ExternalParameters {
      */
     private final String databaseName;
 
+    /**
+     * The cloud provider's identifier for this resource. Eg. in AWS, this should be an ARN.
+     */
+    private final String cloudResourceId;
+
     private DatastoreParameters(String product, String collection, String operation, String host, Integer port,
-            String pathOrId, String databaseName) {
+            String pathOrId, String databaseName, String cloudResourceId) {
         this.product = product;
         this.collection = collection;
         this.operation = operation;
@@ -60,6 +65,7 @@ public class DatastoreParameters implements ExternalParameters {
         this.port = port;
         this.pathOrId = pathOrId;
         this.databaseName = databaseName;
+        this.cloudResourceId = cloudResourceId;
     }
 
     protected DatastoreParameters(DatastoreParameters datastoreParameters) {
@@ -70,6 +76,7 @@ public class DatastoreParameters implements ExternalParameters {
         this.port = datastoreParameters.port;
         this.pathOrId = datastoreParameters.pathOrId;
         this.databaseName = datastoreParameters.databaseName;
+        this.cloudResourceId = datastoreParameters.cloudResourceId;
     }
 
     protected static class Builder implements CollectionParameter, OperationParameter, InstanceParameter,
@@ -81,6 +88,7 @@ public class DatastoreParameters implements ExternalParameters {
         private Integer port = null;
         private String pathOrId = null;
         private String databaseName = null;
+        private String cloudResourceId = null;
 
         /**
          * Used for {@link SlowQueryDatastoreParameters}. The builder method below gives us type safety here.
@@ -137,6 +145,12 @@ public class DatastoreParameters implements ExternalParameters {
         }
 
         @Override
+        public Build cloudResourceId(String cloudResourceId) {
+            this.cloudResourceId = cloudResourceId;
+            return this;
+        }
+
+        @Override
         public DatastoreParameters build() {
             if (inputQueryLabel != null && rawInputQuery != null && rawInputQueryConverter != null) {
                 return new SlowQueryWithInputDatastoreParameters<>(
@@ -167,7 +181,7 @@ public class DatastoreParameters implements ExternalParameters {
         }
 
         private DatastoreParameters buildRegular() {
-            return new DatastoreParameters(product, collection, operation, host, port, pathOrId, databaseName);
+            return new DatastoreParameters(product, collection, operation, host, port, pathOrId, databaseName, cloudResourceId);
         }
 
         private SlowQueryDatastoreParameters<?> buildWithSlowQuery() {
@@ -251,6 +265,13 @@ public class DatastoreParameters implements ExternalParameters {
      */
     public String getDatabaseName() {
         return databaseName;
+    }
+
+    /**
+     * @return the cloud provider's identifier for the message queue. Eg. in AWS, this should be an ARN.
+     */
+    public String getCloudResourceId() {
+        return cloudResourceId;
     }
 
     // Builder Interfaces
@@ -376,6 +397,13 @@ public class DatastoreParameters implements ExternalParameters {
     }
 
     public interface Build {
+
+        /**
+         * Set the cloud provider's id for the database.
+         * This method is optional and can be bypassed by calling build directly.
+         * @return the build object so it can be built.
+         */
+        Build cloudResourceId(String cloudResourceId);
 
         /**
          * Build the final {@link DatastoreParameters} for the API call.

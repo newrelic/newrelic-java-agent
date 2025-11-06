@@ -1,0 +1,30 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-sqlclient-4.4.2'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("io.vertx:vertx-pg-client:4.4.2")
+
+    testImplementation("io.vertx:vertx-core:4.4.2")
+    testImplementation("io.vertx:vertx-web:4.4.2")
+    testImplementation('org.testcontainers:postgresql:1.20.1')
+    testImplementation('com.ongres.scram:client:2.1')
+}
+
+verifyInstrumentation {
+    passes 'io.vertx:vertx-pg-client:[4.4.2,5.0.0)'
+    excludeRegex '.*SNAPSHOT'
+    excludeRegex '.*milestone.*'
+    excludeRegex '.*alpha.*'
+    excludeRegex '.*Beta.*'
+    excludeRegex '.*CR.*'
+}
+
+site {
+    title 'Vertx'
+    type 'Framework'
+}

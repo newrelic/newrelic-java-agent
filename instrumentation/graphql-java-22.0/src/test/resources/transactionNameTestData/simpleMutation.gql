@@ -1,0 +1,13 @@
+mutation {
+    writePost(title: "New Post2", text: "Text", category: null, author: "Author2") {
+        id
+        title
+        category
+        text
+        author {
+            id
+            name
+            thumbnail
+        }
+    }
+}
