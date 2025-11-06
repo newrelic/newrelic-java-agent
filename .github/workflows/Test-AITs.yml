@@ -379,14 +379,43 @@ jobs:
           path: ${{ github.workspace }}/negative_value_*.txt
           if-no-files-found: ignore
 
-      - name: Process ingest metrics files
-        run: |
-          echo "Combining ingest metric files into ingest-aggregate.txt..."
-          cat ingest-*.txt > ingest-aggregate.txt
-          echo "Calculating sum and creating ingest-sum.txt..."
-          cat ingest-sum.txt | awk -F'/' '/BytesSent/ { sum += $5 } END { print sum }' > ingest-sum.txt
+      - name: Upload raw ingest metric files
+        if: ${{ success() }}
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: ingest-raw-data   # The action is smart enough to aggregate all uploaded files to this artifact name across all test runs
+          path: agent-integration-tests/ingest-*.txt
+          if-no-files-found: ignore
 
-      - name: Upload ingest metric files
+  process-ingest-metric-files:
+    name: Process Ingest Metrics
+    needs: [ tests ]
+    if: ${{ always() }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Download all raw ingest files
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        with:
+          name: ingest-raw-data
+          path: all-ingest-files
+
+      - name: Aggregate and sum all files
+        run: |
+          cd all-ingest-files
+          
+          # Check if any files were actually downloaded
+          # 'shopt -s nullglob' makes the glob expand to nothing if no files match
+          shopt -s nullglob
+          files=(ingest-*.txt)
+          
+          echo "Creating single aggregate ingest metric file.."
+          cat ingest-*.txt > ../ingest-aggregate.txt
+          
+          echo "Summing bytes sent across the full test run.."
+          cat ingest-*.txt | awk -F'/' '/BytesSent/ { sum += $5 } END { if (sum == "") sum = 0; print sum }' > ../ingest-sum.txt
+
+      - name: Upload processed artifacts
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: processed-ingest-files
