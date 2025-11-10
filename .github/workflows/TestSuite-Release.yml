@@ -119,7 +119,7 @@ jobs:
           cd wiki
 
           # Append link to Ingest-Metrics.md if it doesn't already exist
-          LINK_TEXT="- [Ingest Metrics v${{ inputs.agent-version }}](ingest-metrics/${FILENAME})"
+          LINK_TEXT="- [Ingest Metrics v${{ inputs.agent-version }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics/ingest-metrics-v${{ inputs.agent-version }})"
           if ! grep -q "${FILENAME}" ingest-metrics.md 2>/dev/null; then
             echo "" >> Ingest-Metrics.md
             echo "${LINK_TEXT}" >> Ingest-Metrics.md
