@@ -109,6 +109,9 @@ jobs:
 
       - name: Commit and push to wiki
         run: |
+          # Create ingest-metrics directory if it doesn't exist
+          mkdir -p wiki/ingest-metrics
+
           # Copy the report using agent-version as filename
           FILENAME="ingest-metrics-v${{ inputs.agent-version }}.md"
           cp ingest-files/ingest-report.md "wiki/ingest-metrics/${FILENAME}"
