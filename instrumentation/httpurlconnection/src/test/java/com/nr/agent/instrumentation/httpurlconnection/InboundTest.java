@@ -177,7 +177,6 @@ public class InboundTest {
 
     private String fetchTransactionName(Introspector introspector, String expectedMethod) {
         assertEquals(1, introspector.getFinishedTransactionCount(500));
-
         String transactionName = introspector.getTransactionNames().iterator().next();
         boolean foundExpectedEvent = false;
         for (TransactionEvent event : introspector.getTransactionEvents(transactionName)) {

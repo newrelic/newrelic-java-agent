@@ -33,7 +33,7 @@ public class MockSpanEventReservoirManager implements ReservoirManager<SpanEvent
     public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir(String appName) {
         SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
         if (reservoir == null) {
-            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0));
+            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName));
             if (reservoir == null) {
                 reservoir = spanReservoirsForApp.get(appName);
             }
@@ -41,10 +41,9 @@ public class MockSpanEventReservoirManager implements ReservoirManager<SpanEvent
         return reservoir;
     }
 
-    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName, int decidedLast) {
+    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName) {
         SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
-        int target = spanEventsConfig.getTargetSamplesStored();
-        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
+        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, SPAN_EVENT_COMPARATOR);
     }
 
 
@@ -67,7 +66,7 @@ public class MockSpanEventReservoirManager implements ReservoirManager<SpanEvent
     public void setMaxSamplesStored(int newMax) {
         maxSamplesStored = newMax;
         ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> newMaxSpanReservoirs = new ConcurrentHashMap<>();
-        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
+        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName)));
         spanReservoirsForApp = newMaxSpanReservoirs;
     }
 

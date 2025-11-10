@@ -19,6 +19,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
@@ -90,4 +91,6 @@ public interface IRPMService extends Service {
     void sendSpanEvents(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception;
 
     void sendErrorData(List<TracedError> tracedErrors) throws Exception;
+
+    HealthDataProducer getHttpDataSenderAsHealthDataProducer();
 }

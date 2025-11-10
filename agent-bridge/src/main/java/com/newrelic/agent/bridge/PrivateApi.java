@@ -57,6 +57,8 @@ public interface PrivateApi {
 
     void addTracerParameter(String key, String value);
 
+    void addTracerParameter(String key, String value, boolean addToSpan);
+
     void addTracerParameter(String key, Map<String, String> values);
 
     /**

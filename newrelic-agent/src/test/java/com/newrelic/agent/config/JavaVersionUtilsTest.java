@@ -17,22 +17,47 @@ import static org.junit.Assert.assertTrue;
 
 public class JavaVersionUtilsTest {
 
+    public static final String JAVA_7 = "1.7";
+    public static final String JAVA_8 = "1.8";
+    public static final String JAVA_9 = "9";
+    public static final String JAVA_10 = "10";
+    public static final String JAVA_11 = "11";
+    public static final String JAVA_12 = "12";
+    public static final String JAVA_13 = "13";
+    public static final String JAVA_14 = "14";
+    public static final String JAVA_15 = "15";
+    public static final String JAVA_16 = "16";
+    public static final String JAVA_17 = "17";
+    public static final String JAVA_18 = "18";
+    public static final String JAVA_19 = "19";
+    public static final String JAVA_20 = "20";
+    public static final String JAVA_21 = "21";
+    public static final String JAVA_22 = "22";
+    public static final String JAVA_23 = "23";
+    public static final String JAVA_24 = "24";
+    public static final String JAVA_25 = "25";
+    public static final String JAVA_26 = "26";
+
     @Test
     public void supportAgentJavaSpecVersions() {
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_8));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_9));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_10));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_11));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_12));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_13));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_14));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_15));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_16));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_17));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_18));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_19));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_20));
-        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JavaVersionUtils.JAVA_21));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_8));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_9));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_10));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_11));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_12));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_13));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_14));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_15));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_16));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_17));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_18));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_19));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_20));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_21));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_22));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_23));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_24));
+        assertTrue(JavaVersionUtils.isAgentSupportedJavaSpecVersion(JAVA_25));
     }
 
     @Test
@@ -54,16 +79,19 @@ public class JavaVersionUtilsTest {
         assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("1.7.1_gibberish"));
     }
 
+
     @Test
     public void javaVersionHigherThanSupported() {
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0+181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0_b181"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0.1"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0.1+11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0.1_11"));
-        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("22.0.1_11-b11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26."));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0+181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0_b181"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0.1"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0.1+11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0.1_11"));
+        assertFalse(JavaVersionUtils.isAgentSupportedJavaSpecVersion("26.0.1_11-b11"));
     }
 
     @Test
@@ -83,24 +111,24 @@ public class JavaVersionUtilsTest {
 
     @Test
     public void unsupportedJavaVersionMessageWhenLessThanMinimalSupportedVersion() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_7);
-        assertThat(msg, containsString(JavaVersionUtils.JAVA_7));
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JAVA_7);
+        assertThat(msg, containsString(JAVA_7));
         assertThat(msg, containsString("6.5.3 New Relic agent"));
     }
 
     @Test
     public void unsupportedJavaVersionMessageWhenGreaterThanMaxSupportedVersion() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_22);
-        assertThat(msg, containsString(JavaVersionUtils.JAVA_22));
-        assertThat(msg, containsString("Java greater than 21."));
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JAVA_26);
+        assertThat(msg, containsString(JAVA_26));
+        assertThat(msg, containsString("Java greater than 25."));
     }
 
     @Test
     public void emptyMessageReturnedWhenJavaVersionSupported() {
-        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_8);
+        String msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JAVA_8);
         assertEquals(0, msg.length());
 
-        msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JavaVersionUtils.JAVA_21);
+        msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(JAVA_25);
         assertEquals(0, msg.length());
 
         msg = JavaVersionUtils.getUnsupportedAgentJavaSpecVersionMessage(null);

@@ -314,6 +314,12 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     }
 
     @Override
+    public Map<String, Object> getUserAttributes() {
+        Transaction tx = getTransactionIfExists();
+        return (tx != null) ? tx.getUserAttributes() : NoOpTransaction.INSTANCE.getUserAttributes();
+    }
+
+    @Override
     public void provideHeaders(InboundHeaders headers) {
         Transaction tx = getTransactionIfExists();
         if (tx != null) {

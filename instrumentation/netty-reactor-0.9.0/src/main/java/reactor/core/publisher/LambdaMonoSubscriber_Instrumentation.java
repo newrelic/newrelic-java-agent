@@ -50,6 +50,15 @@ abstract class LambdaMonoSubscriber_Instrumentation {
         Weaver.callOriginal();
     }
 
+    public void dispose() {
+        Token token = this.currentContext().getOrDefault("newrelic-token", null);
+        if (token != null) {
+            token.expire();
+            this.nrContext = null;
+        }
+        Weaver.callOriginal();
+    }
+
     public Context currentContext() {
         if (nrContext != null) {
             return initialContext.putAll(nrContext);

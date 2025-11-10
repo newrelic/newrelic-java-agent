@@ -24,10 +24,6 @@ public interface BrowserTransactionState {
 
     String getBrowserTimingHeaderForJsp();
 
-    String getBrowserTimingFooter();
-
-    String getBrowserTimingFooter(String nonce);
-
     String getTransactionName();
 
     Map<String, Object> getUserAttributes();

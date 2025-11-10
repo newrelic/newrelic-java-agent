@@ -21,11 +21,8 @@ public class SystemPropertyProvider {
     // environment variables
     private static final String NEW_RELIC_PREFIX_ENV = "NEW_RELIC_";
     private static final String LOG_ENV = NEW_RELIC_PREFIX_ENV + "LOG";
-    private static final String LOG_FILE_NAME = AgentConfigImpl.SYSTEM_PROPERTY_ROOT + AgentConfigImpl.LOG_FILE_NAME;
     private static final String NEW_RELIC_SYSTEM_PROPERTY_ROOT = "newrelic.";
 
-    private final Map<String, String> envVars;
-    private final Map<String, String> envVarToSystemPropKeyMap;
     private final Map<String, String> newRelicSystemProps;
     private final Map<String, Object> newRelicPropsWithoutPrefix;
     private final Map<String, Object> newRelicEnvVarsWithoutPrefix;
@@ -39,25 +36,9 @@ public class SystemPropertyProvider {
     public SystemPropertyProvider(SystemProps sysProps, EnvironmentFacade environmentFacade) {
         systemProps = sysProps;
         this.environmentFacade = environmentFacade;
-        envVars = initEnvVariables();
-        envVarToSystemPropKeyMap = initEnvVarToSystemPropMap();
         newRelicSystemProps = initNewRelicSystemProperties();
         newRelicPropsWithoutPrefix = createNewRelicSystemPropertiesWithoutPrefix();
         newRelicEnvVarsWithoutPrefix = createNewRelicEnvVarsWithoutPrefix();
-    }
-
-    private Map<String, String> initEnvVariables() {
-        // general environment variables, originally added for Heroku
-        Map<String, String> envVars = new HashMap<>();
-        envVars.put(LOG_FILE_NAME, getenv(LOG_ENV));
-        return envVars;
-    }
-
-    private Map<String, String> initEnvVarToSystemPropMap() {
-        // general environment variables, originally added for Heroku
-        Map<String, String> envVars = new HashMap<>();
-        envVars.put(LOG_ENV, LOG_FILE_NAME);
-        return envVars;
     }
 
     /**
@@ -104,9 +85,10 @@ public class SystemPropertyProvider {
         for (Map.Entry<String, String> entry : allEnvVars.entrySet()) {
             String envVar = entry.getKey();
             if (envVar.startsWith(NEW_RELIC_PREFIX_ENV)) {
-                String envVarNameToReplace = envVarToSystemPropKeyMap.get(envVar);
-                if (envVarNameToReplace != null) {
-                    addPropertyWithoutSystemPropRoot(nrProps, envVarNameToReplace, entry.getValue());
+                if (envVar.equals(LOG_ENV)) {
+                    // The classic NEW_RELIC_LOG corresponds to the log_file_name property
+                    // so we use log_file_name here.
+                    nrProps.put(AgentConfigImpl.LOG_FILE_NAME, entry.getValue());
                 } else {
                     addPropertyWithoutEnvPrefix(nrProps, envVar.toLowerCase(), entry.getValue());
                 }
@@ -128,21 +110,6 @@ public class SystemPropertyProvider {
     }
 
     public String getEnvironmentVariable(String key) {
-        String propVal = envVars.get(key);
-        if (propVal != null) {
-            return propVal;
-        }
-
-        return getenv(key);
-    }
-
-    private String getenv(String key) {
-        String val = environmentFacade.getenv(key);
-        if (val != null) {
-            return val;
-        }
-        //check if current key needs to be converted from NR config prop to NR env var
-
         return environmentFacade.getenv(formatNewRelicEnvVarPrefix(key));
     }
 

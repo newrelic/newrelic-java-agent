@@ -118,4 +118,29 @@ public class CustomInsightsEventsConfigUtilsTest {
         Mockito.when(ServiceFactory.getConfigService().getDefaultAgentConfig()).thenReturn(config);
         Assert.assertFalse(config.getInsightsConfig().isEnabled());
     }
+
+    @Test
+    public void testMaxAttributeValue() {
+        // setup
+        Map<String, Object> root = new HashMap<>();
+        Map<String, Object> customEvents = new HashMap<>();
+        root.put("custom_insights_events", customEvents);
+
+        // start with the default
+        AgentConfig config = AgentConfigImpl.createAgentConfig(root);
+        Assert.assertEquals(InsightsConfigImpl.DEFAULT_MAX_ATTRIBUTE_VALUE,
+                config.getInsightsConfig().getMaxAttributeValue());
+
+        // under config
+        customEvents.clear();
+        customEvents.put(InsightsConfigImpl.MAX_ATTRIBUTE_VALUE, 10);
+        config = AgentConfigImpl.createAgentConfig(root);
+        Assert.assertEquals(10, config.getInsightsConfig().getMaxAttributeValue());
+
+        // over config
+        customEvents.clear();
+        customEvents.put(InsightsConfigImpl.MAX_ATTRIBUTE_VALUE, 100000000);
+        config = AgentConfigImpl.createAgentConfig(root);
+        Assert.assertEquals(InsightsConfigImpl.MAX_MAX_ATTRIBUTE_VALUE, config.getInsightsConfig().getMaxAttributeValue());
+    }
 }

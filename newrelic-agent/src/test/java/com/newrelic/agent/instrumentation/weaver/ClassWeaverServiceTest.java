@@ -24,12 +24,14 @@ import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveIntoAllMethods;
 import com.newrelic.bootstrap.BootstrapAgent;
+import com.newrelic.test.marker.RequiresFork;
 import com.newrelic.weave.WeaveTestUtils;
 import com.newrelic.weave.utils.WeaveUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.objectweb.asm.ClassReader;
@@ -49,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
+@Category(RequiresFork.class)
 public class ClassWeaverServiceTest {
 
     private static MockedStatic<AgentLogManager> mockedAgentLogManager;

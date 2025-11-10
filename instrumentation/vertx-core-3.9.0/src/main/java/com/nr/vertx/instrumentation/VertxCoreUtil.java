@@ -48,6 +48,15 @@ public class VertxCoreUtil {
         }
     }
 
+    public static void expireToken(Handler handler) {
+        if (handler != null) {
+            final Token token = tokenMap.remove(handler);
+            if (token != null) {
+                token.expire();
+            }
+        }
+    }
+
     public static void processResponse(Segment segment, HttpClientResponseImpl resp, String host, int port,
             String scheme) {
         try {
@@ -56,6 +65,7 @@ public class VertxCoreUtil {
                                                    .uri(uri)
                                                    .procedure(END)
                                                    .inboundHeaders(new InboundWrapper(resp))
+                                                   .status(resp.statusCode(), resp.statusMessage())
                                                    .build());
         } catch (URISyntaxException e) {
             AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());

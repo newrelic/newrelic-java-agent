@@ -27,9 +27,19 @@ public class ExcludeIncludeFilterImpl implements ExcludeIncludeFilter {
      * @param includes   the collection of keys to be included, if empty, all keys are considered included
      */
     public ExcludeIncludeFilterImpl(String identifier, Collection<String> excludes, Collection<String> includes) {
+        this(identifier, excludes, includes, includes == null || includes.isEmpty());
+    }
+
+    /**
+     * @param identifier used in logs so filters can be distinguished
+     * @param excludes   the collection of keys to be excluded
+     * @param includes   the collection of keys to be included
+     * @param includeByDefault if true, keys not in the include list will be included, otherwise they will be excluded
+     */
+    public ExcludeIncludeFilterImpl(String identifier, Collection<String> excludes, Collection<String> includes, boolean includeByDefault) {
         rootNode = new RootConfigAttributesNode(identifier);
 
-        this.includeByDefault = includes == null || includes.isEmpty();
+        this.includeByDefault = includeByDefault;
 
         boolean notDefault = false;
 

@@ -18,6 +18,7 @@ verifyInstrumentation {
     // MongoClientOptions and MongoClientSettings can be present thus both the mongodb-3.1 and mongodb-3.7
     // instrumentation modules can apply at the same time without weaving the same thing.
     passes('org.mongodb:mongo-java-driver:[3.7.0-rc0,)')
+    passes('org.mongodb:mongodb-driver-sync:[3.7.0-rc0,)')
     fails('org.mongodb:mongo-java-driver:[0.9.1,3.7.0-rc0)')
 }
 

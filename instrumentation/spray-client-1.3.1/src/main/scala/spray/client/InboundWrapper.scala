@@ -8,28 +8,27 @@
 package com.nr.agent.instrumentation.sprayclient
 
 import java.util
-
 import com.newrelic.api.agent.{ExtendedInboundHeaders, HeaderType}
-import spray.http.HttpResponse
+import spray.http.{HttpHeader}
 
 import scala.collection.JavaConversions
 
-class InboundWrapper(response: HttpResponse) extends ExtendedInboundHeaders {
+class InboundWrapper(headers: List[HttpHeader]) extends ExtendedInboundHeaders {
 
   def getHeaderType: HeaderType = {
     HeaderType.HTTP
   }
 
   def getHeader(name: String): String = {
-    response.headers.find(header => header.is(name.toLowerCase)).map(header => header.value).orNull
+    headers.find(header => header.is(name.toLowerCase)).map(header => header.value).orNull
   }
 
   override def getHeaders(name: String): util.List[String] = {
-    val headers = response.headers.filter(header => header.is(name.toLowerCase)).map(header => header.value)
-    if (headers.isEmpty) {
+    val tmpHeaders = headers.filter(header => header.is(name.toLowerCase)).map(header => header.value)
+    if (tmpHeaders.isEmpty) {
       return null
     }
-    JavaConversions.seqAsJavaList(headers)
+    JavaConversions.seqAsJavaList(tmpHeaders)
   }
 
 }

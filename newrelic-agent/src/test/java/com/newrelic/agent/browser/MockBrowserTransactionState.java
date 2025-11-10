@@ -53,16 +53,6 @@ public class MockBrowserTransactionState implements BrowserTransactionState {
     }
 
     @Override
-    public String getBrowserTimingFooter() {
-        return null;
-    }
-
-    @Override
-    public String getBrowserTimingFooter(String nonce) {
-        return null;
-    }
-
-    @Override
     public String getTransactionName() {
         return transactionName;
     }

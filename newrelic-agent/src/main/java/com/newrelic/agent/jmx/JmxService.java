@@ -166,6 +166,10 @@ public class JmxService extends AbstractService implements HarvestListener {
         }
     }
 
+    public boolean iteratedObjectNameKeysEnabled() {
+        return jmxConfig.enableIteratedObjectNameKeys();
+    }
+
     private void process(StatsEngine statsEngine, Collection<MBeanServer> srvrList, JmxGet config) {
         ObjectName name = config.getObjectName();
         if (name == null) {

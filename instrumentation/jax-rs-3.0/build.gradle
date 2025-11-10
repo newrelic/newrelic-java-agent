@@ -16,6 +16,7 @@ jar {
 
 verifyInstrumentation {
     passesOnly 'jakarta.ws.rs:jakarta.ws.rs-api:[3.0-M1,)'
+    exclude 'jakarta.ws.rs:jakarta.ws.rs-api:4.0.0-M2'
 }
 
 compileJava {
@@ -26,5 +27,5 @@ compileJava {
 site {
     title 'JAX-RS'
     type 'Framework'
-    versionOverride '[3.0,)'
+    versionOverride '[3.0,4.0)'
 }

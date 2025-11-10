@@ -1,0 +1,23 @@
+jar {
+  manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.Couchbase_Client-2.4.0'}
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation 'com.couchbase.client:java-client:2.4.0'
+}
+
+verifyInstrumentation {
+  	passes 'com.couchbase.client:java-client:[2.4.0,3.0.0)'
+  	exclude 'com.couchbase.client:java-client:2.7.5'
+  	exclude 'com.couchbase.client:java-client:2.7.8'
+  	excludeRegex '.*SNAPSHOT'
+}
+
+site {
+	title 'Couchbase'
+	type 'Framework'
+}

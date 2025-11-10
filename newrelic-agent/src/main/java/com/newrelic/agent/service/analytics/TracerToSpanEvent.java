@@ -80,7 +80,6 @@ public class TracerToSpanEvent {
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
             boolean crossProcessOnly) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
-        DistributedTracePayloadImpl inboundPayload = spanProxy.getInboundDistributedTracePayload();
 
         SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier)
                 .setGuid(tracer.getGuid())
@@ -94,9 +93,9 @@ public class TracerToSpanEvent {
                 .setTimestamp(tracer.getStartTimeInMillis())
                 .setPriority(transactionData.getPriority())
                 .setExternalParameterAttributes(tracer.getExternalParameters())
+                .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
-                .setIsRootSpanEvent(isRoot)
-                .setDecider(inboundPayload == null || inboundPayload.priority == null);
+                .setIsRootSpanEvent(isRoot);
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);

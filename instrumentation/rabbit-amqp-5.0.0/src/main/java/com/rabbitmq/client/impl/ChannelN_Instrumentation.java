@@ -20,7 +20,9 @@ import com.rabbitmq.client.MessageProperties;
 import java.util.HashMap;
 
 @Weave(type = MatchType.ExactClass, originalName = "com.rabbitmq.client.impl.ChannelN")
-public class ChannelN_Instrumentation {
+public abstract class ChannelN_Instrumentation {
+
+    public abstract AMQConnection getConnection();
 
     @Trace
     public void basicPublish(String exchange, String routingKey, boolean mandatory, boolean immediate,
@@ -37,7 +39,7 @@ public class ChannelN_Instrumentation {
             headers.putAll(props.getHeaders());
         }
         RabbitAMQPMetricUtil.processSendMessage(exchange, routingKey, headers, props,
-                AgentBridge.getAgent().getTracedMethod());
+                AgentBridge.getAgent().getTracedMethod(), getConnection());
         props = props.builder().headers(headers).build();
         Weaver.callOriginal();
     }
@@ -51,7 +53,7 @@ public class ChannelN_Instrumentation {
         if (response != null) {
             RabbitAMQPMetricUtil.processGetMessage(queue, response.getEnvelope().getRoutingKey(),
                     response.getEnvelope().getExchange(), response.getProps(),
-                    AgentBridge.getAgent().getTracedMethod());
+                    AgentBridge.getAgent().getTracedMethod(), getConnection());
         }
         return response;
     }

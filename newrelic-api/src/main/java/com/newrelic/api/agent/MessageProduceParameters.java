@@ -16,23 +16,51 @@ package com.newrelic.api.agent;
  */
 public class MessageProduceParameters implements ExternalParameters {
     private final String library;
+    private final String otelLibrary;
     private final DestinationType destinationType;
     private final String destinationName;
     private final OutboundHeaders outboundHeaders;
+    private final String cloudAccountId;
+    private final String cloudRegion;
+    private final String host;
+    private final Integer port;
 
+    private MessageProduceParameters(Builder builder) {
+        this.library = builder.library;
+        this.otelLibrary = builder.otelLibrary;
+        this.destinationType = builder.destinationType;
+        this.destinationName = builder.destinationName;
+        this.outboundHeaders = builder.outboundHeaders;
+        this.cloudAccountId = builder.cloudAccountId;
+        this.cloudRegion = builder.cloudRegion;
+        this.host = builder.host;
+        this.port = builder.port;
+    }
+
+    @Deprecated
     protected MessageProduceParameters(String library, DestinationType destinationType, String destinationName,
             OutboundHeaders outboundHeaders) {
         this.library = library;
+        this.otelLibrary = null;
         this.destinationType = destinationType;
         this.destinationName = destinationName;
         this.outboundHeaders = outboundHeaders;
+        this.cloudAccountId = null;
+        this.cloudRegion = null;
+        this.host = null;
+        this.port = null;
     }
 
     protected MessageProduceParameters(MessageProduceParameters messageProduceParameters) {
         this.library = messageProduceParameters.library;
+        this.otelLibrary = messageProduceParameters.otelLibrary;
         this.destinationType = messageProduceParameters.destinationType;
         this.destinationName = messageProduceParameters.destinationName;
         this.outboundHeaders = messageProduceParameters.outboundHeaders;
+        this.cloudAccountId = messageProduceParameters.cloudAccountId;
+        this.cloudRegion = messageProduceParameters.cloudRegion;
+        this.host = messageProduceParameters.host;
+        this.port = messageProduceParameters.port;
     }
 
     public String getDestinationName() {
@@ -47,19 +75,49 @@ public class MessageProduceParameters implements ExternalParameters {
         return outboundHeaders;
     }
 
+    public String getCloudAccountId() {
+        return cloudAccountId;
+    }
+
+    public String getCloudRegion() {
+        return cloudRegion;
+    }
+
     public String getLibrary() {
         return library;
+    }
+
+    public String getOtelLibrary() {
+        return otelLibrary;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public Integer getPort() {
+        return port;
     }
 
     protected static class Builder implements DestinationTypeParameter, DestinationNameParameter,
             OutboundHeadersParameter, Build {
         private String library;
+        private String otelLibrary;
         private DestinationType destinationType;
         private String destinationName;
         private OutboundHeaders outboundHeaders;
+        private String cloudAccountId;
+        private String cloudRegion;
+        private String host;
+        private Integer port;
 
         public Builder(String library) {
             this.library = library;
+        }
+
+        public DestinationTypeParameter otelLibrary(String otelLibrary) {
+            this.otelLibrary = otelLibrary;
+            return this;
         }
 
         public DestinationNameParameter destinationType(DestinationType destinationType) {
@@ -77,8 +135,23 @@ public class MessageProduceParameters implements ExternalParameters {
             return this;
         }
 
+        public Build cloudAccountId(String cloudAccountId) {
+            this.cloudAccountId = cloudAccountId;
+            return this;
+        }
+
+        public Build cloudRegion(String cloudRegion) {
+            this.cloudRegion = cloudRegion;
+            return this;
+        }
+        public Build instance(String host, Integer port) {
+            this.host = host;
+            this.port = port;
+            return this;
+        }
+
         public MessageProduceParameters build() {
-            return new MessageProduceParameters(library, destinationType, destinationName, outboundHeaders);
+            return new MessageProduceParameters(this);
         }
     }
 
@@ -90,6 +163,17 @@ public class MessageProduceParameters implements ExternalParameters {
      */
     public static DestinationTypeParameter library(String library) {
         return new MessageProduceParameters.Builder(library);
+    }
+
+    /**
+     * Set the name of the library. And the OTEL known name of that library.
+     *
+     * @param library the name of the library
+     * @param otelLibrary the OTEL known name of the library
+     * @return the next builder interface
+     */
+    public static DestinationTypeParameter library(String library, String otelLibrary) {
+        return new MessageProduceParameters.Builder(library).otelLibrary(otelLibrary);
     }
 
     public interface DestinationTypeParameter {
@@ -127,6 +211,28 @@ public class MessageProduceParameters implements ExternalParameters {
     }
 
     public interface Build {
+
+        /**
+         * Set the cloud provider's account id for the message destination.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudAccountId(String cloudAccountId);
+
+        /**
+         * Set the cloud provider's region for the message destination.
+         * This method is optional and can be bypassed by calling build directly.
+         */
+        Build cloudRegion(String cloudRegion);
+
+        /**
+         * Set the host and port of the message broker.
+         * This method is optional and can be bypassed by calling build directly.
+         *
+         * @param host The host where the message broker is located
+         * @param port The port for the connection to the message broker
+         * @return the next builder interface
+         */
+        Build instance(String host, Integer port);
 
         /**
          * Build the final {@link MessageProduceParameters} for the API call.

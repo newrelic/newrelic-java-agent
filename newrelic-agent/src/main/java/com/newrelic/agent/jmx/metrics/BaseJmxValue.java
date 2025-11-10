@@ -33,20 +33,124 @@ public class BaseJmxValue {
     private final JMXMetricType type;
     private final JmxMetricModifier modifier;
 
+    /**
+     * @param pObjectName
+     *  The object name query string used to search for JMX MBeans
+     * @param pObjectMetricName
+     *  A format string for agent metrics that matches against an MBean's object name.
+     *  An example format would be:
+     *
+     *  <blockquote><pre>
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
+     *  </pre></blockquote>
+     *
+     *  In the format we have placeholders such as:
+     *  <ul>
+     *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
+     *      sequence of keys starting from a non-negative number <i>start</i>
+     *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
+     *      </li>
+     *  </ul>
+     * @param pMetrics
+     */
     public BaseJmxValue(final String pObjectName, final String pObjectMetricName, JmxMetric[] pMetrics) {
         this(pObjectName, pObjectMetricName, null, null, JMXMetricType.INCREMENT_COUNT_PER_BEAN, pMetrics);
     }
 
+    /**
+     *
+     * @param pObjectName
+     *  The object name query string used to search for JMX MBeans
+     * @param pObjectMetricName
+     *  A format string for agent metrics that matches against an MBean's object name.
+     *  An example format would be:
+     *
+     *  <blockquote><pre>
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
+     *  </pre></blockquote>
+     *
+     *  In the format we have placeholders such as:
+     *  <ul>
+     *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
+     *      sequence of keys starting from a non-negative number <i>start</i>
+     *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
+     *      </li>
+     *  </ul>
+     * @param attributeFilter
+     * @param pMetrics
+     */
     public BaseJmxValue(final String pObjectName, final String pObjectMetricName, JmxAttributeFilter attributeFilter,
             JmxMetric[] pMetrics) {
         this(pObjectName, pObjectMetricName, attributeFilter, null, JMXMetricType.INCREMENT_COUNT_PER_BEAN, pMetrics);
     }
 
+    /**
+     *
+     * @param pObjectName
+     *  The object name query string used to search for JMX MBeans
+     * @param pObjectMetricName
+     *  A format string for agent metrics that matches against an MBean's object name.
+     *  An example format would be:
+     *
+     *  <blockquote><pre>
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
+     *  </pre></blockquote>
+     *
+     *  In the format we have placeholders such as:
+     *  <ul>
+     *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
+     *      sequence of keys starting from a non-negative number <i>start</i>
+     *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
+     *      </li>
+     *  </ul>
+     * @param pModifier
+     * @param pMetrics
+     */
     public BaseJmxValue(final String pObjectName, final String pObjectMetricName, JmxMetricModifier pModifier,
             JmxMetric[] pMetrics) {
         this(pObjectName, pObjectMetricName, null, pModifier, JMXMetricType.INCREMENT_COUNT_PER_BEAN, pMetrics);
     }
 
+    /**
+     *
+     * @param pObjectName
+     *  The object name query string used to search for JMX MBeans
+     * @param pObjectMetricName
+     *  A format string for agent metrics that matches against an MBean's object name.
+     *  An example format would be:
+     *
+     *  <blockquote><pre>
+     *  "TheRoot/Wahoo/{type}/{for:key[1::.]}/{otherKey}"
+     *  </pre></blockquote>
+     *
+     *  In the format we have placeholders such as:
+     *  <ul>
+     *      <li><b>{name}</b> which matches against a key in an object name and replaces it with a value.</li>
+     *      <li><b>{for:%[start:end:delimiter]%}</b> which matches against an iterated
+     *      sequence of keys starting from a non-negative number <i>start</i>
+     *      and ending it exclusively with <i>end</i> or unbounded if <i>end</i> is empty.
+     *      The placeholder is replaced with an iterated set of values each separated by the <i>delimiter</i> or if empty
+     *      "/" by default to follow the agent metric format.
+     *      For example: <b>{for:key[1::]}</b> and <b>{for:keyStart[1:3:.]keyEnd}</b>
+     *      </li>
+     *  </ul>
+     * @param attributeFilter
+     * @param pModifier
+     * @param pType
+     * @param pMetrics
+     */
     public BaseJmxValue(final String pObjectName, final String pObjectMetricName, JmxAttributeFilter attributeFilter,
             JmxMetricModifier pModifier, JMXMetricType pType, JmxMetric[] pMetrics) {
         objectNameString = pObjectName;

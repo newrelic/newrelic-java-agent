@@ -21,7 +21,7 @@ import java.util.logging.Level;
 
 /**
  * This isn't a netty class. This is an agent class which will start a transaction on i/o read.
- *
+ * <p>
  * Since this class creates a tracer, its class+method name will show in the TT, hence the class name.
  */
 public class NettyDispatcher {
@@ -59,9 +59,9 @@ public class NettyDispatcher {
         }
 
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
+
         if (tx != null) {
             tx.setWebRequest(new RequestWrapper((HttpRequest) msg));
         }
     }
-
 }

@@ -122,8 +122,7 @@ public class ErrorServiceTest {
     @Test
     public void isIgnoredErrorNone() throws Exception {
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertFalse(result);
+        Assert.assertFalse(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -131,8 +130,7 @@ public class ErrorServiceTest {
         Throwable error = new ArrayIndexOutOfBoundsException();
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertTrue(result);
+        Assert.assertTrue(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -140,8 +138,7 @@ public class ErrorServiceTest {
         Throwable error = new Exception();
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertFalse(result);
+        Assert.assertFalse(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -152,8 +149,7 @@ public class ErrorServiceTest {
         Throwable error = new Throwable(new Exception(new ArrayIndexOutOfBoundsException()));
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertTrue(result);
+        Assert.assertTrue(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -164,8 +160,7 @@ public class ErrorServiceTest {
         Throwable error = new Throwable(new Exception(new ArrayIndexOutOfBoundsException()));
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertFalse(result);
+        Assert.assertFalse(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -173,8 +168,7 @@ public class ErrorServiceTest {
         Throwable error = new Throwable(new Exception(new ArrayIndexOutOfBoundsException()));
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertFalse(result);
+        Assert.assertFalse(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -185,8 +179,7 @@ public class ErrorServiceTest {
         Throwable error = new Throwable(new Exception(new ArrayIndexOutOfBoundsException()));
         Transaction.getTransaction().setThrowable(error, TransactionErrorPriority.API, false);
         TransactionData data = new TransactionData(Transaction.getTransaction(), 0);
-        boolean result = data.hasReportableErrorThatIsNotIgnored();
-        Assert.assertFalse(result);
+        Assert.assertFalse(data.hasReportableErrorThatIsNotIgnored());
     }
 
     @Test
@@ -968,6 +961,29 @@ public class ErrorServiceTest {
         Assert.assertTrue(intrinsicAtts.containsKey("guid"));
         Assert.assertTrue(intrinsicAtts.containsKey("priority"));
         Assert.assertTrue(intrinsicAtts.containsKey("sampled"));
+    }
+
+    @Test
+    public void txnGuidIsPresentWithDistributedTracingDisabled() throws Exception {
+        Map<String, Object> config = new HashMap<>();
+        Map<String, Object> dtConfig = new HashMap<>();
+        dtConfig.put("enabled", false);
+        config.put("distributed_tracing", dtConfig);
+        Map<String, Object> spanConfig = new HashMap<>();
+        spanConfig.put("collect_span_events", true);
+        config.put("span_events", spanConfig);
+        EventTestHelper.createServiceManager(config);
+
+        TransactionData transactionData = createTransactionData(200, new Throwable("Surprising error"), false);
+        TransactionService txService = ServiceFactory.getTransactionService();
+        TransactionStats transactionStats = new TransactionStats();
+        txService.transactionFinished(transactionData, transactionStats);
+
+        List<TracedError> tracedErrors = ServiceFactory.getRPMService().getErrorService().getAndClearTracedErrors();
+        TracedError tracedError = tracedErrors.get(0);
+        Assert.assertEquals("Surprising error", tracedError.getMessage());
+        Map<String, ?> intrinsicAtts = tracedError.getIntrinsicAtts();
+        Assert.assertTrue(intrinsicAtts.containsKey("guid"));
     }
 
     @Test

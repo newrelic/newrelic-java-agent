@@ -250,79 +250,6 @@ public class NewRelicApiImplementationTest {
     }
 
     @Test
-    public void getBrowserTimingFooterForContentType_withTxn_returnsHeader() {
-        mockOutServices();
-        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
-            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
-            assertEquals("header", NewRelicApiImplementation.getBrowserTimingFooterForContentType("application/json"));
-        }
-    }
-
-    @Test
-    public void getBrowserTimingFooterForContentType_withNullTxn_returnsEmptyString() {
-        mockOutServices();
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
-            assertEquals("", NewRelicApiImplementation.getBrowserTimingFooterForContentType("application/json"));
-        }
-    }
-
-    @Test
-    public void getBrowserTimingFooter_withTxn_returnsHeader() {
-        mockOutServices();
-        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
-        NewRelicApiImplementation target = new NewRelicApiImplementation();
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
-            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
-            assertEquals("header", target.getBrowserTimingFooter());
-        }
-    }
-
-    @Test
-    public void getBrowserTimingFooterWithNonce_withTxn_returnsHeader() {
-        mockOutServices();
-        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
-        NewRelicApiImplementation target = new NewRelicApiImplementation();
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
-            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter("123")).thenReturn("header");
-            assertEquals("header", target.getBrowserTimingFooter("123"));
-        }
-    }
-
-    @Test
-    public void getBrowserTimingFooterWithoutNonce_withTxn_returnsHeader() {
-        mockOutServices();
-        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
-        NewRelicApiImplementation target = new NewRelicApiImplementation();
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(txn);
-            Mockito.when(txn.getBrowserTransactionState().getBrowserTimingFooter()).thenReturn("header");
-            assertEquals("header", target.getBrowserTimingFooter());
-        }
-    }
-
-    @Test
-    public void getBrowserTimingFooterWithoutNonce_withoutTxn_returnsHeader() {
-        mockOutServices();
-        Transaction txn = Mockito.mock(Transaction.class, Mockito.RETURNS_DEEP_STUBS);
-        NewRelicApiImplementation target = new NewRelicApiImplementation();
-
-        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
-            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
-            assertEquals("", target.getBrowserTimingFooter());
-        }
-    }
-
-    @Test
     public void setUserId_withValidId_setsAttribute() {
         mockOutServices();
         AttributeSender mockSender = Mockito.mock(AttributeSender.class);
@@ -345,6 +272,21 @@ public class NewRelicApiImplementationTest {
 
         target.setUserId("");
         Mockito.verify(mockAgentSender, Mockito.times(0)).addAttribute("enduser.id", "123", "setUserId");
+    }
+
+    @Test
+    public void setUserId_withoutActiveTxn_isNoOp() {
+        mockOutServices();
+        AttributeSender mockSender = Mockito.mock(AttributeSender.class);
+        AgentAttributeSender mockAgentSender = new AgentAttributeSender();
+        NewRelicApiImplementation target = new NewRelicApiImplementation(mockSender, mockAgentSender);
+
+        try(MockedStatic<Transaction> mockTxn = Mockito.mockStatic(Transaction.class)) {
+            mockTxn.when(() -> Transaction.getTransaction(false)).thenReturn(null);
+            //These used to throw an NPE when there was no active transaction so the "assertion" is that these method calls execute without an exception
+            target.setUserId(null);
+            target.setUserId("");
+        }
     }
 
     @Test

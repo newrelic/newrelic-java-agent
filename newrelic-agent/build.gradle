@@ -13,6 +13,7 @@ plugins {
 }
 
 apply from: '../gradle/script/spotbugs-config.gradle'
+apply from: '../gradle/script/jacoco.gradle'
 
 configurations {
     tests
@@ -73,7 +74,7 @@ dependencies {
         transitive = false
     }
     shadowIntoJar("com.newrelic.agent.java:newrelic-module-util-java:2.1")
-    shadowIntoJar("com.newrelic:jfr-daemon:1.11.1")
+    shadowIntoJar("com.newrelic:jfr-daemon:1.15.0")
     shadowIntoJar "org.ow2.asm:asm:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-tree:$asmVersion"
     shadowIntoJar "org.ow2.asm:asm-commons:$asmVersion"
@@ -84,7 +85,7 @@ dependencies {
 
     shadowIntoJar 'org.apache.httpcomponents:httpclient:4.5.13'
     // We use StringUtils. Since we still support Java 7, we can't go much higher than this.
-    shadowIntoJar("org.apache.commons:commons-lang3:3.8.1")
+    shadowIntoJar("org.apache.commons:commons-lang3:3.18.0")
 
     // for command line parsing
     shadowIntoJar 'commons-cli:commons-cli:1.2'
@@ -98,7 +99,10 @@ dependencies {
 
     shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
 
-    shadowIntoJar("org.yaml:snakeyaml:1.33")
+    //shadowIntoJar("org.yaml:snakeyaml:1.33")
+    shadowIntoJar('com.konloch:safeyaml:1.34.1')
+
+    shadowIntoJar("org.crac:crac:1.5.0")
 
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
         transitive = false
@@ -170,12 +174,13 @@ task relocatedShadowJar(type: ShadowJar) {
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
             "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
+            "org.crac",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
             "org.checkerframework", "org.dom4j", "org.zeromq", "org.apache.kafka",
             "com.lmax", "com.conversantmedia", "org.jctools",
-            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains",
+            "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains", "org.intellij",
             "okhttp3", "org.bouncycastle", "org.conscrypt", "org.openjsse"
     ].each {
         relocate(it, "com.newrelic.agent.deps.$it")
@@ -320,6 +325,14 @@ jar {
 test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
+    useJUnit {
+        if (project.hasProperty("forkedTests")) {
+            includeCategories("com.newrelic.test.marker.RequiresFork")
+        } else if (project.hasProperty("nonForkedTests")) {
+            forkEvery = 10
+            excludeCategories("com.newrelic.test.marker.RequiresFork")
+        }
+    }
 
     minHeapSize = "256m"
     maxHeapSize = "768m"

@@ -13,7 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class R2dbcOperation {
-
+    public static final OperationAndTableName UNKNOWN_OPERATION_AND_TABLE_NAME = new OperationAndTableName("unknown", "unknown");
     static final Pattern VALID_METRIC_NAME_MATCHER = Pattern.compile("[a-zA-Z0-9.$_@]+");
     static final int PATTERN_SWITCHES = Pattern.CASE_INSENSITIVE | Pattern.DOTALL;
     static final Pattern COMMENT_PATTERN = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
@@ -30,14 +30,18 @@ public class R2dbcOperation {
     }
 
     public static OperationAndTableName extractFrom(String sql) {
+        String strippedSql = COMMENT_PATTERN.matcher(sql).replaceAll("");
+        String upperCaseSql = strippedSql.toUpperCase(); //upper case for case-insensitive non-regex-checks
         try {
-            String strippedSql = COMMENT_PATTERN.matcher(sql).replaceAll("");
             for (Map.Entry<String, Pattern[]> operation : OPERATION_PATTERNS.entrySet()) {
-                for (Pattern pattern : operation.getValue()) {
-                    Matcher matcher = pattern.matcher(strippedSql);
-                    if(matcher.find()) {
-                        String model = matcher.groupCount() > 0 ? removeBrackets(unquoteDatabaseName(matcher.group(1).trim())) : "unknown";
-                        return new OperationAndTableName(operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError");
+                String opName = operation.getKey();
+                if (upperCaseSql.contains(opName)) { //non-regex check before pattern matching
+                    for (Pattern pattern : operation.getValue()) {
+                        Matcher matcher = pattern.matcher(strippedSql);
+                        if (matcher.find()) {
+                            String model = removeBrackets(unquoteDatabaseName(matcher.group(1).trim()));
+                            return new OperationAndTableName(operation.getKey(), VALID_METRIC_NAME_MATCHER.matcher(model).matches() ? model : "ParseError");
+                        }
                     }
                 }
             }

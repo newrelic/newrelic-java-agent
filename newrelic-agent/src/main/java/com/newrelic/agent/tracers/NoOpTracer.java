@@ -19,6 +19,7 @@ import com.newrelic.api.agent.OutboundHeaders;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 public final class NoOpTracer implements Tracer {
 
@@ -205,6 +206,11 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public void setAgentAttribute(String key, Object value, boolean addToSpan) {
+
+    }
+
+    @Override
     public void removeAgentAttribute(String key) {
     }
 
@@ -251,6 +257,9 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
+    public void excludeLeaf(){}
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 
@@ -282,6 +291,11 @@ public final class NoOpTracer implements Tracer {
 
     @Override
     public ExternalParameters getExternalParameters() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getAgentAttributeNamesForSpans() {
         return null;
     }
 

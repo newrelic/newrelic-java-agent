@@ -16,16 +16,16 @@ on:
 
 jobs:
   spotbugs:
-    timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -40,37 +40,37 @@ jobs:
       - name: Execute Spotbugs
         run: ./gradlew $GRADLE_OPTIONS spotbugsMain
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: all-spotbugs-results
           path: '**/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: newrelic-agent-spotbugs-results
           path: 'newrelic-agent/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: newrelic-weaver-spotbugs-results
           path: 'newrelic-weaver/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: agent-bridge-spotbugs-results
           path: 'agent-bridge/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: agent-model-spotbugs-results
           path: 'agent-model/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: newrelic-api-spotbugs-results
           path: 'newrelic-api/build/spotbugs/main.*'
@@ -78,14 +78,14 @@ jobs:
 
   publish:
     needs: spotbugs
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     concurrency: gh-pages
     env:
       BRANCH_NAME: ${{ inputs.agent-ref || 'main' }}
     steps:
 
       - name: Checkout GhPages branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: 'gh-pages'
           path: 'gh-pages'
@@ -101,31 +101,31 @@ jobs:
 
       # Download reports
       - name: Download spotbugs reports 1
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: newrelic-agent-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-agent-spotbugs-results
 
       - name: Download spotbugs reports 2
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: newrelic-weaver-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-weaver-spotbugs-results
 
       - name: Download spotbugs reports 3
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: agent-bridge-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/agent-bridge-spotbugs-results
 
       - name: Download spotbugs reports 4
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: agent-model-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/agent-model-spotbugs-results
 
       - name: Download spotbugs reports 5
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: newrelic-api-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-api-spotbugs-results

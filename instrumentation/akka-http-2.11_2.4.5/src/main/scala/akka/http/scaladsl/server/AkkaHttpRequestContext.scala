@@ -9,7 +9,6 @@ package akka.http.scaladsl.server
 
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshalling.AkkaHttpToResponseMarshallable
 import akka.http.scaladsl.model._

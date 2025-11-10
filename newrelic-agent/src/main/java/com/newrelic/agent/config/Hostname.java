@@ -117,7 +117,7 @@ public class Hostname {
     private static InetAddress determineAddress() {
         try (DatagramSocket socket = new DatagramSocket()) {
             // a random port is used just to get the address
-            socket.connect(Inet6Address.getByName("newrelic.com"), 10002);
+            socket.connect(Inet6Address.getByName("collector.newrelic.com"), 10002);
             return socket.getLocalAddress();
         } catch (SocketException | UnknownHostException e) {
             Agent.LOG.log(Level.FINE, "Unable to determine IP address.", e);

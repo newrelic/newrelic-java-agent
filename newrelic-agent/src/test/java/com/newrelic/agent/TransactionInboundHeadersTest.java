@@ -11,9 +11,11 @@ import com.newrelic.agent.dispatchers.Dispatcher;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.Request;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 /**
@@ -23,6 +25,7 @@ import org.mockito.Mockito;
  *
  * Instrumentation and Request headers are obfuscated. CAT API provided headers are not.
  */
+@Category(RequiresFork.class)
 public class TransactionInboundHeadersTest {
 
     @Before

@@ -1,0 +1,24 @@
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.apache.kafka:kafka-clients:3.6.2")
+
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-node-metrics-2.3.0', 'Enabled': 'false' ,
+            'Implementation-Title-Alias': 'kafka-clients-node-metrics' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-clients:[2.3.0,3.7.0)'
+}
+
+
+site {
+    title 'Kafka'
+    type 'Messaging'
+}

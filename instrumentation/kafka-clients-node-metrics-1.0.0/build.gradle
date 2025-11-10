@@ -2,7 +2,7 @@
 dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
-    implementation("org.apache.kafka:kafka-clients:3.3.0")
+    implementation("org.apache.kafka:kafka-clients:2.2.2")
 
     testImplementation("org.awaitility:awaitility:4.2.0")
     testImplementation("org.mockito:mockito-inline:4.11.0")
@@ -14,7 +14,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.apache.kafka:kafka-clients:[1.0.0,)'
+    passesOnly 'org.apache.kafka:kafka-clients:[1.0.0,2.3.0)'
 }
 
 

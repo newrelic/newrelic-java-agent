@@ -24,10 +24,12 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.BasicRequestRootTracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +41,7 @@ import static org.junit.Assert.*;
  * Async timeout is given in seconds. Sleep values need to be at least as long as the value passed into createConfigMap,
  * where 0s defaults to 250ms and 1s is 1000ms.
  */
+@Category(RequiresFork.class)
 public class AsyncTimeoutTransactionTest implements ExtendedTransactionListener {
 
     private TransactionData data;

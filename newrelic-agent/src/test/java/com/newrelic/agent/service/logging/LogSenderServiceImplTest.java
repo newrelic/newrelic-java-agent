@@ -12,6 +12,7 @@ import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingConfigImpl;
 import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
@@ -74,10 +75,13 @@ public class LogSenderServiceImplTest {
     public void testHarvestableConfigure() throws Exception {
         Map<String, Object> config = createConfig(true, 180);
         LogSenderServiceImpl logSenderService = createService(config);
+        assertEquals(833, logSenderService.getMaxSamplesStored());
+        assertEquals(5000, logSenderService.reportPeriodInMillis);
+
         logSenderService.addHarvestableToService(appName);
         logSenderService.configureHarvestables(60, 1);
-
         assertEquals(1, logSenderService.getMaxSamplesStored());
+        assertEquals(60, logSenderService.reportPeriodInMillis);
     }
 
     @Test
@@ -162,6 +166,33 @@ public class LogSenderServiceImplTest {
 
         assertEquals(0, analyticsData.getEvents().size());
         assertEquals(3, logs.getEventsForTesting().size());
+    }
+
+    @Test
+    public void testTransactionLogsMaxSamplesStoredIs0() throws Exception{
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, 180));
+        Transaction transaction = Mockito.mock(Transaction.class);
+        when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
+
+        Map<String, Object> settings = Collections.singletonMap("application_logging", Collections.singletonMap("forwarding", Collections.singletonMap("max_samples_stored", 0)));
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(settings);
+        LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(agentConfig, allowAllFilter());
+        when(transaction.getLogEventData()).thenReturn(logs);
+        when(transaction.getApplicationName()).thenReturn(appName);
+        when(transaction.isInProgress()).thenReturn(true);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field2", "value2"));
+        logSenderService.recordLogEvent(createAgentLogAttrs("field3", "value3"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(0, analyticsData.getEvents().size());
+        assertEquals(0, logs.getEventsForTesting().size());
     }
 
     @Test

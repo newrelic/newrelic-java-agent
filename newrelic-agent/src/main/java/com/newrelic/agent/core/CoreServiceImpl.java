@@ -13,12 +13,15 @@ import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.PrivateApiImpl;
 import com.newrelic.agent.TransactionService;
+import com.newrelic.agent.cloud.CloudApiImpl;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.api.agent.NewRelicApiImplementation;
 
 import java.lang.instrument.Instrumentation;
@@ -26,12 +29,15 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
-public class CoreServiceImpl extends AbstractService implements CoreService {
+public class CoreServiceImpl extends AbstractService implements CoreService, HealthDataProducer {
     private volatile boolean enabled = true;
     private final Instrumentation instrumentation;
     private volatile InstrumentationProxy instrumentationProxy;
+    private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
+
 
     public CoreServiceImpl(Instrumentation instrumentation) {
         super(CoreService.class.getName());
@@ -70,6 +76,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
     private void initializeBridgeApis() {
         NewRelicApiImplementation.initialize();
         PrivateApiImpl.initialize(Agent.LOG);
+        CloudApiImpl.initialize();
     }
 
     /**
@@ -149,5 +156,8 @@ public class CoreServiceImpl extends AbstractService implements CoreService {
         return instrumentationProxy;
     }
 
-
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+        healthDataChangeListeners.add(listener);
+    }
 }

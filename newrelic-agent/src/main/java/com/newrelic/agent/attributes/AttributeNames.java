@@ -36,6 +36,8 @@ public final class AttributeNames {
     public static final String HTTP_METHOD = "http.method";
     public static final String HTTP_STATUS_CODE = "http.statusCode";
     public static final String HTTP_STATUS_TEXT = "http.statusText";
+    public static final String HTTP_STATUS = "httpResponseCode";
+    public static final String HTTP_STATUS_MESSAGE = "httpResponseMessage";
 
     public static final String LOCK_THREAD_NAME = "jvm.lock_thread_name";
     public static final String THREAD_NAME = "jvm.thread_name";
@@ -52,6 +54,16 @@ public final class AttributeNames {
     public static final String REQUEST_METHOD_PARAMETER_NAME = "request.method";
 
     public static final String RESPONSE_CONTENT_TYPE_PARAMETER_NAME = "response.headers.contentType";
+
+    // Open Telemetry compatible attributes for host and port
+    public static final String SERVER_ADDRESS = "server.address";
+    public static final String SERVER_PORT = "server.port";
+
+    // cloud provider fields
+    public static final String CLOUD_ACCOUNT_ID = "cloud.account.id";
+    public static final String CLOUD_PLATFORM = "cloud.platform";
+    public static final String CLOUD_RESOURCE_ID = "cloud.resource_id";
+    public static final String CLOUD_REGION = "cloud.region";
 
     // high security matches
     public static final String HTTP_REQUEST_STAR = "request.parameters.*";
@@ -76,4 +88,9 @@ public final class AttributeNames {
     // Code Level Metrics
     public static final String CLM_NAMESPACE = "code.namespace";
     public static final String CLM_FUNCTION = "code.function";
+
+    // OTEL attrs
+    public static final String DB_SYSTEM = "db.system";
+    public static final String MESSAGING_SYSTEM = "messaging.system";
+    public static final String MESSAGING_DESTINATION_NAME = "messaging.destination.name";
 }

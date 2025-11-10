@@ -64,13 +64,13 @@ public class InstrumentationContextClassMatcherHelper {
   // class.
   // we can't get the resource of a generated class because generated classes don't have resources.
   public boolean isMissingResourceExpected(String className) {
-    // new relic and open tracing classes
+    // new relic classes
     if (className.startsWith("com.newrelic") || className.startsWith("weave.") || className.startsWith("com.nr.instrumentation")) {
       return true;
     }
 
     // lambda classes
-    if (className.contains("$$Lambda$") || className.contains("LambdaForm$")) {
+    if (className.contains("$$Lambda$") || className.contains("$$Lambda/") || className.contains("LambdaForm$")) {
       return true;
     }
 
