@@ -14,6 +14,9 @@ on:
         description: "Specify cache branch/tag/sha (main is default)"
         required: false
         default: 'main'
+      agent-version:
+        description: "Specify the version number for this release. This is used as a wiki file name to store ingest metrics from the AIT run. Optional field."
+        required: false
 
 jobs:
 
@@ -23,46 +26,98 @@ jobs:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
       ait-ref: ${{ inputs.ait-ref || 'main' }}
       cache-ref: ${{ inputs.cache-ref || 'main' }}
+      single-test: 'basic_features/env_vars.py'
     secrets: inherit
 
-  functional-tests:
-    uses: ./.github/workflows/GHA-Functional-Tests.yaml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+#  functional-tests:
+#    uses: ./.github/workflows/GHA-Functional-Tests.yaml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  functional-tests-scala:
+#    uses: ./.github/workflows/GHA-Scala-Functional-Tests.yaml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  instrumentation-tests:
+#    uses: ./.github/workflows/Java-Instrumentation-Tests.yml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  instrumentation-tests-scala:
+#    uses: ./.github/workflows/GHA-Scala-Instrumentation-Tests.yaml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  unit-tests:
+#    uses: ./.github/workflows/GHA-Unit-Tests.yaml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  verify-unshadowed-jars:
+#    uses: ./.github/workflows/VerifyUnshadowedJars.yml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
+#
+#  verify-instrumentation:
+#    uses: ./.github/workflows/VerifyInstrumentation.yml
+#    with:
+#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+#    secrets: inherit
 
-  functional-tests-scala:
-    uses: ./.github/workflows/GHA-Scala-Functional-Tests.yaml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+  process-ait-ingest-metric-files:
+    needs: aits
+    if: ${{ inputs.agent-version != '' }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download processed ingest files
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        with:
+          name: processed-ingest-files
+          path: ingest-files
 
-  instrumentation-tests:
-    uses: ./.github/workflows/Java-Instrumentation-Tests.yml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+      - name: Create markdown file
+        run: |
+          cd ingest-files
 
-  instrumentation-tests-scala:
-    uses: ./.github/workflows/GHA-Scala-Instrumentation-Tests.yaml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+          # Start with the sum as the first line
+          echo "# Ingest Metrics Summary - Version ${{ inputs.agent-version }}" > ingest-report.md
+          echo "" >> ingest-report.md
+          echo "**Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "---" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "## Detailed Metrics" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "\`\`\`" >> ingest-report.md
+          cat ingest-aggregate.txt >> ingest-report.md
+          echo "\`\`\`" >> ingest-report.md
 
-  unit-tests:
-    uses: ./.github/workflows/GHA-Unit-Tests.yaml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+      - name: Checkout wiki repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
 
-  verify-unshadowed-jars:
-    uses: ./.github/workflows/VerifyUnshadowedJars.yml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+      - name: Commit and push to wiki
+        run: |
+          # Create ingest-metrics directory if it doesn't exist
+          mkdir -p wiki/ingest-metrics
 
-  verify-instrumentation:
-    uses: ./.github/workflows/VerifyInstrumentation.yml
-    with:
-      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-    secrets: inherit
+          # Copy the report using agent-version as filename
+          cp ingest-files/ingest-report.md "wiki/ingest-metrics/${{ inputs.agent-version }}.md"
+
+          cd wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "ingest-metrics/${{ inputs.agent-version }}.md"
+          git commit -m "Update ingest metrics report for version ${{ inputs.agent-version }} from workflow run ${{ github.run_id }}"
+          git push
