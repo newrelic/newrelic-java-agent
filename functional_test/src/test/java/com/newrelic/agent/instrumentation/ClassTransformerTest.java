@@ -21,8 +21,6 @@ import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.HandlerMet
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringDispatcherPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringExceptionHandlerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.struts.StrutsActionConfigMatcherPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.struts.StrutsActionPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,9 +52,6 @@ public class ClassTransformerTest {
         }
 
         List<? extends PointCut> manual = Arrays.asList(
-                // struts
-                new StrutsActionPointCut(classTransformer),
-                new StrutsActionConfigMatcherPointCut(classTransformer),
                 // Spring
                 new SpringPointCut(classTransformer),
                 // new SpringWildcardPathPointCut(classTransformer),
