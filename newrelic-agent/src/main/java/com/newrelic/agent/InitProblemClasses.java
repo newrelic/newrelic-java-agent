@@ -14,6 +14,7 @@ import com.newrelic.weave.utils.WeaveUtils;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,9 @@ public class InitProblemClasses {
 
             Utils.getClassResourceName(Class.forName("java.net.URL"));
             UtilityClass.class.getName();
+
+            // Force this formatter to load early to avoid a java.lang.ClassCircularityError
+            MessageFormat.format("{0}", 1.0);
 
             // This is here to attempt to get around a Websphere J9 (JDK6) deadlock
             ClassLoader classLoader = UtilityClass.class.getClassLoader();

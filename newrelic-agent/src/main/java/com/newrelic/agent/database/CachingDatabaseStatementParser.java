@@ -59,9 +59,14 @@ public class CachingDatabaseStatementParser implements DatabaseStatementParser {
                 return UNPARSEABLE_STATEMENT;
             }
 
-            return getOrCreateCache().get(
-                    statement,
-                    s -> databaseStatementParser.getParsedDatabaseStatement(databaseVendor, statement, resultSetMetaData));
+            Cache<String, ParsedDatabaseStatement> cache = getOrCreateCache();
+            ParsedDatabaseStatement parsedStatement = cache.getIfPresent(statement);
+            if (parsedStatement == null) {
+                parsedStatement = databaseStatementParser.getParsedDatabaseStatement(databaseVendor, statement, resultSetMetaData);
+                cache.put(statement, parsedStatement);
+            }
+
+            return parsedStatement;
         } catch (RuntimeException ex) {
             toLog = ex;
         }

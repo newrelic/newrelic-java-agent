@@ -25,13 +25,11 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
     private final String appName;
     private final Map<String, Object> intrinsics;
     private final Map<String, Object> agentAttributes;
-    private final boolean decider;
 
     private SpanEvent(Builder builder) {
         super(SPAN, builder.timestamp, builder.priority, builder.userAttributes);
         this.appName = builder.appName;
         this.agentAttributes = builder.agentAttributes;
-        this.decider = builder.decider;
         this.intrinsics = builder.intrinsics;
     }
 
@@ -49,11 +47,6 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
 
     public Map<String, Object> getAgentAttributes() {
         return agentAttributes;
-    }
-
-    @Override
-    public boolean decider() {
-        return decider;
     }
 
     @Override
@@ -98,8 +91,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             return false;
         }
         SpanEvent spanEvent = (SpanEvent) o;
-        return decider == spanEvent.decider &&
-                Objects.equals(appName, spanEvent.appName) &&
+        return  Objects.equals(appName, spanEvent.appName) &&
                 Objects.equals(intrinsics, spanEvent.intrinsics) &&
                 Objects.equals(agentAttributes, spanEvent.agentAttributes) &&
                 super.equals(o);
@@ -107,7 +99,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
 
     @Override
     public int hashCode() {
-        return Objects.hash(appName, intrinsics, agentAttributes, decider);
+        return Objects.hash(appName, intrinsics, agentAttributes);
     }
 
     public static class Builder {
@@ -116,7 +108,6 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private final Map<String, Object> userAttributes = new HashMap<>();
         private String appName;
         private float priority;
-        private boolean decider;
         private long timestamp;
         private Object spanKind;
 
@@ -189,11 +180,6 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         public Object getSpanKindFromUserAttributes() {
             Object result = userAttributes.get("span.kind");
             return result == null ? CLIENT_SPAN_KIND : result;
-        }
-
-        public Builder decider(boolean decider) {
-            this.decider = decider;
-            return this;
         }
 
         public Builder timestamp(long timestamp) {

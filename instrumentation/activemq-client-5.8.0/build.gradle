@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.activemq:activemq-client:5.16.7")
+    testImplementation("org.slf4j:slf4j-simple:1.7.30")
+}
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.activemq-client-5.8.0' }
+}
+
+
+verifyInstrumentation {
+    passesOnly 'org.apache.activemq:activemq-client:[5.8.0,)'
+}
+
+
+site {
+    title 'ActiveMQClient'
+    type 'Messaging'
+}

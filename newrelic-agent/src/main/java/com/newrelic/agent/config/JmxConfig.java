@@ -30,4 +30,6 @@ public interface JmxConfig {
      * MBean server.
      */
     boolean registerLinkingMetadataMBean();
+
+    boolean enableIteratedObjectNameKeys();
 }

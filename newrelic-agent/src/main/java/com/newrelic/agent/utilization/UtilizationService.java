@@ -18,6 +18,7 @@ import com.newrelic.agent.utilization.AWS.AwsData;
 import com.newrelic.agent.utilization.Azure.AzureData;
 import com.newrelic.agent.utilization.GCP.GcpData;
 import com.newrelic.agent.utilization.PCF.PcfData;
+import com.newrelic.agent.utilization.AzureAppService.AzureAppServiceData;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class UtilizationService extends AbstractService {
     private final ArrayList<String> ipAddress;
     private final String bootId;
     private final String dockerContainerId;
+    private final String ecsFargateDockerContainerId;
     private final int processorCount;
     private final Future<Long> totalRamInMibFuture;
     private final UtilizationConfig configData;
@@ -75,6 +77,7 @@ public class UtilizationService extends AbstractService {
     private static final PCF pcf = new PCF(cloudUtility);
     private static final GCP gcp = new GCP(cloudUtility);
     private static final Azure azure = new Azure(cloudUtility);
+    private static final AzureAppService azureAppService = new AzureAppService(cloudUtility);
 
     public UtilizationService() {
         super(UtilizationService.class.getSimpleName());
@@ -93,12 +96,13 @@ public class UtilizationService extends AbstractService {
         isLinux = isLinuxOs();
         bootId = DataFetcher.getBootId();
         dockerContainerId = detectDocker ? getDockerContainerId() : null;
+        ecsFargateDockerContainerId = detectAws ? getEcsFargateDockerContainerId() : null;
         processorCount = DataFetcher.getLogicalProcessorCount();
         totalRamInMibFuture = executor.submit(DataFetcher.getTotalRamInMibCallable());
         configData = UtilizationConfig.createFromConfigService();
         kubernetesData = getKubernetesData();
-        utilizationData = new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, bootId, null, totalRamInMibFuture,
-                configData, kubernetesData);
+        utilizationData = new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, ecsFargateDockerContainerId,
+                bootId, null, totalRamInMibFuture, configData, kubernetesData);
     }
 
     @Override
@@ -178,6 +182,10 @@ public class UtilizationService extends AbstractService {
         return azure.getData();
     }
 
+    protected AzureAppService.AzureAppServiceData getAzureAppServiceData() {
+        return azureAppService.getData();
+    }
+
     DockerData getDockerData() {
         return dockerData;
     }
@@ -190,7 +198,11 @@ public class UtilizationService extends AbstractService {
      * Do not call DockerData.getDockerContainerId(boolean, String) directly, call this method instead.
      */
     String getDockerContainerId() {
-        return getDockerData().getDockerContainerId(isLinux);
+        return getDockerData().getDockerContainerIdFromCGroups(isLinux);
+    }
+
+    String getEcsFargateDockerContainerId() {
+        return getDockerData().getDockerContainerIdForEcsFargate(isLinux);
     }
 
     class UtilizationTask implements Callable<UtilizationData> {
@@ -222,13 +234,18 @@ public class UtilizationService extends AbstractService {
                         AzureData azureData = detectAzure ? getAzureData() : AzureData.EMPTY_DATA;
                         if (azureData != AzureData.EMPTY_DATA) {
                             foundData = azureData;
+                        } else {
+                            AzureAppServiceData azureAppServiceData = detectAzure ? getAzureAppServiceData() : AzureAppServiceData.EMPTY_DATA;
+                            if (azureAppServiceData != AzureAppServiceData.EMPTY_DATA) {
+                                foundData = azureAppServiceData;
+                            }
                         }
                     }
                 }
             }
 
-            return new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, bootId, foundData, totalRamInMibFuture, configData,
-                    kubernetesData);
+            return new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, ecsFargateDockerContainerId, bootId,
+                    foundData, totalRamInMibFuture, configData, kubernetesData);
         }
     }
 

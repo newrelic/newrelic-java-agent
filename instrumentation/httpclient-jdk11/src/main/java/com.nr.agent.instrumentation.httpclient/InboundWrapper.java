@@ -3,15 +3,15 @@ package com.nr.agent.instrumentation.httpclient;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
 
+import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
-import java.util.function.Function;
 
 public class InboundWrapper implements InboundHeaders {
 
-    private final HttpResponse delegate;
+    private final HttpHeaders headers;
 
     public InboundWrapper(HttpResponse response) {
-        this.delegate = response;
+        this.headers = response == null ? null : response.headers();
     }
 
     @Override
@@ -21,6 +21,6 @@ public class InboundWrapper implements InboundHeaders {
 
     @Override
     public String getHeader(String name) {
-        return delegate.headers().firstValue(name).map(String::toString).orElse(null);
+        return headers.firstValue(name).map(String::toString).orElse(null);
     }
 }

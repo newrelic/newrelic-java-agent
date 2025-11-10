@@ -55,6 +55,10 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     boolean isAutoTransactionNamingEnabled();
 
+    int getAdaptiveSamplingTarget();
+
+    int getAdaptiveSamplingPeriodSeconds();
+
     /**
      * Get the ApdexT value sent by New Relic, or the default value.
      */
@@ -149,6 +153,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     JmxConfig getJmxConfig();
 
     /**
+     * Gets the Kotlin Coroutines configuration settings.
+     *
+     * @return Kotlin Coroutines configuration settings
+     */
+    KotlinCoroutinesConfig getKotlinCoroutinesConfig();
+
+    /**
      * Gets the JarCollectorService configuration settings.
      *
      * @return JarCollectorService configuration settings.
@@ -188,6 +199,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * Get the attributes configuration.
      */
     AttributesConfig getAttributesConfig();
+
+    ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig();
 
     /**
      * The agent language (java).
@@ -324,8 +337,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     int getTokenTimeoutInSec();
 
-    boolean openTracingEnabled();
-
     /**
      * How long to wait (in milliseconds) for all transactions to finish before allowing the application to shutdown
      */
@@ -354,5 +365,7 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     InfiniteTracingConfig getInfiniteTracingConfig();
 
     SlowTransactionsConfig getSlowTransactionsConfig();
+
+    AgentControlIntegrationConfig getAgentControlIntegrationConfig();
 
 }

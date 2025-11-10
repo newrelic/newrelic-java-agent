@@ -1,0 +1,31 @@
+apply plugin: 'java'
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.5.0.RELEASE'
+
+    testImplementation('org.testcontainers:testcontainers:1.17.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+
+    testCompileOnly 'junit:junit:4.13.1'
+
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.lettuce-6.5'
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.lettuce:lettuce-core:[6.5.0.RELEASE,)'
+    excludeRegex '.*RC.*'
+    excludeRegex '.*BETA.*'
+}
+
+site {
+    title 'Lettuce 6.5'
+    type 'Framework'
+}

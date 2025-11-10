@@ -8,11 +8,10 @@
 package org.eclipse.jetty.ee10.servlet;
 
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.agent.instrumentation.jetty.ee10.servlet.ServerHelper;
+import com.nr.agent.instrumentation.jetty12.ee10.servlet.ServerHelper;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.Callback;

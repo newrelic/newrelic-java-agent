@@ -8,7 +8,6 @@
 package akka.http.scaladsl.server
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.{HttpRequest, Uri}

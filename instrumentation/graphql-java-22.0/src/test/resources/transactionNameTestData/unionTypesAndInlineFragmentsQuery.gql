@@ -1,0 +1,11 @@
+query example {
+    search(contains: "author") {
+        __typename
+        ... on Author {
+            name
+        }
+        ... on Book {
+            title
+        }
+    }
+}

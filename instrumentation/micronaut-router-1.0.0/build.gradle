@@ -1,0 +1,22 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'io.micronaut:micronaut-router:2.0.0'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.micronaut-router-2.0.0',
+                'Implementation-Title-Alias': 'micronaut-router'
+    }
+}
+
+verifyInstrumentation {
+
+    passesOnly('io.micronaut:micronaut-router:[1.0.0,4.0.0)')
+    excludeRegex 'io.micronaut:micronaut-router:.*(RC|M)[0-9]*$'
+}
+
+site {
+    title 'Micronaut'
+    type 'Framework'
+}

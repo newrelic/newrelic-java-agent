@@ -11,14 +11,14 @@ on:
 jobs:
   copy-to-s3:
     name: Copy ${{ inputs.version_number }} to S3 (Prod)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout Self
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         # This always checkouts main. So the script will be run from main.
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEFAULT }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEFAULT }}
@@ -27,4 +27,4 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3.sh staging ${{ inputs.version_number }} default
+        run: ./automation/release/copy-to-s3-prod.sh ${{ inputs.version_number }} default

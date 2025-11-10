@@ -17,9 +17,9 @@ import java.util.function.Consumer;
 
 public class R2dbcUtils {
     public static Flux<MariadbResult> wrapRequest(Flux<MariadbResult> request, String sql, Client client) {
-        if(request != null) {
+        if (request != null) {
             Transaction transaction = NewRelic.getAgent().getTransaction();
-            if(transaction != null && !(transaction instanceof NoOpTransaction)) {
+            if (transaction != null && !(transaction instanceof NoOpTransaction)) {
                 Segment segment = transaction.startSegment("execute");
                 return request
                         .doOnSubscribe(reportExecution(sql, client, segment))

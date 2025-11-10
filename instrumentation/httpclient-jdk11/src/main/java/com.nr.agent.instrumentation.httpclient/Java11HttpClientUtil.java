@@ -78,6 +78,7 @@ public class Java11HttpClientUtil {
                 .uri(uri)
                 .procedure(PROCEDURE)
                 .inboundHeaders(new InboundWrapper(httpResponse))
+                .status(httpResponse.statusCode(), null)
                 .build());
         segment.end();
     }

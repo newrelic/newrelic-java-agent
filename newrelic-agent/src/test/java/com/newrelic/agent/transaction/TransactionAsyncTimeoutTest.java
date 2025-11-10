@@ -21,10 +21,12 @@ import com.newrelic.agent.stats.StatsImpl;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.Token;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+@Category(RequiresFork.class)
 public class TransactionAsyncTimeoutTest implements ExtendedTransactionListener {
 
     private TransactionData data;

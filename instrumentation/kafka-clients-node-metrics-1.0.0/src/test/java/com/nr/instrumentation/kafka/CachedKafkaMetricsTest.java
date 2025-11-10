@@ -1,9 +1,15 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.kafka;
 
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.Measurable;
 import org.apache.kafka.common.metrics.stats.Avg;
-import org.apache.kafka.common.metrics.stats.CumulativeSum;
 import org.apache.kafka.common.metrics.stats.Max;
 import org.apache.kafka.common.metrics.stats.Value;
 import org.junit.Test;
@@ -17,14 +23,11 @@ import java.util.HashMap;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyFloat;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -82,81 +85,6 @@ public class CachedKafkaMetricsTest {
     }
 
     @Test
-    public void cachedKafkaCounter() {
-        KafkaMetric counterKafkaMetric = createKafkaMetric(KafkaMetricType.COUNTER);
-
-        CachedKafkaMetric cachedKafkaMetric = CachedKafkaMetrics.newCachedKafkaMetric(counterKafkaMetric);
-
-        assertThat(cachedKafkaMetric.getClass().getName(),
-                equalTo("com.nr.instrumentation.kafka.CachedKafkaMetrics$CachedKafkaCounter"));
-        assertThat(cachedKafkaMetric.isValid(), is(true));
-        assertThat(cachedKafkaMetric.displayName(),
-                equalTo("data/something {}"));
-
-        when(finiteMetricRecorder.tryRecordMetric(any(), anyFloat()))
-                .thenReturn(true);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something"), eq(3.0f));
-        verifyNoMoreInteractions(finiteMetricRecorder);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something"), eq(4.0f));
-        verify(finiteMetricRecorder).incrementCounter(eq("MessageBroker/Kafka/Internal/data/something-counter"), eq(1));
-    }
-
-    @Test
-    public void cachedKafkaCounterTotal() {
-        KafkaMetric counterKafkaMetric = createKafkaMetric(KafkaMetricType.COUNTER_TOTAL);
-
-        CachedKafkaMetric cachedKafkaMetric = CachedKafkaMetrics.newCachedKafkaMetric(counterKafkaMetric);
-
-        assertThat(cachedKafkaMetric.getClass().getName(),
-                equalTo("com.nr.instrumentation.kafka.CachedKafkaMetrics$CachedKafkaCounter"));
-        assertThat(cachedKafkaMetric.isValid(), is(true));
-        assertThat(cachedKafkaMetric.displayName(),
-                equalTo("data/something-total {}"));
-
-        when(finiteMetricRecorder.tryRecordMetric(any(), anyFloat()))
-                .thenReturn(true);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something-total"), eq(4.0f));
-        verifyNoMoreInteractions(finiteMetricRecorder);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something-total"), eq(5.0f));
-        verify(finiteMetricRecorder).incrementCounter(eq("MessageBroker/Kafka/Internal/data/something-counter"), eq(1));
-    }
-
-    @Test
-    public void cachedKafkaCounterTotalCantTrustValue() {
-        KafkaMetric counterKafkaMetric = createKafkaMetric(KafkaMetricType.COUNTER_TOTAL);
-
-        CachedKafkaMetric cachedKafkaMetric = CachedKafkaMetrics.newCachedKafkaMetric(counterKafkaMetric);
-
-        assertThat(cachedKafkaMetric.getClass().getName(),
-                equalTo("com.nr.instrumentation.kafka.CachedKafkaMetrics$CachedKafkaCounter"));
-        assertThat(cachedKafkaMetric.isValid(), is(true));
-        assertThat(cachedKafkaMetric.displayName(),
-                equalTo("data/something-total {}"));
-
-        // when this method returns false, it means that the value was not recorded
-        // and thus, the increaseCount will not be called.
-        when(finiteMetricRecorder.tryRecordMetric(any(), anyFloat()))
-                .thenReturn(false);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something-total"), eq(4.0f));
-        verifyNoMoreInteractions(finiteMetricRecorder);
-
-        cachedKafkaMetric.report(finiteMetricRecorder);
-        verify(finiteMetricRecorder).tryRecordMetric(eq("MessageBroker/Kafka/Internal/data/something-total"), eq(5.0f));
-        verifyNoMoreInteractions(finiteMetricRecorder);
-    }
-
-
-    @Test
     public void cachedKafkaWithoutMeasurable() {
         KafkaMetric counterKafkaMetric = createKafkaMetric(KafkaMetricType.WITHOUT_MEASURABLE);
 
@@ -198,8 +126,6 @@ public class CachedKafkaMetricsTest {
         VERSION("app-info", "version", new Value(), 42),
         INVALID("data", "invalid", new Max(), "towel"),
         SUMMARY("data", "summary", new Avg(), 2.0f),
-        COUNTER("data", "something", new CumulativeSum(), 3, 4),
-        COUNTER_TOTAL("data", "something-total", new CumulativeSum(), 4, 5),
         WITHOUT_MEASURABLE("data", "unmeasurable", null, 6),
         ;
 

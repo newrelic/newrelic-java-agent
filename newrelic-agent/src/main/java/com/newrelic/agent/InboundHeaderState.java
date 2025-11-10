@@ -9,10 +9,7 @@ package com.newrelic.agent;
 
 import com.google.gson.Gson;
 import com.newrelic.agent.service.ServiceUtils;
-import com.newrelic.api.agent.HeaderType;
-import com.newrelic.api.agent.InboundHeaders;
-import com.newrelic.api.agent.Request;
-import com.newrelic.api.agent.TransportType;
+import com.newrelic.api.agent.*;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 
@@ -50,14 +47,17 @@ public class InboundHeaderState {
     public InboundHeaderState(Transaction tx, InboundHeaders inboundHeaders) {
         this.tx = tx;
         this.inboundHeaders = inboundHeaders;
-
         if (inboundHeaders == null) {
             this.synState = SyntheticsState.NONE;
             this.synInfoState = SyntheticsInfoState.NONE;
             this.catState = CatState.NONE;
         } else {
             this.synState = parseSyntheticsHeader();
-            this.synInfoState = parseSyntheticsInfoHeader();
+            if (inboundHeaders.getHeader("X-NewRelic-Synthetics-Info") == null) {
+                this.synInfoState = SyntheticsInfoState.NONE;
+            } else {
+                this.synInfoState = parseSyntheticsInfoHeader();
+            }
             if (tx.getAgentConfig().getDistributedTracingConfig().isEnabled() && tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
                 parseDistributedTraceHeaders();
                 this.catState = CatState.NONE;

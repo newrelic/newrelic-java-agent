@@ -58,6 +58,11 @@ public class PrivateApiStub implements PrivateApi {
     }
 
     @Override
+    public void addTracerParameter(String key, String value, boolean addToSpan) {
+
+    }
+
+    @Override
     public void addTracerParameter(String key, Map<String, String> values) {
 
     }

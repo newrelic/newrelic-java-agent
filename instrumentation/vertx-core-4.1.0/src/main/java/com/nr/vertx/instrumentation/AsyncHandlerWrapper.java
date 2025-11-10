@@ -28,8 +28,9 @@ public class AsyncHandlerWrapper<T> implements Handler<AsyncResult<T>> {
             token.linkAndExpire();
             token = null;
         }
-
-        this.original.handle(event);
-        this.original = null;
+        if (this.original != null) {
+            this.original.handle(event);
+            this.original = null;
+        }
     }
 }

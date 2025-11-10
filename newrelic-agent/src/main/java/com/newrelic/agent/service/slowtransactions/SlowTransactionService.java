@@ -36,6 +36,7 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
     private final boolean isEnabled;
     private final long thresholdMillis;
     private final int maxStackTraceLines;
+    private final boolean evalCompletedTransactions;
 
     @Nullable
     private InsightsService insightsService;
@@ -52,6 +53,7 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
         this.thresholdMillis = slowTransactionsConfig.getThresholdMillis();
         this.maxStackTraceLines = agentConfig.getMaxStackTraceLines();
         this.threadMXBean = threadMXBean;
+        this.evalCompletedTransactions = slowTransactionsConfig.evaluateCompletedTransactions();
 
         NewRelic.getAgent().getMetricAggregator().incrementCounter(
                 agentConfig.getSlowTransactionsConfig().isEnabled() ?
@@ -105,7 +107,15 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
         if (getLogger().isLoggable(Level.FINEST)) {
             getLogger().finest("Transaction finished with guid " + transactionData.getGuid());
         }
-        openTransactions.remove(transactionData.getGuid());
+        Transaction txn = openTransactions.remove(transactionData.getGuid());
+
+        // txn will be null if it's been reported as part of the harvest cycle.
+        if (txn != null && evalCompletedTransactions) {
+            long txnExecutionTimeInMs = System.currentTimeMillis() - txn.getWallClockStartTimeMs();
+            if (txnExecutionTimeInMs > this.thresholdMillis) {
+                reportSlowTransaction(txn, txnExecutionTimeInMs, true);
+            }
+        }
     }
 
     // Visible for testing
@@ -145,26 +155,11 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
         }
 
         // Construct and record SlowTransaction event
-        Map<String, Object> attributes = extractMetadata(slowestOpen, slowestOpenMillis);
-        String guid = slowestOpen.getGuid();
-        if (getLogger().isLoggable(Level.FINE)) {
-            getLogger().fine("Slowest open transaction has guid "
-                    + guid + " has been open for " + slowestOpenMillis + "ms, attributes: " + attributes);
-        }
-        if (insightsService != null) {
-            logger.fine("Sending slow transaction");
-            insightsService.storeEvent(
-                    ServiceFactory.getRPMService().getApplicationName(),
-                    new CustomInsightsEvent(
-                            "SlowTransaction",
-                            System.currentTimeMillis(),
-                            attributes,
-                            DistributedTraceServiceImpl.nextTruncatedFloat()));
-            //insightsService.recordCustomEvent("SlowTransaction", attributes);
-        }
+        reportSlowTransaction(slowestOpen, slowestOpenMillis, false);
+
         // Remove from openTransactions to ensure we don't report the same Transaction
         // multiple times
-        openTransactions.remove(guid);
+        openTransactions.remove(slowestOpen.getGuid());
     }
 
     // Visible for testing
@@ -196,8 +191,24 @@ public class SlowTransactionService extends AbstractService implements ExtendedT
             attributes.put("code.stacktrace", stackTraceString(scrubbedStackTraceElements));
         }
 
-        new IllegalArgumentException().printStackTrace();
         return attributes;
+    }
+
+    private void reportSlowTransaction(Transaction slowTxn, long txnExecutionTimeInMs, boolean isCompleted) {
+        Map<String, Object> attributes = extractMetadata(slowTxn, txnExecutionTimeInMs);
+        if (getLogger().isLoggable(Level.FINE)) {
+            getLogger().fine("Reporting " + (isCompleted ? "completed" : "in progress") + " slow transaction with guid "
+                    + slowTxn.getGuid() + " with execution time of " + txnExecutionTimeInMs + "ms, attributes: " + attributes);
+        }
+        if (insightsService != null) {
+            insightsService.storeEvent(
+                    ServiceFactory.getRPMService().getApplicationName(),
+                    new CustomInsightsEvent(
+                            "SlowTransaction",
+                            System.currentTimeMillis(),
+                            attributes,
+                            DistributedTraceServiceImpl.nextTruncatedFloat()));
+        }
     }
 
     private static String stackTraceString(List<StackTraceElement> stackTrace) {

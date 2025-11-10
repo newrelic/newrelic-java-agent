@@ -19,9 +19,11 @@ import com.newrelic.agent.tracers.servlet.BasicRequestRootTracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.api.agent.NewRelicApiImplementation;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Category(RequiresFork.class)
 public class AgentAttributeSenderTest {
 
     private static final String APP_NAME = "NAME";

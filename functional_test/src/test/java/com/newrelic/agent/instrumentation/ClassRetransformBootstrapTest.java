@@ -10,6 +10,7 @@ package com.newrelic.agent.instrumentation;
 import com.newrelic.test.marker.Java11IncompatibleTest;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java21IncompatibleTest;
+import com.newrelic.test.marker.Java25IncompatibleTest;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -17,7 +18,7 @@ import javax.activation.MimeType;
 import java.util.HashMap;
 import java.util.Map;
 
-@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class })
+@Category({ Java11IncompatibleTest.class, Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java25IncompatibleTest.class })
 public class ClassRetransformBootstrapTest {
 
     /**

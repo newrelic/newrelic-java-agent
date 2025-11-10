@@ -1,9 +1,5 @@
 apply plugin: 'java-library'
-apply plugin: 'jacoco'
 
-jacoco{
-    toolVersion = "0.8.10"
-}
 configurations {
     includeInJar
 }
@@ -96,7 +92,8 @@ test {
     ext.configuredWithValidTestJDK = {
         if (project.hasProperty("test9") || project.hasProperty("test10") || project.hasProperty("test12") || project.hasProperty("test13") ||
                 project.hasProperty("test14") || project.hasProperty("test15") || project.hasProperty("test16") || project.hasProperty("test18") ||
-                project.hasProperty("test19") || project.hasProperty("test20")) {
+                project.hasProperty("test19") || project.hasProperty("test20") || project.hasProperty("test22") || project.hasProperty("test23") ||
+                project.hasProperty("test24")) {
             logger.lifecycle("The newrelic-java-agent project does not support testing with the Java version configured by the -PtestN gradle property.")
             return false
         }
@@ -115,6 +112,23 @@ test {
         javaLauncher.convention(null).value(null)
         executable = project.property(jdkName) + '/bin/java'
         configuration.call()
+    }
+
+    if (project.hasProperty("test25")) {
+        configureTest("jdk25") {
+            jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-opens=java.base/java.net=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.spi=ALL-UNNAMED',
+                    '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
+                    '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
+            useJUnit {
+                excludeCategories 'com.newrelic.test.marker.Java25IncompatibleTest'
+            }
+        }
+        // mockito uses a version of bytebuddy that has experimental support for Java 21
+        systemProperty("net.bytebuddy.experimental", "true")
     }
 
     if (project.hasProperty("test21")) {
@@ -210,74 +224,6 @@ test {
         events "FAILED" // additional events for more verbose logging: "PASSED", "SKIPPED", "STANDARD_OUT", "STANDARD_ERROR", "STARTED"
         exceptionFormat "short"
     }
-
-    jacoco {
-        enabled = true
-        destinationFile = layout.buildDirectory.file('jacoco/test.exec').get().asFile
-        classDumpDir = layout.buildDirectory.dir('jacoco/classpathdumps').get().asFile
-        destinationFile = layout.buildDirectory.file("jacoco/${name}.exec").get().asFile
-
-    }
-    finalizedBy jacocoTestReport // report is always generated after tests run
-
-}
-
-
-jacocoTestReport {
-
-    dependsOn test
-    afterEvaluate {
-        classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    exclude: ['**/*NoOp*.class',
-                              '**/*Exception.class',
-                              '**/*Error.class',
-                              '**/Dummy*.class',
-                              '**/*Type.class',
-                              '**/*Type$*.class',
-                              '**/*Parameters.class',
-                              '**/*Parameters$*.class',
-                              'com/newrelic/agent/InternalLimitExceeded.class',
-                              'com/newrelic/agent/PrivateApiImpl.class',
-                              'com/newrelic/agent/introspec/*.class',
-                              'com/newrelic/agent/jmx/metrics/*Generator.class',
-                              'com/newrelic/agent/jmx/metrics/*Generator$*.class',
-                              'com/newrelic/agent/bridge/external/ExternalParametersFactory.class',
-                              'com/newrelic/agent/instrumentation/tracing/TraceDetailsBuilder*.class',
-                              'com/newrelic/agent/model/ApdexPerfZone.class',
-                              'com/newrelic/agent/model/CountedDuration.class',
-                              'com/newrelic/agent/model/PathHashes.class',
-                              'com/newrelic/agent/model/SpanCategory.class',
-                              'com/newrelic/agent/model/SyntheticsIds.class',
-                              'com/newrelic/agent/model/TimeoutCause.class',
-                              'com/newrelic/agent/model/TransactionTiming.class',
-                              'com/newrelic/agent/model/TransactionTiming$*.class',
-                              'com/newrelic/api/agent/NewRelic.class',
-                              'com/newrelic/weave/verification/*.class',
-                              'com/newrelic/agent/bridge/datastore/DatastoreMetrics.class',
-                              'com/newrelic/api/agent/ApplicationNamePriority.class',
-                              'com/newrelic/agent/bridge/TransactionNamePriority.class',
-                              'com/newrelic/weave/utils/Synchronized*.class',
-                              'com/newrelic/agent/introspec/internal/IgnoringJarCollectorService.class',
-                              'com/newrelic/agent/introspec/internal/FailingWeavePackageListener.class',
-                              'com/newrelic/agent/tracers/UltraLightTracer.class',
-                              'com/newrelic/agent/core/CoreServiceImpl.class',
-                              'com/newrelic/agent/Deployments.class',
-                              'com/newrelic/agent/LifecycleObserver$*.class',
-                              'com/newrelic/agent/LifecycleObserver.class',
-                              'com/newrelic/agent/InitProblemClasses.class',
-                              'com/newrelic/agent/reinstrument/ReinstrumentUtils.class',
-                              'com/newrelic/agent/AsyncApiImpl.class',
-                              'com/newrelic/agent/tracers/jasper/JasperClassFactory.class',
-                              'com/newrelic/agent/tracers/jasper/GeneratorVisitTracerFactory.class'
-                    ])
-        }))
-    }
-    reports {
-        xml.required = true
-        html.outputLocation = layout.buildDirectory.dir('reports/jacoco')
-    }
-
 }
 
 dependencies {

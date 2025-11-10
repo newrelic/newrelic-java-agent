@@ -20,21 +20,21 @@ jobs:
   unit-test:
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 150
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       # max-parallel: 1 ## used to force sequential vs. concurrent
       fail-fast: false
       matrix:
-        java-version: [8, 11, 17, 21]
+        java-version: [ 8, 11, 17, 21, 25 ]
     steps:
       - name: Checkout Java agent
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@v1-node16
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -43,27 +43,27 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Run unit tests for each Java version as defined in the matrix (attempt 1)
+      - name: Run unit tests that do not require a forked JVM (attempt 1)
         id: run_tests_1
         continue-on-error: true
-        timeout-minutes: 45
-        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        timeout-minutes: 20
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
-      - name: Run unit tests for each Java version as defined in the matrix (attempt 2)
+      - name: Run unit tests that do not require a forked JVM (attempt 2)
         id: run_tests_2
         continue-on-error: true
-        timeout-minutes: 45
+        timeout-minutes: 20
         if: steps.run_tests_1.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
-      - name: Run unit tests for each Java version as defined in the matrix (attempt 3)
-        timeout-minutes: 45
+      - name: Run unit tests that do not require a forked JVM (attempt 3)
+        timeout-minutes: 20
         if: steps.run_tests_2.outcome == 'failure'
-        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -Ptest${{ matrix.java-version }} -PnoInstrumentation --continue
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
       - name: Upload coverage to Codecov
         if: matrix.java-version == '17'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@6d798873df2b1b8e5846dba6fb86631229fbcb17 # pin@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
@@ -71,18 +71,65 @@ jobs:
 
       - name: Capture Jacoco reports
         if: matrix.java-version == '17'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
-          name: jacoco-reports-java-${{ matrix.java-version }}
+          name: non-forked-jacoco-reports-java-${{ matrix.java-version }}
           path: |
             **/build/reports/jacoco/**
 
-      - name: Capture build reports
+      - name: Capture build reports (non forked)
         # If previous step fails, run this step regardless
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        if: failure()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
-          name: unit-tests-results-java-${{ matrix.java-version }}
+          name: non-forked-tests-results-java-${{ matrix.java-version }}
+          # The regex for the path below will capture unit test HTML reports generated by gradle for all
+          # related modules: (agent-bridge, newrelic-java, newrelic-api, etc).
+          # However, it's critical that the previous build step does a ./gradlew clean or the regex will capture test reports
+          # that were leftover in unrelated modules for functional and instrumentation tests.
+          path: |
+            **/build/reports/tests/*
+
+      - name: Run unit tests that require a forked JVM (attempt 1)
+        id: run_forked_tests_1
+        continue-on-error: true
+        timeout-minutes: 20
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
+
+      - name: Run unit tests that require a forked JVM (attempt 2)
+        id: run_forked_tests_2
+        continue-on-error: true
+        timeout-minutes: 20
+        if: steps.run_forked_tests_1.outcome == 'failure'
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
+
+      - name: Run unit tests that require a forked JVM (attempt 3)
+        id: run_forked_tests_3
+        timeout-minutes: 20
+        if: steps.run_forked_tests_2.outcome == 'failure'
+        run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
+
+      - name: Upload coverage to Codecov
+        if: matrix.java-version == '17'
+        uses: codecov/codecov-action@6d798873df2b1b8e5846dba6fb86631229fbcb17 # pin@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: '**/build/reports/jacoco/test/jacocoTestReport.xml'
+          fail_ci_if_error: false #default is false, but being explicit about what to expect.
+
+      - name: Capture Jacoco reports
+        if: matrix.java-version == '17'
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: forked-jacoco-reports-java-${{ matrix.java-version }}
+          path: |
+            **/build/reports/jacoco/**
+
+      - name: Capture build reports (forked)
+        if: failure()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: forked-tests-results-java-${{ matrix.java-version }}
           # The regex for the path below will capture unit test HTML reports generated by gradle for all
           # related modules: (agent-bridge, newrelic-java, newrelic-api, etc).
           # However, it's critical that the previous build step does a ./gradlew clean or the regex will capture test reports
@@ -92,7 +139,7 @@ jobs:
 
       - name: Checkout GhPages branch
         if: ${{ failure() }}
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: 'gh-pages'
           path: 'gh-pages'
@@ -105,14 +152,14 @@ jobs:
 
       - name: Download test reports Java ${{ matrix.java-version }}
         if: ${{ failure() }}
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
           name: unit-tests-results-java-${{ matrix.java-version }}
           path: gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}
 
       - name: Set up Python
         if: ${{ failure() }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # pin@v5
 
       #This step executes a Python script that reads and writes html.
       #The script requires the beautifulsoup dependency, which parses html.
@@ -140,10 +187,10 @@ jobs:
     steps:
 
       - name: Checkout GhPages branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
-            ref: 'gh-pages'
-            path: 'gh-pages'
+          ref: 'gh-pages'
+          path: 'gh-pages'
 
       - name: Configure Git
         run: |
@@ -151,7 +198,7 @@ jobs:
           git config --global user.email "actions@users.noreply.github.com"
 
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # pin@v5
 
       - name: Generate Index Pages
         run: |
@@ -174,4 +221,3 @@ jobs:
       - name: Gh Pages Summary
         run: |
           echo "[View test reports](https://newrelic.github.io/newrelic-java-agent/reports/${{ inputs.agent-ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-

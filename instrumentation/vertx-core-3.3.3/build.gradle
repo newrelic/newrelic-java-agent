@@ -15,7 +15,7 @@ verifyInstrumentation {
 
 test {
     // this version of Vert.x uses some DirectBuffer things that are now hidden in its module
-    if (project.hasProperty("test17") || project.hasProperty("test21")) {
+    if (project.hasProperty("test17") || project.hasProperty("test21") || project.hasProperty("test25")) {
         jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
         jvmArgs += '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED'
     }

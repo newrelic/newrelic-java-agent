@@ -49,7 +49,7 @@ public class ClientFrontendPipeline_Instrumentation {
                                 .uri(new URI((isSSL ? "https" : "http"), null, hostAndPort.getHostName(), hostAndPort.getPort(),
                                         ((HttpRequest_Instrumentation) request).uri().path().toString(), null, null))
                                 .procedure("connection")
-                                .inboundHeaders(new InboundHttpHeaders((HttpResponse) httpMessageEnd))
+                                .inboundHeaders(new InboundHttpHeaders(((HttpResponse) httpMessageEnd).headers()))
                                 .build());
                         segment.end();
                     } catch (Exception e) {

@@ -484,13 +484,15 @@ public class DataSenderImplTest {
                 break;
             }
             String methodName = invocation.getMethod().getName();
-            Object rawArgument = invocation.getRawArguments()[0];
-            if (rawArgument instanceof IncrementCounter) {
-                String metricName = invocation.<IncrementCounter>getArgument(0).getName();
-                found = methodName.equals("doStatsWork") && metricName.equals(expectedMetricName);
-            } else if (rawArgument instanceof RecordDataUsageMetric) {
-                String metricName = invocation.<RecordDataUsageMetric>getArgument(0).getName();
-                found = methodName.equals("doStatsWork") && metricName.equals(expectedMetricName);
+            if (invocation.getRawArguments() != null && invocation.getRawArguments().length > 0) {
+                Object rawArgument = invocation.getRawArguments()[0];
+                if (rawArgument instanceof IncrementCounter) {
+                    String metricName = invocation.<IncrementCounter>getArgument(0).getName();
+                    found = methodName.equals("doStatsWork") && metricName.equals(expectedMetricName);
+                } else if (rawArgument instanceof RecordDataUsageMetric) {
+                    String metricName = invocation.<RecordDataUsageMetric>getArgument(0).getName();
+                    found = methodName.equals("doStatsWork") && metricName.equals(expectedMetricName);
+                }
             }
         }
         assertTrue("Could not find metric: " + expectedMetricName, found);

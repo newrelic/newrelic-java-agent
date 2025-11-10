@@ -33,11 +33,13 @@ import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCounts;
 import com.newrelic.agent.util.Obfuscator;
 import com.newrelic.api.agent.InboundHeaders;
+import com.newrelic.test.marker.RequiresFork;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import java.io.UnsupportedEncodingException;
@@ -53,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
+@Category(RequiresFork.class)
 public class CrossProcessStateCatApiTest {
     private final String ENCODING_KEY = "abc";
 

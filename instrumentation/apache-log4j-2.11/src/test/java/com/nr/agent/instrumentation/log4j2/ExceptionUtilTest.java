@@ -10,6 +10,26 @@ import static org.junit.Assert.assertTrue;
 public class ExceptionUtilTest {
 
     @Test
+    public void getErrorStack_withThrowable_generatesFullStacktrace() {
+        assertFalse(ExceptionUtil.getErrorStack(createNestedThrowable(1)).contains("caused by: java.lang.Throwable: Root Cause (Level 0)"));
+
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 1)"));
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 2)"));
+        assertTrue(ExceptionUtil.getErrorStack(createNestedThrowable(5)).contains("caused by: java.lang.Throwable: Nested Exception (Level 3)"));
+    }
+
+    @Test
+    public void getErrorStack_withLargeCausedByStack_truncatesStackTrace() {
+        // This was causing an OOM prior to the fix
+        assertEquals(300, ExceptionUtil.getErrorStack(createNestedThrowable(35000)).split("\n").length);
+    }
+
+    @Test
+    public void getErrorStack_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorStack(null));
+    }
+
+    @Test
     public void testIsThrowableNull() {
         Throwable nullThrowable = null;
         Throwable nonNullThrowable = new Throwable("Hi");
@@ -19,43 +39,33 @@ public class ExceptionUtilTest {
     }
 
     @Test
-    public void testGetErrorStack() {
-        int maxStackSize = 3;
-        StackTraceElement stackTraceElement1 = new StackTraceElement("Class1", "method1", "File1", 1);
-        StackTraceElement stackTraceElement2 = new StackTraceElement("Class2", "method2", "File2", 2);
-        StackTraceElement stackTraceElement3 = new StackTraceElement("Class3", "method3", "File3", 3);
-        StackTraceElement stackTraceElement4 = new StackTraceElement("Class4", "method4", "File4", 4);
-        StackTraceElement stackTraceElement5 = new StackTraceElement("Class5", "method5", "File5", 5);
-        StackTraceElement[] stack = new StackTraceElement[] { stackTraceElement1, stackTraceElement2, stackTraceElement3, stackTraceElement4,
-                stackTraceElement5 };
-        String errorStack = ExceptionUtil.getErrorStack(stack, maxStackSize);
-
-        // Processed stack should be limited to only the first three lines
-        assertTrue(errorStack.contains(stackTraceElement1.toString()));
-        assertTrue(errorStack.contains(stackTraceElement2.toString()));
-        assertTrue(errorStack.contains(stackTraceElement3.toString()));
-        // Processed stack should omit the last two lines
-        assertFalse(errorStack.contains(stackTraceElement4.toString()));
-        assertFalse(errorStack.contains(stackTraceElement5.toString()));
+    public void getErrorMessage_withThrowable_returnsErrorMessage() {
+        assertEquals("Root Cause (Level 0)", ExceptionUtil.getErrorMessage(createNestedThrowable(1)));
     }
 
     @Test
-    public void testGetErrorMessage() {
-        String expectedMessage = "Hi";
-        Throwable nullThrowable = null;
-        Throwable nonNullThrowable = new Throwable(expectedMessage);
-
-        assertNull(ExceptionUtil.getErrorMessage(nullThrowable));
-        assertEquals(expectedMessage, ExceptionUtil.getErrorMessage(nonNullThrowable));
+    public void getErrorMessage_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorMessage(null));
     }
 
     @Test
-    public void testGetErrorClass() {
-        String expectedExceptionClass = "java.lang.RuntimeException";
-        Throwable nullThrowable = null;
-        RuntimeException runtimeException = new RuntimeException("Hi");
+    public void getErrorClass_withThrowable_returnsErrorMessage() {
+        assertEquals("java.lang.Throwable", ExceptionUtil.getErrorClass(createNestedThrowable(1)));
+    }
 
-        assertNull(ExceptionUtil.getErrorClass(nullThrowable));
-        assertEquals(expectedExceptionClass, ExceptionUtil.getErrorClass(runtimeException));
+    @Test
+    public void getErrorClass_withNullThrowable_returnsNull() {
+        assertNull(ExceptionUtil.getErrorClass(null));
+    }
+
+    private static Throwable createNestedThrowable(int depth) {
+        Throwable rootCause = new Throwable("Root Cause (Level " + (depth - 1) + ")");
+        Throwable currentThrowable = rootCause;
+
+        for (int i = depth - 2; i >= 0; i--) {
+            currentThrowable = new Throwable("Nested Exception (Level " + i + ")", currentThrowable);
+        }
+
+        return currentThrowable;
     }
 }

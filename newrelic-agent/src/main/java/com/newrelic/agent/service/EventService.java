@@ -58,6 +58,15 @@ public interface EventService extends Service {
     void setMaxSamplesStored(int maxSamplesStored);
 
     /**
+     * Update the reporting period for harvesting, in case it is needed for config changes.
+     *
+     * @param reportPeriodInMillis the number of millis between reporting/harvesting cycles
+     */
+    default void setReportPeriodInMillis(long reportPeriodInMillis) {
+        // do nothing
+    }
+
+    /**
      * Reset the event reservoir to allow for the next harvest to start
      */
     void clearReservoir();

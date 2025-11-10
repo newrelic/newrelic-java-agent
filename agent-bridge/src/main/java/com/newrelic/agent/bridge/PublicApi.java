@@ -107,13 +107,20 @@ public interface PublicApi extends ErrorApi {
     /**
      * Get the RUM JavaScript footer for the current web transaction.
      *
+     * @deprecated The full browser script is now included when calling {@link PublicApi#getBrowserTimingHeader}
+     * or {@link PublicApi#getBrowserTimingHeader(String)}
+     *
      * @return RUM JavaScript footer for the current web transaction.
      */
     String getBrowserTimingFooter();
 
     /**
      * Get the RUM JavaScript footer for the current web transaction.
+     *
      * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
+     * @deprecated The full browser script is not included when calling {@link PublicApi#getBrowserTimingHeader}
+     * or {@link PublicApi#getBrowserTimingHeader(String)}
+     *
      * @return RUM JavaScript footer for the current web transaction.
      */
     String getBrowserTimingFooter(String nonce);

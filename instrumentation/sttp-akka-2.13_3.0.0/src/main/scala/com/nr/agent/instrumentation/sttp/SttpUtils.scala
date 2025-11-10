@@ -26,7 +26,7 @@ object SttpUtils {
       .library("Sttp")
       .uri(new URI(request.uri.toString()))
       .procedure(request.method.method)
-      .inboundHeaders(new InboundHttpHeaders(response))
+      .inboundHeaders(new InboundHttpHeaders(response.headers))
       .build())
     segment.end()
   }

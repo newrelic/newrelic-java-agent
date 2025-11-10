@@ -1,0 +1,27 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework.batch:spring-batch-core:4.0.0.RELEASE")
+    implementation("org.springframework.batch:spring-batch-infrastructure:4.0.0.RELEASE")
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-batch-4.0.0',
+            'Implementation-Title-Alias': 'spring_batch' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework.batch:spring-batch-core:[4.0.0.RELEASE,5.0.0.RELEASE)'
+
+    excludeRegex 'org.springframework.batch:spring-batch-core:.*(RC|SEC|M)[0-9]*$'
+    exclude 'org.springframework.batch:spring-batch-core:[1.0.0.FINAL,4.0.0.RELEASE)'
+}
+
+site {
+    title 'Spring'
+    type 'Framework'
+}

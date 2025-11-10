@@ -188,5 +188,4 @@ public abstract class BaseRPMService implements IRPMService {
     public boolean hasEverConnected() {
         return false;
     }
-
 }

@@ -15,6 +15,7 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.JarResource;
 import com.newrelic.agent.config.JavaVersionUtils;
+import com.newrelic.agent.config.SecurityAgentConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.core.CoreServiceImpl;
 import com.newrelic.agent.logging.AgentLogManager;
@@ -24,6 +25,8 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
@@ -32,6 +35,7 @@ import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
+import com.newrelic.agent.stats.TransactionStats;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -234,10 +238,10 @@ public final class Agent {
             instrumentation.started();
         }
         lifecycleObserver.agentStarted();
-        InitialiseNewRelicSecurityIfAllowed(inst);
+        initialiseNewRelicSecurityIfAllowed(inst);
     }
 
-    private static void InitialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
+    private static void initialiseNewRelicSecurityIfAllowed(Instrumentation inst) {
         // Do not initialise New Relic Security module so that it stays in NoOp mode if force disabled.
         addSecurityAgentConfigSupportabilityMetrics();
         if (shouldInitializeSecurityAgent()) {
@@ -266,11 +270,28 @@ public final class Agent {
                         NewRelicSecurity.getAgent().deactivateSecurity();
                     }
                 });
+                ServiceFactory.getTransactionService().addTransactionListener(new ExtendedTransactionListener() {
+                    @Override
+                    public void dispatcherTransactionStarted(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionStarted();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionCancelled(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionCancelled();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionFinished();
+                    }
+                });
             } catch (Throwable t2) {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
         } else {
-            LOG.warning("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
+            LOG.info("New Relic Security is completely disabled by one of the user provided config `security.enabled`, `security.agent.enabled` or `high_security`. Not loading security capabilities.");
+            SecurityAgentConfig.logSettings(Level.FINE);
         }
     }
 
@@ -288,12 +309,15 @@ public final class Agent {
             ServiceManager serviceManager = new ServiceManagerImpl(coreService, configService);
             ServiceFactory.setServiceManager(serviceManager);
 
-            if (isLicenseKeyEmpty(serviceManager.getConfigService().getDefaultAgentConfig().getLicenseKey())) {
+            AgentConfig agentConfig = serviceManager.getConfigService().getDefaultAgentConfig();
+            if (isLicenseKeyEmpty(agentConfig.getLicenseKey())) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.MISSING_LICENSE);
                 LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
                 return false;
             }
 
             if (!serviceManager.getConfigService().getDefaultAgentConfig().isAgentEnabled()) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.AGENT_DISABLED);
                 LOG.warning("agent_enabled is false in the config. Not starting New Relic Agent.");
                 return false;
             }

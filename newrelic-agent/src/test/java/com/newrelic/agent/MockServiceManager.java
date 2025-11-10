@@ -26,6 +26,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.normalization.NormalizationServiceImpl;
@@ -96,6 +97,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile LogSenderService logSenderService;
     private volatile ExpirationService expirationService;
     private volatile  BrowserService browserService;
+    private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
     public MockServiceManager() {
         this(createConfigService());
@@ -156,6 +158,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         spanEventsService = Mockito.mock(SpanEventsService.class);
         insights = Mockito.mock(InsightsServiceImpl.class);
         logSenderService = Mockito.mock(LogSenderServiceImpl.class);
+        kotlinCoroutinesService = Mockito.mock(KotlinCoroutinesService.class);
     }
 
     @Override
@@ -673,6 +676,9 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         return expirationService;
     }
 
+    @Override
+    public void refreshDataForCRaCRestore() {}
+
     public void setSourceLanguageService(SourceLanguageService sourceLanguageService) {
         this.sourceLanguageService = sourceLanguageService;
     }
@@ -681,4 +687,12 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         this.expirationService = expirationService;
     }
 
+    @Override
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
+    }
+
+    public void setKotlinCoroutinesService(KotlinCoroutinesService kotlinCoroutinesService) {
+        this.kotlinCoroutinesService = kotlinCoroutinesService;
+    }
 }

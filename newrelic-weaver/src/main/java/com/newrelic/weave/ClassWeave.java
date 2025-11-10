@@ -77,7 +77,7 @@ public class ClassWeave {
             }
         });
 
-        WeaveUtils.updateClassVersion(composite);
+        WeaveUtils.updateClassVersion(composite, target);
 
         // copy class annotations
         composite.visibleAnnotations = merge(match.getWeaveClassAnnotations().visibleAnnotations,

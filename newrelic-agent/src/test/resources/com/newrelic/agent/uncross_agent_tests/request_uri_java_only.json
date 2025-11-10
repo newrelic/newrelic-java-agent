@@ -1,0 +1,194 @@
+[
+  {
+    "test_name": "disable request uri slow sql general",
+    "test_type": "slow_sql",
+    "input": {
+      "txn_name": "some uri",
+      "sql": "select * from table",
+      "configuration": {
+        "attributes": {
+          "exclude": "request.uri"
+        }
+      }
+    },
+    "expectation": {
+      "txn_url": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri slow sql wild card",
+    "test_type": "slow_sql",
+    "input": {
+      "txn_name": "some uri",
+      "sql": "select * from table",
+      "configuration": {
+        "attributes": {
+          "exclude": "request*"
+        }
+      }
+    },
+    "expectation": {
+      "txn_url": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri slow sql general bad",
+    "test_type": "slow_sql",
+    "input": {
+      "txn_name": "some uri",
+      "sql": "select * from table",
+      "configuration": {
+        "attributes": {
+          "exclude": "request.urii"
+        }
+      }
+    },
+    "expectation": {
+      "txn_url": [
+        "some uri"
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri transaction trace general",
+    "test_type": "transaction_trace",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "attributes": {
+          "exclude": "request.uri"
+        }
+      }
+    },
+    "expectation": {
+      "requestURL": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri transaction trace specific",
+    "test_type": "transaction_trace",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "transaction_tracer.attributes.exclude": "request.uri"
+      }
+    },
+    "expectation": {
+      "requestURL": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri transaction trace specific wildcard",
+    "test_type": "transaction_trace",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "transaction_tracer.attributes.exclude": "request*"
+      }
+    },
+    "expectation": {
+      "requestURL": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri transaction trace specific bad",
+    "test_type": "transaction_trace",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "transaction_tracer.attributes.exclude": "request.urii"
+      }
+    },
+    "expectation": {
+      "requestURL": [
+        "some uri"
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri transaction trace specific include",
+    "test_type": "transaction_trace",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "transaction_tracer.attributes.include": "request.uri"
+      }
+    },
+    "expectation": {
+      "requestURL": [
+        "some uri"
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri traced error",
+    "test_type": "traced_error",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "attributes.exclude": "request.uri"
+      }
+    },
+    "expectation": {
+      "request_uri": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri traced error specific",
+    "test_type": "traced_error",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "error_collector.attributes.exclude": "request.uri"
+      }
+    },
+    "expectation": {
+      "request_uri": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri traced error specific wild card",
+    "test_type": "traced_error",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "error_collector.attributes.exclude": "request*"
+      }
+    },
+    "expectation": {
+      "request_uri": [
+        null
+      ]
+    }
+  },
+  {
+    "test_name": "disable request uri traced error exclude always supersedes include",
+    "test_type": "traced_error",
+    "input": {
+      "txn_name": "some uri",
+      "configuration": {
+        "attributes.exclude": "request.uri",
+        "error_collector.attributes.include": "request.uri"
+      }
+    },
+    "expectation": {
+      "request_uri": [
+        null
+      ]
+    }
+  }
+]

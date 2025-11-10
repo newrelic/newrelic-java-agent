@@ -10,6 +10,7 @@ package com.newrelic.agent.config;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
+import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -43,9 +44,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ASYNC_TIMEOUT = "async_timeout";
     public static final String CA_BUNDLE_PATH = "ca_bundle_path";
 
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = "adaptive_sampler_sampling_target";
+    public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
+    public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
     public static final String ENABLED = "enabled";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
@@ -74,6 +78,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String METRIC_INGEST_URI = "metric_ingest_uri";
     public static final String EVENT_INGEST_URI = "event_ingest_uri";
     public static final String METRIC_DEBUG = "metric_debug";
+    public static final String OBFUSCATE_JVM_PROPS = "obfuscate_jvm_props";
     public static final String PLATFORM_INFORMATION_ENABLED = "platform_information_enabled";
     public static final String PORT = "port";
     public static final String PROXY_HOST = "proxy_host";
@@ -119,7 +124,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
-    public static final String OPEN_TRACING = "open_tracing";
+    public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
@@ -136,6 +141,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
+    public static final DatastoreInstanceDetection.MultiHostConfig DEFAULT_DATASTORE_MULTIHOST_PREFERNCE = DatastoreInstanceDetection.MultiHostConfig.NONE;
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
@@ -168,7 +174,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
     public static final int DEFAULT_PROXY_PORT = 8080;
-    public static final String DEFAULT_PROXY_SCHEME = null;
+    public static final String DEFAULT_PROXY_SCHEME = "http";
     public static final boolean DEFAULT_PUT_FOR_DATA_SEND_ENABLED = false;
     public static final String DEFAULT_SECURITY_POLICIES_TOKEN = "";
     public static final boolean DEFAULT_SEND_DATA_ON_EXIT = false;
@@ -191,6 +197,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final Pattern REGION_AWARE = Pattern.compile("^.+?x");
 
     // root configs (alphabetized)
+    private int adaptiveSamplingPeriodSeconds;
+    private int adaptiveSamplingTarget;
     private final long apdexTInMillis;
     private final String appName;
     private final List<String> appNames;
@@ -201,6 +209,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
+    private final DatastoreInstanceDetection.MultiHostConfig datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
     private final boolean enabled;
@@ -262,20 +271,23 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final JarCollectorConfig jarCollectorConfig;
     private final JfrConfig jfrConfig;
     private final JmxConfig jmxConfig;
+    private final KotlinCoroutinesConfig kotlinCoroutinesConfig;
     private final KeyTransactionConfig keyTransactionConfig;
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
-    private final OpenTracingConfig openTracingConfig;
     private final ReinstrumentConfig reinstrumentConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
     private final SpanEventsConfig spanEventsConfig;
     private final SqlTraceConfig sqlTraceConfig;
     private final StripExceptionConfig stripExceptionConfig;
+    private final AgentControlIntegrationConfig agentControlIntegrationConfig;
     private final ThreadProfilerConfig threadProfilerConfig;
     private final TransactionEventsConfig transactionEventsConfig;
     private final TransactionTracerConfigImpl transactionTracerConfig;
     private final UtilizationDataConfig utilizationConfig;
+
+    private final ObfuscateJvmPropsConfig obfuscateJvmPropsConfig;
 
     private final Map<String, Object> flattenedProperties;
     private final CommandParserConfig commandParserConfig;
@@ -297,6 +309,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
+        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERNCE);
         debug = DebugFlag.DEBUG;
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
@@ -356,6 +369,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         externalTracerConfig = initExternalTracerConfig();
         jfrConfig = initJfrConfig();
         jmxConfig = initJmxConfig();
+        kotlinCoroutinesConfig = initKotlinCoroutinesConfig();
         jarCollectorConfig = initJarCollectorConfig();
         insightsConfig = initInsightsConfig();
         applicationLoggingConfig = initApplicationLoggingConfig();
@@ -366,13 +380,19 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         circuitBreakerConfig = initCircuitBreakerConfig();
         segmentTimeoutInSec = initSegmentTimeout();
         tokenTimeoutInSec = initTokenTimeout();
-        openTracingConfig = initOpenTracingConfig();
         distributedTracingConfig = initDistributedTracing();
         spanEventsConfig = initSpanEventsConfig(distributedTracingConfig.isEnabled());
         transactionEventsConfig = initTransactionEvents();
         commandParserConfig = initCommandParserConfig();
         normalizationRuleConfig = new NormalizationRuleConfig(props);
         slowTransactionsConfig = initSlowTransactionsConfig();
+        obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
+        agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
+        //This setting should use the locally configured distributed_tracing.sampler.adaptive_sampling_target setting
+        //until it is later merged with sampling_target from the server.
+        //If nothing is configured, it will use the local default, which is 120.
+        adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, distributedTracingConfig.getAdaptiveSamplingTarget());
+        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -503,11 +523,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
                 "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
                 EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
         return DEFAULT_EVENT_INGEST_URI;
-    }
-
-    private OpenTracingConfig initOpenTracingConfig() {
-        Map<String, Object> openTracing = nestedProps(OPEN_TRACING);
-        return new OpenTracingConfig(openTracing);
     }
 
     private DistributedTracingConfig initDistributedTracing() {
@@ -735,6 +750,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return JmxConfigImpl.createJmxConfig(props);
     }
 
+    private KotlinCoroutinesConfig initKotlinCoroutinesConfig() {
+        Map<String, Object> props = nestedProps(KOTLIN_COROUTINES);
+        return KotlinCoroutinesConfigImpl.create(props);
+    }
+
     private JarCollectorConfig initJarCollectorConfig() {
         Map<String, Object> props = nestedProps(JAR_COLLECTOR);
         return JarCollectorConfigImpl.createJarCollectorConfig(props);
@@ -788,36 +808,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ClassTransformerConfig initClassTransformerConfig(boolean liteMode) {
         boolean customTracingEnabled = getProperty(ENABLE_CUSTOM_TRACING, DEFAULT_ENABLE_CUSTOM_TRACING);
         Map<String, Object> props = nestedProps(CLASS_TRANSFORMER);
-        props = placeSecurityCollectorRelatedModification(props);
-        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode);
+        boolean addSecurityExcludes = getProperty("security") != null;
+        return ClassTransformerConfigImpl.createClassTransformerConfig(props, customTracingEnabled, liteMode, addSecurityExcludes);
     }
 
-    /**
-     * Security agent specific excludes needed to allow functioning with java.io.InputStream and OutputStream instrumentation.
-     */
-    private Map<String, Object> placeSecurityCollectorRelatedModification(Map<String, Object> props) {
-        if (getProperty("security") != null) {
-            if (props == null) {
-                props = new HashMap<>();
-            } else {
-                props = new HashMap<>(props);
-            }
-            Set<String> securityExcludes = new HashSet<>();
-            securityExcludes.add("java/util/zip/InflaterInputStream");
-            securityExcludes.add("java/util/zip/ZipFile$ZipFileInputStream");
-            securityExcludes.add("java/util/zip/ZipFile$ZipFileInflaterInputStream");
-            securityExcludes.add("com/newrelic/api/agent/security/.*");
-            securityExcludes.add("com/newrelic/agent/security/.*");
-
-            Object userProvidedExcludes = props.get(ClassTransformerConfigImpl.EXCLUDES);
-            if (userProvidedExcludes instanceof String) {
-                securityExcludes.add((String) userProvidedExcludes);
-            } else if (userProvidedExcludes instanceof Set) {
-                securityExcludes.addAll((Collection<? extends String>) userProvidedExcludes);
-            }
-            props.put(ClassTransformerConfigImpl.EXCLUDES, securityExcludes);
-        }
-        return props;
+    private ObfuscateJvmPropsConfig initObfuscateJvmPropsConfig() {
+        Map<String, Object> props = nestedProps(OBFUSCATE_JVM_PROPS);
+        return new ObfuscateJvmPropsConfigImpl(props);
     }
 
     private CircuitBreakerConfig initCircuitBreakerConfig() {
@@ -865,6 +862,20 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private SlowTransactionsConfig initSlowTransactionsConfig() {
         Map<String, Object> props = nestedProps(SLOW_TRANSACTIONS);
         return new SlowTransactionsConfigImpl(props);
+    }
+
+    private AgentControlIntegrationConfig initAgentControlHealthCheckConfig() {
+        return new AgentControlIntegrationConfigImpl(nestedProps(AgentControlIntegrationConfigImpl.ROOT));
+    }
+
+    @Override
+    public int getAdaptiveSamplingTarget() {
+        return adaptiveSamplingTarget;
+    }
+
+    @Override
+    public int getAdaptiveSamplingPeriodSeconds() {
+        return adaptiveSamplingPeriodSeconds;
     }
 
     @Override
@@ -1088,6 +1099,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return slowTransactionsConfig;
     }
 
+    @Override
+    public AgentControlIntegrationConfig getAgentControlIntegrationConfig() {
+        return agentControlIntegrationConfig;
+    }
+
     private Object findPropertyInMap(String[] property, Map<String, Object> map) {
         Object result = map;
         for (String component : property) {
@@ -1173,6 +1189,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     @Override
     public String getLogFileName() {
+        String classicVarValue = SystemPropertyFactory.getSystemPropertyProvider().getEnvironmentVariable("NEW_RELIC_LOG");
+        if (classicVarValue != null) {
+            return classicVarValue;
+        }
+
         return getProperty(LOG_FILE_NAME, DEFAULT_LOG_FILE_NAME);
     }
 
@@ -1232,6 +1253,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
+    public KotlinCoroutinesConfig getKotlinCoroutinesConfig() {
+        return kotlinCoroutinesConfig;
+    }
+
+    @Override
     public JmxConfig getJmxConfig() {
         return jmxConfig;
     }
@@ -1259,6 +1285,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public AttributesConfig getAttributesConfig() {
         return attributesConfig;
+    }
+
+    @Override
+    public ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig() {
+        return obfuscateJvmPropsConfig;
     }
 
     @Override
@@ -1407,11 +1438,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ExternalTracerConfig getExternalTracerConfig() {
         return externalTracerConfig;
-    }
-
-    @Override
-    public boolean openTracingEnabled() {
-        return openTracingConfig.isEnabled();
     }
 
     @Override

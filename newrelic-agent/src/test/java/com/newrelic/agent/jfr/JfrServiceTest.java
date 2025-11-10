@@ -53,10 +53,13 @@ public class JfrServiceTest {
         ServiceFactory.setServiceManager(manager);
 
         when(jfrConfig.useLicenseKey()).thenReturn(true);
+        when(jfrConfig.getHarvestInterval()).thenReturn(22);
+        when(jfrConfig.getQueueSize()).thenReturn(300_000);
         when(agentConfig.getApplicationName()).thenReturn("test_app_name");
         when(agentConfig.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
         when(agentConfig.getEventIngestUri()).thenReturn(DEFAULT_EVENT_INGEST_URI);
         when(agentConfig.getLicenseKey()).thenReturn("test_1234_license_key");
+        when(agentConfig.getProxyScheme()).thenReturn("http");
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
     }
@@ -71,6 +74,9 @@ public class JfrServiceTest {
         assertEquals("test_app_name", daemonConfig.getMonitoredAppName());
         assertEquals(DEFAULT_METRIC_INGEST_URI, daemonConfig.getMetricsUri().toString());
         assertEquals(DEFAULT_EVENT_INGEST_URI, daemonConfig.getEventsUri().toString());
+        assertEquals(22, daemonConfig.getHarvestInterval().getSeconds());
+        assertEquals(300_000, (int)daemonConfig.getQueueSize());
+        assertEquals("http", daemonConfig.getProxyScheme());
     }
 
     @Test
@@ -105,6 +111,21 @@ public class JfrServiceTest {
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
     }
+
+    @Test
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndHighSecurityIsTrue() throws JfrRecorderException {
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+        when(agentConfig.isHighSecurity()).thenReturn(true);
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        when(spyJfr.coreApisExist()).thenReturn(true);
+
+        spyJfr.doStart();
+
+        assertFalse(spyJfr.isEnabled());
+        verify(spyJfr, times(0)).startJfrLoop();
+    }
+
     @Category( IBMJ9IncompatibleTest.class )
     @Test
     public void jfrLoopDoesStart() {

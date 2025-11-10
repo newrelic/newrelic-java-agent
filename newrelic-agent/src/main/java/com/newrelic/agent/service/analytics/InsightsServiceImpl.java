@@ -17,11 +17,13 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
-import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.attributes.CustomEventAttributeValidator;
+import com.newrelic.agent.attributes.LlmEventAttributeValidator;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.CustomInsightsEvent;
+import com.newrelic.agent.model.LlmCustomInsightsEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -29,6 +31,7 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.transport.HttpError;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.Insights;
 
 import java.text.MessageFormat;
@@ -332,7 +335,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
     }
 
     private void recordSupportabilityMetrics(StatsEngine statsEngine, long durationInNanoseconds,
-                                             DistributedSamplingPriorityQueue<CustomInsightsEvent> reservoir) {
+            DistributedSamplingPriorityQueue<CustomInsightsEvent> reservoir) {
         statsEngine.getStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT)
                 .incrementCallCount(reservoir.size());
         statsEngine.getStats(MetricNames.SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN)
@@ -366,16 +369,25 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
     private static CustomInsightsEvent createValidatedEvent(String eventType, Map<String, ?> attributes) {
         Map<String, Object> userAttributes = new HashMap<>(attributes.size());
-        CustomInsightsEvent event = new CustomInsightsEvent(mapInternString(eventType), System.currentTimeMillis(), userAttributes, DistributedTraceServiceImpl.nextTruncatedFloat());
+        CustomInsightsEvent event = new CustomInsightsEvent(mapInternString(eventType), System.currentTimeMillis(), userAttributes,
+                DistributedTraceServiceImpl.nextTruncatedFloat());
 
         // Now add the attributes from the argument map to the event using an AttributeSender.
         // An AttributeSender is the way to reuse all the existing attribute validations. We
         // also locally "intern" Strings because we anticipate a lot of reuse of the keys and,
         // possibly, the values. But there's an interaction: if the key or value is chopped
         // within the attribute sender, the modified value won't be "interned" in our map.
+        AttributeSender sender;
+        final String method;
 
-        AttributeSender sender = new CustomEventAttributeSender(userAttributes);
-        final String method = "add custom event attribute";
+        // CustomInsightsEvents are being overloaded to support some internal event types being sent to the same agent endpoint
+        if (LlmCustomInsightsEvent.isLlmEvent(eventType)) {
+            sender = new LlmEventAttributeSender(userAttributes);
+            method = "add llm event attribute";
+        } else {
+            sender = new CustomEventAttributeSender(userAttributes);
+            method = "add custom event attribute";
+        }
 
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             String key = entry.getKey();
@@ -383,13 +395,13 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
             // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
             if (key == null || value == null) {
-                Agent.LOG.log(Level.WARNING, "Custom event [{0}] with invalid attributes key or value of null was reported for a transaction but ignored."
-                        + " Each key should be a String and each value should be a String, Number, or Boolean. Key: {1} / Value: {2}",
-                        eventType, (key == null ? "[null]" : key), (value == null ? "[null]" : value.toString()));
+                Agent.LOG.log(Level.FINEST, "Custom event [{0}] with invalid attributes key or value of null was reported for a transaction."
+                                + " This attribute will be ignored. Each key should be a String and each value should be a String, Number, or Boolean. Key: {1} / Value: {2}",
+                        eventType, (key == null ? "[null]" : Strings.obfuscate(key)));
                 continue;
             }
 
-            mapInternString(key);
+            key = mapInternString(key);
 
             if (value instanceof String) {
                 sender.addAttribute(key, mapInternString((String) value), method);
@@ -413,9 +425,38 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         private final Map<String, Object> userAttributes;
 
         public CustomEventAttributeSender(Map<String, Object> userAttributes) {
-            super(new AttributeValidator(ATTRIBUTE_TYPE));
+            super(new CustomEventAttributeValidator(ATTRIBUTE_TYPE));
             this.userAttributes = userAttributes;
             setTransactional(false);
+        }
+
+        @Override
+        protected String getAttributeType() {
+            return ATTRIBUTE_TYPE;
+        }
+
+        @Override
+        protected Map<String, Object> getAttributeMap() {
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+                return userAttributes;
+            }
+            return null;
+        }
+    }
+
+    /**
+     * LlmEvent attribute validation rules differ from those of a standard CustomInsightsEvent
+     */
+    private static class LlmEventAttributeSender extends AttributeSender {
+        private static final String ATTRIBUTE_TYPE = "llm";
+
+        private final Map<String, Object> userAttributes;
+
+        public LlmEventAttributeSender(Map<String, Object> userAttributes) {
+            super(new LlmEventAttributeValidator(ATTRIBUTE_TYPE));
+            this.userAttributes = userAttributes;
+            // This will have the effect of only copying attributes onto LlmEvents if there is an active transaction
+            setTransactional(true);
         }
 
         @Override

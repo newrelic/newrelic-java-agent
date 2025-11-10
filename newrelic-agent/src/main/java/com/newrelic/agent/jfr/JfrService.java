@@ -16,17 +16,20 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.*;
 import com.newrelic.telemetry.Attributes;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 import static com.newrelic.jfr.daemon.AttributeNames.ENTITY_GUID;
+import static com.newrelic.jfr.daemon.AttributeNames.HOSTNAME;
 import static com.newrelic.jfr.daemon.SetupUtils.buildCommonAttributes;
 import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 
@@ -35,6 +38,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     private final JfrConfig jfrConfig;
     private final AgentConfig defaultAgentConfig;
     private JfrController jfrController;
+
+    private final String JFR_SERVICE_THREAD_NAME = "New Relic JFR Service";
 
     public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
         super(JfrService.class.getSimpleName());
@@ -49,6 +54,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
+            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL, jfrConfig.getHarvestInterval());
+            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE, jfrConfig.getQueueSize());
 
             try {
                 final DaemonConfig daemonConfig = buildDaemonConfig();
@@ -56,13 +63,14 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
                 Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
-
+                final String hostname = getHostname();
+                commonAttrs.put(HOSTNAME, hostname);
                 final JFRUploader uploader = buildUploader(daemonConfig);
                 String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
                 uploader.readyToSend(new EventConverter(commonAttrs, pattern));
                 jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
-                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor();
+                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
                 jfrMonitorService.submit(
                         () -> {
                             try {
@@ -88,10 +96,13 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     @Override
     public final boolean isEnabled() {
         final boolean enabled = jfrConfig.isEnabled();
+        boolean isHighSecurity = defaultAgentConfig.isHighSecurity();
         if (!enabled) {
             Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.");
+        } else if (isHighSecurity) {
+            Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is enabled but High Security mode is also enabled; JFR will not be activated.");
         }
-        return enabled;
+        return enabled && !isHighSecurity;
     }
 
     @Override
@@ -115,21 +126,43 @@ public class JfrService extends AbstractService implements AgentConfigListener {
         return true;
     }
 
+    private String getHostname() {
+        String host;
+        Integer appPort = ServiceFactory
+            .getEnvironmentService()
+            .getEnvironment()
+            .getAgentIdentity()
+            .getServerPort();
+        try {
+            host = InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            host = InetAddress.getLoopbackAddress().getHostAddress();
+        }
+        if (appPort != null) {
+            return String.format("%s:%s", host, appPort);
+        } else {
+            return host;
+        }
+    }
+
     @VisibleForTesting
     DaemonConfig buildDaemonConfig() {
         DaemonConfig.Builder builder = DaemonConfig.builder()
-                .daemonVersion(VersionFinder.getVersion())
-                .useLicenseKey(jfrConfig.useLicenseKey())
-                .apiKey(defaultAgentConfig.getLicenseKey())
-                .monitoredAppName(defaultAgentConfig.getApplicationName())
-                .auditLogging(jfrConfig.auditLoggingEnabled())
-                .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
-                .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()))
-                .proxyHost(defaultAgentConfig.getProxyHost())
-                .proxyScheme(defaultAgentConfig.getProxyScheme())
-                .proxyPort(defaultAgentConfig.getProxyPort())
-                .proxyUser(defaultAgentConfig.getProxyUser())
-                .proxyPassword(defaultAgentConfig.getProxyPassword());
+            .daemonVersion(VersionFinder.getVersion())
+            .useLicenseKey(jfrConfig.useLicenseKey())
+            .apiKey(defaultAgentConfig.getLicenseKey())
+            .monitoredAppName(defaultAgentConfig.getApplicationName())
+            .auditLogging(jfrConfig.auditLoggingEnabled())
+            .metricsUri(URI.create(defaultAgentConfig.getMetricIngestUri()))
+            .eventsUri(URI.create(defaultAgentConfig.getEventIngestUri()))
+            .harvestInterval(jfrConfig.getHarvestInterval())
+            .queueSize(jfrConfig.getQueueSize())
+            .proxyHost(defaultAgentConfig.getProxyHost())
+            .proxyScheme(defaultAgentConfig.getProxyScheme())
+            .proxyPort(defaultAgentConfig.getProxyPort())
+            .proxyUser(defaultAgentConfig.getProxyUser())
+            .proxyPassword(defaultAgentConfig.getProxyPassword());
         return builder.build();
     }
 

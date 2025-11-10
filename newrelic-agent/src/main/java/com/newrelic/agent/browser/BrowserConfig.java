@@ -35,21 +35,48 @@ public class BrowserConfig extends BaseConfig {
     public static final String ERROR_BEACON = "error_beacon";
     public static final String APPLICATION_ID = "application_id";
 
-    private static final String HEADER_BEGIN = "\n<script type=\"text/javascript\">";
-    private static final String HEADER_END = "</script>";
-
-    private final BrowserFooter footer;
+    private static final String SCRIPT_BEGIN = "\n<script type=\"text/javascript\"";
+    private static final String SCRIPT_END = "</script>";
+    static final String JS_AGENT_CONFIG_STR_PREFIX = "window.NREUM||(NREUM={});NREUM.info=";
     private final String jsAgentLoader;
-    private final String header;
+    private final JavaScriptAgentConfig javaScriptAgentConfig;
 
     private BrowserConfig(String appName, Map<String, Object> props) throws Exception {
         super(props);
         // when rum is turned off on the server, none of the required properties come down
         // meaning this will throw an exception
-        footer = initBrowserFooter(appName);
+        javaScriptAgentConfig = initJavaScriptAgentConfig(appName);
         jsAgentLoader = getRequiredProperty(JS_AGENT_LOADER);
-        header = HEADER_BEGIN + jsAgentLoader + HEADER_END;
         logVersion(appName);
+    }
+
+    public static BrowserConfig createBrowserConfig(String appName, Map<String, Object> settings) throws Exception {
+        if (settings == null) {
+            settings = Collections.emptyMap();
+        }
+        return new BrowserConfig(appName, settings);
+    }
+
+    public String getBrowserAgentHeaderScript(BrowserTransactionState state) {
+        return getBrowserAgentHeaderScript(state, null);
+    }
+
+    public String getBrowserAgentHeaderScript(BrowserTransactionState state, String nonce) {
+        return SCRIPT_BEGIN + (nonce != null ? " nonce=\"" + nonce + "\">" : ">")
+                + JS_AGENT_CONFIG_STR_PREFIX
+                + javaScriptAgentConfig.getConfigString(state)
+                + ";\n"
+                + jsAgentLoader
+                + SCRIPT_END;
+    }
+
+    private  JavaScriptAgentConfig initJavaScriptAgentConfig(String appName) throws Exception {
+        String beacon = getRequiredProperty(BEACON);
+        String browserKey = getRequiredProperty(BROWSER_KEY);
+        String errorBeacon = getRequiredProperty(ERROR_BEACON);
+        String payloadScript = getRequiredProperty(JS_AGENT_FILE);
+        String appId = getRequiredProperty(APPLICATION_ID);
+        return new JavaScriptAgentConfig(appName, beacon, browserKey, errorBeacon, payloadScript, appId);
     }
 
     private void logVersion(String appName) {
@@ -60,15 +87,6 @@ public class BrowserConfig extends BaseConfig {
         }
     }
 
-    private BrowserFooter initBrowserFooter(String appName) throws Exception {
-        String beacon = getRequiredProperty(BEACON);
-        String browserKey = getRequiredProperty(BROWSER_KEY);
-        String errorBeacon = getRequiredProperty(ERROR_BEACON);
-        String payloadScript = getRequiredProperty(JS_AGENT_FILE);
-        String appId = getRequiredProperty(APPLICATION_ID);
-        return new BrowserFooter(appName, beacon, browserKey, errorBeacon, payloadScript, appId);
-    }
-
     private String getRequiredProperty(String key) throws Exception {
         Object val = getProperty(key, null);
         if (val == null) {
@@ -77,33 +95,4 @@ public class BrowserConfig extends BaseConfig {
         }
         return val.toString();
     }
-
-    public String getBrowserTimingHeader() {
-        return header;
-    }
-
-    public String getBrowserTimingHeader(String nonce) {
-        // nonce should change per request so we cannot pre-build this string
-        return "\n<script type=\"text/javascript\" nonce=\""
-                + nonce
-                + "\">"
-                + jsAgentLoader
-                + "</script>";
-    }
-
-    public String getBrowserTimingFooter(BrowserTransactionState state) {
-        return footer.getFooter(state);
-    }
-
-    public String getBrowserTimingFooter(BrowserTransactionState state, String nonce) {
-        return footer.getFooter(state, nonce);
-    }
-
-    public static BrowserConfig createBrowserConfig(String appName, Map<String, Object> settings) throws Exception {
-        if (settings == null) {
-            settings = Collections.emptyMap();
-        }
-        return new BrowserConfig(appName, settings);
-    }
-
 }
