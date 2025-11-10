@@ -36,6 +36,11 @@ on:
         required: false
         default: 'main'
         type: string
+      single-test:
+        description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build-agent:
