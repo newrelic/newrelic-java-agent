@@ -68,6 +68,11 @@ public class ProbabilityBasedSampler implements Sampler {
         return SamplerFactory.PROBABILITY;
     }
 
+    @Override
+    public String getDescription() {
+        return "Probability Based Sampler, rejection threshold=" + rejectionThreshold;
+    }
+
     /**
      * Retrieve the current rejection threshold value
      *

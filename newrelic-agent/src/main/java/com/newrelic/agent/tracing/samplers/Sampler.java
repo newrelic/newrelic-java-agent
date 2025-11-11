@@ -53,9 +53,14 @@ public interface Sampler {
     float calculatePriority(Transaction tx);
 
     /**
-     * Get the description/name of this Sampler
+     * Get the type of this Sampler
      *
      * @return the current Sampler's description
      */
     String getType();
+
+    /**
+     * Human-readable description of this sampler's name and important qualities.
+     */
+    String getDescription();
 }

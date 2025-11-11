@@ -22,6 +22,7 @@ import com.newrelic.agent.config.coretracing.CoreTracingConfig;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.tracing.samplers.SamplerFactory;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
@@ -64,9 +65,19 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     private final Transaction.PartialSampleType partialSampleType;
 
     public enum SamplerCase {
-        ROOT,
-        REMOTE_PARENT_SAMPLED,
-        REMOTE_PARENT_NOT_SAMPLED
+        ROOT("root"),
+        REMOTE_PARENT_SAMPLED("remote_parent_sampled"),
+        REMOTE_PARENT_NOT_SAMPLED("remote_parent_not_sampled");
+
+        private final String name;
+
+        SamplerCase(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
     }
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
@@ -198,19 +209,34 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public float calculatePriority(Transaction tx, SamplerCase samplerCase){
-        float priority;
-        if (distributedTraceConfig.getFullGranularityConfig().isEnabled()){
-            priority = fullGranularitySamplers.get(samplerCase).calculatePriority(tx);
-        } else {
-            priority = nextTruncatedFloat();
+    public float calculatePriority(Transaction tx, SamplerCase samplerCase) {
+        float priority = 0.0f;
+        Sampler sampler = null;
+        String granularity = null;
+        if (distributedTraceConfig.getFullGranularityConfig().isEnabled()) {
+            granularity = "full";
+            sampler = fullGranularitySamplers.get(samplerCase);
+            priority = sampler.calculatePriority(tx);
         }
-        if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)){
-            priority = partialGranularitySamplers.get(samplerCase).calculatePriority(tx);
-            if (DistributedTraceUtil.isSampledPriority(priority)){
+        if (distributedTraceConfig.getPartialGranularityConfig().isEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
+            granularity = "partial";
+            sampler = partialGranularitySamplers.get(samplerCase);
+            priority = sampler.calculatePriority(tx);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                NewRelic.getAgent().getLogger().log(Level.FINEST, "Setting partial granularity sample type to {0} for transaction {1}", partialSampleType, tx);
                 tx.setPartialSampleType(partialSampleType);
             }
         }
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.FINEST,
+                        "Calculated priority=" + priority +
+                                ", sampled=" + DistributedTraceUtil.isSampledPriority(priority) +
+                                " for transaction " + tx +
+                                ", using sampler=" + samplerCase.getName() +
+                                ", granularity=" + granularity +
+                                (sampler == null ? "" : ", samplerDescription=" + sampler.getDescription())
+                );
         return priority;
     }
 
@@ -393,17 +419,13 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     private ImmutableMap<SamplerCase, Sampler> initSamplers(CoreTracingConfig coreTracingConfig) {
-         return ImmutableMap.of(
+        // TODO emit supportability metrics for each of the 3 samplers
+        return ImmutableMap.of(
                 SamplerCase.ROOT, SamplerFactory.createSampler(coreTracingConfig.getRootSampler()),
                 SamplerCase.REMOTE_PARENT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentSampledSampler()),
                 SamplerCase.REMOTE_PARENT_NOT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentNotSampledSampler())
         );
     }
-
-    private boolean isPartialGranularityEnabled(){
-        return distributedTraceConfig.getPartialGranularityConfig().isEnabled();
-    }
-
 
     //Testing-only utility methods. These are NOT thread-safe.
 
