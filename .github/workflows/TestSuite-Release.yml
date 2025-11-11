@@ -15,7 +15,7 @@ on:
         required: false
         default: 'main'
       agent-version:
-        description: "Specify the version number for this release (ex: 9.0.0). This is used as a wiki file name to store ingest metrics from the AIT run. Optional field."
+        description: "Specify the version number for this release (ex: 9.0.0). If provided, ingest metrics will be uploaded to the wiki. Optional field."
         required: false
 
 jobs:
@@ -27,47 +27,46 @@ jobs:
       ait-ref: ${{ inputs.ait-ref || 'main' }}
       cache-ref: ${{ inputs.cache-ref || 'main' }}
       agent-version: ${{ inputs.agent-version }}
-      # single-test: 'basic_features/env_vars.py'
     secrets: inherit
 
-#  functional-tests:
-#    uses: ./.github/workflows/GHA-Functional-Tests.yaml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  functional-tests-scala:
-#    uses: ./.github/workflows/GHA-Scala-Functional-Tests.yaml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  instrumentation-tests:
-#    uses: ./.github/workflows/Java-Instrumentation-Tests.yml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  instrumentation-tests-scala:
-#    uses: ./.github/workflows/GHA-Scala-Instrumentation-Tests.yaml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  unit-tests:
-#    uses: ./.github/workflows/GHA-Unit-Tests.yaml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  verify-unshadowed-jars:
-#    uses: ./.github/workflows/VerifyUnshadowedJars.yml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
-#
-#  verify-instrumentation:
-#    uses: ./.github/workflows/VerifyInstrumentation.yml
-#    with:
-#      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
-#    secrets: inherit
+  functional-tests:
+    uses: ./.github/workflows/GHA-Functional-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  functional-tests-scala:
+    uses: ./.github/workflows/GHA-Scala-Functional-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  instrumentation-tests:
+    uses: ./.github/workflows/Java-Instrumentation-Tests.yml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  instrumentation-tests-scala:
+    uses: ./.github/workflows/GHA-Scala-Instrumentation-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  unit-tests:
+    uses: ./.github/workflows/GHA-Unit-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  verify-unshadowed-jars:
+    uses: ./.github/workflows/VerifyUnshadowedJars.yml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  verify-instrumentation:
+    uses: ./.github/workflows/VerifyInstrumentation.yml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
