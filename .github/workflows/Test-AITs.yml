@@ -450,11 +450,11 @@ jobs:
           # Start with the sum as the first line
           echo "# Ingest Metrics Summary - Version ${{ inputs.agent-version }}" > ingest-report.md
           echo "" >> ingest-report.md
-          echo "**Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
+          echo "## **Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
           echo "" >> ingest-report.md
           echo "---" >> ingest-report.md
           echo "" >> ingest-report.md
-          echo "## Detailed Metrics" >> ingest-report.md
+          echo "### Detailed Metrics" >> ingest-report.md
           echo "" >> ingest-report.md
           echo "\`\`\`" >> ingest-report.md
           cat ingest-aggregate.txt >> ingest-report.md
