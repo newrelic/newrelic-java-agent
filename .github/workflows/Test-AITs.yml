@@ -19,6 +19,9 @@ on:
         description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
         required: false
         default: ''
+      agent-version:
+        description: "Specify the version number for this release (ex: 9.0.0). If provided, ingest metrics will be uploaded to the wiki. Optional field."
+        required: false
   workflow_call:
     inputs:
       agent-ref:
@@ -40,6 +43,10 @@ on:
         description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
         required: false
         default: ''
+        type: string
+      agent-version:
+        description: "Specify the version number for this release (ex: 9.0.0). If provided, ingest metrics will be uploaded to the wiki. Optional field."
+        required: false
         type: string
 
 jobs:
@@ -397,6 +404,8 @@ jobs:
     needs: [ tests ]
     if: ${{ always() }}
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
 
     steps:
       - name: Download all raw ingest files
@@ -409,19 +418,19 @@ jobs:
       - name: Aggregate and sum all files
         run: |
           cd all-ingest-files
-          
+
           # Check if any files were actually downloaded
           # 'shopt -s nullglob' makes the glob expand to nothing if no files match
           shopt -s nullglob
           files=(ingest-*.txt)
-          
+
           echo "Creating single aggregate ingest metric file.."
           cat ingest-*.txt > ../ingest-aggregate.txt
-          
+
           echo "Summing bytes sent across the full test run.."
           cat ingest-*.txt | awk -F'/' '/BytesSent/ { sum += $5 } END { if (sum == "") sum = 0; print sum }' > ../ingest-sum.txt
           cat ../ingest-sum.txt
-          
+
           # Write total to summary page
           TOTAL_SUM=$(cat ../ingest-sum.txt)
           echo "## Ingest across all tests: $TOTAL_SUM" >> $GITHUB_STEP_SUMMARY
@@ -434,6 +443,54 @@ jobs:
             ingest-aggregate.txt
             ingest-sum.txt
           if-no-files-found: ignore
+
+      - name: Create markdown file
+        if: ${{ inputs.agent-version != '' }}
+        run: |
+          # Start with the sum as the first line
+          echo "# Ingest Metrics Summary - Version ${{ inputs.agent-version }}" > ingest-report.md
+          echo "" >> ingest-report.md
+          echo "**Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "---" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "## Detailed Metrics" >> ingest-report.md
+          echo "" >> ingest-report.md
+          echo "\`\`\`" >> ingest-report.md
+          cat ingest-aggregate.txt >> ingest-report.md
+          echo "\`\`\`" >> ingest-report.md
+
+      - name: Checkout wiki repository
+        if: ${{ inputs.agent-version != '' }}
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      - name: Commit and push to wiki
+        if: ${{ inputs.agent-version != '' }}
+        run: |
+          # Create ingest-metrics directory if it doesn't exist
+          mkdir -p wiki/ingest-metrics
+
+          # Copy the report using agent-version as filename
+          FILENAME="ingest-metrics-v${{ inputs.agent-version }}.md"
+          cp ingest-report.md "wiki/ingest-metrics/${FILENAME}"
+
+          cd wiki
+
+          # Append link to Ingest-Metrics.md if it doesn't already exist
+          LINK_TEXT="- [Ingest Metrics v${{ inputs.agent-version }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics/ingest-metrics-v${{ inputs.agent-version }})"
+          if ! grep -q "${FILENAME}" ingest-metrics.md 2>/dev/null; then
+            echo "" >> Ingest-Metrics.md
+            echo "${LINK_TEXT}" >> Ingest-Metrics.md
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "ingest-metrics/${FILENAME}" Ingest-Metrics.md
+          git commit -m "Update ingest metrics report for version ${{ inputs.agent-version }} from workflow run ${{ github.run_id }}"
+          git push
 
   notify-if-negative-values:
     needs: [ tests ]

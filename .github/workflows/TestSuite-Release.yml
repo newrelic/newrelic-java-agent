@@ -26,7 +26,8 @@ jobs:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
       ait-ref: ${{ inputs.ait-ref || 'main' }}
       cache-ref: ${{ inputs.cache-ref || 'main' }}
-      # single-test: 'basic_features/env_vars.py'
+      agent-version: ${{ inputs.agent-version }}
+      single-test: 'basic_features/env_vars.py'
     secrets: inherit
 
 #  functional-tests:
@@ -70,63 +71,3 @@ jobs:
 #    with:
 #      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
 #    secrets: inherit
-
-  process-ait-ingest-metric-files:
-    needs: aits
-    if: ${{ inputs.agent-version != '' }}
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-    steps:
-      - name: Download processed ingest files
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
-        with:
-          name: processed-ingest-files
-          path: ingest-files
-
-      - name: Create markdown file
-        run: |
-          cd ingest-files
-
-          # Start with the sum as the first line
-          echo "# Ingest Metrics Summary - Version ${{ inputs.agent-version }}" > ingest-report.md
-          echo "" >> ingest-report.md
-          echo "**Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
-          echo "" >> ingest-report.md
-          echo "---" >> ingest-report.md
-          echo "" >> ingest-report.md
-          echo "## Detailed Metrics" >> ingest-report.md
-          echo "" >> ingest-report.md
-          echo "\`\`\`" >> ingest-report.md
-          cat ingest-aggregate.txt >> ingest-report.md
-          echo "\`\`\`" >> ingest-report.md
-
-      - name: Checkout wiki repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
-        with:
-          repository: ${{ github.repository }}.wiki
-          path: wiki
-
-      - name: Commit and push to wiki
-        run: |
-          # Create ingest-metrics directory if it doesn't exist
-          mkdir -p wiki/ingest-metrics
-
-          # Copy the report using agent-version as filename
-          FILENAME="ingest-metrics-v${{ inputs.agent-version }}.md"
-          cp ingest-files/ingest-report.md "wiki/ingest-metrics/${FILENAME}"
-
-          cd wiki
-
-          # Append link to Ingest-Metrics.md if it doesn't already exist
-          LINK_TEXT="- [Ingest Metrics v${{ inputs.agent-version }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics/ingest-metrics-v${{ inputs.agent-version }})"
-          if ! grep -q "${FILENAME}" ingest-metrics.md 2>/dev/null; then
-            echo "" >> Ingest-Metrics.md
-            echo "${LINK_TEXT}" >> Ingest-Metrics.md
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "ingest-metrics/${FILENAME}" Ingest-Metrics.md
-          git commit -m "Update ingest metrics report for version ${{ inputs.agent-version }} from workflow run ${{ github.run_id }}"
-          git push
