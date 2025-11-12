@@ -12,5 +12,5 @@ jobs:
       - name: Run action
         uses: newrelic/agent-metadata-action@v0.0.1
         with:
-          github-token: ${{ secrets.ACTIONS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           agent-repo: "newrelic/newrelic-java-agent"
