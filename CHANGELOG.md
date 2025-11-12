@@ -4,6 +4,34 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.25.0
+## New features and improvements
+- Adds Java 25 Support by @deleonenriqueta in [2512](https://github.com/newrelic/newrelic-java-agent/pull/2512)
+- Adds support for Logback-1.5.20 by @jtduffy in [2535](https://github.com/newrelic/newrelic-java-agent/pull/2535)
+- Introduces a config option to disable the execution of the `call` and `exec` SQL parser regular expressions by @jtduffy in [2490](https://github.com/newrelic/newrelic-java-agent/pull/2490)
+- Adds support for Kotlin Coroutines v1.4+ by @dhilpipre in [2454](https://github.com/newrelic/newrelic-java-agent/pull/2454)
+- Adds support for Kotlin Coroutines Suspend Functions generated outside of Kotlin Coroutines by @dhilpipre in [2456](https://github.com/newrelic/newrelic-java-agent/pull/2456)
+- Introduces a preference config for multiple hosts during datastore detection by @jbedell-newrelic in [2508](https://github.com/newrelic/newrelic-java-agent/pull/2508)
+- Adds a system property to configure the artifact skip function by @jtduffy in [2509](https://github.com/newrelic/newrelic-java-agent/pull/2509)
+- Adds a configuration option allowing Spring Controller transactions to be named using the controller class name and method name by @sharvath-newrelic in [2532](https://github.com/newrelic/newrelic-java-agent/pull/2532)
+- Implement SamplerConfig, centralizing all `distributed_tracing.sampler` configs into the `SamplerConfig` by @jasonjkeller in [2529](https://github.com/newrelic/newrelic-java-agent/pull/2529)
+- Updated `kafka-clients-spans-0.11.0.0` producer instrumentation to use modern distributed tracing API’s with W3C Trace Context support by @sharvath-newrelic in [2516](https://github.com/newrelic/newrelic-java-agent/pull/2516)
+
+
+## Fixes
+- Fixes parsing of error class names by @sharvath-newrelic in [2497](https://github.com/newrelic/newrelic-java-agent/pull/2497)
+- Fixed a potential memory issue caused by excessively large stack traces in error logging by @jtduffy in [2498](https://github.com/newrelic/newrelic-java-agent/pull/2498)
+- Clarify logging messages for invalid attributes on custom events and logging events by @sharvath-newrelic in [2501](https://github.com/newrelic/newrelic-java-agent/pull/2501)
+
+## Deprecations
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
 ## Version 8.24.0
 ## New features and improvements
 
