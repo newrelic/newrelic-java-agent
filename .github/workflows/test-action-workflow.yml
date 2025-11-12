@@ -1,0 +1,16 @@
+name: test-action-workflow.yml
+on:
+  push:
+    branches: [ 'mvick/test-action' ]
+
+jobs:
+  build:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run action
+        uses: newrelic/agent-metadata-action@main
+        with:
+          github-token: ${{ACTIONS_TOKEN}}
+          agent-repo: "newrelic/newrelic-java-agent"
