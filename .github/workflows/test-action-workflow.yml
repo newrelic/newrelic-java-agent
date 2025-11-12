@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run action
-        uses: newrelic/agent-metadata-action@main
+        uses: newrelic/agent-metadata-action@v0.0.1
         with:
-          github-token: ${{ACTIONS_TOKEN}}
+          github-token: ${{ secrets.ACTIONS_TOKEN }}
           agent-repo: "newrelic/newrelic-java-agent"
