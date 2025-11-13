@@ -24,12 +24,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarify logging messages for invalid attributes on custom events and logging events by @sharvath-newrelic in [2501](https://github.com/newrelic/newrelic-java-agent/pull/2501)
 
 ## Deprecations
-
 - `aws-wrap-0.7.0`
 - `java.completable-future-jdk8`
 - `play-2.3`
 - `netty-3.4`
 - `Struts v1`
+- `spring-3.0.0`
+- `thrift-0.8`
+- `solr-4.0.0`
+- `solr-5.0.0`
+- `jdbc-inet-merlia`
+- `jdbc-inet-oranxo`
+- `grails-1.3`
+- `rabbit-amqp-1.7.2`
+- `rabbit-amqp-2.4.1`
+- `rabbit-amqp-2.5.0`
+- `rabbit-amqp-2.7.0`
+- `glassfish-3`
+- `hibernate-3.3`
+- `hibernate-3.5`
+- `jdbc-jtds`
 
 
 ## Version 8.24.0
