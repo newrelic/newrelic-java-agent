@@ -402,7 +402,7 @@ jobs:
   process-ingest-metric-files:
     name: Process Ingest Metrics
     needs: [ tests ]
-    if: ${{ always() }}
+    if: ${{ always() && inputs.agent-version != '' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
