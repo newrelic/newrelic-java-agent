@@ -9,8 +9,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'jakarta.servlet:jakarta.servlet-api:[5.0.0,)'
-    exclude 'jakarta.servlet:jakarta.servlet-api:[5.0.0-M1,5.0.0-M2]'
+    passesOnly 'jakarta.servlet:jakarta.servlet-api:[5.0.0,6.2.0)'
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
 }
 
 site {

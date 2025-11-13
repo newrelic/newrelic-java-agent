@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -392,7 +393,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         //until it is later merged with sampling_target from the server.
         //If nothing is configured, it will use the local default, which is 120.
         adaptiveSamplingTarget = getProperty(ADAPTIVE_SAMPLER_SAMPLING_TARGET, distributedTracingConfig.getAdaptiveSamplingTarget());
-        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
+        adaptiveSamplingPeriodSeconds = getProperty(ADAPTIVE_SAMPLER_SAMPLING_PERIOD, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_PERIOD);
 
         Map<String, Object> flattenedProps = new HashMap<>();
         flatten("", props, flattenedProps);
@@ -869,12 +870,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    public int getAdaptiveSamplingTarget(){
+    public int getAdaptiveSamplingTarget() {
         return adaptiveSamplingTarget;
     }
 
     @Override
-    public int getAdaptiveSamplingPeriodSeconds(){
+    public int getAdaptiveSamplingPeriodSeconds() {
         return adaptiveSamplingPeriodSeconds;
     }
 

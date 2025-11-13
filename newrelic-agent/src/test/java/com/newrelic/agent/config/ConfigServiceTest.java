@@ -15,6 +15,7 @@ import com.newrelic.agent.MockHarvestService;
 import com.newrelic.agent.MockRPMService;
 import com.newrelic.agent.MockRPMServiceManager;
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -247,7 +248,7 @@ public class ConfigServiceTest {
 
         Map<String, Object> dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
         Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
-        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+        assertEquals(SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(SamplerConfig.ADAPTIVE_SAMPLING_TARGET));
 
         //Second, put something in the dt config
         Map<String, Object> specifyDtSettings = new HashMap<>();
@@ -260,7 +261,7 @@ public class ConfigServiceTest {
         dtSettings = (Map<String, Object>) sanitizedSettings.get("distributed_tracing");
         assertEquals(true, dtSettings.get("enabled"));
         samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
-        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+        assertEquals(SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(SamplerConfig.ADAPTIVE_SAMPLING_TARGET));
 
         //Third, put something in the sampler config (not adaptive_sampling_target)
         Map<String, Object> specifySamplerSettings = new HashMap<>();
@@ -275,7 +276,7 @@ public class ConfigServiceTest {
         assertEquals(true, dtSettings.get("enabled"));
         samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
         assertEquals("always_on", samplerSettings.get("remoteParentSampled"));
-        assertEquals(DistributedTracingConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+        assertEquals(SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET, samplerSettings.get(SamplerConfig.ADAPTIVE_SAMPLING_TARGET));
     }
 
     @Test
@@ -298,7 +299,7 @@ public class ConfigServiceTest {
         assertEquals(true, dtSettings.get("enabled"));
         Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
         assertEquals("always_on", samplerSettings.get("remoteParentSampled"));
-        assertEquals(133, samplerSettings.get(DistributedTracingConfig.ADAPTIVE_SAMPLING_TARGET));
+        assertEquals(133, samplerSettings.get(SamplerConfig.ADAPTIVE_SAMPLING_TARGET));
     }
 
     @Test
