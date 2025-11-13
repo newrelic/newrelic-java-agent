@@ -10,8 +10,36 @@ dependencies {
 }
 
 verifyInstrumentation {
-    // not using passesOnly to decrease the number of artifacts this is tested against
-    passes 'com.amazonaws:aws-java-sdk-lambda:[1.11.280,)'
+    /*
+        This is the original verifier range prior to this update.
+        Previously it was simply "passes"; this changes it to
+        the standard "passOnly" method.
+     */
+    passesOnly 'com.amazonaws:aws-java-sdk-lambda:[1.11.280,)'
+
+    /*
+        Now, exclude the ranges we know have passed verification
+        previously. We set the range such that the last revision
+        of each minor version will still get verified.
+
+        For the last known minor version, we leave the verify
+        range open ended to catch any new versions released
+        (including any new major/minor versions). The verify
+        ranges will probably need to be manually inspected
+        every so often to keep the task runtime in check.
+
+        This dramatically reduces the runtime of the verification
+        task. For this module, there were over 1500 artifacts that
+        were being downloaded for each verification - AWS seems to
+        enjoy releasing new revisions of SDK artifacts every few days.
+
+        This pattern can be applied to any module that suffers from
+        large numbers of artifacts (looking at anything AWS related).
+     */
+
+    exclude 'com.amazonaws:aws-java-sdk-lambda:[1.9.6,1.11.279]'
+    exclude 'com.amazonaws:aws-java-sdk-lambda:[1.11.280,1.11.1033]'
+    exclude 'com.amazonaws:aws-java-sdk-lambda:[1.12.1,1.12.791]'
 }
 
 site {
