@@ -415,8 +415,18 @@ jobs:
           merge-multiple: true
           path: all-ingest-files
 
-      - name: Aggregate and sum all files
+      - name: "Aggregate and sum all files"
         run: |
+          # Check if directory exists and has files
+          if [ ! -d "all-ingest-files" ] || [ -z "$(ls -A all-ingest-files 2>/dev/null)" ]; then
+            echo "No ingest files found to process"
+            echo "## Ingest across all tests: 0" >> $GITHUB_STEP_SUMMARY
+            # Create empty files for downstream steps
+            echo "" > ingest-aggregate.txt
+            echo "0" > ingest-sum.txt
+            exit 0
+          fi
+
           cd all-ingest-files
 
           # Check if any files were actually downloaded
