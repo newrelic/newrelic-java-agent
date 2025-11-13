@@ -8,10 +8,11 @@
 package io.opentelemetry.sdk.trace;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.api.agent.Config;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.TracerBuilder;
+
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.isOpenTelemetryTracerDisabled;
 
 /**
  * New Relic Java agent implementation of an OpenTelemetry
@@ -21,12 +22,10 @@ import io.opentelemetry.api.trace.TracerBuilder;
 class NRTracerBuilder implements TracerBuilder {
     private final String instrumentationScopeName;
     private final TracerSharedState sharedState;
-    private final Config config;
     private String schemaUrl;
     private String instrumentationScopeVersion;
 
-    public NRTracerBuilder(Config config, String instrumentationScopeName, TracerSharedState sharedState) {
-        this.config = config;
+    public NRTracerBuilder(String instrumentationScopeName, TracerSharedState sharedState) {
         this.instrumentationScopeName = instrumentationScopeName;
         this.sharedState = sharedState;
     }
@@ -49,10 +48,7 @@ class NRTracerBuilder implements TracerBuilder {
      */
     @Override
     public Tracer build() {
-        Boolean enabled = config.getValue(
-                "opentelemetry.instrumentation." + instrumentationScopeName + ".enabled",
-                true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
-        if (enabled != null && !enabled) {
+        if (isOpenTelemetryTracerDisabled(instrumentationScopeName)) {
             return OpenTelemetry.noop().getTracer(instrumentationScopeName);
         } else {
             return spanName -> new NRSpanBuilder(AgentBridge.instrumentation, instrumentationScopeName, instrumentationScopeVersion, sharedState, spanName);

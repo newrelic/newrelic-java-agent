@@ -7,12 +7,13 @@
 
 package io.opentelemetry.sdk.logs;
 
-import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.opentelemetry.api.logs.LoggerBuilder;
+
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.isOpenTelemetryLogsEnabled;
 
 /**
  * Weaved to inject a New Relic Java agent implementation of an OpenTelemetry LoggerBuilder
@@ -23,13 +24,14 @@ public final class SdkLoggerProvider_Instrumentation {
 
     public LoggerBuilder loggerBuilder(String instrumentationScopeName) {
         final LoggerBuilder loggerBuilder = Weaver.callOriginal();
-        Config config = NewRelic.getAgent().getConfig();
-        if (NRLogRecordBuilder.isLogRecordBuilderEnabled(config)) {
-            // Generate the instrumentation module supportability metric
+        if (isOpenTelemetryLogsEnabled()) {
+            // Generate the instrumentation module enabled supportability metric
             NewRelic.incrementCounter("Supportability/Logging/Java/OpenTelemetryBridge/enabled");
-
             // return our logger builder instead of the OTel instance
-            return new NRLoggerBuilder(config, instrumentationNameOrDefault(instrumentationScopeName), sharedState);
+            return new NRLoggerBuilder(instrumentationNameOrDefault(instrumentationScopeName), sharedState);
+        } else {
+            // Generate the instrumentation module disabled supportability metric
+            NewRelic.incrementCounter("Supportability/Logging/Java/OpenTelemetryBridge/disabled");
         }
         return loggerBuilder;
     }
@@ -43,5 +45,4 @@ public final class SdkLoggerProvider_Instrumentation {
     private static String instrumentationNameOrDefault(String instrumentationScopeName) {
         return Weaver.callOriginal();
     }
-
 }

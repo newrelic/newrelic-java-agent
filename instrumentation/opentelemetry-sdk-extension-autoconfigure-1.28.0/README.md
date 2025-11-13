@@ -9,6 +9,7 @@ Specifically, it can:
 * Detect OpenTelemetry dimensional metrics and report them to the APM entity being monitored by the Java agent.
 * Autoconfigure the OpenTelemetry SDK so that OpenTelemetry data is sent to New Relic and properly associated with an APM entity guid.
 
+// FIXME update config in doc
 ## OpenTelemetry Configuration
 
 To use the OpenTelemetry functionality incorporated into the New Relic Java agent you must enable the following config options:

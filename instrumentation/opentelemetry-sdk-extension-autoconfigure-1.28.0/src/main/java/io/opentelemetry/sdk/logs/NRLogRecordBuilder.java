@@ -8,7 +8,6 @@
 package io.opentelemetry.sdk.logs;
 
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
-import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.NewRelic;
 import com.nr.agent.instrumentation.utils.logs.LogEventUtil;
 import io.opentelemetry.api.common.AttributeKey;
@@ -158,26 +157,5 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
                 LogEventUtil.recordNewRelicLogEvent(logRecordData);
             }
         }
-    }
-
-    /**
-     * Determines if the LogRecordBuilder should be enabled based on the configuration.
-     * If auto-configuration is enabled and logs are not explicitly disabled, then
-     * the LogRecordBuilder is enabled.
-     *
-     * @param config the agent configuration
-     * @return true if NRLogRecordBuilder should be used, false otherwise
-     */
-    static boolean isLogRecordBuilderEnabled(Config config) {
-        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled", false);
-        if (autoConfigure == null || autoConfigure) {
-            // When opentelemetry.sdk.logs.enabled=false, this
-            // setting will prevent NR LogEvents from being created,
-            // without preventing OTel LogRecords from being emitted.
-            final Boolean logsEnabled = config.getValue("opentelemetry.sdk.logs.enabled",
-                    true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
-            return logsEnabled == null || logsEnabled;
-        }
-        return false;
     }
 }

@@ -14,6 +14,9 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import java.util.logging.Level;
 
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.isOpenTelemetryMetricsEnabled;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.isOpenTelemetrySdkAutoConfigureEnabled;
+
 /**
  * Weaved to autoconfigure the OpenTelemetrySDK properties
  * and resources for compatability with New Relic.
@@ -25,22 +28,24 @@ public class AutoConfiguredOpenTelemetrySdk {
      * Creates a new {@link AutoConfiguredOpenTelemetrySdkBuilder} with the default configuration.
      * If the agent configuration yaml, system property `-Dnewrelic.config.opentelemetry.sdk.autoconfigure.enabled`,
      * or environment variable NEW_RELIC_OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED is set to true,
-     * it will append customizers for properties and resources.
+     * it will append customizers for properties and resources. FIXME update javadoc
      *
      * @return a new {@link AutoConfiguredOpenTelemetrySdkBuilder}
      */
     public static AutoConfiguredOpenTelemetrySdkBuilder builder() {
         final AutoConfiguredOpenTelemetrySdkBuilder builder = Weaver.callOriginal();
-        final Boolean autoConfigure = NewRelic.getAgent().getConfig().getValue("opentelemetry.sdk.autoconfigure.enabled", false);
 
-        if (autoConfigure == null || autoConfigure) {
-            // Generate the instrumentation module supportability metric
+        if (isOpenTelemetrySdkAutoConfigureEnabled() || isOpenTelemetryMetricsEnabled()) {
+            // Generate the instrumentation module enabled supportability metric
             NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/enabled");
 
             NewRelic.getAgent().getLogger().log(Level.INFO, "Appending OpenTelemetry SDK customizers");
             builder.addPropertiesCustomizer(OpenTelemetrySDKCustomizer::applyProperties);
             builder.addResourceCustomizer(OpenTelemetrySDKCustomizer::applyResources);
             builder.addMeterProviderCustomizer(OpenTelemetrySDKCustomizer::applyMeterExcludes);
+        } else {
+            // Generate the instrumentation module disabled supportability metric
+            NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/disabled");
         }
         return builder;
     }
