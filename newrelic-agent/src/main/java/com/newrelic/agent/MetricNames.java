@@ -217,6 +217,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT = "Supportability/Events/TransactionEvent/Sent";
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN = "Supportability/Events/TransactionEvent/Seen";
 
+    //Sampler stats - to be used as Supportability/Sampler/{granularity}/{case}/{type}
+    public static final String SUPPORTABILITY_SAMPLER = "Supportability/Trace/Sampler/{0}/{1}/{2}";
     public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE = "Supportability/Trace/SamplingTarget/Server/Value";
     public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE = "Supportability/Trace/SamplingTarget/Applied/Value";
 

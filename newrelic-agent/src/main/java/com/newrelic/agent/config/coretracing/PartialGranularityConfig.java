@@ -1,7 +1,10 @@
 package com.newrelic.agent.config.coretracing;
 
 import java.util.Map;
+import java.util.logging.Level;
+
 import com.newrelic.agent.Transaction.PartialSampleType;
+import com.newrelic.api.agent.NewRelic;
 
 public class PartialGranularityConfig extends CoreTracingConfig {
 
@@ -21,6 +24,19 @@ public class PartialGranularityConfig extends CoreTracingConfig {
     public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot) {
         super(props, samplerSystemPropertyRoot + CoreTracingConfig.PARTIAL_GRANULARITY + ".", PARTIAL_GRANULARITY_ENABLED_DEFAULT);
         this.type = initType();
+    }
+
+    @Override
+    public SamplerConfig createSamplerConfig(String samplerCase){
+        SamplerConfig sampler = super.createSamplerConfig(samplerCase);
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.INFO,
+                        "The partial granularity " + samplerCase + " sampler was configured to use the " +
+                                sampler.getSamplerType() + " sampler type" +
+                                (sampler.getSamplerRatio() != null ? " with a ratio of " + sampler.getSamplerRatio() : "") +
+                                (sampler.getSamplingTarget() != null ? " with a target of " + sampler.getSamplingTarget() : "") + ".");
+        return sampler;
     }
 
     public PartialSampleType getType() {

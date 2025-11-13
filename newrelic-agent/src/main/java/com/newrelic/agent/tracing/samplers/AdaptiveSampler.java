@@ -117,7 +117,11 @@ public class AdaptiveSampler implements Sampler {
 
     @Override
     public String getDescription() {
-       return "Adaptive Sampler, shared=" + this.equals(SAMPLER_SHARED_INSTANCE) + ", target=" + this.target;
+       return "Adaptive Sampler, shared=" + isShared() + ", target=" + target;
+    }
+
+    public boolean isShared(){
+        return this.equals(SAMPLER_SHARED_INSTANCE);
     }
 
     private void resetPeriodIfElapsed() {

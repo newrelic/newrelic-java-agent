@@ -105,13 +105,6 @@ public class SamplerConfig extends BaseConfig {
         this.samplerType = initSamplerType();
         this.samplerRatio = initSamplerRatio();
         this.samplingTarget = initSamplingTarget();
-
-        NewRelic.getAgent()
-                .getLogger()
-                .log(Level.INFO,
-                        "The " + this.sampler + " sampler was configured to use the " + this.samplerType + " sampler type" +
-                                (this.samplerRatio != null ? " with a ratio of " + this.samplerRatio : "") +
-                                (this.samplingTarget != null ? " with a target of " + this.samplingTarget : "") + ".");
     }
 
     public String getSampler() {
@@ -251,7 +244,7 @@ public class SamplerConfig extends BaseConfig {
             } else {
                 //target was missing. This is actually okay: in this case, we'll use the shared adaptive sampler.
                 samplingTarget = USE_SHARED_ADAPTIVE_SAMPLING_TARGET;
-                NewRelic.getAgent().getLogger().log(Level.INFO, "Sampler {0} was not configured with a sampling_target. " +
+                NewRelic.getAgent().getLogger().log(Level.FINE, "Sampler {0} was not configured with a sampling_target. " +
                         "Sampler will use the shared adaptive sampler instance.", sampler);
             }
         }

@@ -31,6 +31,7 @@ import java.util.logging.Level;
 public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
     private final float ratio;
+    private final String description;
 
     /**
      * Construct a new TraceRatioBasedSampler with the desired ratio
@@ -50,6 +51,7 @@ public class TraceRatioBasedSampler implements Sampler {
                     "threshold to {0}", threshold);
         }
         this.ratio = traceRatio;
+        this.description = String.format("Trace Id Ratio Based Sampler, ratio=%.4f", traceRatio);
     }
 
     @Override
@@ -74,7 +76,7 @@ public class TraceRatioBasedSampler implements Sampler {
 
     @Override
     public String getDescription(){
-        return "Trace Id Ratio Based Sampler, ratio=" + ratio;
+        return description;
     }
 
     /**

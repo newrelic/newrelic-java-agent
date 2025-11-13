@@ -106,6 +106,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
         fullGranularitySamplers = initSamplers(distributedTraceConfig.getFullGranularityConfig());
         partialGranularitySamplers = initSamplers(distributedTraceConfig.getPartialGranularityConfig());
+        recordSamplerSupportabilityMetrics();
         partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
     }
 
@@ -418,13 +419,27 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         }
     }
 
+    public Transaction.PartialSampleType getPartialSampleType() {
+        return partialSampleType;
+    }
+
     private ImmutableMap<SamplerCase, Sampler> initSamplers(CoreTracingConfig coreTracingConfig) {
-        // TODO emit supportability metrics for each of the 3 samplers
         return ImmutableMap.of(
                 SamplerCase.ROOT, SamplerFactory.createSampler(coreTracingConfig.getRootSampler()),
                 SamplerCase.REMOTE_PARENT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentSampledSampler()),
                 SamplerCase.REMOTE_PARENT_NOT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentNotSampledSampler())
         );
+    }
+
+    private void recordSamplerSupportabilityMetrics() {
+        for (SamplerCase samplerCase : SamplerCase.values()) {
+            String fullSamplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getName(),
+                    fullGranularitySamplers.get(samplerCase).getType());
+            String partialSamplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getName(),
+                    partialGranularitySamplers.get(samplerCase).getType());
+            NewRelic.incrementCounter(fullSamplerMetric);
+            NewRelic.incrementCounter(partialSamplerMetric);
+        }
     }
 
     //Testing-only utility methods. These are NOT thread-safe.
