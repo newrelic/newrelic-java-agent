@@ -26,8 +26,10 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.util.SpanEventMerger;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,18 +72,10 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
-            Tracer rootTracer = transactionData.getRootTracer();
-            SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats);
-
-            if (rootSpan == null) {
-                Agent.LOG.log(Level.FINER, "Root span not created for tx: {0} no other spans will be created", transactionData);
-                return;
-            }
-
             Transaction.PartialSampleType partialSampleType = transactionData.getPartialSampleType();
 
             List<SpanEvent> spans = partialSampleType != null ?
-                    createPartialGranularitySpanEvents(transactionData, transactionStats, rootSpan, partialSampleType) :
+                    createPartialGranularitySpanEvents(transactionData, transactionStats, partialSampleType) :
                     createFullGranularitySpanEvents(transactionData, transactionStats);
 
             for (SpanEvent span : spans) {
@@ -90,30 +84,59 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         }
     }
 
-    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, SpanEvent rootSpan, Transaction.PartialSampleType partialSampleType) {
-        boolean removeAttrs = true; // TODO
-        boolean groupExternals = false; // TODO
-        Collection<Tracer> tracers = transactionData.getTracers();
+    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, Transaction.PartialSampleType partialSampleType) {
+        boolean removeNonEssentialAttrs = Transaction.PartialSampleType.COMPACT.equals(partialSampleType) || Transaction.PartialSampleType.ESSENTIAL.equals(partialSampleType);
+        boolean groupExternals = Transaction.PartialSampleType.COMPACT.equals(partialSampleType);
+        boolean ignoreErrorPriority = transactionData.isIgnoreErrorPriority(); // if ignore, then report the last exception, otherwise the first
         List<SpanEvent> spans = new ArrayList<>();
+
+        Tracer rootTracer = transactionData.getRootTracer();
+        SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, removeNonEssentialAttrs);
+        // no need to add rootSpan to the list yet, we don't need to consider it during merging, add it later
+
+        if (rootSpan == null) {
+            Agent.LOG.log(Level.FINER, "Root span not created for tx: {0} no other spans will be created", transactionData);
+            return spans;
+        }
+
+        int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
+
+        Collection<Tracer> tracers = transactionData.getTracers();
         for (Tracer tracer : tracers) {
-            if (tracer.getExternalParameters() == null) continue;  // is this right?
-            // TODO all the partial granularity logic
             if (tracer.isTransactionSegment()) {
-                // TODO assign parent as the root span
-                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats);
-                if (span != null) spans.add(span);
+                spanCountIfThisHadBeenFullGranularity++;
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, removeNonEssentialAttrs);
+                if (span == null || !span.hasAnyEntitySynthAgentAttributes()) continue; // don't add it to the list
+
+                // we have a valid span for partial granularity
+                span.updateParentSpanId(rootSpan.getGuid());
+                spans.add(span);
             }
         }
+
+        if (groupExternals) spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
+        spans.add(rootSpan);
+
+        NewRelic.recordMetric(
+                "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Instrumented",
+                spanCountIfThisHadBeenFullGranularity);
+        NewRelic.recordMetric(
+                "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Kept",
+                spans.size());
 
         return spans;
     }
 
     private List<SpanEvent> createFullGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats) {
         Collection<Tracer> tracers = transactionData.getTracers();
-        List<SpanEvent> spans = new ArrayList<>(tracers.size());
+        List<SpanEvent> spans = new ArrayList<>(tracers.size()+1);
+        Tracer rootTracer = transactionData.getRootTracer();
+        SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, false);
+        spans.add(rootSpan);
+
         for (Tracer tracer : tracers) {
             if (tracer.isTransactionSegment()) {
-                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats);
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, false);
                 if (span != null) spans.add(span);
             }
         }
@@ -121,9 +144,9 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         return spans;
     }
 
-    private SpanEvent createSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats) {
+    private SpanEvent createSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats, boolean removeNonEssentialAttrs) {
         try {
-            return createSpanEvent(rootTracer, transactionData, isRoot, transactionStats);
+            return createSpanEvent(rootTracer, transactionData, isRoot, transactionStats, removeNonEssentialAttrs);
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINER, t, "An error occurred creating span event for tracer: {0} in tx: {1}", rootTracer, transactionData);
         }
@@ -131,7 +154,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     }
 
     private SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
-            TransactionStats transactionStats) {
+            TransactionStats transactionStats, boolean removeNonEssentialAttrs) {
         boolean crossProcessOnly = spanEventsConfig.isCrossProcessOnly();
         if (crossProcessOnly && !isCrossProcessTracer(tracer)) {
             // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
@@ -146,7 +169,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return null;
         }
 
-        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
+        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly, removeNonEssentialAttrs);
     }
 
     private boolean isCrossProcessTracer(Tracer tracer) {

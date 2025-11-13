@@ -401,5 +401,11 @@ public class TransactionData {
         return getSpanProxy().getOrCreateTraceId();
     }
 
-    public Transaction.PartialSampleType getPartialSampleType() { return tx.getPartialSampleType(); }
+    public Transaction.PartialSampleType getPartialSampleType() {
+        return tx.getPartialSampleType();
+    }
+
+    public boolean isIgnoreErrorPriority() {
+        return tx.isIgnoreErrorPriority();
+    }
 }

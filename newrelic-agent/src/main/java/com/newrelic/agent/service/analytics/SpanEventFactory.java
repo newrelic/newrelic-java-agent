@@ -56,17 +56,22 @@ public class SpanEventFactory {
     private final AttributeFilter filter;
     private final Supplier<Long> timestampSupplier;
 
-    public SpanEventFactory(String appName, AttributeFilter filter, Supplier<Long> timestampSupplier) {
+    public SpanEventFactory(String appName, AttributeFilter filter, Supplier<Long> timestampSupplier, boolean removeNonEssentialAttrs) {
         this.filter = filter;
         builder.putIntrinsic("type", SPAN);
         builder.putIntrinsic("category", SpanCategory.generic.name());
         this.appName = appName;
         this.timestampSupplier = timestampSupplier;
         builder.appName(appName);
+        builder.removeNonEssentialAttrs(removeNonEssentialAttrs);
+    }
+
+    public SpanEventFactory(String appName, AttributeFilter filter, Supplier<Long> timestampSupplier) {
+        this(appName, filter, timestampSupplier, false);
     }
 
     public SpanEventFactory(String appName) {
-        this(appName, SPAN_EVENTS_ATTRIBUTE_FILTER, DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+        this(appName, SPAN_EVENTS_ATTRIBUTE_FILTER, DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER, false);
     }
 
     public SpanEventFactory setPriority(float priority) {

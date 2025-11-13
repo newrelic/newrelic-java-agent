@@ -2634,6 +2634,10 @@ public class Transaction {
         return priority != null && isSampledPriority(priority);
     }
 
+    public boolean isIgnoreErrorPriority() {
+        return ignoreErrorPriority;
+    }
+
     private String getTransactionName() {
         // getName may return null
         String fullName = getPriorityTransactionName().getName();

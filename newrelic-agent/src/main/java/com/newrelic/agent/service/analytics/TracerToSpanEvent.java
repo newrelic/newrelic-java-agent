@@ -78,10 +78,10 @@ public class TracerToSpanEvent {
     }
 
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
-            boolean crossProcessOnly) {
+            boolean crossProcessOnly, boolean removeNonEssentialAttrs) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
 
-        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier, removeNonEssentialAttrs)
                 .setGuid(tracer.getGuid())
                 .setClmAttributes(tracer.getAgentAttributes())
                 .setTraceId(spanProxy.getOrCreateTraceId())
@@ -109,7 +109,7 @@ public class TracerToSpanEvent {
             builder.setTracingVendors(vendorKeys);
         }
 
-        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(MAX_USER_ATTRIBUTES);
+        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(removeNonEssentialAttrs ? 0 : MAX_USER_ATTRIBUTES);
 
         // order matters here because we don't want transaction attributes to overwrite tracer attributes. This would be the case if there were 64
         // transaction attributes and they got added first to the span attributes map. Then none of the tracer attributes would make it in due
