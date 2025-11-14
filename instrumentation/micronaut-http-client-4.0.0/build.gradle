@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("io.micronaut:micronaut-http-client:3.1.0")
+    implementation("io.micronaut:micronaut-http-client:3.5.0")
     implementation("io.projectreactor:reactor-core:3.4.8")
 }
 
@@ -13,10 +13,9 @@ jar {
 
 verifyInstrumentation {
 
-    passes('io.micronaut:micronaut-http-client:[3.1.0,3.5.0)') {
-        implementation("io.projectreactor:reactor-core:3.4.8")
-    }
-    excludeRegex 'io.micronaut:micronaut-http-client:.*(RC|M)[0-9]*$'
+    passesOnly 'io.micronaut:micronaut-http-client:[4.0.0,)'
+    excludeRegex '.*RC[0-9]'
+    excludeRegex '.*M[0-9]'
 }
 
 site {

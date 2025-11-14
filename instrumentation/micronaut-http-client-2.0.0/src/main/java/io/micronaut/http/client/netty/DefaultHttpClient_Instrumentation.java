@@ -15,7 +15,6 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.agent.instrumentation.micronaut.http.client.MicronautHeaders;
-import com.nr.agent.instrumentation.micronaut.http.client.MicronautHttpOutbound;
 import com.nr.agent.instrumentation.micronaut.http.client.ReactorListener;
 import com.nr.agent.instrumentation.micronaut.http.client.ResponseConsumer;
 import com.nr.agent.instrumentation.micronaut.http.client.Utils;
@@ -35,8 +34,8 @@ public abstract class DefaultHttpClient_Instrumentation {
 
     public <I, O, E> Flowable<io.micronaut.http.HttpResponse<O>> exchange(io.micronaut.http.HttpRequest<I> request, Argument<O> bodyType,
             Argument<E> errorType) {
-        MicronautHttpOutbound<I> wrapper = new MicronautHttpOutbound<I>(request);
-        NewRelic.getAgent().getTracedMethod().addOutboundRequestHeaders(wrapper);
+        MicronautHeaders headers  = new MicronautHeaders(request);
+        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
         Flowable<io.micronaut.http.HttpResponse<O>> result = Weaver.callOriginal();
         HttpParameters params = HttpParameters.library("Micronaut")
@@ -50,8 +49,8 @@ public abstract class DefaultHttpClient_Instrumentation {
     }
 
     public <I> Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> exchangeStream(io.micronaut.http.HttpRequest<I> request) {
-        MicronautHttpOutbound<I> wrapper = new MicronautHttpOutbound<I>(request);
-        NewRelic.getAgent().getTracedMethod().addOutboundRequestHeaders(wrapper);
+        MicronautHeaders  headers  = new MicronautHeaders(request);
+        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
         Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> result = Weaver.callOriginal();
         HttpParameters params = HttpParameters.library("Micronaut")
