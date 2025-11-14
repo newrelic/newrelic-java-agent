@@ -104,7 +104,7 @@ public class TraceRatioBasedSamplerTest {
 
         while (++iterations <= iterationCount) {
             when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
-            if (sampler.calculatePriority(tx) == 2.0f) {
+            if (sampler.calculatePriority(tx) >= 1.0f) {
                 sampledCount++;
             }
         }

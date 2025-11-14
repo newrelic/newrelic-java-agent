@@ -8,6 +8,7 @@ package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -25,8 +26,8 @@ import java.util.logging.Level;
  * deterministic random value (R) is derived by extracting the last 8 bytes
  * (16 characters) of the id and converting into a long value.
  * <br>
- * If this value is less than or equal to T, we return a priority of 2.0 which
- * will mark this trace for sampling.
+ * If this value is less than or equal to T, we return a priority of
+ * (Random Float Value of 0.0 - 1) + 1.0 which will mark this trace for sampling.
  */
 public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
@@ -54,9 +55,10 @@ public class TraceRatioBasedSampler implements Sampler {
         String traceId = Sampler.traceIdFromTransaction(tx);
 
         if (traceId != null && traceId.length() == 32) {
+            float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last16Chars = traceId.substring(16);
-                return (Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold) ? 2.0f : 0.0f;
+                return initialPriority + ((Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold) ? 1.0f : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }
