@@ -8,8 +8,6 @@
 package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.config.OtelConfig;
-import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
@@ -28,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getOpenTelemetryMetricsExcludes;
 
 /**
  * Helper class for customizing OpenTelemetrySDK properties
@@ -101,13 +101,12 @@ final class OpenTelemetrySDKCustomizer {
     /**
      * Read list of excluded meters, and customize the meter provider to drop any with matching names.
      */
-
     static SdkMeterProviderBuilder applyMeterExcludes(SdkMeterProviderBuilder sdkMeterProviderBuilder, ConfigProperties configProperties) {
-        return applyMeterExcludes(sdkMeterProviderBuilder, NewRelic.getAgent(), ServiceFactory.getConfigService().getDefaultAgentConfig().getOtelConfig());
+        return applyMeterExcludes(sdkMeterProviderBuilder, NewRelic.getAgent());
     }
 
-    static SdkMeterProviderBuilder applyMeterExcludes(SdkMeterProviderBuilder sdkMeterProviderBuilder, Agent agent, OtelConfig otelConfig) {
-        final List<String> excludedMeters = otelConfig.getExcludedMeters();
+    static SdkMeterProviderBuilder applyMeterExcludes(SdkMeterProviderBuilder sdkMeterProviderBuilder, Agent agent) {
+        final List<String> excludedMeters = getOpenTelemetryMetricsExcludes();
         agent.getLogger().log(Level.FINE, "Suppressing excluded OpenTelemetry meters: {0}", excludedMeters);
         for (String meterName : excludedMeters) {
             sdkMeterProviderBuilder.registerView(

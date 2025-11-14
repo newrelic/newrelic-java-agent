@@ -7,8 +7,6 @@
 
 package io.opentelemetry.sdk.logs;
 
-import com.newrelic.api.agent.Config;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.LoggerBuilder;
 
@@ -20,12 +18,10 @@ import io.opentelemetry.api.logs.LoggerBuilder;
 class NRLoggerBuilder implements LoggerBuilder {
     private final String instrumentationScopeName;
     private final LoggerSharedState sharedState;
-    private final Config config;
     private String schemaUrl;
     private String instrumentationScopeVersion;
 
-    public NRLoggerBuilder(Config config, String instrumentationScopeName, LoggerSharedState sharedState) {
-        this.config = config;
+    public NRLoggerBuilder(String instrumentationScopeName, LoggerSharedState sharedState) {
         this.instrumentationScopeName = instrumentationScopeName;
         this.sharedState = sharedState;
     }
@@ -44,26 +40,6 @@ class NRLoggerBuilder implements LoggerBuilder {
 
     @Override
     public Logger build() {
-        Boolean enabled = config.getValue(
-                "opentelemetry.instrumentation." + instrumentationScopeName + ".enabled", true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
-        if (enabled != null && !enabled) {
-            /*
-             * This will return a no-op Logger, which results in
-             * no OTel LogRecords being emitted, meaning that the
-             * customer's logs from OTel APIs will not be written anywhere.
-             *
-             * If the goal is to prevent NR LogEvents from being created,
-             * but continue to emit OTel LogRecords, then that should be
-             * done by disabling the logs functionality in agent config:
-             *
-             *   opentelemetry:
-             *    sdk:
-             *      logs:
-             *        enabled: false
-             */
-            return OpenTelemetry.noop().getLogsBridge().get(instrumentationScopeName);
-        } else {
-            return () -> new NRLogRecordBuilder(instrumentationScopeName, instrumentationScopeVersion, schemaUrl, sharedState);
-        }
+        return () -> new NRLogRecordBuilder(instrumentationScopeName, instrumentationScopeVersion, schemaUrl, sharedState);
     }
 }

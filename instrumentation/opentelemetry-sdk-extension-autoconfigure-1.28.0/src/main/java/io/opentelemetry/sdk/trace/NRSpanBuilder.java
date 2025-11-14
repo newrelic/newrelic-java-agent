@@ -12,7 +12,6 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.tracers.TracerFlags;
-import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
@@ -80,23 +79,6 @@ class NRSpanBuilder implements SpanBuilder {
             endHandler = span -> {
             };
         }
-    }
-
-    /**
-     * Determines if the SpanBuilder should be enabled based on the configuration.
-     * If auto-configuration is enabled and spans are not explicitly disabled, then
-     * the SpanBuilder is enabled.
-     *
-     * @param config The configuration to check.
-     * @return true if the SpanBuilder should be enabled, false otherwise.
-     */
-    static boolean isSpanBuilderEnabled(Config config) {
-        final Boolean autoConfigure = config.getValue("opentelemetry.sdk.autoconfigure.enabled", false);
-        if (autoConfigure == null || autoConfigure) {
-            final Boolean spansEnabled = config.getValue("opentelemetry.sdk.spans.enabled", true); // TODO: Verify default value. This is added so it doesn't return null or cause a class cast exception from String to Boolean.
-            return spansEnabled == null || spansEnabled;
-        }
-        return false;
     }
 
     @Override

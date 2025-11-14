@@ -7,10 +7,10 @@
 
 package io.opentelemetry.sdk.autoconfigure;
 
-import com.newrelic.agent.config.OtelConfig;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -26,13 +26,15 @@ import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import junit.framework.TestCase;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_METRICS_EXCLUDE;
 import static io.opentelemetry.sdk.autoconfigure.OpenTelemetrySDKCustomizer.SERVICE_INSTANCE_ID_ATTRIBUTE_KEY;
 import static io.opentelemetry.sdk.metrics.data.AggregationTemporality.DELTA;
 import static org.mockito.Mockito.mock;
@@ -78,9 +80,8 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
     public void testApplyMeterExcludesDropsExcludedMeters() {
         DummyExporter metricExporter = new DummyExporter();
         MetricReader reader = PeriodicMetricReader.create(metricExporter);
-        List<String> expectedExclude = Arrays.asList("drop-me", "drop-me-too", "never-used");
 
-        SdkMeterProvider provider = setupProviderFromExcludesConfig(reader, expectedExclude);
+        SdkMeterProvider provider = setupProviderFromExcludesConfig(reader, "drop-me,drop-me-too,never-used");
 
         //produce to some meters and force them to be exported
         provider.get("drop-me").counterBuilder("foo").build().add(1);
@@ -99,11 +100,10 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         assertTrue(collectedMetricNames.contains("hello"));
     }
 
-    public void testApplyMeterExcludesDropsNothingWhenEmpty(){
+    public void testApplyMeterExcludesDropsNothingWhenEmpty() {
         DummyExporter metricExporter = new DummyExporter();
         MetricReader reader = PeriodicMetricReader.create(metricExporter);
-        List<String> noExcludedMeters = new ArrayList<>();
-        SdkMeterProvider provider = setupProviderFromExcludesConfig(reader, noExcludedMeters);
+        SdkMeterProvider provider = setupProviderFromExcludesConfig(reader, "");
 
         //produce to some meters and force them to be exported
         provider.get("keep-me").counterBuilder("foo").build().add(1);
@@ -117,7 +117,7 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         assertTrue(actualMetricNames.contains("foo"));
         assertTrue(actualMetricNames.contains("bar"));
     }
-    
+
     private List<String> metricNames(Collection<MetricData> collectedMetrics) {
         List<String> metricNames = new ArrayList<>();
         for (MetricData metricData : collectedMetrics) {
@@ -126,15 +126,18 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         return metricNames;
     }
 
-    private SdkMeterProvider setupProviderFromExcludesConfig(MetricReader reader, List<String> excludedMeters) {
-        Agent agent = mock(Agent.class);
+    private SdkMeterProvider setupProviderFromExcludesConfig(MetricReader reader, String excludedMeters) {
+        Agent agent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
         Logger logger = mock(Logger.class);
         when(agent.getLogger()).thenReturn(logger);
-        OtelConfig otelConfig = mock(OtelConfig.class);
-        when(otelConfig.getExcludedMeters()).thenReturn(excludedMeters);
-        SdkMeterProviderBuilder customizedBuilder = OpenTelemetrySDKCustomizer.applyMeterExcludes(
-                SdkMeterProvider.builder().registerMetricReader(reader), agent, otelConfig
-        );
+        Mockito.when(agent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "")).thenReturn(excludedMeters);
+        SdkMeterProviderBuilder customizedBuilder;
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(agent);
+            customizedBuilder = OpenTelemetrySDKCustomizer.applyMeterExcludes(
+                    SdkMeterProvider.builder().registerMetricReader(reader), agent
+            );
+        }
         return customizedBuilder.build();
     }
 
@@ -171,7 +174,7 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
             return null;
         }
 
-        public Collection<MetricData> getLatestMetricData(){
+        public Collection<MetricData> getLatestMetricData() {
             return lastestMetricData;
         }
     }

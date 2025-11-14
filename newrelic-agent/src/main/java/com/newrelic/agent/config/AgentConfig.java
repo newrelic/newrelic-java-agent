@@ -166,8 +166,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     JarCollectorConfig getJarCollectorConfig();
 
-    OtelConfig getOtelConfig();
-
     /**
      * Gets the Reinstrumentation configuration settings.
      *
