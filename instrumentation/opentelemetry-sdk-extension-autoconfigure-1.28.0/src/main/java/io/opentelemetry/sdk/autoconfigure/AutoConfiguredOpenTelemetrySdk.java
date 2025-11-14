@@ -26,9 +26,7 @@ public class AutoConfiguredOpenTelemetrySdk {
 
     /**
      * Creates a new {@link AutoConfiguredOpenTelemetrySdkBuilder} with the default configuration.
-     * If the agent configuration yaml, system property `-Dnewrelic.config.opentelemetry.sdk.autoconfigure.enabled`,
-     * or environment variable NEW_RELIC_OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED is set to true,
-     * it will append customizers for properties and resources. FIXME update javadoc
+     * If OTel Metrics signals are enabled, it will append customizers for properties and resources.
      *
      * @return a new {@link AutoConfiguredOpenTelemetrySdkBuilder}
      */

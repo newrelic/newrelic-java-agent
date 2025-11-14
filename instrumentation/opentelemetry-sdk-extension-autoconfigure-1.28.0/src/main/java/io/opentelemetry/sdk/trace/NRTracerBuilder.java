@@ -44,7 +44,7 @@ class NRTracerBuilder implements TracerBuilder {
 
     /**
      * Builds a new OpenTelemetry Tracer.
-     * If the instrumentation is disabled in the configuration, returns a noop tracer.
+     * If the OTel Tracer is disabled in the configuration, returns a noop Tracer.
      */
     @Override
     public Tracer build() {
