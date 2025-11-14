@@ -10,39 +10,16 @@ package com.nr.agent.instrumentation.utils.config;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 /**
  * Configuration for the OpenTelemetry hybrid agent functionality.
  * This config controls which, if any, of the opentelemetry logs, metrics, and traces signals will be captured.
  */
 public class OpenTelemetryConfig {
-
-// This is the standard config:
-//
-//    opentelemetry:
-//        enabled: true
-//        logs:
-//            enabled: true
-//        metrics:
-//            enabled: true
-//            include: "MeterName1,MeterName2"
-//            exclude: "MeterName3,MeterName4"
-//        traces:
-//            enabled: true
-//            include: "TracerName1,TracerName2"
-//            exclude: "TracerName3,TracerName4"
-
-// This is a legacy config option, kept for backwards compatibility, that was originally used to enable/disable metrics:
-//
-//    opentelemetry:
-//        sdk:
-//            autoconfigure:
-//                enabled: true
-
     // We don't have any default excludes, but they should be added here if needed in the future
     public static final Set<String> DEFAULT_METER_EXCLUDES = new HashSet<>();
     public static final Set<String> DEFAULT_TRACER_EXCLUDES = new HashSet<>();
@@ -93,6 +70,8 @@ public class OpenTelemetryConfig {
      * @return a final combined list of excluded OpenTelemetry Meters
      */
     public static List<String> getOpenTelemetryMetricsExcludes() {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Default excluded OpenTelemetry meters: " + DEFAULT_METER_EXCLUDES);
+
         // User configured includes take precedence over default excludes, so we filter them out.
         getOpenTelemetryMetricsIncludes().forEach(DEFAULT_METER_EXCLUDES::remove);
 
@@ -115,6 +94,8 @@ public class OpenTelemetryConfig {
      * @return a final combined list of excluded OpenTelemetry Tracers
      */
     public static List<String> getOpenTelemetryTracesExcludes() {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Default excluded OpenTelemetry tracers: " + DEFAULT_TRACER_EXCLUDES);
+
         // User configured includes take precedence over default excludes, so we filter them out.
         getOpenTelemetryTracesIncludes().forEach(DEFAULT_TRACER_EXCLUDES::remove);
 
@@ -149,11 +130,11 @@ public class OpenTelemetryConfig {
      * @return List of string split by the separator delimiter
      */
     public static List<String> getUniqueStringsFromString(String valuesString, String separator) {
+        List<String> result = new ArrayList<>();
         if (valuesString == null || valuesString.isEmpty()) {
-            return Collections.emptyList();
+            return result;
         }
         String[] valuesArray = valuesString.split(separator);
-        List<String> result = new ArrayList<>(valuesArray.length);
         for (String value : valuesArray) {
             value = value.trim();
             if (!value.isEmpty() && !result.contains(value)) {

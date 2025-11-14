@@ -1,84 +1,16 @@
 # OpenTelemetry Instrumentation
 
-This instrumentation module weaves parts of the OpenTelemetry SDK to incorporate bits of OpenTelemetry functionality into the New Relic Java agent.
+This instrumentation module instruments parts of the OpenTelemetry SDK in order to incorporate signals (metrics, logs, and traces) emitted by OpenTelemetry APIs into the New Relic Java agent.
 
 Specifically, it can:
 
-* Detect OpenTelemetry Spans and add them to New Relic Java agent traces as New Relic Spans.
-* Detect OpenTelemetry LogRecords and report them as New Relic LogEvents.
-* Detect OpenTelemetry dimensional metrics and report them to the APM entity being monitored by the Java agent.
-* Autoconfigure the OpenTelemetry SDK so that OpenTelemetry data is sent to New Relic and properly associated with an APM entity guid.
+* Detect when Spans are emitted by OpenTelemetry APIs and incorporate them to New Relic Java agent traces.
+* Detect when LogRecords are emitted by OpenTelemetry APIs report them to the APM entity being monitored by the Java agent as New Relic LogEvents.
+* Autoconfigure the OpenTelemetry SDK to export dimensional metrics (over OTLP) to the APM entity being monitored by the Java agent.
 
-// FIXME update config in doc
-## OpenTelemetry Configuration
+## OpenTelemetry Requirements
 
-To use the OpenTelemetry functionality incorporated into the New Relic Java agent you must enable the following config options:
-
-```commandline
--Dotel.java.global-autoconfigure.enabled=true
-```
-
-## New Relic Java Agent Configuration
-
-To use the OpenTelemetry Span and dimensional metric functionality incorporated into the New Relic Java agent you must enable the following config options:
-
-Configuration via yaml:
-
-```yaml
-  opentelemetry:
-    # config to enable different types of telemetry from the OpenTelemetry SDK
-    sdk:
-      autoconfigure:
-        enabled: true
-      spans:
-        enabled: true
-      logs:
-        enabled: true
-    # instrumentation scope names which are excluded from reporting traces and logs
-    instrumentation:
-      specific-instrumentation-scope-name-1:
-        enabled: true
-      specific-instrumentation-scope-name-2:
-        enabled: true
-    metrics:
-      # comma-separated list of meter names which are excluded from reporting metrics
-      exclude: foo-module,bar-module
-```
-
-Configuration via system property:
-
-```
--Dnewrelic.config.opentelemetry.sdk.autoconfigure.enabled=true
--Dnewrelic.config.opentelemetry.sdk.spans.enabled=true
--Dnewrelic.config.opentelemetry.sdk.logs.enabled=true
-
-# instrumentation scope names which are excluded from reporting traces and logs
--Dnewrelic.config.opentelemetry.instrumentation.[SPECIFIC_INSTRUMENTATION_SCOPE_NAME].enabled=true
-
-# comma-separated list of meter names which are excluded from reporting metrics
--Dnewrelic.config.opentelemetry.metrics.exclude=foo-module,bar-module
-```
-
-Configuration via environment variable:
-
-```
-NEW_RELIC_OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED=true
-NEW_RELIC_OPENTELEMETRY_SDK_SPANS_ENABLED=true
-NEW_RELIC_OPENTELEMETRY_SDK_LOGS_ENABLED=true
-
-# instrumentation scope names which are excluded from reporting traces and logs
-NEW_RELIC_OPENTELEMETRY_INSTRUMENTATION_[SPECIFIC_INSTRUMENTATION_SCOPE_NAME]_ENABLED=true
-
-# comma-separated list of meter names which are excluded from reporting metrics
-NEW_RELIC_OPENTELEMETRY_METRICS_EXCLUDE=foo-module,bar-module
-```
-
-## OpenTelemetry Dimensional Metrics
-
-OpenTelemetry APIs can be used to create dimensional metrics which will be detected by the New Relic Java agent and reported to the APM entity being monitored
-by the New Relic Java agent.
-
-To use this functionality, enable the feature as documented above, add the required `opentelemetry` dependencies to your application:
+The [opentelemetry-sdk-extension-autoconfigure](https://central.sonatype.com/artifact/io.opentelemetry/opentelemetry-sdk-extension-autoconfigure) dependency (version 1.28.0 or later) must be present in the application being monitored for this instrumentation module to apply. The [opentelemetry-exporter-otlp](https://central.sonatype.com/artifact/io.opentelemetry/opentelemetry-exporter-otlp) dependency (version 1.28.0 or later) must also be present for dimensional metrics to be exported to New Relic.
 
 ```groovy
 implementation(platform("io.opentelemetry:opentelemetry-bom:1.44.1"))
@@ -86,20 +18,171 @@ implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
 implementation("io.opentelemetry:opentelemetry-exporter-otlp")
 ```
 
-Then utilize the OpenTelemetry APIs to record dimensional metrics:
+Additionally, automatic configuration of the OpenTelemetry SDK must be enabled by one of the following options:
+
+System property:
+```commandline
+-Dotel.java.global-autoconfigure.enabled=true
+```
+
+Environment variable:
+```commandline
+export OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED=true
+```
+
+Programmatic:
+```java
+/*
+ * The opentelemetry-sdk-extension-autoconfigure dependency needs to be initialized
+ * by either setting -Dotel.java.global-autoconfigure.enabled=true or calling the
+ * following API in order for the New Relic Java agent instrumentation to load.
+ */
+private static final OpenTelemetry OPEN_TELEMETRY_SDK = AutoConfiguredOpenTelemetrySdk.initialize().getOpenTelemetrySdk();
+```
+
+## New Relic Java Agent Configuration
+
+Telemetry signals (Logs, Metrics, and Traces) emitted by OpenTelemetry APIs can be incorporated into the Java agent and controlled by the following config options.
+
+Configuration via YAML:
+
+```yaml
+  # Telemetry signals (Logs, Metrics, and Traces) emitted by OpenTelemetry APIs can
+  # be incorporated into the Java agent and controlled by the following config options.
+  opentelemetry:
+
+    # Set to true to allow individual OpenTelemetry signals to be enabled, false to disable all OpenTelemetry signals.
+    # Default is false.
+    enabled: true
+
+    # OpenTelemetry Logs signals.
+    logs:
+
+      # Set to true to enable OpenTelemetry Logs signals.
+      # Default is false.
+      enabled: true
+
+    # OpenTelemetry Metrics signals.
+    metrics:
+
+      # Set to true to enable OpenTelemetry Metrics signals.
+      # Default is false.
+      enabled: true
+
+      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included. 
+      # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
+      include: "MeterName1,MeterName2" 
+
+      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded. 
+      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
+      exclude: "MeterName3,MeterName4" 
+
+    # OpenTelemetry Traces signals.
+    traces:
+
+      # Set to true to enable OpenTelemetry Traces signals.
+      # Default is false.
+      enabled: true
+
+      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included. 
+      # By default, all Tracers are included. This will override any default Tracer excludes in the agent, effectively re-enabling them.
+      include: "TracerName1,TracerName2"
+
+      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName3,TracerName4") whose signals should be excluded. 
+      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Tracers.
+      exclude: "TracerName3,TracerName4"
+```
+
+Configuration via system property:
+
+```
+-Dnewrelic.config.opentelemetry.enabled=true
+
+-Dnewrelic.config.opentelemetry.logs.enabled=true
+
+-Dnewrelic.config.opentelemetry.metrics.enabled=true
+-Dnewrelic.config.opentelemetry.metrics.include=MeterName1,MeterName2
+-Dnewrelic.config.opentelemetry.metrics.exclude=MeterName3,MeterName4
+
+-Dnewrelic.config.opentelemetry.traces.enabled=true
+-Dnewrelic.config.opentelemetry.traces.include=TracerName1,TracerName2
+-Dnewrelic.config.opentelemetry.traces.exclude=TracerName3,TracerName4
+```
+
+Configuration via environment variable:
+
+```
+NEW_RELIC_OPENTELEMETRY_ENABLED=true
+
+NEW_RELIC_OPENTELEMETRY_LOGS_ENABLED=true
+
+NEW_RELIC_OPENTELEMETRY_METRICS_ENABLED=true
+NEW_RELIC_OPENTELEMETRY_METRICS_INCLUDE_ENABLED=MeterName1,MeterName2
+NEW_RELIC_OPENTELEMETRY_METRICS_EXCLUDE_ENABLED=MeterName3,MeterName4
+
+NEW_RELIC_OPENTELEMETRY_TRACES_ENABLED=true
+NEW_RELIC_OPENTELEMETRY_TRACES_INCLUDE_ENABLED=TracerName1,TracerName2
+NEW_RELIC_OPENTELEMETRY_TRACES_EXCLUDE_ENABLED=TracerName3,TracerName4
+```
+
+### Deprecated Config
+
+The following deprecated config option should no longer be used and is only kept for backwards compatibility.
+
+This config was originally used to enable/disable metrics signals and has been replaced by `opentelemetry.metrics.enabled`:
+
+```yaml
+  opentelemetry:
+    sdk:
+      autoconfigure:
+        enabled: true
+```
+
+## OpenTelemetry Dimensional Metrics Signals
+
+The [OpenTelemetry Metrics API](https://opentelemetry.io/docs/specs/otel/metrics/api/) can be used to create dimensional metrics which will be exported by the OpenTelemetry SDK to New Relic over OTLP. The dimensional metrics will be decorated with the `entity.guid` of the APM entity being monitored by the New Relic Java agent.
+
+Example of OpenTelemetry APIs being used to record dimensional metrics:
 
 ```java
-LongCounter longCounter = GlobalOpenTelemetry.get().getMeterProvider().get("my-application").counterBuilder("my.application.counter").build();
-longCounter.
+    // Generate LongCounter dimensional metrics
+    LongCounter longCounter = GlobalOpenTelemetry.get()
+      .getMeterProvider()
+      .get("opentelemetry-metrics-api-demo")
+      .counterBuilder("opentelemetry-metrics-api-demo.longcounter")
+      .build();
+    longCounter.add(1, Attributes.of(AttributeKey.stringKey("LongCounter"), "foo"));
+    
+    // Generate DoubleHistogram dimensional metrics
+    DoubleHistogram doubleHistogram = GlobalOpenTelemetry.get()
+      .getMeterProvider()
+      .get("opentelemetry-metrics-api-demo")
+      .histogramBuilder("opentelemetry-metrics-api-demo.histogram")
+      .build();
+    doubleHistogram.record(3, Attributes.of(AttributeKey.stringKey("DoubleHistogram"), "foo"));
+    
+    // Generate DoubleGauge dimensional metrics
+    DoubleGauge doubleGauge = GlobalOpenTelemetry.get()
+      .getMeterProvider()
+      .get("opentelemetry-metrics-api-demo")
+      .gaugeBuilder("opentelemetry-metrics-api-demo.gauge")
+      .build();
+    doubleGauge.set(5, Attributes.of(AttributeKey.stringKey("DoubleGauge"), "foo"));
 
-add(1,Attributes.of(AttributeKey.stringKey("foo"), "bar"));
+    // Generate LongUpDownCounter dimensional metrics
+    LongUpDownCounter longUpDownCounter = GlobalOpenTelemetry.get()
+      .getMeterProvider()
+      .get("opentelemetry-metrics-api-demo")
+      .upDownCounterBuilder("opentelemetry-metrics-api-demo.updowncounter")
+      .build();
+    longUpDownCounter.add(7, Attributes.of(AttributeKey.stringKey("LongUpDownCounter"), "foo"));
 ```
 
 Any recorded dimensional metrics can be found in the Metrics Explorer for the associated APM entity and can be used to build custom dashboards.
 
-## OpenTelemetry Spans
+## OpenTelemetry Traces Signals
 
-Documented below are several approaches for incorporating OpenTelemetry Spans into New Relic Java agent traces.
+Documented below are several approaches for incorporating OpenTelemetry Traces (aka Spans) into New Relic Java agent traces.
 
 ### `@WithSpan` Annotation
 
@@ -117,17 +200,16 @@ those to the core agent through the bridge.
 
 See `ClassTransformerConfigImpl.java` for implementation details of the `@WithSpan` annotation.
 
-### Spans Emitted From OpenTelemetry Instrumentation
+### Spans Emitted From OpenTelemetry Tracing API
 
-The New Relic Java agent will detect Spans emitted by [OpenTelemetry instrumentation](https://opentelemetry.io/docs/languages/java/instrumentation/). It does
-this by weaving the `io.opentelemetry.sdk.trace.SdkTracerProvider` so that it will create a New Relic Tracer each time an OpenTelemetry Span is started and
+The New Relic Java agent will detect Spans emitted by the [OpenTelemetry Tracing API](https://opentelemetry.io/docs/specs/otel/trace/api/) for most manual, library, and native [instrumentation types](https://opentelemetry.io/docs/languages/java/instrumentation/#instrumentation-categories) and incorporate them into New Relic traces. 
+
+It does this by weaving the `io.opentelemetry.sdk.trace.SdkTracerProvider` so that it will create a New Relic Tracer each time an OpenTelemetry Span is started and
 weaving the `io.opentelemetry.context.Context` to propagate context between New Relic and OpenTelemetry Spans.
 
-Currently, the New Relic Java agent does not load any OpenTelemetry instrumentation it simply detects Spans emitted by OpenTelemetry manual instrumentation,
-native instrumentation, library instrumentation, or zero code instrumentation (i.e. bytecode instrumentation that would also require running the OpenTelemetry
-Java agent).
+#### Translating OpenTelemetry SpanKinds To The New Relic Span Data Model
 
-Depending on the OpenTelemetry Span `SpanKind`, it may result in the New Relic Java agent starting a transaction (when one doesn't already exist).
+Depending on the OpenTelemetry Span `SpanKind`, it may result in the New Relic Java agent starting a transaction (when one doesn't already exist). Also see [attribute-mappings.json](src/main/resources/attribute-mappings.json) for the complete attribute mapping rules.
 
 * `SpanKind.INTERNAL`
     * Creating a span with no `SpanKind`, which defaults to `SpanKind.INTERNAL`, will not start a transaction
@@ -147,19 +229,11 @@ Depending on the OpenTelemetry Span `SpanKind`, it may result in the New Relic J
     * If `SpanKind.PRODUCER` spans occur within an already existing New Relic transaction they will be included in the trace (though it's effectively no
       different from a `SpanKind.INTERNAL` span)
 
-## OpenTelemetry Logs
+## OpenTelemetry Logs Signals
 
-OpenTelemetry APIs can be used to create log records which will be detected by the New Relic Java agent and reported to the APM entity being monitored by the
-New Relic Java agent. The log records will be reported as log events in New Relic, which will be associated with a transaction if the logging occurred within
-one.
+The New Relic Java agent will detect LogRecords emitted by the [OpenTelemetry Logs API](https://opentelemetry.io/docs/specs/otel/logs/api/) and incorporate them into New Relic log events associated with the APM entity being monitored. The logs will be associated with a New Relic transaction if the logging occurred within one. 
 
-To use this functionality, enable the feature as documented above, add the required `opentelemetry` dependencies to your application:
-
-```groovy
-    implementation(platform("io.opentelemetry:opentelemetry-bom:1.28.0"))
-implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
-implementation("io.opentelemetry:opentelemetry-exporter-logging")
-```
+Note: It is recommended that OpenTelemetry instrumentation for a particular logging framework (e.g. Logback, Log4j) should not be used alongside New Relic Java agent instrumentation for the same logging framework. Doing so could result in duplicate log events being reported to New Relic.
 
 Example usage of OpenTelemetry Logs APIs:
 
