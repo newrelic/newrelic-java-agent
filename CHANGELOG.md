@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a potential memory issue caused by excessively large stack traces in error logging by @jtduffy in [2498](https://github.com/newrelic/newrelic-java-agent/pull/2498)
 - Clarify logging messages for invalid attributes on custom events and logging events by @sharvath-newrelic in [2501](https://github.com/newrelic/newrelic-java-agent/pull/2501)
 
-## Deprecations
+## The following instrumentation modules are deprecated and will be removed in the next major release:
 - `aws-wrap-0.7.0`
 - `java.completable-future-jdk8`
 - `play-2.3`
@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CouchBase: Add skip class to prevent double instrumentation by @jtduffy in [2462](https://github.com/newrelic/newrelic-java-agent/pull/2462)
 - Spring WebClient 5.x: Only wrap headers instead of the entire response by @jtduffy in [2464](https://github.com/newrelic/newrelic-java-agent/pull/2464)
 
-## The following instrumentation modules are deprecated and will be removed in the next major release:
+## Deprecations
 
 - `aws-wrap-0.7.0`
 - `java.completable-future-jdk8`
