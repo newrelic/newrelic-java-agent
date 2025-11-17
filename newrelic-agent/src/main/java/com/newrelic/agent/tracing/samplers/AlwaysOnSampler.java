@@ -1,13 +1,20 @@
 package com.newrelic.agent.tracing.samplers;
 
-public class AlwaysOnSampler implements Sampler{
+import com.newrelic.agent.Transaction;
 
-    public float calculatePriority(){
+public class AlwaysOnSampler implements Sampler {
+    @Override
+    public float calculatePriority(Transaction tx){
         return 2.0f;
     }
 
+    @Override
     public String getType(){
-        return Sampler.ALWAYS_ON;
+        return SamplerFactory.ALWAYS_ON;
     }
 
+    @Override
+    public String getDescription(){
+        return "Always On Sampler";
+    }
 }

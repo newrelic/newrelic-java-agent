@@ -1,8 +1,12 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -24,7 +28,7 @@ public class AdaptiveSampler implements Sampler {
 
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
-    protected AdaptiveSampler(int target, int reportPeriodSeconds){
+    protected AdaptiveSampler(int target, int reportPeriodSeconds) {
         this.target = target;
         this.reportPeriodMillis = reportPeriodSeconds * 1000L;
         this.startTimeMillis = System.currentTimeMillis();
@@ -42,14 +46,14 @@ public class AdaptiveSampler implements Sampler {
      * This is the instance used when a top-level sampling target only is specified.
      * Its state may be shared across multiple contexts using adaptive sampling, which is why
      * it is a singleton.
-     *
+     * <p>
      * Lazy-instantiated.
      * Currently managed via synchronized as it should only be accessed a few times,
      * when DistributedTraceImpl class is initialized.
      *
      * @return The AdaptiveSampler instance.
      */
-    public static synchronized AdaptiveSampler getSharedInstance(){
+    public static synchronized AdaptiveSampler getSharedInstance() {
         if (SAMPLER_SHARED_INSTANCE == null) {
             AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
             SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds());
@@ -57,40 +61,76 @@ public class AdaptiveSampler implements Sampler {
         return SAMPLER_SHARED_INSTANCE;
     }
 
+    public static AdaptiveSampler getAdaptiveSampler(SamplerConfig config) {
+        Integer target = config.getSamplingTarget();
+        if (target == null) {
+            return getSharedInstance();
+        } else {
+            //Is this right (the sampling period in seconds)?? or should it use a hard-coded default?
+            return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
+        }
+    }
+
     /**
      * Updates the SHARED_SAMPLER_INSTANCE to use a new target.
      * If the SHARED_SAMPLER_INSTANCE isn't already running, this method is a no-op.
+     *
      * @param newTarget the new target value the shared sampler instance should use
      */
     public static synchronized void setSharedTarget(int newTarget) {
         if (SAMPLER_SHARED_INSTANCE != null) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Updating shared Adaptive Sampler sampling target to " + newTarget);
             getSharedInstance().setTarget(newTarget);
+
+            ServiceFactory.getStatsService()
+                    .doStatsWork(
+                            StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
+                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
         }
     }
 
     /**
      * Calculate priority given the current state of the sampler.
+     *
      * @return A float in [0.0f, 2.0f]
      */
     @Override
-    public synchronized float calculatePriority(){
+    public synchronized float calculatePriority(Transaction tx) {
         resetPeriodIfElapsed();
+        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision();
+        if (inboundPriority != null) {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.FINEST, "Adaptive Sampler found an inbound priority for transaction {0}. A new sampling decision will not be made.", tx);
+            return inboundPriority;
+        }
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.FINEST, "Adaptive Sampler did not find an inbound priority for transaction {0}. A new sampling decision will be made.", tx);
         return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
     }
 
     @Override
-    public String getType(){
-        return Sampler.ADAPTIVE;
+    public String getType() {
+        return SamplerFactory.ADAPTIVE;
     }
 
-    private void resetPeriodIfElapsed(){
+    @Override
+    public String getDescription() {
+       return "Adaptive Sampler, shared=" + isShared() + ", target=" + target;
+    }
+
+    public boolean isShared(){
+        return this.equals(SAMPLER_SHARED_INSTANCE);
+    }
+
+    private void resetPeriodIfElapsed() {
         long now = System.currentTimeMillis();
         if (now - startTimeMillis >= reportPeriodMillis) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting sampler period. Seen: " + seen + ", Sampled: " + sampledCount);
             //Calculate elapsed periods so that the start time is consistently incremented
             //in multiples of the report period.
-            int elapsedPeriods = (int) ((now - startTimeMillis)/ reportPeriodMillis);
+            int elapsedPeriods = (int) ((now - startTimeMillis) / reportPeriodMillis);
             startTimeMillis += elapsedPeriods * reportPeriodMillis;
             seenLast = seen;
             seen = 0;
@@ -101,7 +141,7 @@ public class AdaptiveSampler implements Sampler {
     }
 
     @VisibleForTesting
-    protected boolean computeSampled(){
+    protected boolean computeSampled() {
         boolean sampled;
         if (firstPeriod) {
             sampled = sampledCount < target;
@@ -115,19 +155,19 @@ public class AdaptiveSampler implements Sampler {
             sampled = (seen <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seen)) < expTarget;
         }
         seen++;
-        if (sampled){
+        if (sampled) {
             sampledCount++;
         }
         return sampled;
     }
 
-    private synchronized void setTarget(int newTarget){
+    private synchronized void setTarget(int newTarget) {
         this.target = newTarget;
     }
 
     //These methods are for testing only. they are not thread-safe.
     @VisibleForTesting
-    int getSampledCountLastPeriod(){
+    int getSampledCountLastPeriod() {
         return sampledCountLast;
     }
 

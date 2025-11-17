@@ -1,10 +1,13 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.Transaction;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -14,6 +17,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.newrelic.agent.config.coretracing.SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 /**
  * The adaptive sampler is non-deterministic in its behavior, ie, we can almost never guarantee
@@ -56,7 +65,7 @@ public class AdaptiveSamplerTest {
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
-        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
+        assertTrue(String.format(errorMessage, expectedSampled, totalSampled),
                 Math.abs(expectedSampled - totalSampled) < errorDelta);
     }
 
@@ -71,7 +80,7 @@ public class AdaptiveSamplerTest {
         int totalSampled = runSamplerAndGetSampled(sampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
         int expectedSampled = 0;
-        Assert.assertEquals(String.format(errorMessage, expectedSampled, totalSampled), expectedSampled, totalSampled);
+        assertEquals(String.format(errorMessage, expectedSampled, totalSampled), expectedSampled, totalSampled);
     }
 
     @Test
@@ -85,7 +94,7 @@ public class AdaptiveSamplerTest {
 
         int sampledFirstPeriod = sampler.getSampledCountLastPeriod();
         int expectedSampled = 15;
-        Assert.assertEquals(String.format(errorMessage, expectedSampled, sampledFirstPeriod), expectedSampled, sampledFirstPeriod);
+        assertEquals(String.format(errorMessage, expectedSampled, sampledFirstPeriod), expectedSampled, sampledFirstPeriod);
     }
 
     @Test
@@ -104,7 +113,7 @@ public class AdaptiveSamplerTest {
         int expectedSampled = target * numPeriods * 2;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
         System.out.println("Expected: " + expectedSampled + " Actual: " + totalSampled);
-        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
+        assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
@@ -120,7 +129,7 @@ public class AdaptiveSamplerTest {
 
         int expectedSampled = target * numPeriods;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
-        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
+        assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
@@ -157,14 +166,14 @@ public class AdaptiveSamplerTest {
         Assert.assertNotNull(actualTotalSampled);
         int expectedTotalSampled = target * overloadPhasePeriods;
         int expectedDelta = (int) (expectedTotalSampled * 0.2f); //this test is a bit flakier, setting higher error margin
-        Assert.assertTrue(String.format(errorMessage, expectedTotalSampled, actualTotalSampled),
+        assertTrue(String.format(errorMessage, expectedTotalSampled, actualTotalSampled),
                 Math.abs(expectedTotalSampled - actualTotalSampled) <= expectedDelta );
 
         //iterate over the results from each period and assert that no individual
         //period had a result exceeding 2*target, AND that the first time through we sampled exactly target.
-        Assert.assertEquals(target, (int) sampledCountEachPeriod.get(0));
+        assertEquals(target, (int) sampledCountEachPeriod.get(0));
         for (int sampledCount : sampledCountEachPeriod) {
-            Assert.assertTrue(String.format("Expected less than %s sampled for each period, but a period actually sampled %s", 2*target, sampledCount),
+            assertTrue(String.format("Expected less than %s sampled for each period, but a period actually sampled %s", 2*target, sampledCount),
                     sampledCount <= 2*target);
         }
     }
@@ -181,7 +190,7 @@ public class AdaptiveSamplerTest {
 
         int expectedSampled = target * totalPeriods;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
-        Assert.assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
+        assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
@@ -197,8 +206,38 @@ public class AdaptiveSamplerTest {
         AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
         Assert.assertNotNull(baseSampler);
         for (Future<?> f : samplerArray) {
-            Assert.assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
+            assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
         }
+    }
+
+    @Test
+    public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
+        //both of these should use shared sampler instance, since sampling target is not specified
+        SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
+        Mockito.when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
+        SamplerConfig samplerConfig2 = Mockito.mock(SamplerConfig.class);
+        Mockito.when(samplerConfig2.getSamplingTarget()).thenReturn(null);
+        //should use its own instance, even though the sampling target is the default
+        SamplerConfig samplerConfig3 = Mockito.mock(SamplerConfig.class);
+        Mockito.when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
+        //should use their own instances, even though they have the same target
+        SamplerConfig samplerConfig4 = Mockito.mock(SamplerConfig.class);
+        Mockito.when(samplerConfig4.getSamplingTarget()).thenReturn(12);
+        SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
+        Mockito.when(samplerConfig5.getSamplingTarget()).thenReturn(12);
+
+        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig1));
+        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig2));
+
+        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(samplerConfig3);
+        assertNotSame(AdaptiveSampler.getSharedInstance(), sampler3);
+        assertEquals(120, sampler3.getTarget());
+
+        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(samplerConfig4);
+        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(samplerConfig5);
+        assertEquals(12, sampler4.getTarget());
+        assertEquals(12, sampler5.getTarget());
+        assertNotSame(sampler4, sampler5);
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
@@ -208,7 +247,9 @@ public class AdaptiveSamplerTest {
         int totalSampled = 0;
         int waitBetweenSamples = 1000 / requestsPerSecond;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
-            float priority = sampler.calculatePriority();
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
+            float priority = sampler.calculatePriority(tx);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -227,7 +268,9 @@ public class AdaptiveSamplerTest {
         long testStartTime = System.currentTimeMillis();
         int totalSampled = 0;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
-            float priority = sampler.calculatePriority();
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
+            float priority = sampler.calculatePriority(tx);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -249,7 +292,9 @@ public class AdaptiveSamplerTest {
         for (int i = 0; i < nThreads ; i++) {
             executor.submit(() -> {
                 while(System.currentTimeMillis() - startTime < totalTestTimeMillis) {
-                    float priority = sampler.calculatePriority();
+                    Transaction tx = Mockito.mock(Transaction.class);
+                    Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
+                    float priority = sampler.calculatePriority(tx);
                     boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
                     if (sampled) {
                         totalSampled.incrementAndGet();

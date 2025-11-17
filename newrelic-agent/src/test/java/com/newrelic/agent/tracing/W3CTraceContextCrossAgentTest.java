@@ -17,6 +17,7 @@ import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;
@@ -36,7 +37,6 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.test.marker.RequiresFork;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -56,6 +56,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.ROOT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -105,7 +108,21 @@ public class W3CTraceContextCrossAgentTest {
         Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
+        // Configure the sampler based on the cross agent test data
+        // This is gross, but we need to extract the value for "ratio" and if present,
+        // it gets added as a sub-option to any sampler type of "trace_id_ratio_based".
+        // Currently, if the "ratio" key exists, it will be a valid float so we can skip
+        // validation.
+        Object maybeRatio = testData.get("ratio");
+        Map<String, Object> ratioConfig = maybeRatio == null ? null : Collections.singletonMap("ratio", maybeRatio);
+        Map<String, Object> samplerConfig = new HashMap<>();
+        samplerConfig.put("root", testData.get("root"));
+        samplerConfig.put("remote_parent_sampled", testData.get("remote_parent_sampled"));
+        samplerConfig.put("remote_parent_not_sampled", testData.get("remote_parent_not_sampled"));
+        addRatioSubOptionIfRequired(samplerConfig, ratioConfig);
+
         Map<String, Object> dtConfig = new HashMap<>();
+        dtConfig.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfig);
         dtConfig.put("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
@@ -187,7 +204,7 @@ public class W3CTraceContextCrossAgentTest {
         JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
         String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
         String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
-        String rootSamplerType = (String) testData.get("root_sampler_type");
+        String rootSamplerType = (String) testData.get("root");
 
         replaceConfig(spanEventsEnabled);
 
@@ -215,13 +232,13 @@ public class W3CTraceContextCrossAgentTest {
         if (forceSampledTrue != null) {
             Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
             if ("default".equals(remoteParentSampledSamplerType) || remoteParentSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentSampledSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(REMOTE_PARENT_SAMPLED, forceSampler);
             }
             if ("default".equals(remoteParentNotSampledSamplerType) || remoteParentNotSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentNotSampledSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(REMOTE_PARENT_NOT_SAMPLED, forceSampler);
             }
             if ("default".equals(rootSamplerType) || rootSamplerType == null) {
-                distributedTraceService.setRootSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(ROOT, forceSampler);
             }
         }
 
@@ -577,6 +594,19 @@ public class W3CTraceContextCrossAgentTest {
 
         JSONArray json = (JSONArray) new JSONParser().parse(new String(out.toByteArray()));
         return (JSONObject) json.get(0);
+    }
+
+    private void addRatioSubOptionIfRequired(Map<String, Object> samplerConfig, Map<String, Object> ratioConfig) {
+        String [] samplerTypes = {SamplerConfig.ROOT, SamplerConfig.REMOTE_PARENT_SAMPLED, SamplerConfig.REMOTE_PARENT_NOT_SAMPLED};
+
+        if (ratioConfig != null) {
+            for (String samplerType : samplerTypes) {
+                if (samplerConfig.get(samplerType).equals(SamplerConfig.TRACE_ID_RATIO_BASED)) {
+                    Map<String, Object> traceRatioMap = Collections.singletonMap(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfig);
+                    samplerConfig.put(samplerType, traceRatioMap);
+                }
+            }
+        }
     }
 
     //Our cross-agent tests include the setting force_adaptive_sampling_true option.
