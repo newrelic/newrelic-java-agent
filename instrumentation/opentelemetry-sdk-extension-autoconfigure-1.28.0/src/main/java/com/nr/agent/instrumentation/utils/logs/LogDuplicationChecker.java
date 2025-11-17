@@ -7,7 +7,6 @@
 
 package com.nr.agent.instrumentation.utils.logs;
 
-import com.newrelic.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,7 +45,7 @@ public class LogDuplicationChecker {
         } catch (ClassNotFoundException __) {
             return new AtomicBoolean(false);
         }
-        Agent.LOG.log(Level.WARNING, "Detected " + otelInstrumentationClass +
+        NewRelic.getAgent().getLogger().log(Level.WARNING, "Detected " + otelInstrumentationClass +
                 " on the classpath. This may result in duplicate log events if the corresponding New Relic logging framework instrumentation module is also enabled");
         return new AtomicBoolean(true);
     }
