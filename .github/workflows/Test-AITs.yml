@@ -19,8 +19,8 @@ on:
         description: "Specify a single test. If left blank, all tests will run. You can choose to specify a single test file or a test case in that file. For example you can write 'server/tomcat.py' to run all tomcat tests or run 'server/tomcat.py TomcatTest.test_tomcat' to run a specific test case."
         required: false
         default: ''
-      agent-version:
-        description: "Specify the version number for this release (ex: 9.0.0). If provided, ingest metrics will be uploaded to the wiki. Optional field."
+      ingest-metrics-desc:
+        description: "(Optional) For site wiki ingest metrics: Specify a description for this run. This will be used as the title for the new wiki page. NO SPACES. Ex: Post8.25Release"
         required: false
   workflow_call:
     inputs:
@@ -44,8 +44,8 @@ on:
         required: false
         default: ''
         type: string
-      agent-version:
-        description: "Specify the version number for this release (ex: 9.0.0). If provided, ingest metrics will be uploaded to the wiki. Optional field."
+      ingest-metrics-desc:
+        description: "(Optional) For site wiki ingest metrics: Specify a description for this run. This will be used as the title for the new wiki page. NO SPACES. Ex: Post8.25Release"
         required: false
         type: string
 
@@ -402,7 +402,7 @@ jobs:
   process-ingest-metric-files:
     name: Process Ingest Metrics
     needs: [ tests ]
-    if: ${{ always() && inputs.agent-version != '' }}
+    if: ${{ always() && inputs.ingest-metrics-desc != '' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -455,10 +455,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: Create markdown file
-        if: ${{ inputs.agent-version != '' }}
+        if: ${{ inputs.ingest-metrics-desc != '' }}
         run: |
           # Start with the sum as the first line
-          echo "# Ingest Metrics Summary - Version ${{ inputs.agent-version }}" > ingest-report.md
+          echo "# Ingest Metrics Summary - ${{ inputs.ingest-metrics-desc }}" > ingest-report.md
           echo "" >> ingest-report.md
           echo "## **Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
           echo "" >> ingest-report.md
@@ -471,27 +471,27 @@ jobs:
           echo "\`\`\`" >> ingest-report.md
 
       - name: Checkout wiki repository
-        if: ${{ inputs.agent-version != '' }}
+        if: ${{ inputs.ingest-metrics-desc != '' }}
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
 
       - name: Commit and push to wiki
-        if: ${{ inputs.agent-version != '' }}
+        if: ${{ inputs.ingest-metrics-desc != '' }}
         run: |
           # Create ingest-metrics directory if it doesn't exist
           mkdir -p wiki/ingest-metrics
 
-          # Copy the report using agent-version as filename
-          FILENAME="ingest-metrics-v${{ inputs.agent-version }}.md"
+          # Copy the report using ingest-metrics-desc as filename
+          FILENAME="ingest-metrics-${{ inputs.ingest-metrics-desc }}.md"
           cp ingest-report.md "wiki/ingest-metrics/${FILENAME}"
 
           cd wiki
 
           # Append link to Ingest-Metrics.md if it doesn't already exist
-          LINK_TEXT="- [Ingest Metrics v${{ inputs.agent-version }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics-v${{ inputs.agent-version }})"
-          if ! grep -q "ingest-metrics-v${{ inputs.agent-version }})" Ingest-Metrics.md 2>/dev/null; then
+          LINK_TEXT="- [Ingest Metrics ${{ inputs.ingest-metrics-desc }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics-${{ inputs.ingest-metrics-desc }})"
+          if ! grep -q "ingest-metrics-${{ inputs.ingest-metrics-desc }})" Ingest-Metrics.md 2>/dev/null; then
             echo "" >> Ingest-Metrics.md
             echo "${LINK_TEXT}" >> Ingest-Metrics.md
           fi
@@ -499,7 +499,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "ingest-metrics/${FILENAME}" Ingest-Metrics.md
-          git commit -m "Update ingest metrics report for version ${{ inputs.agent-version }} from workflow run ${{ github.run_id }}"
+          git commit -m "Update ingest metrics report for ${{ inputs.ingest-metrics-desc }} from workflow run ${{ github.run_id }}"
           git push
 
   notify-if-negative-values:
