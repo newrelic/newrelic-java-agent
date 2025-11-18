@@ -3,9 +3,11 @@ package com.newrelic.agent.util;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.api.agent.NewRelic;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
 
 public class SpanEventMerger {
 
@@ -62,7 +64,7 @@ public class SpanEventMerger {
 
         // now add 2 new attributes to the first span that represent all the merged-in spans
         mergedSpan.getAgentAttributes().put("nr.ids", nrIds);
-        float totalDuration = sumDurations(timeFrameEvents);
+        Double totalDuration = sumDurations(timeFrameEvents);
         mergedSpan.getAgentAttributes().put("nr.durations", totalDuration / 1000.0f); // we multiplied by 1000.0 when adding the TimeFrameEvents
 
         // if we found a span with errors, overwrite the merged spans error attrs with that span's values
@@ -100,7 +102,7 @@ public class SpanEventMerger {
     }
 
     // 1-dimensional sweep-line algorithm
-    private static float sumDurations (List<TimeFrameEvent> timeFrameEvents) {
+    private static Double sumDurations (List<TimeFrameEvent> timeFrameEvents) {
         // gotta be sorted, unfortunately
         timeFrameEvents.sort(Comparator.comparingDouble(TimeFrameEvent::getTimestamp));
 
@@ -108,8 +110,8 @@ public class SpanEventMerger {
         // used to track if we are inside of a timeframe that counts, >0 means we are
         // this effectively keeps track of how many spans' timeframes were are inside of
         int insideTimeFrameCount = 0;
-        Float lastTimestamp = null;
-        float totalDuration = 0.0f;
+        Double lastTimestamp = null;
+        Double totalDuration = 0.0;
         for (TimeFrameEvent event : timeFrameEvents) {
             if (lastTimestamp != null && insideTimeFrameCount > 0) {
                 totalDuration += (event.getTimestamp() - lastTimestamp);
@@ -122,10 +124,12 @@ public class SpanEventMerger {
     }
 
     private static void addTimeFrameEventsForSpan (List<TimeFrameEvent> timeFrameEvents, SpanEvent span) {
-        timeFrameEvents.add(new TimeFrameEvent(span.getTimestamp(), TimeFrameEventType.START));
+        // careful, don't use span.getTimestamp() that's the time when we generated the span from the tracer
+        Double start = ((Long)span.getIntrinsics().get("timestamp")).doubleValue();
         // duration is in seconds, timestamp is in milliseconds
-        timeFrameEvents.add(new TimeFrameEvent((long) (span.getTimestamp() + (span.getDuration() * 1000.0f)),
-                TimeFrameEventType.END));
+        Double end = start + (span.getDuration()*1000.0);
+        timeFrameEvents.add(new TimeFrameEvent(start, TimeFrameEventType.START));
+        timeFrameEvents.add(new TimeFrameEvent(end, TimeFrameEventType.END));
     }
 
     private static SpanEvent findFirstSpanInGroup (List<SpanEvent> spans) {
@@ -172,14 +176,14 @@ public class SpanEventMerger {
     }
 
     private static class TimeFrameEvent {
-        float timestamp;
+        Double timestamp;
         TimeFrameEventType type;
-        TimeFrameEvent(float timestamp, TimeFrameEventType type) {
+        TimeFrameEvent(Double timestamp, TimeFrameEventType type) {
             this.timestamp = timestamp;
             this.type = type;
         }
 
-        public float getTimestamp() {
+        public Double getTimestamp() {
             return timestamp;
         }
     }
