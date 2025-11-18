@@ -78,6 +78,7 @@ jobs:
         id: create-pr-internal
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
         with:
+          base: main
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: ${{ env.INTERNAL_FILEPATH }}
           commit-message: 'Update internal compatibility doc'
@@ -123,6 +124,7 @@ jobs:
         id: create-pr-docs-site
         uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
         with:
+          base: develop
           token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
           path: docs-website
           add-paths: ${{ env.DESTINATION_FILEPATH }}
