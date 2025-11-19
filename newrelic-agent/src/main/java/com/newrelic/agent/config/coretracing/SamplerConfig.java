@@ -121,6 +121,10 @@ public class SamplerConfig extends BaseConfig {
 
     public Integer getSamplingTarget() { return this.samplingTarget; }
 
+    protected void setRatio(Float ratio) {
+        this.samplerRatio = ratio;
+    }
+
     /**
      * Initialize the sampler type based on the configuration properties.
      *

@@ -282,7 +282,7 @@ public class CoreTracingConfigTest {
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
-        assertEquals(0.4f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
+        assertEquals(0.6f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(1.0f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());

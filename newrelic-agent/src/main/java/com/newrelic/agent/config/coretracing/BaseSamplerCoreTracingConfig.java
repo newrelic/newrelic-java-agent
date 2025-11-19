@@ -16,7 +16,7 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
     public BaseSamplerCoreTracingConfig(Map<String, Object> props, String dtSystemPropertyRoot) {
         super(props, dtSystemPropertyRoot + SAMPLER_SYSTEM_PROPERTY_ROOT, BASE_SAMPLER_ENABLED_DEFAULT);
         this.fullGranularityConfig = new FullGranularityConfig(nestedProps(FULL_GRANULARITY), this.systemPropertyPrefix, this);
-        this.partialGranularityConfig = new PartialGranularityConfig(nestedProps(PARTIAL_GRANULARITY), this.systemPropertyPrefix);
+        this.partialGranularityConfig = new PartialGranularityConfig(nestedProps(PARTIAL_GRANULARITY), this.systemPropertyPrefix, fullGranularityConfig);
         this.sharedAdaptiveSamplingTarget = getProperty(SHARED_ADAPTIVE_SAMPLING_TARGET, SHARED_ADAPTIVE_SAMPLING_TARGET_DEFAULT);
     }
 
