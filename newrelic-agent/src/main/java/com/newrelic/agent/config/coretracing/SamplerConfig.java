@@ -121,8 +121,8 @@ public class SamplerConfig extends BaseConfig {
 
     public Integer getSamplingTarget() { return this.samplingTarget; }
 
-    protected void setRatio(Float ratio) {
-        this.samplerRatio = ratio;
+    protected void setRatio(float ratio) {
+        this.samplerRatio = Math.min(ratio, 1.0f);
     }
 
     /**
