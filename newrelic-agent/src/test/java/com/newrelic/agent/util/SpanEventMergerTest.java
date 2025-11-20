@@ -27,6 +27,8 @@ import static org.mockito.Mockito.mockStatic;
 
 public class SpanEventMergerTest {
 
+    private static double MAX_DURATION_DELTA = 0.0000001; // precision problems when casting float to double
+
     @BeforeClass
     public static void setup() {
         Map<String, Object> root = new HashMap<>();
@@ -73,25 +75,25 @@ public class SpanEventMergerTest {
         assertEquals(5, mergedSpans.size());
 
         SpanEvent group1Span = mergedSpans.get(0);
-        assertEquals(0.4f, group1Span.getAgentAttributes().get("nr.durations"));
+        assertEquals(0.4, (Double)group1Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group1-0", group1Span.getGuid());
         assertEquals(true, ((List<String>)group1Span.getAgentAttributes().get("nr.ids")).contains("group1-1"));
         assertEquals(true, ((List<String>)group1Span.getAgentAttributes().get("nr.ids")).contains("group1-2"));
 
         SpanEvent group2Span = mergedSpans.get(1);
-        assertEquals(0.9f, group2Span.getAgentAttributes().get("nr.durations"));
+        assertEquals(0.9, (Double)group2Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group2-0", group2Span.getGuid());
         assertEquals(true, ((List<String>)group2Span.getAgentAttributes().get("nr.ids")).contains("group2-1"));
         assertEquals(true, ((List<String>)group2Span.getAgentAttributes().get("nr.ids")).contains("group2-2"));
 
         SpanEvent group3Span = mergedSpans.get(2);
-        assertEquals(1.1f, group3Span.getAgentAttributes().get("nr.durations"));
+        assertEquals(1.1, (Double)group3Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group3-0", group3Span.getGuid());
         assertEquals(true, ((List<String>)group3Span.getAgentAttributes().get("nr.ids")).contains("group3-1"));
         assertEquals(true, ((List<String>)group3Span.getAgentAttributes().get("nr.ids")).contains("group3-2"));
 
         SpanEvent group4Span = mergedSpans.get(3);
-        assertEquals(1.6f, group4Span.getAgentAttributes().get("nr.durations"));
+        assertEquals(1.6, (Double)group4Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group4-2", group4Span.getGuid());
         assertEquals(true, ((List<String>)group4Span.getAgentAttributes().get("nr.ids")).contains("group4-0"));
         assertEquals(true, ((List<String>)group4Span.getAgentAttributes().get("nr.ids")).contains("group4-1"));
@@ -132,7 +134,7 @@ public class SpanEventMergerTest {
                 attrs.put(attrName, prefix + "-" + attrName + "value");
             }
             SpanEvent span = SpanEvent.builder()
-                    .timestamp(timestamps[i])
+                    .putIntrinsic("timestamp", timestamps[i])
                     .putIntrinsic("duration", durations[i])
                     .putIntrinsic("guid", prefix+"-"+i)
                     .putAllAgentAttributes(attrs).build();
@@ -205,7 +207,7 @@ public class SpanEventMergerTest {
         attrs1.put("error.message", "message1");
         attrs1.put("error.expected", true);
         SpanEvent span1 = SpanEvent.builder()
-                .timestamp(timestamp1)
+                .putIntrinsic("timestamp", timestamp1)
                 .putIntrinsic("duration", 100.0f)
                 .putIntrinsic("guid", "myguid")
                 .putAllAgentAttributes(attrs1).build();
@@ -216,7 +218,7 @@ public class SpanEventMergerTest {
         attrs2.put("error.message", "message2");
         attrs2.put("error.expected", false);
         SpanEvent span2 = SpanEvent.builder()
-                .timestamp(timestamp2)
+                .putIntrinsic("timestamp", timestamp2)
                 .putIntrinsic("guid", "myguid2")
                 .putIntrinsic("duration", 100.0f)
                 .putAllAgentAttributes(attrs2).build();
@@ -228,11 +230,11 @@ public class SpanEventMergerTest {
         return SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
     }
 
-    private void runSumDurationsTest(long start1, float duration1, long start2, float duration2, float expectedNrDurations) {
+    private void runSumDurationsTest(long start1, float duration1, long start2, float duration2, double expectedNrDurations) {
         Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
         entitySynthesisAttrs1.put("http.url", "myurl1");
         SpanEvent span1 = SpanEvent.builder()
-                .timestamp(start1)
+                .putIntrinsic("timestamp", start1)
                 .putIntrinsic("guid", "myguid")
                 .putIntrinsic("duration", duration1)
                 .putAllAgentAttributes(entitySynthesisAttrs1).build();
@@ -241,7 +243,7 @@ public class SpanEventMergerTest {
         Map<String, String> entitySynthesisAttrs2 = new HashMap<>();
         entitySynthesisAttrs2.put("http.url", "myurl1");
         SpanEvent span2 = SpanEvent.builder()
-                .timestamp(start2)
+                .putIntrinsic("timestamp", start2)
                 .putIntrinsic("guid", "myguid2")
                 .putIntrinsic("duration", duration2)
                 .putAllAgentAttributes(entitySynthesisAttrs2).build();
@@ -254,7 +256,7 @@ public class SpanEventMergerTest {
 
         List<SpanEvent> mergedSpans = SpanEventMerger.findGroupsAndMergeSpans(spans, true);
 
-        assertEquals(expectedNrDurations, (float)mergedSpans.get(0).getAgentAttributes().get("nr.durations"), 0.0f);
+        assertEquals(expectedNrDurations, (Double)mergedSpans.get(0).getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
     }
 
 }

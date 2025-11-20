@@ -123,6 +123,10 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         return (String) intrinsics.get("transactionId");
     }
 
+    public Long getStartTimestamp() {
+        return (Long) intrinsics.get("timestamp");
+    }
+
     public SpanCategory getCategory() {
         return SpanCategory.fromString((String) intrinsics.get("category"));
     }

@@ -51,6 +51,8 @@ public class SpanEventsServiceTest {
 
     private final String APP_NAME = "Unit Test";
 
+    // TODO add tests for maintaining hierarchy
+    
     MockServiceManager serviceManager;
     @Mock
     public SpanEventCreationDecider spanEventCreationDecider;

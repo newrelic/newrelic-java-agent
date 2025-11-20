@@ -74,7 +74,7 @@ public class SpanEventMerger {
 
         // now add 2 new attributes to the first span that represent all the merged-in spans
         mergedSpan.getAgentAttributes().put("nr.ids", nrIds);
-        Double totalDuration = sumDurations(timeFrameEvents) / 1000.0f; // we multiplied by 1000.0 when adding the TimeFrameEvents
+        Double totalDuration = sumDurations(timeFrameEvents) / 1000.0; // we multiplied by 1000.0 when adding the TimeFrameEvents
         mergedSpan.getAgentAttributes().put("nr.durations", totalDuration);
 
         // if we found a span with errors, overwrite the merged spans error attrs with that span's values
@@ -103,14 +103,14 @@ public class SpanEventMerger {
         if (otherSpan.hasAnyErrorAttrs()) {
             if (errorSpanToUse == null) errorSpanToUse = otherSpan;
             else {
-                if (ignoreErrorPriority && otherSpan.getTimestamp() > errorSpanToUse.getTimestamp()) {
+                if (ignoreErrorPriority && otherSpan.getStartTimestamp() > errorSpanToUse.getStartTimestamp()) {
                     // if ignoreErrorPriority, then use the latest error
                     if (Agent.isDebugEnabled()) {
                         NewRelic.getAgent().getLogger().log(Level.FINEST, "Replacing errorSpanToUse {0} with later span {1}",
                                 errorSpanToUse.getGuid(), otherSpan.getGuid());
                     }
                     return otherSpan;
-                } else if (!ignoreErrorPriority && otherSpan.getTimestamp() < errorSpanToUse.getTimestamp()) {
+                } else if (!ignoreErrorPriority && otherSpan.getStartTimestamp() < errorSpanToUse.getStartTimestamp()) {
                     // if !ignoreErrorPriority, then use the earliest error
                     if (Agent.isDebugEnabled()) {
                         NewRelic.getAgent().getLogger().log(Level.FINEST, "Replacing errorSpanToUse {0} with earlier span {1}",
@@ -125,6 +125,7 @@ public class SpanEventMerger {
     }
 
     // 1-dimensional sweep-line algorithm
+    // TODO should I change this back to floats?  is it worth it?
     private static Double sumDurations (List<TimeFrameEvent> timeFrameEvents) {
         // gotta be sorted, unfortunately
         timeFrameEvents.sort(Comparator.comparingDouble(TimeFrameEvent::getTimestamp));
@@ -135,12 +136,12 @@ public class SpanEventMerger {
         int insideTimeFrameCount = 0;
         Double lastTimestamp = null;
         Double totalDuration = 0.0;
-        for (TimeFrameEvent event : timeFrameEvents) {
+        for (TimeFrameEvent timeFrameEvent : timeFrameEvents) {
             if (lastTimestamp != null && insideTimeFrameCount > 0) {
-                totalDuration += (event.getTimestamp() - lastTimestamp);
+                totalDuration += (timeFrameEvent.getTimestamp() - lastTimestamp);
             }
-            insideTimeFrameCount += event.type.value; // add 1 for a start event, subtract 1 for an end event
-            lastTimestamp = event.getTimestamp();
+            insideTimeFrameCount += timeFrameEvent.type.value; // add 1 for a start event, subtract 1 for an end event
+            lastTimestamp = timeFrameEvent.getTimestamp();
         }
 
         return totalDuration;
@@ -148,7 +149,7 @@ public class SpanEventMerger {
 
     private static void addTimeFrameEventsForSpan (List<TimeFrameEvent> timeFrameEvents, SpanEvent span) {
         // careful, don't use span.getTimestamp() that's the time when we generated the span from the tracer
-        Double start = ((Long)span.getIntrinsics().get("timestamp")).doubleValue();
+        Double start = span.getStartTimestamp().doubleValue();
         // duration is in seconds, timestamp is in milliseconds
         Double end = start + (span.getDuration()*1000.0);
         timeFrameEvents.add(new TimeFrameEvent(start, TimeFrameEventType.START));
@@ -160,7 +161,7 @@ public class SpanEventMerger {
 
         SpanEvent result = null;
         for (SpanEvent span : spans) {
-            if (result == null || span.getTimestamp() < result.getTimestamp()) result = span;
+            if (result == null || span.getStartTimestamp() < result.getStartTimestamp()) result = span;
         }
 
         return result;
