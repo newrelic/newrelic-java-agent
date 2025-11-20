@@ -172,7 +172,7 @@ public class SpanEventTest {
             entitySynthesisAttrs1.put(attrName, "value");
             SpanEvent span = SpanEvent.builder()
                     .putAllAgentAttributes(entitySynthesisAttrs1).build();
-            assertEquals(true, span.hasAnyEntitySynthAgentAttributes());
+            assertEquals(true, span.shouldBeKeptForPartialGranularity());
         }
     }
 
@@ -182,7 +182,7 @@ public class SpanEventTest {
         entitySynthesisAttrs1.put("non-an-entity-synth-attr", "value");
         SpanEvent span = SpanEvent.builder()
                 .putAllAgentAttributes(entitySynthesisAttrs1).build();
-        assertEquals(false, span.hasAnyEntitySynthAgentAttributes());
+        assertEquals(false, span.shouldBeKeptForPartialGranularity());
     }
 
     @Test

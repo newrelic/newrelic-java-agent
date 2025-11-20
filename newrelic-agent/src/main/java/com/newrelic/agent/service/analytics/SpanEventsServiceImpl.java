@@ -33,7 +33,9 @@ import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -87,6 +89,10 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         boolean removeNonEssentialAttrs = Transaction.PartialSampleType.COMPACT.equals(partialSampleType) || Transaction.PartialSampleType.ESSENTIAL.equals(partialSampleType);
         boolean groupExternals = Transaction.PartialSampleType.COMPACT.equals(partialSampleType);
         boolean ignoreErrorPriority = transactionData.isIgnoreErrorPriority(); // if ignore, then report the last exception, otherwise the first
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Creating partial granularity spans for tx {0} using partialSampleType {1}",
+                    transactionData.getTraceId(), partialSampleType);
+        }
         List<SpanEvent> spans = new ArrayList<>();
 
         Tracer rootTracer = transactionData.getRootTracer();
@@ -94,26 +100,48 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         // no need to add rootSpan to the list yet, we don't need to consider it during merging, add it later
 
         if (rootSpan == null) {
-            Agent.LOG.log(Level.FINER, "Root span not created for tx: {0} no other spans will be created", transactionData);
+            Agent.LOG.log(Level.FINER, "Root span failed to be created for trace id: {0}, either the reservoir is full or there was an error.  No other spans will be created",
+                    transactionData.getTraceId());
             return spans;
         }
 
         int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
 
         Collection<Tracer> tracers = transactionData.getTracers();
+        Map<String, String> droppedSpanToParent = new HashMap<>();
         for (Tracer tracer : tracers) {
             if (tracer.isTransactionSegment()) {
                 spanCountIfThisHadBeenFullGranularity++;
                 SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, removeNonEssentialAttrs);
-                if (span == null || !span.hasAnyEntitySynthAgentAttributes()) continue; // don't add it to the list
-
+                if (span == null || !span.shouldBeKeptForPartialGranularity()) {
+                    if (span != null && !groupExternals) { // we only need this map if we are not grouping externals
+                        droppedSpanToParent.put(span.getGuid(), span.getParentId());
+                    }
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Dropping span {0} named {1} for trace id {2}",
+                                span.getGuid(), span.getName(), transactionData.getTraceId());
+                    }
+                    continue; // don't add it to the list
+                }
                 // we have a valid span for partial granularity
-                span.updateParentSpanId(rootSpan.getGuid());
+
+                if (groupExternals) {
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
+                                span.getGuid(), span.getParentId(), rootSpan.getGuid());
+                    }
+                    span.updateParentSpanId(rootSpan.getGuid());
+                }
                 spans.add(span);
             }
         }
 
-        if (groupExternals) spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
+        if (groupExternals) {
+            spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
+        } else {
+            reparentSpans(spans, droppedSpanToParent);
+        }
+
         spans.add(rootSpan);
 
         NewRelic.recordMetric(
@@ -124,6 +152,22 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 spans.size());
 
         return spans;
+    }
+
+    private void reparentSpans(List<SpanEvent> spans, Map<String, String> droppedSpanToParent) {
+        // TODO fix tests
+        for (SpanEvent span : spans) {
+            String parentId = span.getParentId();
+            while (droppedSpanToParent.containsKey(parentId)) {
+                parentId = droppedSpanToParent.get(parentId);
+                // TODO infinite loop?
+            }
+            if (Agent.isDebugEnabled()) {
+                NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
+                        span.getGuid(), span.getParentId(), parentId);
+            }
+            span.updateParentSpanId(parentId); // TODO not necessary if no change
+        }
     }
 
     private List<SpanEvent> createFullGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats) {

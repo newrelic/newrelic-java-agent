@@ -1,9 +1,9 @@
 package com.newrelic.agent.util;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.api.agent.NewRelic;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -20,6 +20,9 @@ public class SpanEventMerger {
 
     public static List<SpanEvent> findGroupsAndMergeSpans(List<SpanEvent> spans, boolean ignoreErrorPriority) {
         List<List<SpanEvent>> groups = findGroups(spans);
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Found {0} span groups", groups.size());
+        }
         List<SpanEvent> mergedSpans = new ArrayList<>(groups.size());
         for (List<SpanEvent> group : groups) {
             if (group.size() == 1) { // nothing to actually merge, add it to the list and move to the next group
@@ -28,6 +31,10 @@ public class SpanEventMerger {
             }
 
             mergedSpans.add(mergeGroup(group, ignoreErrorPriority));
+        }
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Merged {0} spans down to {1}",
+                    spans.size(), mergedSpans.size());
         }
 
         return mergedSpans;
@@ -52,6 +59,9 @@ public class SpanEventMerger {
             if (nrIds.size() < MAX_NR_IDS) {
                 nrIds.add(otherSpan.getGuid());
             } else {
+                if (Agent.isDebugEnabled()) {
+                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Too many nr.ids, dropping {0}", otherSpan.getGuid());
+                }
                 countIdsNotAddedToNRIds++;
             }
             addTimeFrameEventsForSpan(timeFrameEvents, otherSpan);
@@ -64,8 +74,8 @@ public class SpanEventMerger {
 
         // now add 2 new attributes to the first span that represent all the merged-in spans
         mergedSpan.getAgentAttributes().put("nr.ids", nrIds);
-        Double totalDuration = sumDurations(timeFrameEvents);
-        mergedSpan.getAgentAttributes().put("nr.durations", totalDuration / 1000.0f); // we multiplied by 1000.0 when adding the TimeFrameEvents
+        Double totalDuration = sumDurations(timeFrameEvents) / 1000.0f; // we multiplied by 1000.0 when adding the TimeFrameEvents
+        mergedSpan.getAgentAttributes().put("nr.durations", totalDuration);
 
         // if we found a span with errors, overwrite the merged spans error attrs with that span's values
         if (errorSpanToUse != null) {
@@ -79,6 +89,11 @@ public class SpanEventMerger {
             }
         }
 
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Merged {0} spans in a group into 1 span with nr.ids: {1} and nr.duration: {2}",
+                    group.size(), nrIds, totalDuration);
+        }
+
         return mergedSpan;
     }
 
@@ -90,9 +105,17 @@ public class SpanEventMerger {
             else {
                 if (ignoreErrorPriority && otherSpan.getTimestamp() > errorSpanToUse.getTimestamp()) {
                     // if ignoreErrorPriority, then use the latest error
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Replacing errorSpanToUse {0} with later span {1}",
+                                errorSpanToUse.getGuid(), otherSpan.getGuid());
+                    }
                     return otherSpan;
                 } else if (!ignoreErrorPriority && otherSpan.getTimestamp() < errorSpanToUse.getTimestamp()) {
                     // if !ignoreErrorPriority, then use the earliest error
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Replacing errorSpanToUse {0} with earlier span {1}",
+                                errorSpanToUse.getGuid(), otherSpan.getGuid());
+                    }
                     return otherSpan;
                 }
             }
@@ -149,11 +172,15 @@ public class SpanEventMerger {
         List<List<SpanEvent>> groups = new ArrayList<>();
         for (SpanEvent span : spans) {
             boolean foundGroup = false;
-            for (List<SpanEvent> group : groups) {
-                SpanEvent firstSpanInGroup = group.get(0); // if it matches the first, it also matches the rest
-                if (span.matchesEntitySynthesisAttrs(firstSpanInGroup)) {
-                    group.add(span);
-                    foundGroup = true;
+            // group all spans with matching entity synth attributes together
+            // each span with no entity synth attrs should be its own group
+            if (span.hasAnyEntitySynthAttrs()) { // TODO fix/add tests
+                for (List<SpanEvent> group : groups) {
+                    SpanEvent firstSpanInGroup = group.get(0); // if it matches the first, it also matches the rest
+                    if (span.matchesEntitySynthesisAttrs(firstSpanInGroup)) {
+                        group.add(span);
+                        foundGroup = true;
+                    }
                 }
             }
             if (!foundGroup) {

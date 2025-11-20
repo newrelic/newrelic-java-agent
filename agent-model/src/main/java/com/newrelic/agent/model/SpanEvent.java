@@ -83,13 +83,11 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         return agentAttributes;
     }
 
-    public boolean hasAnyEntitySynthAgentAttributes() {
-        if (agentAttributes == null) return false;
-        for (String attr : ENTITY_SYNTHESIS_ATTRS) {
-            if (agentAttributes.containsKey(attr)) return true;
-        }
+    public boolean shouldBeKeptForPartialGranularity() {
+        // should be kept if it's either an LLM span, or it has entity synthesis attributes
+        if (getName() != null && getName().toUpperCase().startsWith("LLM")) return true;
 
-        return false;
+        return hasAnyEntitySynthAttrs();
     }
 
     public void updateParentSpanId(String newId) {
@@ -138,6 +136,14 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
     }
     public boolean hasAnyErrorAttrs() {
         for (String attr : ERROR_ATTRS) {
+            if (getAgentAttributes().containsKey(attr)) return true;
+        }
+        return false;
+    }
+
+    public boolean hasAnyEntitySynthAttrs() {
+        if (getAgentAttributes() == null || getAgentAttributes().size() == 0) return false;
+        for (String attr : ENTITY_SYNTHESIS_ATTRS) {
             if (getAgentAttributes().containsKey(attr)) return true;
         }
         return false;
