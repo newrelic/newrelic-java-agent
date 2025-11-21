@@ -174,6 +174,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     ReinstrumentConfig getReinstrumentConfig();
 
     /**
+     * Gets the ServerlessConfig configuration settings.
+     *
+     * @return ServerlessConfig configuration settings.
+     */
+    ServerlessConfig getServerlessConfig();
+
+    /**
      * Get the cross process application settings.
      */
     CrossProcessConfig getCrossProcessConfig();

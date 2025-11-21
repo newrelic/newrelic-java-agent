@@ -126,6 +126,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JFR = "jfr";
     public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
+    public static final String SERVERLESS = "serverless";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
     public static final String STRIP_EXCEPTION_MESSAGES = "strip_exception_messages";
@@ -276,6 +277,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
     private final ReinstrumentConfig reinstrumentConfig;
+    private final ServerlessConfig serverlessConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
     private final SpanEventsConfig spanEventsConfig;
@@ -377,6 +379,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
+        serverlessConfig = initServerlessConfig();
         circuitBreakerConfig = initCircuitBreakerConfig();
         segmentTimeoutInSec = initSegmentTimeout();
         tokenTimeoutInSec = initTokenTimeout();
@@ -783,6 +786,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private ReinstrumentConfig initReinstrumentConfig() {
         Map<String, Object> props = nestedProps(REINSTRUMENT);
         return ReinstrumentConfigImpl.createReinstrumentConfig(props);
+    }
+
+    private ServerlessConfig initServerlessConfig() {
+        Map<String, Object> props = nestedProps(SERVERLESS);
+        return ServerlessConfigImpl.createServerlessConfig(props);
     }
 
     private AuditModeConfig initAuditModeConfig() {
@@ -1295,6 +1303,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ReinstrumentConfig getReinstrumentConfig() {
         return reinstrumentConfig;
+    }
+
+    @Override
+    public ServerlessConfig getServerlessConfig() {
+        return serverlessConfig;
     }
 
     @Override
