@@ -51,8 +51,6 @@ public class SpanEventsServiceTest {
 
     private final String APP_NAME = "Unit Test";
 
-    // TODO add tests for maintaining hierarchy
-    
     MockServiceManager serviceManager;
     @Mock
     public SpanEventCreationDecider spanEventCreationDecider;
@@ -190,32 +188,52 @@ public class SpanEventsServiceTest {
         assertEquals(0, reservoir.getTotalSampledPriorityEvents());
     }
 
+    // should become: (with all attributes intact)
+    // entry span to service A (root)
+    //   exit span 1 to service B
+    //   exit span 2 to service B
+    //   exit span 1 to service C
+    //   LLM Span
+    //       exit span to service D
     @Test
     public void testPartialGranularity_Reduced() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
             SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.REDUCED);
 
-            assertEquals(4, reservoir.getTotalSampledPriorityEvents());
-            assertAllPartialGranularitySpans(reservoir, true);
+            assertEquals(6, reservoir.getTotalSampledPriorityEvents());
+            assertAllPartialGranularitySpans(reservoir, true, false);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Instrumented"), eq(5.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Kept"), eq(4.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Instrumented"), eq(7.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Kept"), eq(6.0f)));
         }
     }
 
+    // should become: (with non-essential attributes removed)
+    // entry span to service A (root)
+    //   exit span 1 to service B
+    //   exit span 2 to service B
+    //   exit span 1 to service C
+    //   LLM Span
+    //       exit span to service D
     @Test
     public void testPartialGranularity_Essential() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
             SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.ESSENTIAL);
 
-            assertEquals(4, reservoir.getTotalSampledPriorityEvents());
-            assertAllPartialGranularitySpans(reservoir, false);
+            assertEquals(6, reservoir.getTotalSampledPriorityEvents());
+            assertAllPartialGranularitySpans(reservoir, false, false);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Instrumented"), eq(5.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Kept"), eq(4.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Instrumented"), eq(7.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Kept"), eq(6.0f)));
         }
     }
 
+    // should become:
+    // entry span to service A (root)
+    //   exit span 1 to service B (with nr.ids and nr.durations attrs that incorporate exit span 2 to service B)
+    //   exit span 1 to service C
+    //   LLM Span
+    //   exit span to service D  (note: everything is re-parented to the root span for COMPACT)
     @Test
     public void testPartialGranularity_Compact() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
@@ -223,8 +241,8 @@ public class SpanEventsServiceTest {
 
             outputSpans(reservoir);
 
-            assertEquals(3, reservoir.getTotalSampledPriorityEvents());
-            assertAllPartialGranularitySpans(reservoir, false);
+            assertEquals(5, reservoir.getTotalSampledPriorityEvents());
+            assertAllPartialGranularitySpans(reservoir, false, true);
 
             boolean hadSpanWithNRIDsAttr = false;
             boolean hadSpanWithNRDurationAttr = false;
@@ -238,8 +256,8 @@ public class SpanEventsServiceTest {
             assertEquals(true, hadSpanWithNRIDsAttr);
             assertEquals(true, hadSpanWithNRDurationAttr);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Instrumented"), eq(5.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Kept"), eq(3.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Instrumented"), eq(7.0f)));
+            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Kept"), eq(5.0f)));
         }
     }
 
@@ -289,14 +307,21 @@ public class SpanEventsServiceTest {
         assertEquals("max samples stored should be: " + maxSamples, maxSamples, spanEventsService.getMaxSamplesStored());
     }
 
-    private void assertAllPartialGranularitySpans(SamplingPriorityQueue<SpanEvent> reservoir, boolean shouldNonEssentialAttrsBeThere) {
+    private void assertAllPartialGranularitySpans(SamplingPriorityQueue<SpanEvent> reservoir, boolean shouldNonEssentialAttrsBeThere, boolean compactMode) {
         SpanEvent rootSpan = reservoir.asList().stream()
                 .filter(span ->
                         "Java/com.newrelic.agent.service.analytics.SpanEventsServiceTest/root".equals(span.getIntrinsics().get("name")))
                 .findFirst()
                 .orElse(null);
         assertNotNull(rootSpan);
+        SpanEvent llmSpan = null;
+        SpanEvent externalDSpan = null;
         for (SpanEvent span : reservoir.asList()) {
+            if ("Llm/SOMETHING/function".equals(span.getIntrinsics().get("name"))) {
+                llmSpan = span;
+            } else if ("service D".equals(span.getAgentAttributes().get("http.url"))) {
+                externalDSpan = span;
+            }
             if (span == rootSpan) {
                 // we should still have the essential attribute(s)
                 assertNotNull("Essential attributes should be kept on the root span",
@@ -307,15 +332,28 @@ public class SpanEventsServiceTest {
             } else {
                 // make sure we still have the essential attribute we added to each non-root span
                 // http.url is only used here as an example, it's not actually always on external spans
-                assertNotNull("Essential attributes should be kept on non-root spans",
-                        span.getAgentAttributes().get("http.url"));
+                // there will be no http.url attr on the llm span
+                if (span != llmSpan) {
+                    assertNotNull("Essential attributes should be kept on non-root spans",
+                            span.getAgentAttributes().get("http.url"));
+                }
                 // make sure each non-root span has a parent ID pointing to the root span
-                assertEquals("Non-root spans should all have a parent ID equal to the root span guid",
-                        span.getParentId(), rootSpan.getGuid());
+                // external D should have a parent of the LLM span (checked below) unless we are in COMPACT mode
+                if (span != externalDSpan || compactMode) {
+                    assertEquals("Non-root spans should all have a parent ID equal to the root span guid",
+                            span.getParentId(), rootSpan.getGuid());
+                }
                 // make sure non-essential attributes were either stripped or kept, as the case dictates
                 assertEquals("Non-essential attributes should "+(shouldNonEssentialAttrsBeThere ? "" : "NOT")+" be kept on the non-root spans",
                         shouldNonEssentialAttrsBeThere, span.getAgentAttributes().get("non-essential") != null);
             }
+        }
+        // if this is external span D, it's parent should NOT be the root span, but rather the llm span
+        // UNLESS we are in compact mode
+        assertNotNull(llmSpan);
+        assertNotNull(externalDSpan);
+        if (!compactMode) {
+            assertEquals(llmSpan.getGuid(), externalDSpan.getParentId());
         }
     }
 
@@ -336,6 +374,7 @@ public class SpanEventsServiceTest {
         when(tx.getTransactionCounts()).thenReturn(txCounts);
 
         List<Tracer> tracers = buildTracersForPartialGranularity(tx);
+
         Tracer rootTracer = tracers.get(0);
         tracers = tracers.subList(1, tracers.size());
         TransactionData transactionData = new TransactionDataTestBuilder(
@@ -363,6 +402,8 @@ public class SpanEventsServiceTest {
     //   inProcess function trace span
     //       exit span 2 to service B
     //   exit span 1 to service C
+    //   LLM Span
+    //       exit span to service D
     private List<Tracer> buildTracersForPartialGranularity(Transaction tx) {
         Tracer rootTracer = new OtherRootTracer(tx, new ClassMethodSignature("Test", "root", "()V"), this,
                 new OtherTransSimpleMetricNameFormat("myMetricName"));
@@ -370,6 +411,8 @@ public class SpanEventsServiceTest {
         DefaultTracer inProcessTracer = new DefaultTracer(tx, new ClassMethodSignature("Test", "inProcess", "()V"), this);
         DefaultTracer externalB2Tracer = new DefaultTracer(tx, new ClassMethodSignature("Test", "service B", "()V"), this);
         DefaultTracer externalCTracer = new DefaultTracer(tx, new ClassMethodSignature("Test", "service C", "()V"), this);
+        DefaultTracer llmTracer = new DefaultTracer(tx, new ClassMethodSignature("Test", "llm", "()V"), this);
+        DefaultTracer externalDTracer = new DefaultTracer(tx, new ClassMethodSignature("Test", "service D", "()V"), this);
 
         // add attributes to the root span, 1 essential, 1 not
         rootTracer.setAgentAttribute("error.class", "MyClass", true);
@@ -379,11 +422,15 @@ public class SpanEventsServiceTest {
         externalB1Tracer.setAgentAttribute("http.url", "service B", true);
         externalB2Tracer.setAgentAttribute("http.url", "service B", true);
         externalCTracer.setAgentAttribute("http.url", "service C", true);
+        llmTracer.setMetricName("Llm/SOMETHING/function");
+        externalDTracer.setAgentAttribute("http.url", "service D", true);
 
         // add a non-essential agent attribute to be removed when required
         externalB1Tracer.setAgentAttribute("non-essential", "how dare you!", true);
         externalB2Tracer.setAgentAttribute("non-essential", "YOU'RE NOT ESSENTIAL!", true);
         externalCTracer.setAgentAttribute("non-essential", "you heard me!", true);
+        llmTracer.setAgentAttribute("non-essential", "non-essential ai? never!", true);
+        externalDTracer.setAgentAttribute("non-essential", "why can't i stay?", true);
 
         // start the root tracer
         tx.getTransactionActivity().tracerStarted(rootTracer);
@@ -406,8 +453,16 @@ public class SpanEventsServiceTest {
         externalCTracer.finish(0, null);
         externalCTracer.setParentTracer(rootTracer);
 
+        // start the LLM span that will call service D and finish both
+        tx.getTransactionActivity().tracerStarted(llmTracer);
+        tx.getTransactionActivity().tracerStarted(externalDTracer);
+        externalDTracer.finish(0, null);
+        externalDTracer.setParentTracer(llmTracer);
+        llmTracer.finish(0, null);
+        llmTracer.setParentTracer(rootTracer);
+
         rootTracer.finish(0, null);
 
-        return Arrays.asList(rootTracer, externalB1Tracer, inProcessTracer, externalB2Tracer, externalCTracer);
+        return Arrays.asList(rootTracer, externalB1Tracer, inProcessTracer, externalB2Tracer, externalCTracer, llmTracer, externalDTracer);
     }
 }

@@ -125,7 +125,6 @@ public class SpanEventMerger {
     }
 
     // 1-dimensional sweep-line algorithm
-    // TODO should I change this back to floats?  is it worth it?
     private static Double sumDurations (List<TimeFrameEvent> timeFrameEvents) {
         // gotta be sorted, unfortunately
         timeFrameEvents.sort(Comparator.comparingDouble(TimeFrameEvent::getTimestamp));
@@ -175,7 +174,7 @@ public class SpanEventMerger {
             boolean foundGroup = false;
             // group all spans with matching entity synth attributes together
             // each span with no entity synth attrs should be its own group
-            if (span.hasAnyEntitySynthAttrs()) { // TODO fix/add tests
+            if (span.hasAnyEntitySynthAttrs()) { 
                 for (List<SpanEvent> group : groups) {
                     SpanEvent firstSpanInGroup = group.get(0); // if it matches the first, it also matches the rest
                     if (span.matchesEntitySynthesisAttrs(firstSpanInGroup)) {
