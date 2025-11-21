@@ -21,17 +21,18 @@ public class SpanEventMerger {
     public static List<SpanEvent> findGroupsAndMergeSpans(List<SpanEvent> spans, boolean ignoreErrorPriority) {
         List<List<SpanEvent>> groups = findGroups(spans);
         if (Agent.isDebugEnabled()) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Found {0} span groups", groups.size());
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Found {0} span groups among {1} non-root spans", groups.size(), spans.size());
         }
+
         List<SpanEvent> mergedSpans = new ArrayList<>(groups.size());
         for (List<SpanEvent> group : groups) {
             if (group.size() == 1) { // nothing to actually merge, add it to the list and move to the next group
                 mergedSpans.add(group.get(0));
                 continue;
             }
-
             mergedSpans.add(mergeGroup(group, ignoreErrorPriority));
         }
+
         if (Agent.isDebugEnabled()) {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "Merged {0} spans down to {1}",
                     spans.size(), mergedSpans.size());
@@ -41,19 +42,27 @@ public class SpanEventMerger {
     }
 
     private static SpanEvent mergeGroup (List<SpanEvent> group, boolean ignoreErrorPriority) {
-        // get a list of start and end events for each span
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Merging {0} spans with ignoreErrorPriority {1}",
+                    group.size(), ignoreErrorPriority);
+        }
         // we always want to merge everything into the first span (by timestamp)
+        // find it and merge everything into it
         List<TimeFrameEvent> timeFrameEvents = new ArrayList<>(group.size()*2);
         SpanEvent mergedSpan = findFirstSpanInGroup(group);
         group.remove(mergedSpan);
+
+        // now start adding time frame events for each span to calculate total duration
         addTimeFrameEventsForSpan(timeFrameEvents, mergedSpan);
+
         // we do include this first span in the nr.durations value
         // we do NOT include the first span in the nr.ids value, since it's already in the guid for that span
 
-        // keep track of which span to use the errors from
+        // keep track of which span to use the errors from (depending on ignoreErrorPriority setting)
         SpanEvent errorSpanToUse = mergedSpan.hasAnyErrorAttrs() ? mergedSpan : null;
         List<String> nrIds = new ArrayList<>(group.size());
 
+        // now merge all of the other spans into that first one
         int countIdsNotAddedToNRIds = 0;
         for (SpanEvent otherSpan : group) {
             if (nrIds.size() < MAX_NR_IDS) {
@@ -174,7 +183,7 @@ public class SpanEventMerger {
             boolean foundGroup = false;
             // group all spans with matching entity synth attributes together
             // each span with no entity synth attrs should be its own group
-            if (span.hasAnyEntitySynthAttrs()) { 
+            if (span.hasAnyEntitySynthAttrs()) {
                 for (List<SpanEvent> group : groups) {
                     SpanEvent firstSpanInGroup = group.get(0); // if it matches the first, it also matches the rest
                     if (span.matchesEntitySynthesisAttrs(firstSpanInGroup)) {

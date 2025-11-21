@@ -108,13 +108,13 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
 
         Collection<Tracer> tracers = transactionData.getTracers();
-        Map<String, String> droppedSpanToParent = new HashMap<>();
+        Map<String, String> droppedSpanToParent = groupExternals ? null : new HashMap<>(); // we only need this map if we are not grouping externals
         for (Tracer tracer : tracers) {
             if (tracer.isTransactionSegment()) {
                 spanCountIfThisHadBeenFullGranularity++;
                 SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, removeNonEssentialAttrs);
                 if (span == null || !span.shouldBeKeptForPartialGranularity()) {
-                    if (span != null && !groupExternals) { // we only need this map if we are not grouping externals
+                    if (span != null && !groupExternals) {
                         droppedSpanToParent.put(span.getGuid(), span.getParentId());
                     }
                     if (Agent.isDebugEnabled()) {
@@ -126,6 +126,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 // we have a valid span for partial granularity
 
                 if (groupExternals) {
+                    // mode is COMPACT, everything will be re-parented to the root span
                     if (Agent.isDebugEnabled()) {
                         NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
                                 span.getGuid(), span.getParentId(), rootSpan.getGuid());
@@ -142,6 +143,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             reparentSpans(spans, droppedSpanToParent);
         }
 
+        // don't forget the root span!
         spans.add(rootSpan);
 
         NewRelic.recordMetric(
@@ -155,18 +157,24 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
     }
 
     private void reparentSpans(List<SpanEvent> spans, Map<String, String> droppedSpanToParent) {
-        // TODO fix tests
+        if (droppedSpanToParent == null) return;
         for (SpanEvent span : spans) {
-            String parentId = span.getParentId();
-            while (droppedSpanToParent.containsKey(parentId)) {
-                parentId = droppedSpanToParent.get(parentId);
-                // TODO infinite loop?
+            // if this span's parent was dropped, we need to re-parent it
+            if (droppedSpanToParent.containsKey(span.getParentId())) {
+                String parentId = span.getParentId();
+                // should never really need this counter if the tracer/span tree was constructed
+                // correctly, but just in case, let's not go into an infinite loop
+                int count = 0;
+                while (droppedSpanToParent.containsKey(parentId) && count < droppedSpanToParent.size()) {
+                    parentId = droppedSpanToParent.get(parentId);
+                    count++;
+                }
+                if (Agent.isDebugEnabled()) {
+                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
+                            span.getGuid(), span.getParentId(), parentId);
+                }
+                span.updateParentSpanId(parentId);
             }
-            if (Agent.isDebugEnabled()) {
-                NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
-                        span.getGuid(), span.getParentId(), parentId);
-            }
-            span.updateParentSpanId(parentId); // TODO not necessary if no change
         }
     }
 
