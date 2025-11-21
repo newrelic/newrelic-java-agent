@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.sql;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Maintain a list of slow queries via tracers. This class is thread safe.
@@ -68,8 +70,11 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             // This allows transaction traces to show slow queries directly in the trace details
-            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, rawQueryString);
-            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, obfuscatedQueryString);
+            // TODO when TT config is implemented
+            String metadataComment = (true ? SqlTrace.createMetadataSqlComment() : "");
+            Agent.LOG.log(Level.INFO, "DUF-- metadata {0}", metadataComment);
+            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, metadataComment + rawQueryString);
+            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, metadataComment + obfuscatedQueryString);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
             boolean allUnknown = slowQueryDatastoreParameters.getHost() == null

@@ -23,6 +23,7 @@ import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
+import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.QueryConverter;
 import org.apache.commons.lang3.StringUtils;
@@ -161,7 +162,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
 
     @Override
     public void setRawSql(String sql) {
-        this.sql = sql;
+        // TODO when TT config is implemented
+        String metadataComment = (true ? SqlTrace.createMetadataSqlComment() : "");
+        Agent.LOG.log(Level.INFO, "DUF-- DefaultSqlTracer comment:{0}    sqlObject:{1}      parsedStatement:{2}", metadataComment, this.sqlObject, this.parsedDatabaseStatement);
+
+        this.sql = metadataComment + sql;
     }
 
     @Override
@@ -199,7 +204,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             if (transaction != null) {
                 if (getRecordSql().equals(RecordSql.raw)) {
                     // Store the raw query string
-                    getTransaction().getIntrinsicAttributes().put(SQL_PARAMETER_NAME, sql.toString());
+                    getTransaction().getIntrinsicAttributes().put(SQL_PARAMETER_NAME, sql);
                 } else if (getRecordSql().equals(RecordSql.obfuscated)) {
                     String appName = getTransaction().getApplicationName();
                     SqlQueryConverter converter = new SqlQueryConverter(appName, getDatabaseVendor());

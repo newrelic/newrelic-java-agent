@@ -8,7 +8,10 @@
 package com.newrelic.agent.database;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.TraceMetadata;
 import org.apache.commons.lang3.StringUtils;
 
 import java.sql.ResultSetMetaData;
@@ -101,7 +104,9 @@ public class DefaultDatabaseStatementParser implements DatabaseStatementParser {
 
     ParsedDatabaseStatement parseStatement(String statement) {
         try {
+            Agent.LOG.log(Level.INFO, "DUF-- StatementParser");
             statement = COMMENT_PATTERN.matcher(statement).replaceAll("");
+            //statement = prependMetadataComment(statement);
             for (StatementFactory factory : statementFactories) {
                 ParsedDatabaseStatement parsedStatement = factory.parseStatement(statement);
                 if (parsedStatement != null) {
@@ -116,6 +121,24 @@ public class DefaultDatabaseStatementParser implements DatabaseStatementParser {
             Agent.LOG.log(Level.FINE, t, "Returning UNPARSEABLE_STATEMENT for statement: {0}", statement);
             return UNPARSEABLE_STATEMENT;
         }
+    }
+
+    /**
+     * If a transaction is in progress, prepend a comment to the statement that contains the
+     * trace id, span id and app name.
+     *
+     * @param originalStatement the original statement to be modified
+     *
+     * @return the modified statement with the metadata comment if we're in a transaction
+     */
+    String prependMetadataComment(String originalStatement) {
+        if (NewRelic.getAgent().getTransaction() != NoOpTransaction.INSTANCE) {
+            TraceMetadata traceMetadata = NewRelic.getAgent().getTraceMetadata();
+            return String.format("/* nr_trace_id=%s,nr_span_id=%s,nr_service=%s */", traceMetadata.getTraceId(), traceMetadata.getSpanId(),
+                    NewRelic.getAgent().getConfig().getValue("app_name"));
+        }
+
+        return originalStatement;
     }
 
     static boolean isValidName(String string) {
