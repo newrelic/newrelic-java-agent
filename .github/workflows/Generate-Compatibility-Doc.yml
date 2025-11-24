@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      INTERNAL_DOC_FILE: build/docs/site/compatibility-internal.md
+      INTERNAL_DOC_FILE: build/docs/site/compatibility-requirements-java-agent-internal.md
       PUBLIC_DOC_FILE: build/docs/site/compatibility-requirements-java-agent.mdx
 
     steps:
@@ -72,7 +72,7 @@ jobs:
           path: tmp
 
       - name: Copy internal doc to destination
-        run: cp tmp/compatibility-internal.md ${{ env.INTERNAL_FILEPATH }}
+        run: cp tmp/compatibility-requirements-java-agent-internal.md ${{ env.INTERNAL_FILEPATH }}
 
       - name: Create PR for internal doc
         id: create-pr-internal
