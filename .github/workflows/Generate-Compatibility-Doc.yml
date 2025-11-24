@@ -37,7 +37,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Run compatibility plugin
-        run: ./gradlew clean generateCompatibilityDoc
+        run: ./gradlew clean generateCompatibilitySite
 
       - name: Upload internal compatibility doc
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 #pin@v4
