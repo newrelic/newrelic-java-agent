@@ -12,6 +12,7 @@ import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.tracers.DefaultSqlTracer;
 import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.QueryConverter;
@@ -44,6 +45,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
 
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
+        // DUF-- This is a DefaultSqlTracer
         if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
             T rawQuery = slowQueryDatastoreParameters.getRawQuery();
             QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
@@ -70,11 +72,9 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             // This allows transaction traces to show slow queries directly in the trace details
-            // TODO when TT config is implemented
-            String metadataComment = (true ? SqlTrace.createMetadataSqlComment() : "");
-            Agent.LOG.log(Level.INFO, "DUF-- metadata {0}", metadataComment);
-            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, metadataComment + rawQueryString);
-            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, metadataComment + obfuscatedQueryString);
+            String sqlMetadataComment = (tracer instanceof DefaultSqlTracer ? ((DefaultSqlTracer) tracer).getMetadataComment() : "");
+            tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, sqlMetadataComment + rawQueryString);
+            tracer.setAgentAttribute(SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME, sqlMetadataComment + obfuscatedQueryString);
 
             DatastoreConfig datastoreConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDatastoreConfig();
             boolean allUnknown = slowQueryDatastoreParameters.getHost() == null

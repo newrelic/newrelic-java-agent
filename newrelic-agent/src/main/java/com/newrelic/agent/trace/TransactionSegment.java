@@ -12,6 +12,7 @@ import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
+import com.newrelic.agent.tracers.DefaultSqlTracer;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
@@ -55,6 +56,7 @@ public class TransactionSegment implements JSONStreamAware {
     private int callCount = 1;
     private final String uri;
     private final SqlObfuscator sqlObfuscator;
+    private final String sqlMetadataComment;
     private final TransactionTracerConfig ttConfig;
     private final List<StackTraceElement> parentStackTrace;
 
@@ -84,6 +86,7 @@ public class TransactionSegment implements JSONStreamAware {
         classMethodSignature = tracer.getClassMethodSignature();
 
         parentStackTrace = getParentStackTrace(tracer);
+        sqlMetadataComment = (tracer instanceof DefaultSqlTracer ? ((DefaultSqlTracer) tracer).getMetadataComment() : "");
     }
 
     private List<StackTraceElement> getParentStackTrace(Tracer tracer) {
@@ -95,6 +98,7 @@ public class TransactionSegment implements JSONStreamAware {
     }
 
     private Map<String, Object> getTracerAttributes(Tracer tracer) {
+        // Tracer is DefaultSqlTracer instance
         if (tracer instanceof SqlTracerExplainInfo) {
             Object sql = ((SqlTracerExplainInfo) tracer).getSql();
             if (sql != null) {
@@ -259,7 +263,7 @@ public class TransactionSegment implements JSONStreamAware {
             return;
         }
         params.put(sqlObfuscator.isObfuscating() ? SqlTracer.SQL_OBFUSCATED_PARAMETER_NAME
-                : SqlTracer.SQL_PARAMETER_NAME, sql);
+                : SqlTracer.SQL_PARAMETER_NAME, sqlMetadataComment + sql);
     }
 
     private void processStackTraces(Map<String, Object> params) {

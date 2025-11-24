@@ -101,4 +101,13 @@ public interface SqlTracer extends SqlTracerExplainInfo, Tracer {
      */
     Integer getPort();
 
+    /**
+     * Returns the metadata comment that can prepended to a raw or obfuscated query
+     * String. See the single line comment below for an example.
+     *
+     * @return the metadata comment
+     */
+    /* nr_trace_id=7f8a9b2c1d3e4f5a,nr_span_id=abc123def456,nr_service=user-api */
+    String getMetadataComment();
+
 }

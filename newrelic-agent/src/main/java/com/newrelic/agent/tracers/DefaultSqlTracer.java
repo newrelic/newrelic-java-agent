@@ -55,6 +55,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
 
     private ConnectionFactory connectionFactory = null;
     private String sql = null;
+    private String metadataComment = null;
     private Object[] params = null;
 
     private Object sqlObject = null;
@@ -163,10 +164,15 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     public void setRawSql(String sql) {
         // TODO when TT config is implemented
-        String metadataComment = (true ? SqlTrace.createMetadataSqlComment() : "");
-        Agent.LOG.log(Level.INFO, "DUF-- DefaultSqlTracer comment:{0}    sqlObject:{1}      parsedStatement:{2}", metadataComment, this.sqlObject, this.parsedDatabaseStatement);
+        this.metadataComment = (true ? SqlTrace.createMetadataSqlComment() : "");
+        this.sql = sql;
+    }
 
-        this.sql = metadataComment + sql;
+    @Override
+    public String getMetadataComment() {
+        // Example metadata comment:
+        /* nr_trace_id=7f8a9b2c1d3e4f5a,nr_span_id=abc123def456,nr_service=user-api */
+        return this.metadataComment;
     }
 
     @Override
@@ -275,7 +281,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             String rawSql = null;
             Object sqlObject = getSql();
             if (sqlObject != null) {
-                rawSql = new PreparedStatementSql(sql, params).toString();
+                rawSql = metadataComment + (new PreparedStatementSql(sql, params));
             }
 
             String appName = getTransaction().getApplicationName();
