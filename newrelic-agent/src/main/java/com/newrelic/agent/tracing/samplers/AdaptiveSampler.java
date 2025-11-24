@@ -36,7 +36,7 @@ public class AdaptiveSampler implements Sampler {
         this.sampledCount = 0;
         this.sampledCountLast = 0;
         this.firstPeriod = true;
-        NewRelic.getAgent().getLogger().log(Level.FINE, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
                 reportPeriodSeconds + " seconds.");
     }
 
@@ -67,7 +67,7 @@ public class AdaptiveSampler implements Sampler {
      */
     public static synchronized void setSharedTarget(int newTarget) {
         if (SAMPLER_SHARED_INSTANCE != null) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, "Updating shared Adaptive Sampler sampling target to " + newTarget);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "Updating shared Adaptive Sampler sampling target to " + newTarget);
             getSharedInstance().setTarget(newTarget);
 
             ServiceFactory.getStatsService()
