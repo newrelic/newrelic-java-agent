@@ -1,0 +1,141 @@
+name: Generate Compatibility Doc
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - instrumentation/**/build.gradle
+      - instrumentation/**/build.gradle.kts
+
+  workflow_dispatch:
+    inputs:
+      doc_type:
+        description: The type of the compatibility doc you wish to generate - either internal (a simplified .md file, copied into this repo) or site (a complete .mdx file, copied to the public docs website).
+        required: true
+        options:
+          - internal
+          - site
+      release_tag:
+        description: If triggering this action as a part of a release workflow, the release tag to use when naming the PR to the public docs site.
+        default: 00
+
+
+jobs:
+  generate-files:
+    name: Generate Compatibility Files
+    runs-on: ubuntu-24.04
+
+    env:
+      INTERNAL_DOC_FILE: build/docs/site/compatibility-internal.md
+      PUBLIC_DOC_FILE: build/docs/site/compatibility-requirements-java-agent.mdx
+
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run compatibility plugin
+        run: ./gradlew clean generateCompatibilityDoc
+
+      - name: Upload internal compatibility doc
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 #pin@v4
+        with:
+          name: internal-compatibility-doc
+          path: ${{ env.INTERNAL_DOC_FILE }}
+          retention-days: 1
+
+      - name: Upload public site compatibility doc
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 #pin@v4
+        with:
+          name: site-compatibility-doc
+          path: ${{ env.PUBLIC_DOC_FILE }}
+          retention-days: 1
+
+  update-internal-compatibility-doc:
+    name: Update Internal Compatibility File
+    needs: generate-files
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.doc_type == 'internal')
+
+    env:
+      INTERNAL_FILEPATH: COMPATIBILITY.md
+
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+
+      - name: Download internal doc
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        with:
+          name: internal-compatibility-doc
+          path: tmp
+
+      - name: Copy internal doc to destination
+        run: cp tmp/compatibility-internal.md ${{ env.INTERNAL_FILEPATH }}
+
+      - name: Create PR for internal doc
+        id: create-pr-internal
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: ${{ env.INTERNAL_FILEPATH }}
+          commit-message: 'Update internal compatibility doc'
+          branch: update-compatibility-doc-${{ github.run_id }}
+          delete-branch: true
+          title: 'Update Internal Compatibility Doc'
+          body: |
+            This PR updates the internal compatibility documentation. It was triggered manually or by a detected instrumentation build file change. 
+
+      - name: Summary
+        run: |
+          echo "Submitted PR #${{ steps.create-pr-internal.outputs.pull-request-number}} to the New Relic Agent repo." 
+          echo "Your review is required. See ${{ steps.create-pr-internal.outputs.pull-request-url}}"
+
+  update-site-compatibility-doc:
+    name: Update Public Site Documentation
+    needs: generate-files
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'workflow_dispatch' && inputs.doc_type == 'site'
+
+    env:
+      EXTERNAL_REPO_NAME: newrelic/docs-website
+      DESTINATION_FILEPATH: src/content/docs/apm/agents/java-agent/getting-started/compatibility-requirements-java-agent.mdx
+
+    steps:
+      - name: Checkout external docs repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          repository: ${{ env.EXTERNAL_REPO_NAME }}
+          token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
+          path: docs-website
+
+      - name: Download site doc
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        with:
+          name: site-compatibility-doc
+          path: tmp
+
+      - name: Copy site doc to destination path
+        run: cp tmp/compatibility-requirements-java-agent.mdx docs-website/${{ env.DESTINATION_FILEPATH }}
+
+      - name: Create PR for site doc
+        id: create-pr-docs-site
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        with:
+          token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
+          path: docs-website
+          add-paths: ${{ env.DESTINATION_FILEPATH }}
+          commit-message: 'Update Java agent compatibility documentation'
+          branch: update-java-agent-compatibility-${{ inputs.release_tag }}
+          delete-branch: true
+          title: '[DO-NOT-MERGE] Update Java Agent Compatibility Requirements'
+          body: |
+            This is a WIP.
+            This PR updates the Java agent compatibility documentation.
+
+      - name: Summary
+        run: |
+          echo "Submitted PR #${{ steps.create-pr-docs-site.outputs.pull-request-number}} to the docs site repo." 
+          echo "Your review is required. See ${{ steps.create-pr-docs-site.outputs.pull-request-url}}"
+          echo "Once you have reviewed the PR, update its title and description to show it is ready for merge."
