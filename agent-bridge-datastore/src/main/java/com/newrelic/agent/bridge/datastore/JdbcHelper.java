@@ -8,7 +8,9 @@
 package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.TraceMetadata;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -300,5 +302,21 @@ public class JdbcHelper {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, t, "Unable to get database name for connection: {0}", connection);
             return UNKNOWN;
         }
+    }
+
+    /**
+     * If a transaction is in progress, create a comment to be prepended to the statement that contains the
+     * trace id, span id and app name.
+     *
+     * @return the SQL metadata comment if a transaction is in progress, an empty String oterwise
+     */
+    public static String generateSqlMetadataComment() {
+        if (NewRelic.getAgent().getTransaction() != NoOpTransaction.INSTANCE) {
+            TraceMetadata traceMetadata = NewRelic.getAgent().getTraceMetadata();
+            return String.format("/* nr_trace_id=%s,nr_span_id=%s,nr_service=%s */ ", traceMetadata.getTraceId(), traceMetadata.getSpanId(),
+                    NewRelic.getAgent().getConfig().getValue("app_name"));
+        }
+
+        return "";
     }
 }
