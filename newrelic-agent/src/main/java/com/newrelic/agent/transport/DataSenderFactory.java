@@ -9,10 +9,15 @@ package com.newrelic.agent.transport;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.DataSenderConfig;
+import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.apache.ApacheHttpClientWrapper;
 import com.newrelic.agent.transport.apache.ApacheProxyManager;
 import com.newrelic.agent.transport.apache.ApacheSSLManager;
+import com.newrelic.agent.transport.serverless.DataSenderServerless;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.transport.serverless.ServerLessWriterImpl;
+import com.newrelic.agent.transport.serverless.ServerlessWriter;
 import com.newrelic.api.agent.Logger;
 
 import javax.net.ssl.SSLContext;
@@ -36,6 +41,11 @@ public class DataSenderFactory {
      */
     public static IDataSenderFactory getDataSenderFactory() {
         return DATA_SENDER_FACTORY;
+    }
+
+    public static DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger) {
+        ServerlessWriter serverlessWriter = new ServerLessWriterImpl(logger);
+        return new DataSenderServerless(config, logger, serverlessWriter);
     }
 
     public static DataSender create(DataSenderConfig config) {
