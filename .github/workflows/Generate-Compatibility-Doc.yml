@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       doc_type:
-        description: The type of the compatibility doc you wish to generate - either internal (a simplified .md file, copied into this repo) or site (a complete .mdx file, copied to the public docs website).
+        description: The type of the compatibility doc you wish to generate - either "internal" (a simplified .md file, copied into this repo) or "site" (a complete .mdx file, copied to the public docs website).
         required: true
         options:
           - internal
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      INTERNAL_DOC_FILE: build/docs/site/compatibility-internal.md
+      INTERNAL_DOC_FILE: build/docs/site/compatibility-requirements-java-agent-internal.md
       PUBLIC_DOC_FILE: build/docs/site/compatibility-requirements-java-agent.mdx
 
     steps:
@@ -72,7 +72,7 @@ jobs:
           path: tmp
 
       - name: Copy internal doc to destination
-        run: cp tmp/compatibility-internal.md ${{ env.INTERNAL_FILEPATH }}
+        run: cp tmp/compatibility-requirements-java-agent-internal.md ${{ env.INTERNAL_FILEPATH }}
 
       - name: Create PR for internal doc
         id: create-pr-internal
@@ -83,6 +83,7 @@ jobs:
           commit-message: 'Update internal compatibility doc'
           branch: update-compatibility-doc-${{ github.run_id }}
           delete-branch: true
+          base: main
           title: 'Update Internal Compatibility Doc'
           body: |
             This PR updates the internal compatibility documentation. It was triggered manually or by a detected instrumentation build file change. 
@@ -129,6 +130,7 @@ jobs:
           commit-message: 'Update Java agent compatibility documentation'
           branch: update-java-agent-compatibility-${{ inputs.release_tag }}
           delete-branch: true
+          base: develop
           title: '[DO-NOT-MERGE] Update Java Agent Compatibility Requirements'
           body: |
             This is a WIP.
