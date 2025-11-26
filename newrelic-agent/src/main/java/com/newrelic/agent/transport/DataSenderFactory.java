@@ -16,7 +16,7 @@ import com.newrelic.agent.transport.apache.ApacheProxyManager;
 import com.newrelic.agent.transport.apache.ApacheSSLManager;
 import com.newrelic.agent.transport.serverless.DataSenderServerless;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
-import com.newrelic.agent.transport.serverless.ServerLessWriterImpl;
+import com.newrelic.agent.transport.serverless.ServerlessWriterImpl;
 import com.newrelic.agent.transport.serverless.ServerlessWriter;
 import com.newrelic.api.agent.Logger;
 
@@ -44,7 +44,7 @@ public class DataSenderFactory {
     }
 
     public static DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger) {
-        ServerlessWriter serverlessWriter = new ServerLessWriterImpl(logger);
+        ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger);
         return new DataSenderServerless(config, logger, serverlessWriter);
     }
 

@@ -43,13 +43,10 @@ import com.newrelic.agent.transport.ConnectionResponse;
 import com.newrelic.agent.transport.DataSender;
 import com.newrelic.agent.transport.DataSenderFactory;
 import com.newrelic.agent.transport.DataSenderListener;
-import com.newrelic.agent.transport.serverless.DataSenderServerless;
 import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
-import com.newrelic.agent.transport.serverless.ServerLessWriterImpl;
-import com.newrelic.agent.transport.serverless.ServerlessWriter;
 import com.newrelic.agent.utilization.UtilizationData;
 import org.json.simple.JSONStreamAware;
 
