@@ -819,7 +819,6 @@ public class AgentPostprocessorsTest {
         }
 
         public void publicApiBrowserHeaderFooter() {
-            AgentBridge.publicApi.getBrowserTimingFooter();
             AgentBridge.publicApi.getBrowserTimingHeader();
         }
 

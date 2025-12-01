@@ -350,34 +350,7 @@ public final class NewRelic {
     }
 
     /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     *
-     * @deprecated The full browser script is now included when calling {@link NewRelic#getBrowserTimingHeader}
-     * or {@link NewRelic#getBrowserTimingHeader(String)}
-     *
-     * @return RUM JavaScript footer for the current web transaction.
-     * @since 2.21.0
-     */
-    public static String getBrowserTimingFooter() {
-        return "";
-    }
-
-    /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     *
-     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
-     * @deprecated The full browser script is now included when calling {@link NewRelic#getBrowserTimingHeader}
-     * or {@link NewRelic#getBrowserTimingHeader(String)}
-     *
-     * @return RUM JavaScript footer for the current web transaction.
-     * @since 7.6.0
-     */
-    public static String getBrowserTimingFooter(String nonce) {
-        return "";
-    }
-
-    /**
-     * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the user name to associate with the current web transaction.
      * If high security mode is enabled, this method call does nothing.
      *
      * <p>
@@ -385,35 +358,35 @@ public final class NewRelic {
      * that requires more than 255 bytes will be truncated, by stripping characters, to fit in 255 bytes.
      * </p>
      *
-     * @param name User name to associate with the RUM JavaScript footer.
+     * @param name User name to associate.
      * @since 2.21.0
      */
     public static void setUserName(String name) {
     }
 
     /**
-     * Set the account name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the account name to associate with the current web transaction.
      *
      * <p>
      * <b>Note:</b> The account {@code name} argument has a limit of 255 bytes, encoded with UTF-8 encoding. A
      * {@code name} that requires more than 255 bytes will be truncated, by stripping characters, to fit in 255 bytes.
      * </p>
      *
-     * @param name Account name to associate with the RUM JavaScript footer.
+     * @param name Account name to associate.
      * @since 2.21.0
      */
     public static void setAccountName(String name) {
     }
 
     /**
-     * Set the product name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the product name to associate with the current web transaction.
      *
      * <p>
      * <b>Note:</b> The product {@code name} argument has a limit of 255 bytes, encoded with UTF-8 encoding. A
      * {@code name} that requires more than 255 bytes will be truncated, by stripping characters, to fit in 255 bytes.
      * </p>
      *
-     * @param name Product name to associate with the RUM JavaScript footer.
+     * @param name Product name to associate with.
      * @since 2.21.0
      */
     public static void setProductName(String name) {

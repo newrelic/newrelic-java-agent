@@ -431,30 +431,7 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
-     * Called by JSPs. The content type is not needed for the footer since it's checked in the header API call, and a
-     * footer cannot be written without a header. The argument is retained for backwards-compatibility with JSPs
-     * compiled with older Agents.
-     * <p>
-     * NOTE: This method is called by the AbstractRUMState class. It needs to remain static.
-     *
-     * @see com.newrelic.agent.tracers.jasper.GeneratorVisitTracerFactory
-     */
-    public static String getBrowserTimingFooterForContentType(String contentType) {
-        return "";
-    }
-
-    @Override
-    public String getBrowserTimingFooter() {
-        return getBrowserTimingFooter(null);
-    }
-
-    @Override
-    public String getBrowserTimingFooter(String nonce) {
-        return "";
-    }
-
-    /**
-     * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the user name to associate with the current web transaction.
      * If high security mode is enabled, this method call does nothing.
      */
     @Override
@@ -484,7 +461,7 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
-     * Set the account name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the account name to associate with the current web transaction.
      */
     @Override
     public void setAccountName(String name) {
@@ -509,7 +486,7 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     /**
-     * Set the product name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the product name to associate with the current web transaction.
      */
     @Override
     public void setProductName(String name) {

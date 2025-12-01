@@ -150,16 +150,6 @@ public final class OpenTelemetryNewRelic {
         return "";
     }
 
-    public static String getBrowserTimingFooter() {
-        logUnsupportedMethod("NewRelic", "getBrowserTimingFooter");
-        return "";
-    }
-
-    public static String getBrowserTimingFooter(String nonce) {
-        logUnsupportedMethod("NewRelic", "getBrowserTimingFooter");
-        return "";
-    }
-
     public static void setUserName(String name) {
         logUnsupportedMethod("NewRelic", "setUserName");
     }
