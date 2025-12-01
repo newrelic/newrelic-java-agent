@@ -28,15 +28,23 @@ public abstract class OracleDriver {
     public Connection connect(String url, Properties props) throws SQLException {
         JdbcHelper.putVendor(getClass(), OracleDatabaseVendor.INSTANCE);
         Connection connection = Weaver.callOriginal();
+
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACELSQL OracelDriver::connect - url: " + url);
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACELSQL OracelDriver::connect - connection: " + connection);
+
         try {
+            // DUF--
             if (connection != null && !JdbcHelper.databaseNameExists(connection)) {
+                AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACELSQL OracelDriver::connect - databaseNameExists?: " + JdbcHelper.databaseNameExists(connection));
                 // We want to query instance_name here and not db_name because a db_name can be shared between instances
                 PreparedStatement databaseNameQuery =
                         connection.prepareStatement("select sys_context('userenv','instance_name') from dual");
 
                 ResultSet result = databaseNameQuery.executeQuery();
+                AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACELSQL OracelDriver::connect - resultSet: " + result);
                 if (result != null && result.next()) {
                     String databaseName = result.getString(1);
+                    AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACELSQL OracelDriver::connect - dbName: " + databaseName);
                     if (databaseName != null) {
                         JdbcHelper.putDatabaseName(url, databaseName);
                     }

@@ -7,11 +7,14 @@
 
 package java.sql;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+
+import java.util.logging.Level;
 
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
@@ -70,6 +73,10 @@ public abstract class Statement_Weaved {
         return Weaver.callOriginal();
     }
 
-    public abstract Connection getConnection() throws SQLException;
+    public Connection getConnection() throws SQLException {
+        Connection c = Weaver.callOriginal();
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACLESQL StatementWeaved- Connection from callOriginal(): " + c.toString());
+        return c;
+    }
 
 }

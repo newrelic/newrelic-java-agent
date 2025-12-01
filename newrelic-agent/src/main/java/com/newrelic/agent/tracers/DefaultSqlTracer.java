@@ -112,6 +112,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
 
     @Override
     public void provideConnection(Connection conn) {
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "ORACLESQL DefaultSqlTracer:provideConnection- " + conn);
         // provideConnection is called from weaved code that doesn't have try catch blocks, hence the try catch here
         try {
             if (conn == null) {
