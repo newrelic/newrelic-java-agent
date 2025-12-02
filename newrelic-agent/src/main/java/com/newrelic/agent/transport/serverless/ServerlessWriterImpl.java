@@ -9,13 +9,12 @@ import java.io.IOException;
 import java.util.logging.Level;
 
 public class ServerlessWriterImpl implements ServerlessWriter {
-    private static final String FILE_PATH = "/tmp/newrelic-telemetry";
     private final IAgentLogger logger;
     private final File pathFile;
 
-    public ServerlessWriterImpl(IAgentLogger logger) {
+    public ServerlessWriterImpl(IAgentLogger logger, String filePath) {
         this.logger = logger;
-        pathFile = new File(FILE_PATH);
+        pathFile = new File(filePath);
     }
 
     @Override

@@ -9,6 +9,7 @@ package com.newrelic.agent.transport;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.DataSenderConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.apache.ApacheHttpClientWrapper;
@@ -43,8 +44,8 @@ public class DataSenderFactory {
         return DATA_SENDER_FACTORY;
     }
 
-    public static DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger) {
-        ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger);
+    public static DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
+        ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
         return new DataSenderServerless(config, logger, serverlessWriter);
     }
 

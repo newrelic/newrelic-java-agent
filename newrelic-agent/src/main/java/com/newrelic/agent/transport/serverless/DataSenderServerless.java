@@ -68,16 +68,16 @@ public class DataSenderServerless implements DataSender {
     @Override
     public void sendErrorData(List<TracedError> errors) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setTracedErrors(errors);
+        telemetryData.updateTracedErrors(errors);
         writeData(telemetryData);
     }
 
     @Override
     public void sendErrorEvents(int reservoirSize, int eventsSeen, Collection<ErrorEvent> errorEvents) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setErrorEvents(errorEvents);
-        telemetryData.setErrorReservoirSize(reservoirSize);
-        telemetryData.setErrorEventsSeen(eventsSeen);
+        telemetryData.updateErrorEvents(errorEvents);
+        telemetryData.updateErrorReservoirSize(reservoirSize);
+        telemetryData.updateErrorEventsSeen(eventsSeen);
         writeData(telemetryData);
     }
 
@@ -111,18 +111,18 @@ public class DataSenderServerless implements DataSender {
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setSpanEvents(events);
-        telemetryData.setSpanReservoirSize(events.size());
-        telemetryData.setSpanEventsSeen(events.size());
+        telemetryData.updateSpanEvents(events);
+        telemetryData.updateSpanReservoirSize(reservoirSize);
+        telemetryData.updateSpanEventsSeen(eventsSeen);
         writeData(telemetryData);
     }
 
     @Override
     public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setMetricData(metricData);
-        telemetryData.setMetricBeginTimeMillis(beginTimeMillis);
-        telemetryData.setMetricEndTimeMillis(endTimeMillis);
+        telemetryData.updateMetricData(metricData);
+        telemetryData.updateMetricBeginTimeMillis(beginTimeMillis);
+        telemetryData.updateMetricEndTimeMillis(endTimeMillis);
         writeData(telemetryData);
     }
 
@@ -135,14 +135,14 @@ public class DataSenderServerless implements DataSender {
     @Override
     public void sendSqlTraceData(List<SqlTrace> sqlTraces) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setSqlTraces(sqlTraces);
+        telemetryData.updateSqlTraces(sqlTraces);
         writeData(telemetryData);
     }
 
     @Override
     public void sendTransactionTraceData(List<TransactionTrace> traces) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
-        telemetryData.setTransactionTraces(traces);
+        telemetryData.updateTransactionTraces(traces);
         writeData(telemetryData);
     }
 
