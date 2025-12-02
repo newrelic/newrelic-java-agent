@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
+import com.newrelic.agent.metric.MetricIdRegistry;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -255,8 +256,14 @@ public class ServerlessHarvestService extends AbstractService implements Harvest
                     notifyListenerAfterHarvest(appName, listener);
                 }
             } finally {
+                if (harvestStatsEngine.getSize() > MetricIdRegistry.METRIC_LIMIT) {
+                    harvestStatsEngine.clear();
+                }
                 lastStatsEngine = harvestStatsEngine;
                 long duration = TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+
+                harvestStatsEngine.getResponseTimeStats(MetricNames.SUPPORTABILITY_HARVEST_SERVICE_RESPONSE_TIME)
+                        .recordResponseTime(duration, TimeUnit.MILLISECONDS);
 
                 getLogger().log(Level.FINEST, "Serverless harvest for {0} completed in {1} milliseconds",
                         appName, duration);
