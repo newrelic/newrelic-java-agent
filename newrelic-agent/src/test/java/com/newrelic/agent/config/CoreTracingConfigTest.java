@@ -5,6 +5,7 @@ import com.newrelic.agent.DistributedTracingConfigTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -93,12 +94,11 @@ public class CoreTracingConfigTest {
         /*
          *  distributed_tracing:
          *    sampler:
-         *      full_granularity:
-         *        root:
-         *          trace_id_ratio_based:
-         *            ratio: 0.25f
-         *        remote_parent_sampled:
-         *          always_on:
+         *     root:
+         *       trace_id_ratio_based:
+         *         ratio: 0.25f
+         *     remote_parent_sampled:
+         *        always_on:
          *      partial_granularity:
          *        enabled: true
          *        type: compact
@@ -108,8 +108,8 @@ public class CoreTracingConfigTest {
          */
 
         Map<String, Object> dtSettings = new DTConfigMapBuilder()
-                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.25)
-                .withFullGranularitySetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
+                .withSamplerSetting("remote_parent_sampled", "always_on")
                 .withPartialGranularitySetting("enabled", true)
                 .withPartialGranularitySetting("type", "compact")
                 .withPartialGranularitySetting("root", "default")
@@ -136,43 +136,6 @@ public class CoreTracingConfigTest {
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
-    }
-
-    @Test
-    public void testFullGranularityShouldMergeWithBaseSamplerSettings() {
-        // Given
-
-        /*
-         *  distributed_tracing:
-         *    sampler:
-         *      root:
-         *        trace_id_ratio_based:
-         *          ratio: 0.25f
-         *      remote_parent_not_sampled: always_off
-         *      full_granularity:
-         *        root:
-         *          adaptive:
-         *              sampling_target: 110
-         *        remote_parent_sampled:
-         *          always_on:
-         */
-
-        Map<String, Object> dtSettings = new DTConfigMapBuilder()
-                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
-                .withSamplerSetting("remote_parent_not_sampled", "always_off")
-                .withFullGranularitySetting("root", "adaptive", "sampling_target", 110)
-                .withFullGranularitySetting("remote_parent_sampled", "always_on", "", "")
-                .buildDtConfig();
-
-        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
-
-        //all the assertions!
-        assertEquals(120, distributedTracingConfig.getAdaptiveSamplingTarget());
-        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
-        assertEquals(110, (int) distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
-        assertEquals(SamplerConfig.ALWAYS_ON, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
-        assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
-
     }
 
     @Test
@@ -211,6 +174,67 @@ public class CoreTracingConfigTest {
     }
 
     @Test
+    public void testRatiosAreAdditiveWhenLayered(){
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
+                .withSamplerSetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 0.1)
+                .withSamplerSetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.33)
+                .withPartialGranularitySetting("enabled", true)
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.4)
+                .withPartialGranularitySetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 0.57)
+                .withPartialGranularitySetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.15)
+                .buildDtConfig();
+
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
+
+        //full granularity assertions
+        assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
+        assertEquals(0.25f, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
+        assertEquals(0.1f, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.0f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertEquals(0.33f, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.0f);
+
+        //partial granularity assertions
+        assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
+        assertEquals(0.65f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.00001f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
+        assertEquals(0.67f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.00001f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertEquals(0.48f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
+    }
+
+    @Test
+    public void testLayeredPartialRatiosDoNotAdjustWhenFullDisabled(){
+        Map<String, Object> dtSettings = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
+                .withSamplerSetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 0.1)
+                .withSamplerSetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.33)
+                .withFullGranularitySetting("enabled", false)
+                .withPartialGranularitySetting("enabled", true)
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.4)
+                .withPartialGranularitySetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", 0.57)
+                .withPartialGranularitySetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.15)
+                .buildDtConfig();
+
+        distributedTracingConfig = new DistributedTracingConfig(dtSettings);
+
+        //full granularity assertions
+        assertFalse(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+
+        //partial granularity assertions
+        assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
+        assertEquals(0.4f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.00001f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
+        assertEquals(0.57f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.00001f);
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertEquals(0.15f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
+    }
+
+    @Test
     public void testGiantExampleFromLocalConfig(){
         // This example is lifted directly from the spec.
         /*
@@ -224,16 +248,6 @@ public class CoreTracingConfigTest {
          *        always_off
          *      remote_parent_not_sampled:
          *        always_on
-         *      full_granularity:
-         *        enabled: true
-         *        root:
-         *          trace_id_ratio_based:
-         *            ratio: 0.2
-         *        remote_parent_sampled:
-         *          adaptive:
-         *            sampling_target: 20
-         *        remote_parent_not_sampled:
-         *          always_off
          *      partial_granularity:
          *        enabled: true
          *        type: "essential"
@@ -252,10 +266,6 @@ public class CoreTracingConfigTest {
                 .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.1)
                 .withSamplerSetting("remote_parent_sampled", "always_off")
                 .withSamplerSetting("remote_parent_not_sampled", "always_on")
-                .withFullGranularitySetting("enabled", true)
-                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.2)
-                .withFullGranularitySetting("remote_parent_sampled", "adaptive", "sampling_target", 20)
-                .withFullGranularitySetting("remote_parent_not_sampled", "always_off")
                 .withPartialGranularitySetting("enabled", true)
                 .withPartialGranularitySetting("type", "essential")
                 .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.4)
@@ -273,16 +283,15 @@ public class CoreTracingConfigTest {
         // Full granularity assertions
         assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
-        assertEquals(0.2f, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
-        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
-        assertEquals(20, (int) distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplingTarget());
-        assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertEquals(0.1f, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
+        assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
+        assertEquals(SamplerConfig.ALWAYS_ON, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
 
         // Partial granularity assertions
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
-        assertEquals(0.4f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
+        assertEquals(0.5f, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(1.0f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.0f);
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
@@ -300,9 +309,6 @@ public class CoreTracingConfigTest {
          *      remote_parent_sampled:
          *        trace_id_ratio_based:
          *          ratio: 0.25f
-         *      full_granularity:
-         *        root: always_off
-         *        remote_parent_not_sampled: always_on
          *      partial_granularity:
          *        enabled: true
          *        type: reduced
@@ -321,8 +327,6 @@ public class CoreTracingConfigTest {
         props.setProperty("newrelic.config.distributed_tracing.sampler.root", "default");
         props.setProperty("newrelic.config.distributed_tracing.sampler.remote_parent_sampled", "trace_id_ratio_based");
         props.setProperty("newrelic.config.distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio", String.valueOf(0.25));
-        props.setProperty("newrelic.config.distributed_tracing.sampler.full_granularity.root", "always_off");
-        props.setProperty("newrelic.config.distributed_tracing.sampler.full_granularity.remote_parent_not_sampled", "always_on");
         props.setProperty("newrelic.config.distributed_tracing.sampler.partial_granularity.enabled",  String.valueOf(true));
         props.setProperty("newrelic.config.distributed_tracing.sampler.partial_granularity.type",  "reduced");
         props.setProperty("newrelic.config.distributed_tracing.sampler.partial_granularity.root",  "trace_id_ratio_based");
@@ -343,10 +347,12 @@ public class CoreTracingConfigTest {
         assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
         assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
         //full granularity configs
-        assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
+        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
+        assertNull(distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(0.25f, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.0f);
-        assertEquals(SamplerConfig.ALWAYS_ON, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertNull(distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
         //partial granularity configs
         assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.REDUCED, distributedTracingConfig.getPartialGranularityConfig().getType());
@@ -358,7 +364,7 @@ public class CoreTracingConfigTest {
     }
 
     @Test
-    public void testEnvironmentVariablesWithFullGranularityOverrides() {
+    public void testEnvironmentVariables() {
         // Given: Environment variables with conflicting base sampler and full_granularity settings
         /*
          * Environment Variables (with conflicts):
@@ -370,11 +376,6 @@ public class CoreTracingConfigTest {
          * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_ROOT_TRACE_ID_RATIO_BASED_RATIO=0.5
          * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_REMOTE_PARENT_SAMPLED=always_on
          * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_REMOTE_PARENT_NOT_SAMPLED=always_off
-         *
-         * Full granularity settings (conflicting overrides):
-         * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_ROOT=always_off
-         * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_REMOTE_PARENT_SAMPLED=trace_id_ratio_based
-         * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_REMOTE_PARENT_SAMPLED_TRACE_ID_RATIO_BASED_RATIO=0.1
          *
          * Partial granularity settings:
          * NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_PARTIAL_GRANULARITY_ENABLED=true
@@ -394,13 +395,6 @@ public class CoreTracingConfigTest {
                 .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_REMOTE_PARENT_SAMPLED", "always_on")
                 .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_REMOTE_PARENT_NOT_SAMPLED", "always_off")
 
-                // Full granularity overrides (conflicting with base settings)
-                .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_ROOT", "always_off")
-                .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_REMOTE_PARENT_SAMPLED",
-                        "trace_id_ratio_based")
-                .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_REMOTE_PARENT_SAMPLED_TRACE_ID_RATIO_BASED_RATIO",
-                        "0.1")
-
                 // Partial granularity settings
                 .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_PARTIAL_GRANULARITY_ENABLED", "true")
                 .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_PARTIAL_GRANULARITY_TYPE", "reduced")
@@ -418,15 +412,15 @@ public class CoreTracingConfigTest {
         assertTrue(distributedTracingConfig.isEnabled());
         assertEquals(75, distributedTracingConfig.getAdaptiveSamplingTarget());
 
-        // Full granularity assertions - full_granularity settings should override base sampler settings
+        // Full granularity assertions
         assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
-        assertEquals(SamplerConfig.ALWAYS_OFF,
-                distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED,
-                distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
-        assertEquals(0.1f,
-                distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(),
+                distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
+        assertEquals(0.5f,
+                distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerRatio(),
                 0.0f);
+        assertEquals(SamplerConfig.ALWAYS_ON,
+                distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
         assertEquals(SamplerConfig.ALWAYS_OFF,
                 distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
 

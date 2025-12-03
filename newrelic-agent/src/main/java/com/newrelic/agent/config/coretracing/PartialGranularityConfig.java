@@ -17,18 +17,32 @@ public class PartialGranularityConfig extends CoreTracingConfig {
 
     //defaults
     public static final boolean PARTIAL_GRANULARITY_ENABLED_DEFAULT = false;
-    public static final String PARTIAL_GRANULARITY_DEFAULT_TYPE=ESSENTIAL;
+    public static final String PARTIAL_GRANULARITY_DEFAULT_TYPE = ESSENTIAL;
 
     private final PartialSampleType type;
 
-    public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot) {
+    private final BaseSamplerCoreTracingConfig fullGranularityConfig;
+
+    public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot, BaseSamplerCoreTracingConfig fullGranularityConfig) {
         super(props, samplerSystemPropertyRoot + CoreTracingConfig.PARTIAL_GRANULARITY + ".", PARTIAL_GRANULARITY_ENABLED_DEFAULT);
         this.type = initType();
+        this.fullGranularityConfig = fullGranularityConfig;
     }
 
     @Override
-    public SamplerConfig createSamplerConfig(String samplerCase){
+    public SamplerConfig createSamplerConfig(String samplerCase) {
         SamplerConfig sampler = super.createSamplerConfig(samplerCase);
+        SamplerConfig fullSampler = fullGranularityConfig.getSamplerConfigForCase(samplerCase);
+        if (sampler.getSamplerRatio() != null && fullSampler.getSamplerRatio() != null && fullGranularityConfig.isEnabled()) {
+            Float originalRatio = sampler.getSamplerRatio();
+            sampler.setRatio(originalRatio + fullSampler.getSamplerRatio());
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.FINE,
+                            "Partial granularity {0} sampler was originally configured with ratio={1}. " +
+                                    "Added to full granularity ratio={2} and set effective ratio={3}",
+                            samplerCase, originalRatio, fullSampler.getSamplerRatio(), sampler.getSamplerRatio());
+        }
         NewRelic.getAgent()
                 .getLogger()
                 .log(Level.INFO,
