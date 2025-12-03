@@ -1194,6 +1194,12 @@ public class Transaction {
 
                 TransactionData transactionData = new TransactionData(this, rootCounts.getTransactionSize());
                 ServiceFactory.getTransactionService().transactionFinished(transactionData, transactionStats);
+
+                // In serverless mode, trigger immediate harvest when transaction completes
+                if (ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled()) {
+                    Agent.LOG.log(Level.FINEST, "Serverless mode: Beginning harvest cycle for completed transaction");
+                    ServiceFactory.getHarvestService().harvestNow();
+                }
             }
         } catch (Throwable th) {
             Agent.LOG.log(Level.WARNING, th, "Transaction {0} was not reported because of an internal error.", this);
