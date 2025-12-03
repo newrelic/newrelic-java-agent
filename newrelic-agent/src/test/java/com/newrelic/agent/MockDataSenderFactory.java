@@ -8,13 +8,21 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.config.DataSenderConfig;
+import com.newrelic.agent.config.ServerlessConfig;
+import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.transport.DataSender;
 import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.IDataSenderFactory;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 
 public class MockDataSenderFactory implements IDataSenderFactory {
 
     private MockDataSender lastDataSender;
+
+    @Override
+    public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
+        return null;
+    }
 
     @Override
     public DataSender create(DataSenderConfig config) {

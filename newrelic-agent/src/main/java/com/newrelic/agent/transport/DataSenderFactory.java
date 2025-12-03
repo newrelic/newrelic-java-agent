@@ -15,7 +15,7 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.apache.ApacheHttpClientWrapper;
 import com.newrelic.agent.transport.apache.ApacheProxyManager;
 import com.newrelic.agent.transport.apache.ApacheSSLManager;
-import com.newrelic.agent.transport.serverless.DataSenderServerless;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessImpl;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 import com.newrelic.agent.transport.serverless.ServerlessWriterImpl;
 import com.newrelic.agent.transport.serverless.ServerlessWriter;
@@ -45,8 +45,7 @@ public class DataSenderFactory {
     }
 
     public static DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
-        ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
-        return new DataSenderServerless(config, logger, serverlessWriter);
+        return DATA_SENDER_FACTORY.createServerless(config, logger, serverlessConfig);
     }
 
     public static DataSender create(DataSenderConfig config) {
@@ -58,6 +57,12 @@ public class DataSenderFactory {
     }
 
     private static class DefaultDataSenderFactory implements IDataSenderFactory {
+
+        @Override
+        public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
+            ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
+            return new DataSenderServerlessImpl(config, logger, serverlessWriter);
+        }
 
         @Override
         public DataSender create(DataSenderConfig config) {

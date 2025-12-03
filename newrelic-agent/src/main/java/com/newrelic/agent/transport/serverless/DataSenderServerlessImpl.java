@@ -32,7 +32,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 // Todo: reformat all data into a serverless spec
 // Todo: Unit tests once the data is properly formatted
 
-public class DataSenderServerless implements DataSender {
+public class DataSenderServerlessImpl implements DataSender {
 
     private static final String ARN = "TMP_ARN"; // com.amazonaws:aws-lambda-java-events needs to be instrumented to grab the ARN
 
@@ -41,7 +41,7 @@ public class DataSenderServerless implements DataSender {
     private final DataSenderServerlessConfig config;
     private final String awsExecutionEnv;
 
-    public DataSenderServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessWriter serverlessWriter) {
+    public DataSenderServerlessImpl(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessWriter serverlessWriter) {
         this.config = config;
         this.logger = logger;
         this.serverlessWriter = serverlessWriter;
@@ -157,20 +157,24 @@ public class DataSenderServerless implements DataSender {
     }
 
     void writeData(TelemetryData telemetryData) {
-        Map<String, Object> data = telemetryData.format();
+        JSONObject data = telemetryData.format();
         serverlessWriter.write(createFilePayload(data), createConsolePayload(data));
     }
 
-    String createFilePayload(Map<String, Object> data) {
-        final Map<String, Object> metadata = getMetadata();
-        final List<Object> payload = Arrays.asList(2, "NR_LAMBDA_MONITORING", metadata, compressAndEncode(JSONObject.toJSONString(data)));
-        return JSONArray.toJSONString(payload);
+    String createFilePayload(JSONObject data) {
+        final List<Object> payload = Arrays.asList(2, "NR_LAMBDA_MONITORING", getMetadata(),
+                compressAndEncode(JSONObject.toJSONString(data).replace("\\/","/")));
+
+        return JSONArray.toJSONString(payload).replace("\\/","/");
     }
 
-    String createConsolePayload(Map<String, Object> data) {
-        final Map<String, Object> metadata = getMetadata();
-        final List<Object> payload = Arrays.asList(2, "NR_LAMBDA_MONITORING", metadata, data);
-        return JSONArray.toJSONString(payload);
+    String createConsolePayload(JSONObject data) {
+        JSONArray jsonArray = new JSONArray();
+        jsonArray.add(2);
+        jsonArray.add("NR_LAMBDA_MONITORING");
+        jsonArray.add(getMetadata());
+        jsonArray.add(data);
+        return jsonArray.toJSONString().replace("\\/","/");
     }
 
     private Map<String, Object> getMetadata() {

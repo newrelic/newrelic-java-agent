@@ -11,15 +11,23 @@ import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.CountStats;
 import com.newrelic.agent.stats.StatsBase;
 import com.newrelic.agent.trace.TransactionTrace;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.zip.GZIPOutputStream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 class TelemetryData {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -47,10 +55,12 @@ class TelemetryData {
     public TelemetryData() {
     }
 
-    public Map<String, Object> format() {
+    public JSONObject format() {
         try {
             lock.readLock().lock();
-            Map<String, Object> data = new HashMap<>();
+
+            JSONObject data = new JSONObject();
+
 
             if (!spanEvents.isEmpty()) {
                 addEvents(spanEvents, data, "span_event_data", spanReservoirSize, spanEventsSeen);
@@ -85,17 +95,17 @@ class TelemetryData {
 
     }
 
-    private static <T> void addEvents(Collection<T> events, Map<String, Object> data, String eventKey,
+    private static <T> void addEvents(Collection<T> events, JSONObject data, String eventKey,
             Integer eventsSeen, Integer reservoirSize) {
-        List<Object> list = new ArrayList<>();
-        list.add(0, null);
+        JSONArray list = new JSONArray();
+        list.add(null);
 
         final Map<String, Object> eventInfo = new HashMap<>();
         eventInfo.put("events_seen", eventsSeen);
         eventInfo.put("reservoir_size", reservoirSize);
-        list.add(1, eventInfo);
+        list.add(eventInfo);
 
-        ArrayList<List<Map<String, Object>>> formattedEvents = new ArrayList<>();
+        JSONArray formattedEvents = new JSONArray();
 
         for (Object event : events) {
             Map<String, Object> intrinsicAttributes = new HashMap<>();
@@ -133,54 +143,57 @@ class TelemetryData {
 
             formattedEvents.add(Arrays.asList(intrinsicAttributes, userAttributes, agentAttributes));
         }
-        list.add(2, formattedEvents);
+        list.add(formattedEvents);
         data.put(eventKey, list);
     }
 
-    private static void addTransactions(List<TransactionTrace> transactionTraces, Map<String, Object> data) {
-        List<Object> list = new ArrayList<>();
-        list.add(0, null);
+    private static void addTransactions(List<TransactionTrace> transactionTraces, JSONObject data) {
+        JSONArray list = new JSONArray();
+        list.add(null);
 
-        List<List<Object>> formattedTransactions = new ArrayList<>();
+        JSONArray formattedTransactions = new JSONArray();
         for (TransactionTrace trace : transactionTraces) {
-            List<Object> formattedTrace = new ArrayList<>();
-            formattedTrace.add(trace.getStartTime());
-            formattedTrace.add(trace.getDuration());
-            formattedTrace.add(trace.getRootMetricName());
-            formattedTrace.add(trace.getRequestUri());
-            formattedTrace.add(trace.getTraceDetailsAsList());
-            formattedTrace.add(trace.getGuid());
-            formattedTrace.add(null);
-            formattedTrace.add(false);
-            formattedTrace.add(null);
-            formattedTrace.add(trace.getSyntheticsResourceId());
+            JSONArray traceData = new JSONArray();
+            traceData.add(trace.getStartTime());
+            traceData.add(trace.getDuration());
+            traceData.add(trace.getRootMetricName());
+            traceData.add(trace.getRequestUri());
+            traceData.add(trace.getTraceDetailsAsList());
+            traceData.add(trace.getGuid());
+            traceData.add(null);
+            traceData.add(false);
+            traceData.add(null);
+            traceData.add(trace.getSyntheticsResourceId());
+            formattedTransactions.add(traceData);
         }
-        list.add(1, formattedTransactions);
+        list.add(formattedTransactions);
         data.put("transaction_sample_data", list);
     }
 
-    private static void addMetrics(List<MetricData> metrics, Map<String, Object> data, Long metricsBegin, Long metricsEnd) {
-        List<Object> list = new ArrayList<>();
-        list.add(0, null);
-        list.add(1, metricsBegin);
-        list.add(2, metricsEnd);
+    private static void addMetrics(List<MetricData> metrics, JSONObject data, Long metricsBegin, Long metricsEnd) {
+        JSONArray list = new JSONArray();
+        list.add(null);
+        list.add(metricsBegin);
+        list.add(metricsEnd);
 
         List<List<Object>> formattedMetrics = new ArrayList<>();
 
         for (MetricData metricData : metrics) {
-            HashMap<String, String> metricStrings = new HashMap<>();
+            JSONObject metricStrings = new JSONObject();
             metricStrings.put("name", metricData.getMetricName().getName());
             metricStrings.put("scope", metricData.getMetricName().getScope());
-            List<Number> formattedStats = formatMetricStats(metricData);
-            formattedMetrics.add(Arrays.asList(metricStrings, formattedStats));
+
+            JSONArray statsData = formatMetricStats(metricData);
+
+            formattedMetrics.add(Arrays.asList(metricStrings, statsData));
         }
 
-        list.add(3, formattedMetrics);
+        list.add(formattedMetrics);
         data.put("metric_data", list);
     }
 
-    private static List<Number> formatMetricStats(MetricData metricData) {
-        List<Number> formattedStats = new ArrayList<>();
+    private static JSONArray formatMetricStats(MetricData metricData) {
+        JSONArray formattedStats = new JSONArray();
         StatsBase stats = metricData.getStats();
         if (stats instanceof CountStats) {
             CountStats countStats = (CountStats) stats;
@@ -194,38 +207,52 @@ class TelemetryData {
         return formattedStats;
     }
 
-    private static void addSqlTraces(List<SqlTrace> sqlTraces, Map<String, Object> data) {
-        List<Object> list = new ArrayList<>();
-        List<List<Object>> formattedSqlTraces = new ArrayList<>();
+    private static void addSqlTraces(List<SqlTrace> sqlTraces, JSONObject data) {
+        JSONArray list = new JSONArray();
+        JSONArray formattedSqlTraces = new JSONArray();
         for (SqlTrace sqlTrace : sqlTraces) {
-            List<Object> formattedSqlTrace = new ArrayList<>();
-            formattedSqlTrace.add(sqlTrace.getBlameMetricName());
-            formattedSqlTrace.add(sqlTrace.getUri());
-            formattedSqlTrace.add(sqlTrace.getId());
-            formattedSqlTrace.add(sqlTrace.getQuery());
-            formattedSqlTrace.add(sqlTrace.getMetricName());
-            formattedSqlTrace.add(sqlTrace.getCallCount());
-            formattedSqlTrace.add(sqlTrace.getTotal());
-            formattedSqlTrace.add(sqlTrace.getMin());
-            formattedSqlTrace.add(sqlTrace.getMax());
-            // Todo: Reformat params
-            formattedSqlTrace.add(sqlTrace.getParameters());
-            formattedSqlTraces.add(formattedSqlTrace);
+            JSONArray sqlTraceData = new JSONArray();
+            sqlTraceData.add(sqlTrace.getBlameMetricName());
+            sqlTraceData.add(sqlTrace.getUri());
+            sqlTraceData.add(sqlTrace.getId());
+            sqlTraceData.add(sqlTrace.getQuery());
+            sqlTraceData.add(sqlTrace.getMetricName());
+            sqlTraceData.add(sqlTrace.getCallCount());
+            sqlTraceData.add(sqlTrace.getTotal());
+            sqlTraceData.add(sqlTrace.getMin());
+            sqlTraceData.add(sqlTrace.getMax());
+            sqlTraceData.add(compressAndEncodeSqlParams(sqlTrace.getParameters()));
+            formattedSqlTraces.add(sqlTraceData);
         }
-        list.add(0, formattedSqlTraces);
+
+        list.add(formattedSqlTraces);
         data.put("sql_trace_data", list);
     }
 
+    private static Object compressAndEncodeSqlParams(Map<String, Object> params) {
+        String paramsJson = JSONObject.toJSONString(params).replace("\\/","/");
+        try {
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            GZIPOutputStream gzip = new GZIPOutputStream(output);
+            gzip.write(paramsJson.getBytes(UTF_8));
+            gzip.flush();
+            gzip.close();
+            return Base64.getEncoder().encodeToString(output.toByteArray());
+        } catch (IOException ignored) {
+        }
+        return params;
+    }
+
     private static void addErrors(List<TracedError> tracedErrors, Map<String, Object> data) {
-        List<Object> list = new ArrayList<>();
+        JSONArray list = new JSONArray();
         list.add(0, null);
-        List<List<Object>> formattedErrors = new ArrayList<>();
+        JSONArray formattedErrors = new JSONArray();
         for (TracedError tracedError : tracedErrors) {
-            List<Object> formattedError = new ArrayList<>();
-            formattedError.add(tracedError.getTimestampInMillis());
-            formattedError.add(tracedError.getPath());
-            formattedError.add(tracedError.getMessage());
-            formattedError.add(tracedError.getExceptionClass());
+            JSONArray errorData = new JSONArray();
+            errorData.add(tracedError.getTimestampInMillis());
+            errorData.add(tracedError.getPath());
+            errorData.add(tracedError.getMessage());
+            errorData.add(tracedError.getExceptionClass());
 
             Map<String, Object> errorTraceAttributes = new HashMap<>();
             errorTraceAttributes.put("agentAttributes", tracedError.getAgentAtts());
@@ -234,9 +261,9 @@ class TelemetryData {
             errorTraceAttributes.put("stack_trace", tracedError.stackTrace());
             errorTraceAttributes.put("userAttributes", tracedError.getAgentAtts());
 
-            formattedError.add(errorTraceAttributes);
-            formattedError.add(tracedError.getTransactionGuid());
-            formattedErrors.add(formattedError);
+            errorData.add(errorTraceAttributes);
+            errorData.add(tracedError.getTransactionGuid());
+            formattedErrors.add(errorData);
 
         }
         data.put("error_data", Arrays.asList(null, formattedErrors));

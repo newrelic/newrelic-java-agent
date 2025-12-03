@@ -17,6 +17,7 @@ import com.newrelic.agent.config.DataSenderConfig;
 import com.newrelic.agent.config.ErrorCollectorConfig;
 import com.newrelic.agent.config.LabelsConfig;
 import com.newrelic.agent.config.NormalizationRuleConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
@@ -24,6 +25,7 @@ import com.newrelic.agent.errors.DeadlockTraceError;
 import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.errors.ErrorServiceImpl;
 import com.newrelic.agent.errors.ThrowableError;
+import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
@@ -62,6 +64,7 @@ import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.DataSenderWriter;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.IDataSenderFactory;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 import com.newrelic.agent.utilization.UtilizationService;
 import org.junit.After;
 import org.junit.Before;
@@ -409,6 +412,11 @@ public class RPMServiceTest {
         final AtomicReference<CountDownLatch> shutdownLatch = new AtomicReference<>(new CountDownLatch(2));
 
         IDataSenderFactory dataSenderFactory = new IDataSenderFactory() {
+            @Override
+            public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
+                return null;
+            }
+
             @Override
             public DataSender create(DataSenderConfig config) {
                 return createMockDataSender(config);
