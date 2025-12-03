@@ -431,8 +431,8 @@ public class DistributedTraceServiceImplTest {
 
         Map<String, Object> config = new DTConfigMapBuilder()
                 .withSamplerSetting("remote_parent_not_sampled", "always_off")
-                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.6)
-                .withFullGranularitySetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.6)
+                .withSamplerSetting("remote_parent_sampled", "always_on")
                 .withPartialGranularitySetting("enabled", "true")
                 .withPartialGranularitySetting("type", "reduced")
                 .withPartialGranularitySetting("root", "adaptive", "sampling_target", 15)
@@ -503,9 +503,9 @@ public class DistributedTraceServiceImplTest {
 
         Map<String, Object> config = new DTConfigMapBuilder()
                 .withFullGranularitySetting("enabled", "false")
-                .withFullGranularitySetting("root", "always_on")
-                .withFullGranularitySetting("remote_parent_sampled", "always_on")
-                .withFullGranularitySetting("remote_parent_not_sampled", "always_on")
+                .withSamplerSetting("root", "always_on")
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
                 .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
@@ -590,7 +590,7 @@ public class DistributedTraceServiceImplTest {
         int numberOfTraces = 10000;
 
         Map<String, Object> config = new DTConfigMapBuilder()
-                .withFullGranularitySetting("root", "trace_id_ratio_based", "ratio", fullRatio)
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", fullRatio)
                 .withPartialGranularitySetting("enabled", "true")
                 .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", partialRatio)
                 .buildMainConfig();
@@ -611,7 +611,7 @@ public class DistributedTraceServiceImplTest {
             }
         }
 
-        int expectedSampledCount = 5200;
+        int expectedSampledCount = 6000;
         int maxError = (int)( 0.05f * numberOfTraces);
         assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
 
