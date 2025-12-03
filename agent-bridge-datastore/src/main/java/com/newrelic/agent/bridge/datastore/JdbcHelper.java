@@ -308,7 +308,7 @@ public class JdbcHelper {
      * If a transaction is in progress, create a comment to be prepended to the statement that contains the
      * trace id, span id and app name.
      *
-     * @return the SQL metadata comment if a transaction is in progress, an empty String oterwise
+     * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
     public static String generateSqlMetadataComment() {
         if (NewRelic.getAgent().getTransaction() != NoOpTransaction.INSTANCE) {
