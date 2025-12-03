@@ -105,6 +105,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return spans;
         }
 
+        rootSpan.getAgentAttributes().put("nr.pg", true);
+
         int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
 
         Collection<Tracer> tracers = transactionData.getTracers();

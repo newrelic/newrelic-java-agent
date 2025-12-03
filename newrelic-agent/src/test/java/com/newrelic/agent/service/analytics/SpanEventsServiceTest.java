@@ -314,6 +314,7 @@ public class SpanEventsServiceTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(rootSpan);
+        assertEquals(true, rootSpan.getAgentAttributes().get("nr.pg"));
         SpanEvent llmSpan = null;
         SpanEvent externalDSpan = null;
         for (SpanEvent span : reservoir.asList()) {
