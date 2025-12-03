@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
@@ -26,6 +27,10 @@ public final class NoOpTracedMethod implements TracedMethod {
 
     @Override
     public void nameTransaction(TransactionNamePriority namePriority) {
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
     }
 
     @Override
@@ -100,7 +105,8 @@ public final class NoOpTracedMethod implements TracedMethod {
     }
 
     @Override
-    public void excludeLeaf(){}
+    public void excludeLeaf() {
+    }
 
     @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {

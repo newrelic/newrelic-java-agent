@@ -9,6 +9,7 @@ package com.newrelic.agent.tracers;
 
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.trace.TransactionSegment;
@@ -30,6 +31,10 @@ public final class NoOpTracer implements Tracer {
     @Override
     public void setMetricNameFormatInfo(String metricName, String transactionSegmentName,
             String transactionSegmentUri) {
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
     }
 
     @Override
@@ -257,7 +262,8 @@ public final class NoOpTracer implements Tracer {
     }
 
     @Override
-    public void excludeLeaf(){}
+    public void excludeLeaf() {
+    }
 
     @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {

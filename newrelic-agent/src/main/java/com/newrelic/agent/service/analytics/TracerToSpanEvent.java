@@ -7,17 +7,19 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.json.AttributeFilters;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.AbstractTracer;
+import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.SpanProxy;
@@ -25,8 +27,11 @@ import com.newrelic.agent.tracing.W3CTraceState;
 import com.newrelic.agent.tracing.W3CTraceStateSupport;
 import com.newrelic.agent.util.TimeConversion;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -77,6 +82,35 @@ public class TracerToSpanEvent {
         this.defaultSpanErrorBuilder = defaultSpanErrorBuilder;
     }
 
+    /**
+     * Converts the OpenTelemetry SpanLinks stored on the Tracer into the New Relic LinkOnSpan
+     * data model and returns a list of all links to be added to the New Relic SpanEvent that
+     * is being synthesized.
+     *
+     * @param tracer          represents a specific traced method
+     * @param transactionData data on a specific transaction
+     * @return List of LinkOnSpan events or an empty list if there are no links
+     */
+    public List<LinkOnSpan> createLinkOnSpanEvents(Tracer tracer, TransactionData transactionData) {
+        List<SpanLink> spanLinks = ((DefaultTracer) tracer).getSpanLinks();
+        if (spanLinks.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<LinkOnSpan> linkOnSpanEvents = new ArrayList<>();
+        for (SpanLink spanLink : spanLinks) {
+            LinkOnSpan linkOnSpan = new LinkOnSpanFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+                    .setTimestamp(tracer.getStartTimeInMillis())
+                    .setId(spanLink.getId())
+                    .setTraceId(spanLink.getTraceId())
+                    .setLinkedSpanId(spanLink.getLinkedSpanId())
+                    .setLinkedTraceId(spanLink.getLinkedTraceId())
+                    .putAllUserAttributes(spanLink.getUserAttributes())
+                    .build();
+            linkOnSpanEvents.add(linkOnSpan);
+        }
+        return linkOnSpanEvents;
+    }
+
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
             boolean crossProcessOnly) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
@@ -95,7 +129,8 @@ public class TracerToSpanEvent {
                 .setExternalParameterAttributes(tracer.getExternalParameters())
                 .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
-                .setIsRootSpanEvent(isRoot);
+                .setIsRootSpanEvent(isRoot)
+                .setLinkOnSpanEvents(createLinkOnSpanEvents(tracer, transactionData));
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);
@@ -127,7 +162,7 @@ public class TracerToSpanEvent {
     private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
         Map<String, Object> agentAttributes = tracer.getAgentAttributes();
         boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
-        if (containsGraphQLAttributes){
+        if (containsGraphQLAttributes) {
             agentAttributes.entrySet().stream()
                     .filter(e -> e.getKey().contains("graphql"))
                     .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));
