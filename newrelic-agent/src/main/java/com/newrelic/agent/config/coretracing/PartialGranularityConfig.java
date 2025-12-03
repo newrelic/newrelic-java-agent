@@ -21,9 +21,9 @@ public class PartialGranularityConfig extends CoreTracingConfig {
 
     private final PartialSampleType type;
 
-    private final FullGranularityConfig fullGranularityConfig;
+    private final BaseSamplerCoreTracingConfig fullGranularityConfig;
 
-    public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot, FullGranularityConfig fullGranularityConfig) {
+    public PartialGranularityConfig(Map<String, Object> props, String samplerSystemPropertyRoot, BaseSamplerCoreTracingConfig fullGranularityConfig) {
         super(props, samplerSystemPropertyRoot + CoreTracingConfig.PARTIAL_GRANULARITY + ".", PARTIAL_GRANULARITY_ENABLED_DEFAULT);
         this.type = initType();
         this.fullGranularityConfig = fullGranularityConfig;

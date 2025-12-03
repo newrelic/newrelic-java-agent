@@ -12,24 +12,24 @@ import com.newrelic.agent.config.BaseConfig;
 import java.util.Map;
 
 /**
- * This class provides the basic configuration structure for all three stanzas in which core tracing can be specified, eg:
+ * This class provides the basic configuration structure for the two stanzas in which core tracing can be specified, eg:
  * <p>
  * distributed_tracing:
  *   sampler:
  *     root:
  *     ...
  *     full_granularity:
- *       root:
- *       ...
+ *       enabled:
  *     partial_granularity:
+ *       enabled:
  *       type:
  *       root:
  *       ...
  * <p>
- * The "sampler" and more specific "sampler.full_granularity" stanzas are equivalent. Stanza-specific configuration options are
+ * Stanza-specific configuration options are
  * provided in the subclasses.
  */
-public class CoreTracingConfig extends BaseConfig {
+public abstract class CoreTracingConfig extends BaseConfig {
     //granularity options
     public static final String BASE = "base";
     public static final String FULL_GRANULARITY = "full_granularity";
@@ -55,7 +55,7 @@ public class CoreTracingConfig extends BaseConfig {
         return enabled;
     }
 
-    //These sampler-getters have to be lazy initialized due to subtle inheritance issues with FullGranularityConfig.
+    //These sampler-getters have to be lazy initialized due to subtle inheritance issues with PartialGranularityConfig.
     public SamplerConfig getRootSampler(){
         if (rootSampler == null) {
             rootSampler = createSamplerConfig(ROOT);
@@ -86,7 +86,7 @@ public class CoreTracingConfig extends BaseConfig {
         }
     }
 
-    protected SamplerConfig createSamplerConfig(String samplerCase){
+    public SamplerConfig createSamplerConfig(String samplerCase){
         return new SamplerConfig(samplerCase, getProperties(), systemPropertyPrefix);
-    }
+    };
 }

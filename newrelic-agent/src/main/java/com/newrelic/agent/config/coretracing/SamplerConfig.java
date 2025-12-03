@@ -90,16 +90,9 @@ public class SamplerConfig extends BaseConfig {
     private String samplerType;
     private Float samplerRatio;
     private Integer samplingTarget;
-    private final SamplerConfig configDelegate;
-    private final AtomicBoolean shouldUseConfigDelegate = new AtomicBoolean(false);
 
     public SamplerConfig(String sampler, Map<String, Object> props, String parentRoot) {
-       this(sampler, props, parentRoot, null);
-    }
-
-    public SamplerConfig(String sampler, Map<String, Object> props, String parentRoot, SamplerConfig configDelegate) {
         super(props, parentRoot);
-        this.configDelegate = configDelegate; //MAY BE NULL
         this.sampler = sampler;
         this.samplerProps = getProperty(sampler);
         this.samplerType = initSamplerType();
@@ -135,12 +128,7 @@ public class SamplerConfig extends BaseConfig {
             if (samplerProps == null) {
                 //In the default case (nothing specified), fall back to the config delegate if set.
                 //This is the only scenario in which the delegate should be switched into "in use".
-                if (configDelegate != null) {
-                    shouldUseConfigDelegate.set(true);
-                    samplerType = configDelegate.getSamplerType();
-                } else {
-                    samplerType = DEFAULT_SAMPLER_TYPE;
-                }
+                samplerType = DEFAULT_SAMPLER_TYPE;
             } else if (samplerProps instanceof String) {
                 if (samplerProps.equals(ALWAYS_ON)) {
                     samplerType = ALWAYS_ON;
@@ -197,23 +185,19 @@ public class SamplerConfig extends BaseConfig {
 
     private Float initSamplerRatio() {
         if (samplerRatio == null && TRACE_ID_RATIO_BASED.equals(getSamplerType())) {
-            if (shouldUseConfigDelegate.get()) {
-                samplerRatio = configDelegate.getSamplerRatio();
-            } else {
-                Object ratio = getSamplerSuboption(TRACE_ID_RATIO_BASED, RATIO);
-                //validation section
-                if (ratio != null) {
-                    if (ratio instanceof Number) {
-                        samplerRatio = ((Number) ratio).floatValue();
-                        if (!Sampler.isValidTraceRatio(samplerRatio)) {
-                            logInvalidRatioAndSetToDefault(samplerRatio);
-                        }
-                    } else {
-                        logInvalidRatioAndSetToDefault(ratio);
+            Object ratio = getSamplerSuboption(TRACE_ID_RATIO_BASED, RATIO);
+            //validation section
+            if (ratio != null) {
+                if (ratio instanceof Number) {
+                    samplerRatio = ((Number) ratio).floatValue();
+                    if (!Sampler.isValidTraceRatio(samplerRatio)) {
+                        logInvalidRatioAndSetToDefault(samplerRatio);
                     }
                 } else {
-                    logInvalidRatioAndSetToDefault("ratio not set");
+                    logInvalidRatioAndSetToDefault(ratio);
                 }
+            } else {
+                logInvalidRatioAndSetToDefault("ratio not set");
             }
         }
         return samplerRatio;
