@@ -100,7 +100,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         // no need to add rootSpan to the list yet, we don't need to consider it during merging, add it later
 
         if (rootSpan == null) {
-            Agent.LOG.log(Level.FINER, "Root span failed to be created for trace id: {0}, either the reservoir is full or there was an error.  No other spans will be created",
+            Agent.LOG.log(Level.FINER, "Root span partial granularity failed to be created for trace id: {0}, either the reservoir is full, we are in cross_process_only mode or there was an error.  No other spans will be created",
                     transactionData.getTraceId());
             return spans;
         }
@@ -185,7 +185,9 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         List<SpanEvent> spans = new ArrayList<>(tracers.size()+1);
         Tracer rootTracer = transactionData.getRootTracer();
         SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, false);
-        spans.add(rootSpan);
+        if (rootSpan != null) { // we are in cross process only mode, so no span generated for root
+            spans.add(rootSpan);
+        }
 
         for (Tracer tracer : tracers) {
             if (tracer.isTransactionSegment()) {
