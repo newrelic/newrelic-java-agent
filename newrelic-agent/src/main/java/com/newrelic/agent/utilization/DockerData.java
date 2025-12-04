@@ -9,6 +9,7 @@ package com.newrelic.agent.utilization;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.config.AwsConfig;
 import com.newrelic.agent.config.internal.SystemEnvironmentFacade;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -59,6 +60,12 @@ public class DockerData {
     private static final Pattern DOCKER_CONTAINER_STRING_V1 = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
     private static final Pattern DOCKER_CONTAINER_STRING_V2 = Pattern.compile(".*/docker/containers/([0-9a-f]{64,}).*");
 
+    private final AwsConfig awsConfig;
+
+    public DockerData(AwsConfig awsConfig) {
+        this.awsConfig = awsConfig;
+    }
+
     public String getDockerContainerIdForEcsFargate(boolean isLinux) {
         if (isLinux) {
             String result;
@@ -69,7 +76,7 @@ public class DockerData {
                 fargateUrl = System.getenv(AWS_ECS_METADATA_V4_ENV_VAR);
                 if (fargateUrl != null) {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (v4): {0}", fargateUrl);
-                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl, awsConfig));
                     if (result != null) {
                         Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
                         return result;
@@ -79,7 +86,7 @@ public class DockerData {
                 fargateUrl = System.getenv(AWS_ECS_METADATA_UNVERSIONED_ENV_VAR);
                 if (fargateUrl != null) {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (unversioned): {0}", fargateUrl);
-                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl, awsConfig));
                     if (result != null) {
                         Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
                         return result;
