@@ -6,9 +6,14 @@
  */
 package com.newrelic.agent.utilization;
 
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AwsConfig;
+import com.newrelic.agent.service.ServiceFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -17,13 +22,21 @@ import java.net.URLConnection;
  */
 public class AwsFargateMetadataFetcher {
     private final URL url;
+    private final AwsConfig awsConfig;
 
-    public AwsFargateMetadataFetcher(String metadataUrl) throws MalformedURLException {
+    public AwsFargateMetadataFetcher(String metadataUrl, AwsConfig awsConfig) throws MalformedURLException {
         url = new URL(metadataUrl);
+        this.awsConfig = awsConfig;
     }
 
     public InputStream openStream() throws IOException {
-        URLConnection connection = url.openConnection();
+        URLConnection connection;
+
+        if (awsConfig.isFargateMetadataEndpointProxyDisabled()) {
+            connection = url.openConnection(Proxy.NO_PROXY);
+        } else {
+            connection = url.openConnection();
+        }
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(5000);
 
