@@ -10,6 +10,7 @@ package com.newrelic.agent.bridge;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.InboundHeaders;
@@ -68,6 +69,10 @@ public class MockTracer implements ExitTracer {
     @Override
     public String getMetricName() {
         return Strings.join('/', metricName);
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
     }
 
     @Override
