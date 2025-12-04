@@ -9,6 +9,7 @@ package com.newrelic.agent.utilization;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AwsConfig;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.service.AbstractService;
@@ -58,7 +59,7 @@ public class UtilizationService extends AbstractService {
     private final ExecutorService executor = Executors.newFixedThreadPool(2, new DefaultThreadFactory(THREAD_NAME, true));
     private Future<UtilizationData> future = null;
 
-    private static final DockerData dockerData = new DockerData();
+
     private static final String THREAD_NAME = "New Relic Utilization Service";
 
     /**
@@ -71,6 +72,7 @@ public class UtilizationService extends AbstractService {
     private final boolean detectGcp;
     private final boolean detectAzure;
     private final boolean detectKubernetes;
+    private final DockerData dockerData;
 
     private static final CloudUtility cloudUtility = new CloudUtility();
     private static final AWS aws = new AWS(cloudUtility);
@@ -89,6 +91,7 @@ public class UtilizationService extends AbstractService {
         detectGcp = agentConfig.getValue(DETECT_GOOGLE_CLOUD_PROVIDER_KEY, Boolean.TRUE);
         detectAzure = agentConfig.getValue(DETECT_AZURE_KEY, Boolean.TRUE);
         detectKubernetes = agentConfig.getValue(DETECT_KUBERNETES_KEY, Boolean.TRUE);
+        dockerData = new DockerData(agentConfig.getAwsConfig());
 
         hostName = Hostname.getHostname(agentConfig);
         fullHostName = Hostname.getFullHostname(agentConfig);
