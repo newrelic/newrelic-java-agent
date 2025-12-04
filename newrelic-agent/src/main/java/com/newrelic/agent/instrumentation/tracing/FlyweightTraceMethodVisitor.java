@@ -138,7 +138,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         addUnsupportedMethod(map, new Method("addCustomAttribute", "(Ljava/lang/String;Ljava/lang/Number;)V"));
         addUnsupportedMethod(map, new Method("addCustomAttribute", "(Ljava/lang/String;Z)V"));
         addUnsupportedMethod(map, new Method("addCustomAttributes", "(Ljava/util/Map;)V"));
-
+        addUnsupportedMethod(map, new Method("addSpanLink", "(Lcom/newrelic/agent/bridge/opentelemetry/SpanLink;)V"));
         map.put(new Method("getParentTracedMethod", "()Lcom/newrelic/agent/bridge/TracedMethod;"), mv -> mv.loadLocal(parentTracerLocal));
 
         return map;
