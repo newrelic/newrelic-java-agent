@@ -18,6 +18,7 @@ import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.ExplainPlanExecutor;
@@ -276,6 +277,10 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     @Override
     public long getDuration() {
         return 0;
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
     }
 
     @Override
