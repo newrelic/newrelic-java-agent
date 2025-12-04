@@ -253,6 +253,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     // nested configs (alphabetized)
     private final AttributesConfig attributesConfig;
     private final AuditModeConfig auditModeConfig;
+    private final AwsConfig awsConfig;
     private final TransactionTracerConfigImpl backgroundTransactionTracerConfig;
     private final BrowserMonitoringConfig browserMonitoringConfig;
     private final ClassTransformerConfig classTransformerConfig;
@@ -359,6 +360,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         keyTransactionConfig = initKeyTransactionConfig(apdexTInMillis);
         sqlTraceConfig = initSqlTraceConfig();
         auditModeConfig = initAuditModeConfig();
+        awsConfig = initAwsConfig();
         browserMonitoringConfig = initBrowserMonitoringConfig();
         classTransformerConfig = initClassTransformerConfig(litemode);
         crossProcessConfig = initCrossProcessConfig();
@@ -800,6 +802,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+    private AwsConfig initAwsConfig() {
+        Map<String, Object> props = nestedProps(AwsConfigImpl.ROOT);
+        return new AwsConfigImpl(props);
+    }
+
     private BrowserMonitoringConfig initBrowserMonitoringConfig() {
         Map<String, Object> props = nestedProps(BROWSER_MONITORING);
         return BrowserMonitoringConfigImpl.createBrowserMonitoringConfig(props);
@@ -1023,6 +1030,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public AuditModeConfig getAuditModeConfig() {
         return auditModeConfig;
     }
+
+    @Override
+    public AwsConfig getAwsConfig() { return awsConfig; }
 
     @Override
     public boolean liteMode() {
