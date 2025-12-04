@@ -6,9 +6,7 @@
  */
 package com.newrelic.agent.utilization;
 
-import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AwsConfig;
-import com.newrelic.agent.service.ServiceFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
