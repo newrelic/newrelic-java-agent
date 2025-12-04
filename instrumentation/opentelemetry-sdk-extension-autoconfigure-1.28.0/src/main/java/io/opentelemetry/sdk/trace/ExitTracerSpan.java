@@ -186,22 +186,13 @@ public class ExitTracerSpan implements ReadWriteSpan {
     }
 
     private void copySpanLinksToTracer(List<LinkData> links) {
-        if (links == null || links.isEmpty()) {
-            // TODO is this condition useful?
-            System.out.println(
-                    "There are no SpanLinks for metric: " + tracer.getMetricName() + ", spanId: " + tracer.getSpanId() + ", traceId: " + tracer.getTraceId());
-        } else {
+        if (links != null && !links.isEmpty()) {
             for (LinkData linkData : links) {
                 String id = tracer.getSpanId();
                 String traceId = tracer.getTraceId();
                 String linkedSpanId = linkData.getSpanContext().getSpanId();
                 String linkedTraceId = linkData.getSpanContext().getTraceId();
                 Map<String, Object> linkDataAttributes = toMap(linkData.getAttributes());
-
-                System.out.println(
-                        "SpanLink for metric: " + tracer.getMetricName() + ", spanId: " + id + ", traceId: " + traceId + ", linkedSpanId: " + linkedSpanId +
-                                ", linkedTraceId: " + linkedTraceId);
-
                 tracer.addSpanLink(new SpanLink(this.startEpochNanos, id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
             }
         }
@@ -357,7 +348,6 @@ public class ExitTracerSpan implements ReadWriteSpan {
         token.link();
         return () -> {
             token.expire();
-            // TODO add SpanLinks to tracer before it ends??
             tracer.finish();
             scope.close();
         };
