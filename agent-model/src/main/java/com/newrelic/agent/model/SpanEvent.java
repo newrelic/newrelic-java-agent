@@ -12,6 +12,7 @@ import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,7 +115,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private final Map<String, Object> intrinsics = new HashMap<>();
         private final Map<String, Object> agentAttributes = new HashMap<>();
         private final Map<String, Object> userAttributes = new HashMap<>();
-        private List<LinkOnSpan> linkOnSpanEvents;
+        private List<LinkOnSpan> linkOnSpanEvents = new ArrayList<>();
         private String appName;
         private float priority;
         private long timestamp;
@@ -133,8 +134,6 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         public Builder linkOnSpanEvents(List<LinkOnSpan> linkOnSpanEvents) {
             if (linkOnSpanEvents != null) {
                 this.linkOnSpanEvents = linkOnSpanEvents;
-            } else {
-                this.linkOnSpanEvents = Collections.emptyList();
             }
             return this;
         }
