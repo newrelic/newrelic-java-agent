@@ -531,7 +531,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      * @param autoAppNamingAssociationEnabled true if enabled_auto_app_naming and auto_app_naming_association
      * is also true. If true, logs will be associated with their corresponding entity and not the roll up
      * entity.
-     *                                        
+     *
      * @return LogEvent instance
      */
     private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter,
