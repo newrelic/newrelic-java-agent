@@ -23,6 +23,7 @@ import com.newrelic.api.agent.Request;
 import com.newrelic.api.agent.Response;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, TransactionActivityInitiator {
@@ -222,6 +223,11 @@ public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, 
 
     @Override
     public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
     }
 
     @Override

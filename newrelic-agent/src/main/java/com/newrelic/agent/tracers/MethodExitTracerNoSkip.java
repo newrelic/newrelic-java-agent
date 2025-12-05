@@ -16,6 +16,7 @@ import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.trace.TransactionSegment;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -212,5 +213,10 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
 
     @Override
     public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
     }
 }

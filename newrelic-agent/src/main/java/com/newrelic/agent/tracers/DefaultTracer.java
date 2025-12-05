@@ -620,6 +620,7 @@ public class DefaultTracer extends AbstractTracer {
         spanLinks.add(link);
     }
 
+    @Override
     public List<SpanLink> getSpanLinks() {
         return spanLinks;
     }

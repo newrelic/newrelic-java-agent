@@ -19,6 +19,7 @@ import com.newrelic.api.agent.OutboundHeaders;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,11 @@ public final class NoOpTracer implements Tracer {
 
     @Override
     public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
     }
 
     @Override

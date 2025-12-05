@@ -7,19 +7,12 @@
 
 package com.newrelic.agent.instrumentation.sql;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
-import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.ExplainPlanExecutor;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -27,8 +20,16 @@ import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class NoOpTrackingSqlTracer implements SqlTracer {
     public Connection connection = null;
@@ -284,6 +285,11 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
+    }
+
+    @Override
     public TracedMethod getParentTracedMethod() {
         return null;
     }
@@ -430,6 +436,6 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
-    public void excludeLeaf(){
+    public void excludeLeaf() {
     }
 }

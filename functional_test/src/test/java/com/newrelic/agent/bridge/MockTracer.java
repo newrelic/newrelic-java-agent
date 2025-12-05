@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
@@ -73,6 +74,11 @@ public class MockTracer implements ExitTracer {
 
     @Override
     public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
     }
 
     @Override

@@ -12,6 +12,8 @@ import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.util.List;
+
 /**
  * The internal bridge version of TracedMethod.
  */
@@ -35,6 +37,13 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
      * @param link a SpanLink
      */
     void addSpanLink(SpanLink link);
+
+    /**
+     * Get a list of SpanLinks associated with this traced method.
+     *
+     * @return list of SpanLinks
+     */
+    List<SpanLink> getSpanLinks();
 
     /**
      * Returns the parent of this traced method, or null if this is the root tracer.

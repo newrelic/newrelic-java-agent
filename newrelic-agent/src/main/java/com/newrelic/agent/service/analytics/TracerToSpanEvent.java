@@ -10,6 +10,7 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
+import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.json.AttributeFilters;
@@ -92,7 +93,7 @@ public class TracerToSpanEvent {
      * @return List of LinkOnSpan events or an empty list if there are no links
      */
     public List<LinkOnSpan> createLinkOnSpanEvents(Tracer tracer, TransactionData transactionData) {
-        List<SpanLink> spanLinks = ((DefaultTracer) tracer).getSpanLinks();
+        List<SpanLink> spanLinks = tracer.getSpanLinks();
         if (spanLinks.isEmpty()) {
             return Collections.emptyList();
         }

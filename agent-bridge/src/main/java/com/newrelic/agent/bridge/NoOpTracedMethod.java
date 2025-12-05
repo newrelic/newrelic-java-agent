@@ -12,6 +12,7 @@ import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.util.List;
 import java.util.Map;
 
 public final class NoOpTracedMethod implements TracedMethod {
@@ -31,6 +32,11 @@ public final class NoOpTracedMethod implements TracedMethod {
 
     @Override
     public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return null;
     }
 
     @Override
