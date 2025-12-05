@@ -1,18 +1,50 @@
 name: test-action-workflow.yml
+
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ 'mvick/test-action' ]
 
 jobs:
-  build:
-    permissions:
-      contents: read
-      actions: read
+  setup-test-tag:
+    name: Setup Test Tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout action repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push temporary tag for testing
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -f v0.0.0 HEAD
+          git push -f origin v0.0.0
+
+  test-agent-metadata-action:
     runs-on: ubuntu-latest
     steps:
       - name: Run action
         uses: newrelic/agent-metadata-action@v0.0.5
         with:
           agent-type: "java"
-          version: "8.25.0"
+          version: "0.0.0"
           cache: false
+
+  cleanup-test-tag:
+    name: Cleanup Test Tag
+    runs-on: ubuntu-latest
+    needs: [test-agent-metadata-action]
+    if: always()
+    steps:
+      - name: Checkout action repository
+        uses: actions/checkout@v4
+
+      - name: Delete temporary tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git push origin :refs/tags/v0.0.0 || true
