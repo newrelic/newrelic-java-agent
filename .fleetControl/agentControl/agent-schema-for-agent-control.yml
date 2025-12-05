@@ -1,0 +1,61 @@
+namespace: newrelic
+name: com.newrelic.apm_java
+version: 0.1.0
+variables:
+  k8s:
+    version:
+      description: "Java Agent init container version"
+      type: string
+      default: "latest"
+      required: false
+    podLabelSelector:
+      description: "Pod label selector"
+      type: yaml
+      default: { }
+      required: false
+    namespaceLabelSelector:
+      description: "Namespace label selector"
+      type: yaml
+      default: { }
+      required: false
+    env:
+      description: "environment variables to pass to Java agent"
+      type: yaml
+      default: [ ]
+      required: false
+    health_env:
+      description: "environment variables to pass to health sidecar"
+      type: yaml
+      default: [ ]
+      required: false
+    health_version:
+      description: "health sidecar image version"
+      type: string
+      default: "latest"
+      required: false
+deployment:
+  k8s:
+    health:
+      interval: 30s
+      initial_delay: 30s
+    objects:
+      instrumentation:
+        apiVersion: newrelic.com/v1beta1
+        kind: Instrumentation
+        metadata:
+          name: ${nr-sub:agent_id}
+          # APM CRs should be installed in "nr-ac:namespace"
+          # Due to a limitation in the k8s-agents-operator, Instrumentation CRs must be installed in the same namespace as the operator.
+          # Hence, the namespace is set to "nr-ac:namespace_agents".
+          # Reference: https://github.com/newrelic/k8s-agents-operator/blob/92c19208864f051f03f457ee04b772fca5042162/api/v1beta1/instrumentation_webhook.go#L110C27-L110C72
+          namespace: ${nr-ac:namespace_agents}
+        spec:
+          agent:
+            language: java
+            image: newrelic/newrelic-java-init:${nr-var:version}
+            env: ${nr-var:env}
+          healthAgent:
+            image: newrelic/k8s-apm-agent-health-sidecar:${nr-var:health_version}
+            env: ${nr-var:health_env}
+          podLabelSelector: ${nr-var:podLabelSelector}
+          namespaceLabelSelector: ${nr-var:namespaceLabelSelector}

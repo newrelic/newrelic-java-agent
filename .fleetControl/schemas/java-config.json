@@ -1,0 +1,402 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://newrelic.com/schemas/java-agent-configuration.json",
+  "title": "New Relic Java Agent Configuration Schema",
+  "version": "1.0.0",
+  "description": "Schema for New Relic Java agent configuration (newrelic.yml)",
+  "type": "object",
+  "properties": {
+    "common": {
+      "type": "object",
+      "description": "Common configuration settings shared across all environments",
+      "properties": {
+        "license_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "New Relic license key",
+          "examples": ["<%= license_key %>", "your_license_key_here"]
+        },
+        "agent_enabled": {
+          "type": "boolean",
+          "description": "Enable or disable the agent",
+          "default": true
+        },
+        "app_name": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            }
+          ],
+          "description": "Application name(s) as they will appear in New Relic",
+          "examples": ["My Application", ["My App", "My App Staging"]]
+        },
+        "high_security": {
+          "type": "boolean",
+          "description": "Enable high security mode",
+          "default": false
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["off", "severe", "warning", "info", "fine", "finer", "finest"],
+          "description": "Log level for the agent",
+          "default": "info"
+        },
+        "audit_mode": {
+          "type": "boolean",
+          "description": "Enable audit mode for debugging",
+          "default": false
+        },
+        "log_file_name": {
+          "type": "string",
+          "description": "Name of the log file",
+          "default": "newrelic_agent.log"
+        },
+        "log_limit_in_kbytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum size of log file in kilobytes",
+          "default": 0
+        },
+        "log_daily": {
+          "type": "boolean",
+          "description": "Enable daily log rotation",
+          "default": false
+        },
+        "proxy_host": {
+          "type": "string",
+          "description": "Proxy server hostname"
+        },
+        "proxy_port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Proxy server port"
+        },
+        "proxy_user": {
+          "type": "string",
+          "description": "Proxy authentication username"
+        },
+        "proxy_password": {
+          "type": "string",
+          "description": "Proxy authentication password"
+        },
+        "capture_params": {
+          "type": "boolean",
+          "description": "Capture HTTP request parameters",
+          "default": false
+        },
+        "ignored_params": {
+          "type": "string",
+          "description": "Comma-separated list of HTTP parameters to ignore"
+        },
+        "error_collector": {
+          "type": "object",
+          "description": "Error collection configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable error collection",
+              "default": true
+            },
+            "capture_source": {
+              "type": "boolean",
+              "description": "Capture source code in error traces",
+              "default": false
+            },
+            "ignore_errors": {
+              "type": "string",
+              "description": "Comma-separated list of exception classes to ignore"
+            },
+            "ignore_classes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of exception classes to ignore"
+            },
+            "ignore_status_codes": {
+              "type": "string",
+              "description": "Comma-separated list of HTTP status codes to ignore"
+            }
+          },
+          "additionalProperties": false
+        },
+        "transaction_tracer": {
+          "type": "object",
+          "description": "Transaction tracer configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable transaction tracing",
+              "default": true
+            },
+            "transaction_threshold": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["apdex_f"]
+                },
+                {
+                  "type": "number",
+                  "minimum": 0
+                }
+              ],
+              "description": "Threshold for transaction traces (seconds or 'apdex_f')",
+              "default": "apdex_f"
+            },
+            "record_sql": {
+              "type": "string",
+              "enum": ["off", "obfuscated", "raw"],
+              "description": "SQL recording mode",
+              "default": "obfuscated"
+            },
+            "explain_enabled": {
+              "type": "boolean",
+              "description": "Enable SQL explain plans",
+              "default": true
+            },
+            "explain_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Threshold for SQL explain plans (seconds)",
+              "default": 0.5
+            },
+            "stack_trace_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Threshold for stack traces (seconds)",
+              "default": 0.5
+            },
+            "slow_query_threshold": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Threshold for slow query traces (seconds)",
+              "default": 2.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "cross_application_tracer": {
+          "type": "object",
+          "description": "Cross application tracing configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable cross application tracing",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "thread_profiler": {
+          "type": "object",
+          "description": "Thread profiler configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable thread profiling",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "browser_monitoring": {
+          "type": "object",
+          "description": "Real User Monitoring (RUM) configuration",
+          "properties": {
+            "auto_instrument": {
+              "type": "boolean",
+              "description": "Enable automatic RUM injection",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "class_transformer": {
+          "type": "object",
+          "description": "Class transformation configuration",
+          "properties": {
+            "com.newrelic.instrumentation.servlet-user": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "com.newrelic.instrumentation.spring-aop-2": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "labels": {
+          "type": "string",
+          "description": "Semicolon-separated list of key:value labels",
+          "examples": ["Server:One;Data Center:Primary"]
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Attribute configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable attribute collection",
+              "default": true
+            },
+            "include": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of attributes to include"
+            },
+            "exclude": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of attributes to exclude"
+            }
+          },
+          "additionalProperties": false
+        },
+        "distributed_tracing": {
+          "type": "object",
+          "description": "Distributed tracing configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable distributed tracing",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "span_events": {
+          "type": "object",
+          "description": "Span events configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable span events",
+              "default": true
+            },
+            "max_samples_stored": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum number of span events to store",
+              "default": 2000
+            }
+          },
+          "additionalProperties": false
+        },
+        "application_logging": {
+          "type": "object",
+          "description": "Application logging configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable application logging features",
+              "default": true
+            },
+            "forwarding": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable log forwarding",
+                  "default": true
+                },
+                "max_samples_stored": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Maximum number of log events to store",
+                  "default": 10000
+                }
+              },
+              "additionalProperties": false
+            },
+            "metrics": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable logging metrics",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "local_decorating": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Enable local log decoration",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["license_key", "app_name"],
+      "additionalProperties": false
+    },
+    "development": {
+      "type": "object",
+      "description": "Development environment specific configuration",
+      "additionalProperties": true
+    },
+    "test": {
+      "type": "object",
+      "description": "Test environment specific configuration",
+      "additionalProperties": true
+    },
+    "production": {
+      "type": "object",
+      "description": "Production environment specific configuration",
+      "additionalProperties": true
+    },
+    "staging": {
+      "type": "object",
+      "description": "Staging environment specific configuration",
+      "additionalProperties": true
+    }
+  },
+  "required": ["common"],
+  "additionalProperties": {
+    "type": "object",
+    "description": "Custom environment configuration",
+    "additionalProperties": true
+  }
+}
