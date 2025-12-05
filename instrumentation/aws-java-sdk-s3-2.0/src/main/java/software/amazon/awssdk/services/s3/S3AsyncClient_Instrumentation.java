@@ -7,14 +7,14 @@
 
 package software.amazon.awssdk.services.s3;
 
-import com.agent.instrumentation.awsjavasdk2.services.s3.S3MetricUtil;
+import com.agent.instrumentation.awsjavasdk2.services.s3.ResultWrapper;
+import com.agent.instrumentation.awsjavasdk2.services.s3.S3ResponseResultWrapper;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import java.util.Optional;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -34,10 +34,8 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Response;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 
 @Weave(type = MatchType.Interface, originalName = "software.amazon.awssdk.services.s3.S3AsyncClient")
 public class S3AsyncClient_Instrumentation {
@@ -130,44 +128,5 @@ public class S3AsyncClient_Instrumentation {
         CompletableFuture<DeleteObjectsResponse> result = Weaver.callOriginal();
 
         return result.whenComplete(new S3ResponseResultWrapper<>(segment, uri, "deleteObjects"));
-    }
-
-    private class ResultWrapper<T, U> implements BiConsumer<T, U> {
-        private Segment segment;
-
-        public ResultWrapper(Segment segment) {
-            this.segment = segment;
-        }
-
-        @Override
-        public void accept(T t, U u) {
-            try {
-                segment.end();
-            } catch (Throwable t1) {
-                AgentBridge.instrumentation.noticeInstrumentationError(t1, Weaver.getImplementationTitle());
-            }
-        }
-    }
-
-    private class S3ResponseResultWrapper<T extends S3Response, U> implements BiConsumer<T, U> {
-        private Segment segment;
-        private String uri;
-        private String operationName;
-
-        public S3ResponseResultWrapper(Segment segment, String uri, String operationName) {
-            this.segment = segment;
-            this.uri = uri;
-            this.operationName = operationName;
-        }
-
-        @Override
-        public void accept(T s3Response, U u) {
-            try {
-                S3MetricUtil.reportExternalMetrics(segment, uri, s3Response, operationName);
-                segment.end();
-            } catch (Throwable t1) {
-                AgentBridge.instrumentation.noticeInstrumentationError(t1, Weaver.getImplementationTitle());
-            }
-        }
     }
 }

@@ -1,0 +1,32 @@
+jar {
+    // Make sure to update the instrumentation name (e.g. logback-classic-1.5.20) in the AgentUtil class so that log events show the correct source attribute
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.logback-classic-1.5.20' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("ch.qos.logback:logback-classic:1.5.20")
+}
+
+verifyInstrumentation {
+    passesOnly("ch.qos.logback:logback-classic:[1.5.20,)")
+    excludeRegex '.*(alpha|groovyless).*'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 11+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}
+
+site {
+    title 'Logback'
+    type 'Logging'
+}

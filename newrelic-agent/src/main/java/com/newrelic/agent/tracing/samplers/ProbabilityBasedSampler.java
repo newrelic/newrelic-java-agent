@@ -7,7 +7,8 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.coretracing.SamplerConfig;
+import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -25,8 +26,8 @@ import java.util.logging.Level;
  * deterministic random value (R) is derived by extracting the last 7 bytes
  * (14 characters) of the id and converting into a long value.
  * <br>
- * If this value is greater than or equal to T, we return a priority of 2.0 which
- * will mark this trace for sampling.
+ * If this value is greater than or equal to T, we return a priority of
+ * (Random Float Value of 0.0 - 1) + 1.0 which will mark this trace for sampling.
  */
 public class ProbabilityBasedSampler implements Sampler {
     private final long rejectionThreshold;
@@ -53,9 +54,10 @@ public class ProbabilityBasedSampler implements Sampler {
     public float calculatePriority(Transaction tx) {
         String traceId = Sampler.traceIdFromTransaction(tx);
         if (traceId != null && traceId.length() == 32) {
+            float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last14Chars = traceId.substring(18);
-                return Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold ? 2.0f : 0.0f;
+                return initialPriority + (Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold ? 1.0f : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }
@@ -66,11 +68,6 @@ public class ProbabilityBasedSampler implements Sampler {
     @Override
     public String getType() {
         return SamplerFactory.PROBABILITY;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Probability Based Sampler, rejection threshold=" + rejectionThreshold;
     }
 
     /**

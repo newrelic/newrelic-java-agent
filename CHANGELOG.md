@@ -4,6 +4,50 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 8.25.0
+## New features and improvements
+- Adds Java 25 Support by @deleonenriqueta in [2512](https://github.com/newrelic/newrelic-java-agent/pull/2512)
+- Adds support for Logback-1.5.20 by @jtduffy in [2535](https://github.com/newrelic/newrelic-java-agent/pull/2535)
+- Introduces a config option to disable the execution of the `call` and `exec` SQL parser regular expressions by @jtduffy in [2490](https://github.com/newrelic/newrelic-java-agent/pull/2490)
+- Adds support for Kotlin Coroutines v1.4+ by @dhilpipre in [2454](https://github.com/newrelic/newrelic-java-agent/pull/2454)
+- Adds support for Kotlin Coroutines Suspend Functions generated outside of Kotlin Coroutines by @dhilpipre in [2456](https://github.com/newrelic/newrelic-java-agent/pull/2456)
+- Introduces a preference config for multiple hosts during datastore detection by @jbedell-newrelic in [2508](https://github.com/newrelic/newrelic-java-agent/pull/2508)
+- Adds a system property to configure the artifact skip function by @jtduffy in [2509](https://github.com/newrelic/newrelic-java-agent/pull/2509)
+- Adds a configuration option allowing Spring Controller transactions to be named using the controller class name and method name by @sharvath-newrelic in [2532](https://github.com/newrelic/newrelic-java-agent/pull/2532)
+- Implement SamplerConfig, centralizing all `distributed_tracing.sampler` configs into the `SamplerConfig` by @jasonjkeller in [2529](https://github.com/newrelic/newrelic-java-agent/pull/2529)
+- Updated `kafka-clients-spans-0.11.0.0` producer instrumentation to use modern distributed tracing API’s with W3C Trace Context support by @sharvath-newrelic in [2516](https://github.com/newrelic/newrelic-java-agent/pull/2516)
+
+
+## Fixes
+- Fixes parsing of error class names by @sharvath-newrelic in [2497](https://github.com/newrelic/newrelic-java-agent/pull/2497)
+- Fixed a potential memory issue caused by excessively large stack traces in error logging by @jtduffy in [2498](https://github.com/newrelic/newrelic-java-agent/pull/2498)
+- Clarify logging messages for invalid attributes on custom events and logging events by @sharvath-newrelic in [2501](https://github.com/newrelic/newrelic-java-agent/pull/2501)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release.
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+- `spring-3.0.0`
+- `thrift-0.8`
+- `solr-4.0.0`
+- `solr-5.0.0`
+- `jdbc-inet-merlia`
+- `jdbc-inet-oranxo`
+- `grails-1.3`
+- `rabbit-amqp-1.7.2`
+- `rabbit-amqp-2.4.1`
+- `rabbit-amqp-2.5.0`
+- `rabbit-amqp-2.7.0`
+- `glassfish-3`
+- `hibernate-3.3`
+- `hibernate-3.5`
+- `jdbc-jtds`
+
+
 ## Version 8.24.0
 ## New features and improvements
 
@@ -84,7 +128,16 @@ The following instrumentation modules are deprecated and will be removed in the 
 
 - Fixes the `distributed_tracing.sampler` config in https://github.com/newrelic/newrelic-java-agent/pull/2330
 - Fixes an Illegal Access Error that can occur when using Scala 2.12 and JDK 11. In cases where Scala 2.12 is not detectable by the agent (we check the system classloader for this - notably, sbt will load Scala classes into custom Scala loaders), there is also a feature flag to manually enable the fix via system property `-Dnewrelic.config.class_transformer.illegal_access_fix=true` in https://github.com/newrelic/newrelic-java-agent/pull/2334
-- Fixes a logic error with the `netty.http2.frame_read_listener.start_transaction` configuration for the `netty-4.1.16` instrumentation module in https://github.com/newrelic/newrelic-java-agent/pull/2355
+- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274) [2355](https://github.com/newrelic/newrelic-java-agent/pull/2355)
+  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
+
+  ```yaml
+    netty:
+      http2:
+        frame_read_listener:
+          start_transaction: true
+  ```
+  - 8.20 has a logic error in the agent config so the fix is only official in agent version 8.21 and up.
 - Adds a restriction on when to add distributed trace headers for SQS messages. This is based on how large the contents of a message is in bytes and the and the size of attributes. Messages with size greater than 251 KB and/or with 9 or more attributes are excluded from getting distributed trace headers added in https://github.com/newrelic/newrelic-java-agent/pull/2353
 - Allows the `org.crac` JAR to be shadowed to prevent conflicts with customer environments. by @jbedell-newrelic in https://github.com/newrelic/newrelic-java-agent/pull/2344
 - Backports changes made in PR #1927 to prevent `NullPointerExceptions` to older versions of the `vertx-core` instrumentation in https://github.com/newrelic/newrelic-java-agent/pull/2327
@@ -133,9 +186,8 @@ Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.7.0
 
 ## Fixes
 
-- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)
-  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
-
+- ~Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)~
+ 	- ~This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting~:
   ```yaml
     netty:
       http2:

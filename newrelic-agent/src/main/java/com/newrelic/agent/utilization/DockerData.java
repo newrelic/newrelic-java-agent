@@ -71,6 +71,7 @@ public class DockerData {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (v4): {0}", fargateUrl);
                     result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
                     if (result != null) {
+                        Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
                         return result;
                     }
                 }
@@ -78,11 +79,17 @@ public class DockerData {
                 fargateUrl = System.getenv(AWS_ECS_METADATA_UNVERSIONED_ENV_VAR);
                 if (fargateUrl != null) {
                     Agent.LOG.log(Level.INFO, "Attempting to fetch ECS Fargate container id from URL (unversioned): {0}", fargateUrl);
-                    return retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    result = retrieveDockerIdFromFargateMetadata(new AwsFargateMetadataFetcher(fargateUrl));
+                    if (result != null) {
+                        Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
+                        return result;
+                    }
                 }
             } catch (MalformedURLException e) {
                 Agent.LOG.log(Level.FINEST, "Invalid AWS Fargate metadata URL: {0}", fargateUrl);
             }
+
+            Agent.LOG.log(Level.INFO, "No container id found in either fargate URL");
         }
 
         return null;
@@ -92,18 +99,24 @@ public class DockerData {
         if (isLinux) {
             String result;
             //try to get the container id from the v2 location
+            Agent.LOG.log(Level.INFO, "Attempting to fetch container id from cgroups v2: {0}", FILE_WITH_CONTAINER_ID_V2);
             File containerIdFileV2 = new File(FILE_WITH_CONTAINER_ID_V2);
             result = getDockerIdFromFile(containerIdFileV2, CGroup.V2);
             if (result != null) {
+                Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
                 return result;
             }
 
             //try to get container id from the v1 location
+            Agent.LOG.log(Level.INFO, "Attempting to fetch container id from cgroups v1: {0}", FILE_WITH_CONTAINER_ID_V1);
             File containerIdFileV1 = new File(FILE_WITH_CONTAINER_ID_V1);
             result = getDockerIdFromFile(containerIdFileV1, CGroup.V1);
             if (result != null) {
+                Agent.LOG.log(Level.INFO, "Found container id: {0}", result);
                 return result;
             }
+
+            Agent.LOG.log(Level.INFO, "No container id found in either cgroup file");
         }
 
         return null;
@@ -155,7 +168,7 @@ public class DockerData {
             if (checkAndGetMatch(DOCKER_CONTAINER_STRING_V1, resultGoesHere, mayContainId)) {
                 return true;
             } else if (!mayContainId.equals("/")) {
-                Agent.LOG.log(Level.FINE, "Docker Data: Ignoring unrecognized cgroup ID format: {0}", mayContainId);
+                Agent.LOG.log(Level.FINE, "Ignoring unrecognized cgroup v1 ID format: {0}", mayContainId);
             }
         }
         return false;
@@ -221,12 +234,11 @@ public class DockerData {
             dockerId = (String) jsonObject.get(FARGATE_DOCKER_ID_KEY);
             Agent.LOG.log(Level.INFO, "ECS Fargate container id: {0} ", dockerId);
         } catch (IOException e) {
-            Agent.LOG.log(Level.WARNING, "Error opening input stream retrieving AWS Fargate metadata");
+            Agent.LOG.log(Level.WARNING, "Error opening input stream retrieving AWS Fargate metadata: {0}", e.getMessage());
         } catch (ParseException e) {
-            Agent.LOG.log(Level.WARNING, "Error parsing JSON blob for AWS Fargate metadata");
+            Agent.LOG.log(Level.WARNING, "Error parsing JSON blob for AWS Fargate metadata: {0}", e.getMessage());
         }
 
         return dockerId;
     }
-
 }
