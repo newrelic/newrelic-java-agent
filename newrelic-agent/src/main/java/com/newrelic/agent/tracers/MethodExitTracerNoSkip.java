@@ -217,6 +217,6 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
-        return null;
+        return Collections.emptyList();
     }
 }

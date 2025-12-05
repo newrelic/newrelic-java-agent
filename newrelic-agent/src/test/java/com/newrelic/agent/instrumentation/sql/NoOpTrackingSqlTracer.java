@@ -286,7 +286,7 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

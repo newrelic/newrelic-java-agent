@@ -40,7 +40,7 @@ public final class NoOpTracer implements Tracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

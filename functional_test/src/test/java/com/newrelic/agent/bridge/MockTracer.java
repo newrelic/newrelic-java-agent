@@ -8,6 +8,7 @@
 package com.newrelic.agent.bridge;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -78,7 +79,7 @@ public class MockTracer implements ExitTracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override

@@ -227,7 +227,7 @@ public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, 
 
     @Override
     public List<SpanLink> getSpanLinks() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
