@@ -7,7 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -31,6 +31,8 @@ import java.util.logging.Level;
  */
 public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
+    private final float ratio;
+    private final String description;
 
     /**
      * Construct a new TraceRatioBasedSampler with the desired ratio
@@ -48,6 +50,8 @@ public class TraceRatioBasedSampler implements Sampler {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "TraceRatioBasedSampler: Invalid sampling ratio supplied; setting " +
                     "threshold to {0}", threshold);
         }
+        this.ratio = traceRatio;
+        this.description = String.format("Trace Id Ratio Based Sampler, ratio=%.4f", traceRatio);
     }
 
     @Override
@@ -71,6 +75,11 @@ public class TraceRatioBasedSampler implements Sampler {
         return SamplerFactory.TRACE_RATIO_ID_BASED;
     }
 
+    @Override
+    public String getDescription(){
+        return description;
+    }
+
     /**
      * Retrieve the current rejection threshold value
      *
@@ -78,5 +87,9 @@ public class TraceRatioBasedSampler implements Sampler {
      */
     public long getThreshold() {
         return threshold;
+    }
+
+    public float getRatio() {
+        return ratio;
     }
 }

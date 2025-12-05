@@ -7,7 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.NewRelic;
 
@@ -68,6 +68,11 @@ public class ProbabilityBasedSampler implements Sampler {
     @Override
     public String getType() {
         return SamplerFactory.PROBABILITY;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Probability Based Sampler, rejection threshold=" + rejectionThreshold;
     }
 
     /**
