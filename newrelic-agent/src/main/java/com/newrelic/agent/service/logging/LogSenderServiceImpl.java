@@ -100,7 +100,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             // Get log events from the transaction when it is finished
             TransactionLogs data = (TransactionLogs) transactionData.getLogEventData();
             storeEvents(transactionData.getApplicationName(), transactionData.getPriority(), data.events);
-            Agent.LOG.log(Level.FINEST, "DUF-- {0}", transactionData.getApplicationName());
         }
 
         @Override
@@ -250,7 +249,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
             if (transaction != null && transaction.getApplicationName() != null) {
                 applicationName = transaction.getApplicationName();
-                Agent.LOG.log(Level.FINEST, "DUF-- non txn  {0} {1}", applicationName, transaction.getRPMService().getEntityGuid());
             }
 
             AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(applicationName);
@@ -530,6 +528,10 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      *
      * @param attributes           Map of attributes to create a LogEvent from
      * @param contextDataKeyFilter
+     * @param autoAppNamingAssociationEnabled true if enabled_auto_app_naming and auto_app_naming_association
+     * is also true. If true, logs will be associated with their corresponding entity and not the roll up
+     * entity.
+     *                                        
      * @return LogEvent instance
      */
     private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter,
