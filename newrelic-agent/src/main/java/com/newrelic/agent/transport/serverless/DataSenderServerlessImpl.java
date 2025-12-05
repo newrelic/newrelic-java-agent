@@ -94,8 +94,8 @@ public class DataSenderServerlessImpl implements DataSender {
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
         telemetryData.updateAnalyticEvents(events);
-        telemetryData.updateAnalyticReservoirSize(reservoirSize);
-        telemetryData.updateAnalyticEventsSeen(eventsSeen);
+        telemetryData.updateCustomEventsReservoirSize(reservoirSize);
+        telemetryData.updateCustomEventsSeen(eventsSeen);
         writeData(telemetryData);
     }
 
@@ -103,8 +103,8 @@ public class DataSenderServerlessImpl implements DataSender {
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
         TelemetryData telemetryData = new TelemetryData();
         telemetryData.updateAnalyticEvents(events);
-        telemetryData.updateAnalyticReservoirSize(events.size());
-        telemetryData.updateAnalyticEventsSeen(events.size());
+        telemetryData.updateLogEventsReservoir(events.size());
+        telemetryData.updateLogEventsSeen(events.size());
         writeData(telemetryData);
     }
 

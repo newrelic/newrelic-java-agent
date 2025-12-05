@@ -206,6 +206,13 @@ public class TransactionSegment implements JSONStreamAware {
 
     @Override
     public void writeJSONString(Writer writer) throws IOException {
+        final Map<String, ?> filteredAtts = getFilteredAttributes();
+        JSONArray.writeJSONString(Arrays.asList(entryTimestamp, exitTimestamp, metricName, filteredAtts, children,
+                classMethodSignature.getClassName(), classMethodSignature.getMethodName()), writer);
+
+    }
+
+    public Map<String, ?> getFilteredAttributes() {
         final Map<String, Object> params = new HashMap<>(tracerAttributes);
         processStackTraces(params);
         processSqlParams(params);
@@ -218,11 +225,7 @@ public class TransactionSegment implements JSONStreamAware {
             params.put(URL_PARAMETER_NAME, uri);
         }
 
-        final Map<String, ?> filteredAtts = ServiceFactory.getAttributesService().filterTransactionSegmentAttributes(appName, params);
-
-        JSONArray.writeJSONString(Arrays.asList(entryTimestamp, exitTimestamp, metricName, filteredAtts, children,
-                classMethodSignature.getClassName(), classMethodSignature.getMethodName()), writer);
-
+        return ServiceFactory.getAttributesService().filterTransactionSegmentAttributes(appName, params);
     }
 
     @SuppressWarnings("unchecked")

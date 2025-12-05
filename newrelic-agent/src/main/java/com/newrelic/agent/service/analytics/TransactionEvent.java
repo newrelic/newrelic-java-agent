@@ -324,9 +324,14 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         return true;
     }
 
-    @VisibleForTesting
     public Map<String, Object> getAgentAttributesCopy() {
         return new HashMap<>(agentAttributes);
+    }
+
+    // Only call for serverless testing
+    @VisibleForTesting
+    public void setAgentAttributes(Map<String, Object> agentAttributes) {
+        this.agentAttributes = agentAttributes;
     }
 
     public String getSyntheticsJobId() {

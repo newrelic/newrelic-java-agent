@@ -10,6 +10,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.CountStats;
 import com.newrelic.agent.stats.StatsBase;
+import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.agent.trace.TransactionTrace;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,9 +18,9 @@ import org.json.simple.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,12 @@ class TelemetryData {
     private Integer analyticEventsSeen = 0;
     private final Collection<AnalyticsEvent> analyticEvents = new ArrayList<>();
 
+    private Integer customEventsReservoirSize = 0;
+    private Integer customEventsSeen = 0;
+
+    private Integer logEventsReservoirSize = 0;
+    private Integer logEventsSeen = 0;
+
     Long metricBeginTimeMillis = 0L;
     Long metricEndTimeMillis = 0L;
     List<MetricData> metricData = new ArrayList<>();
@@ -63,18 +70,20 @@ class TelemetryData {
 
 
             if (!spanEvents.isEmpty()) {
-                addEvents(spanEvents, data, "span_event_data", spanReservoirSize, spanEventsSeen);
+                addEvents(spanEvents, data, "span_event_data", spanEventsSeen, spanReservoirSize);
             }
             if (!transactionTraces.isEmpty()) {
                 addTransactions(transactionTraces, data);
             }
 
             if (!analyticEvents.isEmpty()) {
-                addEvents(analyticEvents, data, "analytic_event_data", analyticReservoirSize, analyticEventsSeen);
+                int reservoirSize = analyticReservoirSize + customEventsReservoirSize + logEventsReservoirSize;
+                int eventsSeen = analyticEventsSeen + customEventsSeen + logEventsSeen;
+                addEvents(analyticEvents, data, "analytic_event_data", eventsSeen, reservoirSize);
             }
 
             if (!errorEvents.isEmpty()) {
-                addEvents(errorEvents, data, "error_event_data", errorReservoirSize, errorEventsSeen);
+                addEvents(errorEvents, data, "error_event_data", errorEventsSeen, errorReservoirSize);
             }
             if (!tracedErrors.isEmpty()) {
                 addErrors(tracedErrors, data);
@@ -100,7 +109,7 @@ class TelemetryData {
         JSONArray list = new JSONArray();
         list.add(null);
 
-        final Map<String, Object> eventInfo = new HashMap<>();
+        final JSONObject eventInfo = new JSONObject();
         eventInfo.put("events_seen", eventsSeen);
         eventInfo.put("reservoir_size", reservoirSize);
         list.add(eventInfo);
@@ -141,7 +150,12 @@ class TelemetryData {
                 agentAttributes.putAll(transactionEvent.getAgentAttributesCopy());
             }
 
-            formattedEvents.add(Arrays.asList(intrinsicAttributes, userAttributes, agentAttributes));
+            JSONArray eventData = new JSONArray();
+            eventData.add(intrinsicAttributes);
+            eventData.add(userAttributes);
+            eventData.add(agentAttributes);
+
+            formattedEvents.add(eventData);
         }
         list.add(formattedEvents);
         data.put(eventKey, list);
@@ -149,7 +163,7 @@ class TelemetryData {
 
     private static void addTransactions(List<TransactionTrace> transactionTraces, JSONObject data) {
         JSONArray list = new JSONArray();
-        list.add(null);
+        list.add(0, null);
 
         JSONArray formattedTransactions = new JSONArray();
         for (TransactionTrace trace : transactionTraces) {
@@ -158,7 +172,18 @@ class TelemetryData {
             traceData.add(trace.getDuration());
             traceData.add(trace.getRootMetricName());
             traceData.add(trace.getRequestUri());
-            traceData.add(trace.getTraceDetailsAsList());
+            // Todo: add trace details
+            JSONArray traceDetailsJson = new JSONArray();
+            for (Object item : trace.getTraceDetailsAsList()) {
+                if (item instanceof TransactionSegment) {
+                    TransactionSegment txnSeg = (TransactionSegment) item;
+                    JSONArray segmentJson = formatTransactionSegment(txnSeg);
+                    traceDetailsJson.add(segmentJson);
+                } else {
+                    traceDetailsJson.add(item);
+                }
+            }
+            traceData.add(traceDetailsJson);
             traceData.add(trace.getGuid());
             traceData.add(null);
             traceData.add(false);
@@ -166,8 +191,27 @@ class TelemetryData {
             traceData.add(trace.getSyntheticsResourceId());
             formattedTransactions.add(traceData);
         }
-        list.add(formattedTransactions);
+        list.add(1, formattedTransactions);
         data.put("transaction_sample_data", list);
+    }
+
+    private static JSONArray formatTransactionSegment(TransactionSegment txnSeg) {
+        JSONArray segmentJSON = new JSONArray();
+        segmentJSON.add(txnSeg.getStartTime());
+        segmentJSON.add(txnSeg.getEndTime());
+        segmentJSON.add(txnSeg.getMetricName());
+        segmentJSON.add(txnSeg.getFilteredAttributes());
+        JSONArray children = new JSONArray();
+        if (txnSeg.getChildren() != null) {
+            for (TransactionSegment item : txnSeg.getChildren()) {
+                JSONArray childSegmentJson = formatTransactionSegment(item);
+                children.add(childSegmentJson);
+            }
+        }
+        segmentJSON.add(children);
+        segmentJSON.add(txnSeg.getClassName());
+        segmentJSON.add(txnSeg.getMethodName());
+        return segmentJSON;
     }
 
     private static void addMetrics(List<MetricData> metrics, JSONObject data, Long metricsBegin, Long metricsEnd) {
@@ -176,7 +220,7 @@ class TelemetryData {
         list.add(metricsBegin);
         list.add(metricsEnd);
 
-        List<List<Object>> formattedMetrics = new ArrayList<>();
+        JSONArray formattedMetrics = new JSONArray();
 
         for (MetricData metricData : metrics) {
             JSONObject metricStrings = new JSONObject();
@@ -185,7 +229,11 @@ class TelemetryData {
 
             JSONArray statsData = formatMetricStats(metricData);
 
-            formattedMetrics.add(Arrays.asList(metricStrings, statsData));
+            JSONArray metricJson = new JSONArray();
+            metricJson.add(metricStrings);
+            metricJson.add(statsData);
+
+            formattedMetrics.add(metricJson);
         }
 
         list.add(formattedMetrics);
@@ -259,14 +307,15 @@ class TelemetryData {
             errorTraceAttributes.put("intrinsics", tracedError.getIntrinsicAtts());
             errorTraceAttributes.put("request_uri", tracedError.getAgentAtts().get(AttributeNames.REQUEST_URI));
             errorTraceAttributes.put("stack_trace", tracedError.stackTrace());
-            errorTraceAttributes.put("userAttributes", tracedError.getAgentAtts());
+            errorTraceAttributes.put("userAttributes", Collections.emptyMap());
 
             errorData.add(errorTraceAttributes);
             errorData.add(tracedError.getTransactionGuid());
             formattedErrors.add(errorData);
 
         }
-        data.put("error_data", Arrays.asList(null, formattedErrors));
+        list.add(formattedErrors);
+        data.put("error_data", list);
     }
 
     public void updateMetricData(List<MetricData> metricData) {
@@ -411,6 +460,42 @@ class TelemetryData {
         try {
             lock.writeLock().lock();
             this.sqlTraces.addAll(sqlTraces);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void updateCustomEventsReservoirSize(int reservoirSize) {
+        try {
+            lock.writeLock().lock();
+            this.customEventsReservoirSize += reservoirSize;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void updateCustomEventsSeen(int eventsSeen) {
+        try {
+            lock.writeLock().lock();
+            this.customEventsSeen += eventsSeen;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void updateLogEventsReservoir(int size) {
+        try {
+            lock.writeLock().lock();
+            this.logEventsReservoirSize += size;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void updateLogEventsSeen(int seen) {
+        try {
+            lock.writeLock().lock();
+            this.logEventsSeen += seen;
         } finally {
             lock.writeLock().unlock();
         }
