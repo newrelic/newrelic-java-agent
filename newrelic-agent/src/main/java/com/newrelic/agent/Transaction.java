@@ -282,9 +282,19 @@ public class Transaction {
 
     // TODO does this contract work for everyone?
     public enum PartialSampleType {
-        REDUCED,
-        ESSENTIAL,
-        COMPACT
+        REDUCED("Reduced"),
+        ESSENTIAL("Essential"),
+        COMPACT("Compact");
+
+        private final String displayName;
+
+        PartialSampleType(String displayName){
+         this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     private PartialSampleType partialSampleType; // null if either not sampled or full granularity sample, value set if partally sampled

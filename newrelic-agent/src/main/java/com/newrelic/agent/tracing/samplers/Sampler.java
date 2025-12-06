@@ -23,7 +23,7 @@ public interface Sampler {
     /**
      * Determine if the supplied float value is a valid value for the ratio value
      *
-     * @param ratio the ration value to check
+     * @param ratio the ratio value to check
      *
      * @return true if the ratio is valid; false otherwise
      */
@@ -55,9 +55,9 @@ public interface Sampler {
     /**
      * Get the type of this Sampler
      *
-     * @return the current Sampler's description
+     * @return the current Sampler's SamplerType
      */
-    String getType();
+    SamplerType getType();
 
     /**
      * Human-readable description of this sampler's name and important qualities.

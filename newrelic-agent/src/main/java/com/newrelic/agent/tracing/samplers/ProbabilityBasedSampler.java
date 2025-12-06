@@ -66,8 +66,8 @@ public class ProbabilityBasedSampler implements Sampler {
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.PROBABILITY;
+    public SamplerType getType() {
+        return SamplerType.PROBABILITY;
     }
 
     @Override

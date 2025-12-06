@@ -71,8 +71,8 @@ public class TraceRatioBasedSampler implements Sampler {
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.TRACE_RATIO_ID_BASED;
+    public SamplerType getType() {
+        return SamplerType.TRACE_ID_RATIO_BASED;
     }
 
     @Override

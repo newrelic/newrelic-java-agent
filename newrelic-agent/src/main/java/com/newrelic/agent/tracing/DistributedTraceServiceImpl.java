@@ -65,18 +65,18 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     private final Transaction.PartialSampleType partialSampleType;
 
     public enum SamplerCase {
-        ROOT("root"),
-        REMOTE_PARENT_SAMPLED("remote_parent_sampled"),
-        REMOTE_PARENT_NOT_SAMPLED("remote_parent_not_sampled");
+        ROOT("Root"),
+        REMOTE_PARENT_SAMPLED("RemoteParentSampled"),
+        REMOTE_PARENT_NOT_SAMPLED("RemoteParentNotSampled"),;
 
-        private final String name;
+        private final String displayName;
 
-        SamplerCase(String name) {
-            this.name = name;
+        SamplerCase(String displayName) {
+            this.displayName = displayName;
         }
 
-        public String getName() {
-            return name;
+        public String getDisplayName() {
+            return displayName;
         }
     }
 
@@ -106,7 +106,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
         fullGranularitySamplers = initSamplers(distributedTraceConfig.getFullGranularityConfig());
         partialGranularitySamplers = initSamplers(distributedTraceConfig.getPartialGranularityConfig());
-        recordSamplerSupportabilityMetrics();
         partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
     }
 
@@ -163,6 +162,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         //The connect response includes a server-only config, sampling_target, that MUST be used to configure the adaptive sampler shared instance.
         AdaptiveSampler.setSharedTarget(agentConfig.getAdaptiveSamplingTarget());
+        recordCoreTracingSupportabilityMetrics();
     }
 
     @Override
@@ -211,15 +211,19 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     @Override
     public float calculatePriority(Transaction tx, SamplerCase samplerCase) {
-        float priority = 0.0f;
-        Sampler sampler = null;
+        float priority = nextTruncatedFloat();
+        //if DT is disabled, or both full and partial granularity are disabled, priority should be random but <1.
+        if (!isEnabled() || (!isFullGranularityEnabled() && !isPartialGranularityEnabled())){
+            return priority;
+        }
         String granularity = null;
-        if (distributedTraceConfig.getFullGranularityConfig().isEnabled()) {
+        Sampler sampler = null;
+        if (isFullGranularityEnabled()) {
             granularity = "full";
             sampler = fullGranularitySamplers.get(samplerCase);
             priority = sampler.calculatePriority(tx);
         }
-        if (distributedTraceConfig.getPartialGranularityConfig().isEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
+        if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
             granularity = "partial";
             sampler = partialGranularitySamplers.get(samplerCase);
             priority = sampler.calculatePriority(tx);
@@ -234,7 +238,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
                         "Calculated priority=" + priority +
                                 ", sampled=" + DistributedTraceUtil.isSampledPriority(priority) +
                                 " for transaction " + tx +
-                                ", using sampler=" + samplerCase.getName() +
+                                ", using sampler=" + samplerCase.name() +
                                 ", granularity=" + granularity +
                                 (sampler == null ? "" : ", samplerDescription=" + sampler.getDescription())
                 );
@@ -431,14 +435,29 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         );
     }
 
-    private void recordSamplerSupportabilityMetrics() {
-        for (SamplerCase samplerCase : SamplerCase.values()) {
-            String fullSamplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getName(),
-                    fullGranularitySamplers.get(samplerCase).getType());
-            String partialSamplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getName(),
-                    partialGranularitySamplers.get(samplerCase).getType());
-            NewRelic.incrementCounter(fullSamplerMetric);
-            NewRelic.incrementCounter(partialSamplerMetric);
+    public boolean isFullGranularityEnabled(){
+        return distributedTraceConfig.getFullGranularityConfig().isEnabled();
+    }
+
+    public boolean isPartialGranularityEnabled(){
+        return distributedTraceConfig.getPartialGranularityConfig().isEnabled();
+    }
+
+    private void recordCoreTracingSupportabilityMetrics() {
+        if (isEnabled()) {
+            if (isFullGranularityEnabled()) {
+                for (SamplerCase samplerCase : SamplerCase.values()) {
+                    NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
+                            fullGranularitySamplers.get(samplerCase).getType().getDisplayName()));
+                }
+            }
+            if (isPartialGranularityEnabled()) {
+                NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_PARTIAL_GRANULARITY_TYPE,getPartialSampleType().getDisplayName()));
+                for (SamplerCase samplerCase : SamplerCase.values()) {
+                    NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
+                            partialGranularitySamplers.get(samplerCase).getType().getDisplayName()));
+                }
+            }
         }
     }
 

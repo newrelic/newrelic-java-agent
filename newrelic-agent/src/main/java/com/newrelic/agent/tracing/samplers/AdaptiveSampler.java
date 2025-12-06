@@ -17,6 +17,7 @@ public class AdaptiveSampler implements Sampler {
     //Configured values
     private final long reportPeriodMillis;
     private int target;
+    private final boolean isSharedInstance;
 
     //Instance stats - thread safety managed by synchronized methods
     private long startTimeMillis;
@@ -28,10 +29,26 @@ public class AdaptiveSampler implements Sampler {
 
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
+    /**
+     * Package-protected constructor for creating non-shared AdaptiveSampler instances.
+     * <p>
+     * This constructor always creates non-shared instances (isSharedInstance=false).
+     * To obtain the shared singleton instance, use {@link #getSharedInstance()} instead.
+     * External callers should use {@link #getAdaptiveSampler(SamplerConfig)}.
+     *
+     * @param target the sampling target
+     * @param reportPeriodSeconds the reporting period in seconds
+     */
+
     protected AdaptiveSampler(int target, int reportPeriodSeconds) {
+        this(target, reportPeriodSeconds, false);
+    }
+
+    private AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance) {
         this.target = target;
         this.reportPeriodMillis = reportPeriodSeconds * 1000L;
         this.startTimeMillis = System.currentTimeMillis();
+        this.isSharedInstance = isSharedInstance;
         this.seen = 0;
         this.seenLast = 0;
         this.sampledCount = 0;
@@ -56,7 +73,7 @@ public class AdaptiveSampler implements Sampler {
     public static synchronized AdaptiveSampler getSharedInstance() {
         if (SAMPLER_SHARED_INSTANCE == null) {
             AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds());
+            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true);
         }
         return SAMPLER_SHARED_INSTANCE;
     }
@@ -66,7 +83,6 @@ public class AdaptiveSampler implements Sampler {
         if (target == null) {
             return getSharedInstance();
         } else {
-            //Is this right (the sampling period in seconds)?? or should it use a hard-coded default?
             return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
         }
     }
@@ -111,8 +127,8 @@ public class AdaptiveSampler implements Sampler {
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.ADAPTIVE;
+    public SamplerType getType() {
+        return SamplerType.ADAPTIVE;
     }
 
     @Override
@@ -121,7 +137,7 @@ public class AdaptiveSampler implements Sampler {
     }
 
     public boolean isShared(){
-        return this.equals(SAMPLER_SHARED_INSTANCE);
+        return isSharedInstance;
     }
 
     private void resetPeriodIfElapsed() {

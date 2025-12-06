@@ -626,7 +626,7 @@ public class W3CTraceContextCrossAgentTest {
         boolean forceSampled;
 
         private ForceSampledAdaptiveSampler(int target, int reportPeriodSeconds, boolean forceSampled) {
-            super(target, reportPeriodSeconds);
+            super(target, reportPeriodSeconds, false);
             this.forceSampled = forceSampled;
         }
 

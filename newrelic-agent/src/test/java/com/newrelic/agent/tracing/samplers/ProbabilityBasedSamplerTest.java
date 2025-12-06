@@ -25,7 +25,7 @@ public class ProbabilityBasedSamplerTest {
     @Before
     public void setup() {
         mockSamplerConfig = mock(SamplerConfig.class);
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.PROBABILITY);
+        when(mockSamplerConfig.getSamplerType()).thenReturn("probability");
     }
 
     @Test

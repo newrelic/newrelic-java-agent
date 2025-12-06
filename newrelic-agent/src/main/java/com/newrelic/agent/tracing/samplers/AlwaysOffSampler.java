@@ -9,8 +9,8 @@ public class AlwaysOffSampler implements Sampler {
     }
 
     @Override
-    public String getType(){
-        return SamplerFactory.ALWAYS_OFF;
+    public SamplerType getType(){
+        return SamplerType.ALWAYS_OFF;
     }
 
     @Override
