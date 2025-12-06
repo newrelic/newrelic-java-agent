@@ -27,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -39,7 +40,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ExitTracerSpanTest {
-    private static final Consumer<ExitTracerSpan> END_HANDLER = span -> {};
+    private static final Consumer<ExitTracerSpan> END_HANDLER = span -> {
+    };
 
     @Test
     public void testReportDatabaseClientSpan() throws Exception {
@@ -99,7 +101,8 @@ public class ExitTracerSpanTest {
         ExitTracer tracer = mock(ExitTracer.class);
         Map<String, Object> attributes = readSpanAttributes("db-span.json");
         attributes.remove("db.sql.table");
-        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),attributes, END_HANDLER).end();
+        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), attributes, END_HANDLER,
+                Collections.emptyList(), 0).end();
         final ArgumentCaptor<DatastoreParameters> dbParams = ArgumentCaptor.forClass(DatastoreParameters.class);
         verify(tracer, times(1)).reportAsExternal(dbParams.capture());
         assertEquals("mysql", dbParams.getValue().getProduct());
@@ -113,7 +116,8 @@ public class ExitTracerSpanTest {
     @Test
     public void testReportRpcClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), readSpanAttributes("external-rpc-span.json"), END_HANDLER).end();
+        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),
+                readSpanAttributes("external-rpc-span.json"), END_HANDLER, Collections.emptyList(), 0).end();
         final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.grpc-1.6", externalParams.getValue().getLibrary());
@@ -124,7 +128,8 @@ public class ExitTracerSpanTest {
     @Test
     public void testReportHttpClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),readSpanAttributes("external-http-span.json"), END_HANDLER).end();
+        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),
+                readSpanAttributes("external-http-span.json"), END_HANDLER, Collections.emptyList(), 0).end();
         final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
         assertEquals("io.opentelemetry.java-http-client", externalParams.getValue().getLibrary());
@@ -135,7 +140,8 @@ public class ExitTracerSpanTest {
     @Test
     public void testReportHttpClientSpanWithCodeFunction() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),readSpanAttributes("external-http-span.json"), END_HANDLER)
+        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),
+                readSpanAttributes("external-http-span.json"), END_HANDLER, Collections.emptyList(), 0)
                 .setAttribute(AttributeKey.stringKey("code.function"), "execute").end();
         final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
         verify(tracer, times(1)).reportAsExternal(externalParams.capture());
@@ -147,7 +153,8 @@ public class ExitTracerSpanTest {
     @Test
     public void testBadClientSpan() throws Exception {
         ExitTracer tracer = mock(ExitTracer.class);
-        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),readSpanAttributes("bad-client-span.json"), END_HANDLER).end();
+        new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),
+                readSpanAttributes("bad-client-span.json"), END_HANDLER, Collections.emptyList(), 0).end();
         verify(tracer, times(0)).reportAsExternal(any(ExternalParameters.class));
     }
 

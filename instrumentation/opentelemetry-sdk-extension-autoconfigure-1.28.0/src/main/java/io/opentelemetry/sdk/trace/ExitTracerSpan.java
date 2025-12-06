@@ -10,6 +10,7 @@ package io.opentelemetry.sdk.trace;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
@@ -85,9 +86,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private long endEpochNanos;
     private final Resource resource;
     private final AttributeMapper attributeMapper = AttributeMapper.getInstance();
+    private final List<LinkData> links;
+    private final int totalNumberOfLinksAdded;
 
     ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
-            Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd) {
+            Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links, int totalNumberOfLinksAdded) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.spanName = spanName;
@@ -97,14 +100,16 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.resource = resource;
         this.instrumentationLibraryInfo = instrumentationLibraryInfo;
         this.startEpochNanos = System.nanoTime();
+        this.links = links;
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
         this.setAllAttributes(resource.getAttributes());
+        this.totalNumberOfLinksAdded = totalNumberOfLinksAdded;
     }
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {
         return new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.INTERNAL, tracer.getMetricName(), SpanContext.getInvalid(),
                 Resource.empty(), Collections.emptyMap(), span -> {
-        });
+        }, Collections.emptyList(), 0);
     }
 
     @Override
@@ -173,10 +178,24 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 .filter(entry -> !AGENT_ATTRIBUTE_KEYS.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         tracer.addCustomAttributes(filteredAttributes);
+        copySpanLinksToTracer(links);
         tracer.finish();
         endEpochNanos = System.nanoTime();
         ended = true;
         onEnd.accept(this);
+    }
+
+    private void copySpanLinksToTracer(List<LinkData> links) {
+        if (links != null && !links.isEmpty()) {
+            for (LinkData linkData : links) {
+                String id = tracer.getSpanId();
+                String traceId = tracer.getTraceId();
+                String linkedSpanId = linkData.getSpanContext().getSpanId();
+                String linkedTraceId = linkData.getSpanContext().getTraceId();
+                Map<String, Object> linkDataAttributes = toMap(linkData.getAttributes());
+                tracer.addSpanLink(new SpanLink(this.startEpochNanos, id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
+            }
+        }
     }
 
     @Override
@@ -257,7 +276,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
             String dbName = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBName));
             DatastoreParameters.SlowQueryParameter slowQueryParameter =
                     dbName == null ? instance.noDatabaseName() : instance.databaseName(dbName);
-            final String dbStatement = getAttribute(generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBStatement));
+            final String dbStatement = getAttribute(
+                    generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.DBStatement));
             final DatastoreParameters datastoreParameters;
             if (dbStatement == null) {
                 datastoreParameters = slowQueryParameter.build();
@@ -292,7 +312,6 @@ public class ExitTracerSpan implements ReadWriteSpan {
         return AttributeKey.longKey(
                 attributeMapper.findProperOtelKey(spanKind, attributeType, attributes.keySet()));
     }
-
 
     String getProcedure() {
         AttributeKey<String> key = generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.ExternalProcedure);
@@ -389,7 +408,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
         @Override
         public List<LinkData> getLinks() {
-            return Collections.emptyList();
+            return links;
         }
 
         @Override
@@ -409,7 +428,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
         @Override
         public int getTotalRecordedLinks() {
-            return 0;
+            return totalNumberOfLinksAdded;
         }
 
         @Override

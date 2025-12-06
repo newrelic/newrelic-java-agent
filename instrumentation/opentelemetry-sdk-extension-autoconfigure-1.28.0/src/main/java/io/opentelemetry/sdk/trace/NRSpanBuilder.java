@@ -28,6 +28,8 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.internal.AttributeUtil;
+import io.opentelemetry.sdk.trace.data.LinkData;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +63,14 @@ class NRSpanBuilder implements SpanBuilder {
     private SpanContext parentSpanContext;
     private AttributeMapper attributeMapper = AttributeMapper.getInstance();
 
+    private List<LinkData> links;
+    private int totalNumberOfLinksAdded;
+    private long startEpochNanos = 0L;
+
+    private static final int MAX_LINKS_PER_SPAN = 100;
+    private static final int MAX_LINK_ATTRIBUTES = 254;
+    private static final int MAX_LINK_ATTRIBUTE_LENGTH = 255;
+
     public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
             String spanName) {
         this.instrumentation = instrumentation;
@@ -79,6 +89,8 @@ class NRSpanBuilder implements SpanBuilder {
             endHandler = span -> {
             };
         }
+        this.totalNumberOfLinksAdded = 0;
+        this.startEpochNanos = this.startEpochNanos == 0 ? this.sharedState.getClock().now() : this.startEpochNanos;
     }
 
     @Override
@@ -94,12 +106,37 @@ class NRSpanBuilder implements SpanBuilder {
 
     @Override
     public SpanBuilder addLink(SpanContext spanContext) {
-        return this;
+        if (spanContext != null && spanContext.isValid()) {
+            this.addLink(LinkData.create(spanContext));
+            return this;
+        } else {
+            return this;
+        }
     }
 
     @Override
     public SpanBuilder addLink(SpanContext spanContext, Attributes attributes) {
-        return this;
+        if (spanContext != null && spanContext.isValid()) {
+            if (attributes == null) {
+                attributes = Attributes.empty();
+            }
+            int totalAttributeCount = attributes.size();
+            this.addLink(LinkData.create(spanContext, AttributeUtil.applyAttributesLimit(attributes, MAX_LINK_ATTRIBUTES, MAX_LINK_ATTRIBUTE_LENGTH),
+                    totalAttributeCount));
+            return this;
+        } else {
+            return this;
+        }
+    }
+
+    private void addLink(LinkData link) {
+        ++this.totalNumberOfLinksAdded;
+        if (this.links == null) {
+            this.links = new ArrayList<>(MAX_LINKS_PER_SPAN);
+        }
+        if (this.links.size() != MAX_LINKS_PER_SPAN) {
+            this.links.add(link);
+        }
     }
 
     @Override
@@ -140,7 +177,12 @@ class NRSpanBuilder implements SpanBuilder {
 
     @Override
     public SpanBuilder setStartTimestamp(long startTimestamp, TimeUnit unit) {
-        return this;
+        if (startTimestamp >= 0L && unit != null) {
+            this.startEpochNanos = unit.toNanos(startTimestamp);
+            return this;
+        } else {
+            return this;
+        }
     }
 
     /**
@@ -168,9 +210,10 @@ class NRSpanBuilder implements SpanBuilder {
         if (SpanKind.INTERNAL != spanKind) {
             tracer.addCustomAttribute("span.kind", spanKind.name());
         }
+        List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
         // TODO REVIEW - we're not picking up the global resources
         return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), attributes,
-                endHandler));
+                endHandler, immutableLinks, totalNumberOfLinksAdded));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
@@ -297,8 +340,9 @@ class NRSpanBuilder implements SpanBuilder {
         };
         transaction.requestInitialized(request, response);
         TracedMethod tracedMethod = transaction.getTracedMethod();
+        List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
         return onStart(new ExitTracerSpan((ExitTracer) tracedMethod, instrumentationLibraryInfo, spanKind, spanName,
-                parentSpanContext, sharedState.getResource(), attributes, endHandler));
+                parentSpanContext, sharedState.getResource(), attributes, endHandler, immutableLinks, totalNumberOfLinksAdded));
     }
 
     Span onStart(ReadWriteSpan span) {
