@@ -150,9 +150,7 @@ public class LinkOnSpan extends AnalyticsEvent implements JSONStreamAware {
             if (userAttributes == null || userAttributes.isEmpty()) {
                 return this;
             }
-            for (Map.Entry<String, ?> entry : userAttributes.entrySet()) {
-                this.userAttributes.put(entry.getKey(), entry.getValue());
-            }
+            this.userAttributes.putAll(userAttributes);
             return this;
         }
 
