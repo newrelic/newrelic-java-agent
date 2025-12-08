@@ -20,6 +20,7 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -156,6 +157,25 @@ public class ExitTracerSpanTest {
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(),
                 readSpanAttributes("bad-client-span.json"), END_HANDLER, Collections.emptyList(), 0).end();
         verify(tracer, times(0)).reportAsExternal(any(ExternalParameters.class));
+    }
+
+    @Test
+    public void testLinkDataOnSpan() {
+        ExitTracer tracer = mock(ExitTracer.class);
+        int numberOfLinks = 3;
+
+        ArrayList<LinkData> linkData = new ArrayList<>();
+        for (int i = 0; i < numberOfLinks; i++) {
+            linkData.add(LinkData.create(SpanContext.getInvalid()));
+        }
+
+        ExitTracerSpan exitTracerSpan = new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(),
+                Resource.empty(),
+                Collections.emptyMap(), END_HANDLER, linkData, numberOfLinks);
+        exitTracerSpan.end();
+
+        assertEquals(numberOfLinks, exitTracerSpan.toSpanData().getTotalRecordedLinks());
+        assertEquals(numberOfLinks, exitTracerSpan.toSpanData().getLinks().size());
     }
 
     public static Map<String, Object> readSpanAttributes(String fileName) throws IOException {
