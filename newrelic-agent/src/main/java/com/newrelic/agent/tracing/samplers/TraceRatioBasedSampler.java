@@ -31,7 +31,6 @@ import java.util.logging.Level;
  */
 public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
-    private final float ratio;
     private final String description;
 
     /**
@@ -50,8 +49,7 @@ public class TraceRatioBasedSampler implements Sampler {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "TraceRatioBasedSampler: Invalid sampling ratio supplied; setting " +
                     "threshold to {0}", threshold);
         }
-        this.ratio = traceRatio;
-        this.description = String.format("Trace Id Ratio Based Sampler, ratio=%.4f", traceRatio);
+        this.description = String.format("Trace Id Ratio Based Sampler, ratio=%.4f; threshold=%d", traceRatio, threshold);
     }
 
     @Override
@@ -87,9 +85,5 @@ public class TraceRatioBasedSampler implements Sampler {
      */
     public long getThreshold() {
         return threshold;
-    }
-
-    public float getRatio() {
-        return ratio;
     }
 }

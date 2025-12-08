@@ -446,7 +446,6 @@ public class DistributedTraceServiceImplTest {
         serviceManager.setDistributedTraceService(distributedTraceService);
 
         assertEquals(SamplerFactory.TRACE_RATIO_ID_BASED, distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
-        assertEquals(0.6, ((TraceRatioBasedSampler) distributedTraceService.getFullGranularitySamplers().get(ROOT)).getRatio(), 0.00001f);
         assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
         assertEquals(SamplerFactory.ALWAYS_OFF, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
 
@@ -454,7 +453,6 @@ public class DistributedTraceServiceImplTest {
         assertEquals(15, ((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(ROOT)).getTarget());
         assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
         assertEquals(SamplerFactory.TRACE_RATIO_ID_BASED, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
-        assertEquals(0.1, ((TraceRatioBasedSampler) distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED)).getRatio(), 0.00001f);
 
         assertEquals(Transaction.PartialSampleType.REDUCED, distributedTraceService.getPartialSampleType());
     }
