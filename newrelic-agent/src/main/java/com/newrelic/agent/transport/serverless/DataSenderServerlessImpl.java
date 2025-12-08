@@ -67,63 +67,63 @@ public class DataSenderServerlessImpl implements DataSender {
 
     @Override
     public void sendErrorData(List<TracedError> errors) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateTracedErrors(errors);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateTracedErrors(errors);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendErrorEvents(int reservoirSize, int eventsSeen, Collection<ErrorEvent> errorEvents) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateErrorEvents(errorEvents);
-        telemetryData.updateErrorReservoirSize(reservoirSize);
-        telemetryData.updateErrorEventsSeen(eventsSeen);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateErrorEvents(errorEvents);
+        telemetryBuffer.updateErrorReservoirSize(reservoirSize);
+        telemetryBuffer.updateErrorEventsSeen(eventsSeen);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public <T extends AnalyticsEvent & JSONStreamAware> void sendAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<T> events) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateAnalyticEvents(events);
-        telemetryData.updateAnalyticReservoirSize(reservoirSize);
-        telemetryData.updateAnalyticEventsSeen(eventsSeen);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateAnalyticEvents(events);
+        telemetryBuffer.updateAnalyticReservoirSize(reservoirSize);
+        telemetryBuffer.updateAnalyticEventsSeen(eventsSeen);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateAnalyticEvents(events);
-        telemetryData.updateCustomEventsReservoirSize(reservoirSize);
-        telemetryData.updateCustomEventsSeen(eventsSeen);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateAnalyticEvents(events);
+        telemetryBuffer.updateCustomEventsReservoirSize(reservoirSize);
+        telemetryBuffer.updateCustomEventsSeen(eventsSeen);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateAnalyticEvents(events);
-        telemetryData.updateLogEventsReservoir(events.size());
-        telemetryData.updateLogEventsSeen(events.size());
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateAnalyticEvents(events);
+        telemetryBuffer.updateLogEventsReservoir(events.size());
+        telemetryBuffer.updateLogEventsSeen(events.size());
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateSpanEvents(events);
-        telemetryData.updateSpanReservoirSize(reservoirSize);
-        telemetryData.updateSpanEventsSeen(eventsSeen);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateSpanEvents(events);
+        telemetryBuffer.updateSpanReservoirSize(reservoirSize);
+        telemetryBuffer.updateSpanEventsSeen(eventsSeen);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateMetricData(metricData);
-        telemetryData.updateMetricBeginTimeMillis(beginTimeMillis);
-        telemetryData.updateMetricEndTimeMillis(endTimeMillis);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateMetricData(metricData);
+        telemetryBuffer.updateMetricBeginTimeMillis(beginTimeMillis);
+        telemetryBuffer.updateMetricEndTimeMillis(endTimeMillis);
+        writeData(telemetryBuffer);
     }
 
     @Override
@@ -134,16 +134,16 @@ public class DataSenderServerlessImpl implements DataSender {
 
     @Override
     public void sendSqlTraceData(List<SqlTrace> sqlTraces) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateSqlTraces(sqlTraces);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateSqlTraces(sqlTraces);
+        writeData(telemetryBuffer);
     }
 
     @Override
     public void sendTransactionTraceData(List<TransactionTrace> traces) throws Exception {
-        TelemetryData telemetryData = new TelemetryData();
-        telemetryData.updateTransactionTraces(traces);
-        writeData(telemetryData);
+        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
+        telemetryBuffer.updateTransactionTraces(traces);
+        writeData(telemetryBuffer);
     }
 
     @Override
@@ -156,8 +156,8 @@ public class DataSenderServerlessImpl implements DataSender {
         // Serverless mode does not write data on shutdown
     }
 
-    void writeData(TelemetryData telemetryData) {
-        JSONObject data = telemetryData.format();
+    void writeData(TelemetryBuffer telemetryBuffer) {
+        JSONObject data = telemetryBuffer.formatJson();
         serverlessWriter.write(createFilePayload(data), createConsolePayload(data));
     }
 

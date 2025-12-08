@@ -1,5 +1,6 @@
 package com.newrelic.agent.transport.serverless;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.MetricData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.errors.TracedError;
@@ -30,7 +31,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-class TelemetryData {
+class TelemetryBuffer {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private List<TransactionTrace> transactionTraces = new ArrayList<>();
 
@@ -59,10 +60,10 @@ class TelemetryData {
     Long metricEndTimeMillis = 0L;
     List<MetricData> metricData = new ArrayList<>();
 
-    public TelemetryData() {
+    public TelemetryBuffer() {
     }
 
-    public JSONObject format() {
+    public JSONObject formatJson() {
         try {
             lock.readLock().lock();
 
@@ -497,6 +498,26 @@ class TelemetryData {
             this.logEventsSeen += seen;
         } finally {
             lock.writeLock().unlock();
+        }
+    }
+
+    @VisibleForTesting
+    public Long getMetricBeginTimeMillis() {
+        try {
+            lock.readLock().lock();
+            return metricBeginTimeMillis;
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @VisibleForTesting
+    public Long getMetricEndTimeMillis() {
+        try {
+            lock.readLock().lock();
+            return metricEndTimeMillis;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 }

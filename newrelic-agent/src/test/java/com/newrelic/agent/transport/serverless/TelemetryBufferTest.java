@@ -38,10 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-public class TelemetryDataTest {
+public class TelemetryBufferTest {
     @Test
     public void testTracedErrors() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         TracedError tracedError = Mockito.mock(TracedError.class);
         Mockito.when(tracedError.getTimestampInMillis()).thenReturn(10L);
         Mockito.when(tracedError.getMessage()).thenReturn("message");
@@ -58,7 +58,7 @@ public class TelemetryDataTest {
 
         data.updateTracedErrors(Arrays.asList(tracedError));
 
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
 
         Assert.assertTrue(formatted.containsKey("error_data"));
 
@@ -95,7 +95,7 @@ public class TelemetryDataTest {
 
     @Test
     public void testErrorEvents() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         int eventsSeen = 1;
         int reservoirSize = 111;
 
@@ -124,7 +124,7 @@ public class TelemetryDataTest {
 
         data.updateErrorEvents(errorEvents);
 
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
         Assert.assertTrue(formatted.containsKey("error_event_data"));
         JSONArray list = (JSONArray) formatted.get("error_event_data");
         Assert.assertEquals(3, list.size());
@@ -151,7 +151,7 @@ public class TelemetryDataTest {
 
     @Test
     public void testSpanEvents() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         int eventsSeen = 1;
         int reservoirSize = 111;
         data.updateSpanReservoirSize(reservoirSize);
@@ -173,7 +173,7 @@ public class TelemetryDataTest {
         spanEvents.add(spanEvent);
         data.updateSpanEvents(spanEvents);
 
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
         Assert.assertTrue(formatted.containsKey("span_event_data"));
         JSONArray list = (JSONArray) formatted.get("span_event_data");
 
@@ -200,7 +200,7 @@ public class TelemetryDataTest {
 
     @Test
     public void testAnalyticEvents() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
 
         data.updateAnalyticEventsSeen(1);
         data.updateAnalyticReservoirSize(111);
@@ -215,7 +215,7 @@ public class TelemetryDataTest {
         addLogEvent(data);
 
 
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
         Assert.assertTrue(formatted.containsKey("analytic_event_data"));
         JSONArray list = (JSONArray) formatted.get("analytic_event_data");
 
@@ -236,7 +236,7 @@ public class TelemetryDataTest {
         assertLogEvent(logEvent);
     }
 
-    private void addTransactionEvent(TelemetryData data) {
+    private void addTransactionEvent(TelemetryBuffer data) {
         Collection<TransactionEvent> transactionEvents = new ArrayList<>();
 
         Map<String, Object> userAttributes = new HashMap<>();
@@ -302,7 +302,7 @@ public class TelemetryDataTest {
     }
 
 
-    private void addCustomEvent(TelemetryData data) {
+    private void addCustomEvent(TelemetryBuffer data) {
         Collection<AnalyticsEvent> customEvents = new ArrayList<>();
 
         Map<String, Object> userAttributes = new HashMap<>();
@@ -327,7 +327,7 @@ public class TelemetryDataTest {
     }
 
 
-    private void addLogEvent(TelemetryData data) {
+    private void addLogEvent(TelemetryBuffer data) {
         Collection<LogEvent> logEvents = new ArrayList<>();
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("attr", "val");
@@ -348,7 +348,7 @@ public class TelemetryDataTest {
 
     @Test
     public void testMetrics() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         MetricData metricData = MetricData.create(
                 MetricName.create("Other/myMetric", "myScope"),
                 101,
@@ -356,7 +356,7 @@ public class TelemetryDataTest {
         data.updateMetricBeginTimeMillis(1L);
         data.updateMetricEndTimeMillis(2L);
         data.updateMetricData(Arrays.asList(metricData));
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
         JSONArray list = (JSONArray) formatted.get("metric_data");
         Assert.assertNull(list.get(0));
         Assert.assertEquals(1L, list.get(1));
@@ -377,8 +377,30 @@ public class TelemetryDataTest {
     }
 
     @Test
+    public void testMetricChanges() {
+        TelemetryBuffer data = new TelemetryBuffer();
+        Assert.assertEquals((Long) 0L, data.getMetricBeginTimeMillis());
+        Assert.assertEquals((Long) 0L, data.getMetricEndTimeMillis());
+
+        data.updateMetricBeginTimeMillis(100L);
+        data.updateMetricEndTimeMillis(200L);
+        Assert.assertEquals((Long) 100L, data.getMetricBeginTimeMillis());
+        Assert.assertEquals((Long) 200L, data.getMetricEndTimeMillis());
+
+        data.updateMetricBeginTimeMillis(120L);
+        data.updateMetricEndTimeMillis(150L);
+        Assert.assertEquals((Long) 100L, data.getMetricBeginTimeMillis());
+        Assert.assertEquals((Long) 200L, data.getMetricEndTimeMillis());
+
+        data.updateMetricBeginTimeMillis(50L);
+        data.updateMetricEndTimeMillis(300L);
+        Assert.assertEquals((Long) 50L, data.getMetricBeginTimeMillis());
+        Assert.assertEquals((Long) 300L, data.getMetricEndTimeMillis());
+    }
+
+    @Test
     public void testTransactionTraces() {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         TransactionTrace trace = createTransactionTrace();
         data.updateTransactionTraces(Collections.singletonList(trace));
         assertTransactionTrace(data);
@@ -422,8 +444,8 @@ public class TelemetryDataTest {
         return trace;
     }
 
-    private void assertTransactionTrace(TelemetryData data) {
-        JSONObject formatted = data.format();
+    private void assertTransactionTrace(TelemetryBuffer data) {
+        JSONObject formatted = data.formatJson();
         JSONArray list = (JSONArray) formatted.get("transaction_sample_data");
         Assert.assertNull(list.get(0));
         JSONArray traceJson = (JSONArray) ((JSONArray) list.get(1)).get(0);
@@ -468,7 +490,7 @@ public class TelemetryDataTest {
 
     @Test
     public void testSqlTraces() throws IOException {
-        TelemetryData data = new TelemetryData();
+        TelemetryBuffer data = new TelemetryBuffer();
         SqlTrace sqlTrace = Mockito.mock(SqlTrace.class);
         Mockito.when(sqlTrace.getBlameMetricName()).thenReturn("blameMetricName");
         Mockito.when(sqlTrace.getUri()).thenReturn("uri");
@@ -484,7 +506,7 @@ public class TelemetryDataTest {
         Mockito.when(sqlTrace.getParameters()).thenReturn(params);
         data.updateSqlTraces(Collections.singletonList(sqlTrace));
 
-        JSONObject formatted = data.format();
+        JSONObject formatted = data.formatJson();
         JSONArray sqlTraceJson = (JSONArray) ((JSONArray) ((JSONArray)formatted.get("sql_trace_data")).get(0)).get(0);
         Assert.assertEquals("blameMetricName", sqlTraceJson.get(0));
         Assert.assertEquals("uri", sqlTraceJson.get(1));
