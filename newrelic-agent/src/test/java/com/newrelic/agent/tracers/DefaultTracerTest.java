@@ -26,6 +26,7 @@ import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -76,12 +77,14 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.newrelic.agent.AgentHelper.getFullPath;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -118,7 +121,7 @@ public class DefaultTracerTest {
     @Test
     public void test() {
         Transaction tx = Transaction.getTransaction();
-        Assert.assertFalse(tx.isWebTransaction());
+        assertFalse(tx.isWebTransaction());
     }
 
     @Test
@@ -447,10 +450,10 @@ public class DefaultTracerTest {
 
         DefaultTracer tracer = (DefaultTracer)
                 (isSqlTracer ?
-                    AgentBridge.instrumentation.createSqlTracer(null, 0,
-                            "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS) :
-                    AgentBridge.instrumentation.createTracer(null, 0,
-                            "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS));
+                        AgentBridge.instrumentation.createSqlTracer(null, 0,
+                                "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS) :
+                        AgentBridge.instrumentation.createTracer(null, 0,
+                                "iamyourchild", DefaultTracer.DEFAULT_TRACER_FLAGS));
 
         Assert.assertNotNull(tracer);
 
@@ -496,7 +499,7 @@ public class DefaultTracerTest {
     }
 
     @Test
-    public void testExcludeLeafForLeaf(){
+    public void testExcludeLeafForLeaf() {
         Transaction tx = Transaction.getTransaction();
 
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
@@ -509,7 +512,7 @@ public class DefaultTracerTest {
 
         //now force excludes the tracer and check it has no effect on the parent
         kid.excludeLeaf();
-        Assert.assertFalse(kid.isTransactionSegment());
+        assertFalse(kid.isTransactionSegment());
         Assert.assertTrue(parentTracer.isTransactionSegment());
 
         kid.finish(Opcodes.RETURN, null);
@@ -517,13 +520,13 @@ public class DefaultTracerTest {
     }
 
     @Test
-    public void testExcludeLeafIsNoOpForNonLeaf(){
+    public void testExcludeLeafIsNoOpForNonLeaf() {
         Transaction tx = Transaction.getTransaction();
 
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
         DefaultTracer kid = new DefaultTracer(tx, sig, this, new SimpleMetricNameFormat("child"), DefaultTracer.DEFAULT_TRACER_FLAGS);
         tx.getTransactionActivity().tracerStarted(kid);
-        Assert.assertFalse(kid.isLeaf());
+        assertFalse(kid.isLeaf());
         Assert.assertTrue(kid.isTransactionSegment());
 
         //force excludes should do nothing on a non-leaf
@@ -534,11 +537,12 @@ public class DefaultTracerTest {
     }
 
     @Test
-    public void testExcludeLeafIsNoOpForRoots(){
+    public void testExcludeLeafIsNoOpForRoots() {
         Transaction tx = Transaction.getTransaction();
 
         ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
-        OtherRootTracer root1 = new OtherRootTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"), forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
+        OtherRootTracer root1 = new OtherRootTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"),
+                forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
         tx.getTransactionActivity().tracerStarted(root1);
         Assert.assertTrue(root1.isLeaf());
         Assert.assertTrue(root1.isTransactionSegment());
@@ -548,7 +552,8 @@ public class DefaultTracerTest {
         Assert.assertTrue(root1.isTransactionSegment());
         root1.finish(Opcodes.RETURN, null);
 
-        OtherRootSqlTracer root2 = new OtherRootSqlTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"), forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
+        OtherRootSqlTracer root2 = new OtherRootSqlTracer(tx.getTransactionActivity(), sig, this, new SimpleMetricNameFormat("test"),
+                forceLeafFlags(DefaultTracer.DEFAULT_TRACER_FLAGS));
         tx.getTransactionActivity().tracerStarted(root2);
         Assert.assertTrue(root2.isLeaf());
         Assert.assertTrue(root2.isTransactionSegment());
@@ -819,8 +824,8 @@ public class DefaultTracerTest {
         DistributedTraceServiceImpl dts = (DistributedTraceServiceImpl) ServiceFactory.getServiceManager().getDistributedTraceService();
 
         Map<String, Object> configMap = ImmutableMap.<String, Object>builder().put("cross_application_tracer",
-                ImmutableMap.builder().put("cross_process_id", "12345#whatever")
-                        .put("trusted_account_key", "67890").build())
+                        ImmutableMap.builder().put("cross_process_id", "12345#whatever")
+                                .put("trusted_account_key", "67890").build())
                 .build();
         dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
 
@@ -852,10 +857,14 @@ public class DefaultTracerTest {
         fourthTracer.finish(0, null);
 
         SpanEventsService spanEventService = ServiceFactory.getSpanEventService();
-        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(firstTracer.getTransaction(), 1024), new TransactionStats());
-        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(secondTracer.getTransaction(), 1024), new TransactionStats());
-        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(thirdTracer.getTransaction(), 1024), new TransactionStats());
-        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(fourthTracer.getTransaction(), 1024), new TransactionStats());
+        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(firstTracer.getTransaction(), 1024),
+                new TransactionStats());
+        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(secondTracer.getTransaction(), 1024),
+                new TransactionStats());
+        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(thirdTracer.getTransaction(), 1024),
+                new TransactionStats());
+        ((SpanEventsServiceImpl) spanEventService).dispatcherTransactionFinished(new TransactionData(fourthTracer.getTransaction(), 1024),
+                new TransactionStats());
 
         SamplingPriorityQueue<SpanEvent> eventPool = spanEventService.getOrCreateDistributedSamplingReservoir(APP_NAME);
         List<SpanEvent> spanEvents = eventPool.asList();
@@ -964,7 +973,7 @@ public class DefaultTracerTest {
     /**
      * Transaction A has spans 1, 2, and 3. Span 2 is active when a distributed tracing payload is created.
      * Transaction B has spans 5 and 6. The payload from span 2 is accepted when span 5 is active.
-     *
+     * <p>
      * Verify that all the parenting attributes are correct.
      */
     @Test
@@ -1107,6 +1116,26 @@ public class DefaultTracerTest {
         Assert.assertNotEquals("0101010101010101", spanEvent.getParentId());
     }
 
+    @Test
+    public void testAddSpanLink() {
+        DefaultTracer tracer = prepareTracer();
+        tracer.addSpanLink(
+                new SpanLink(tracer.getStartTimeInMillis(), "id", "traceId", "linkedSpanId", "linkedTraceId", Collections.singletonMap("foo", "bar")));
+        tracer.finish(0, null);
+
+        List<SpanLink> spanLinks = tracer.getSpanLinks();
+        assertFalse(spanLinks.isEmpty());
+
+        SpanLink spanLink = spanLinks.get(0);
+        assertEquals("id", spanLink.getId());
+        assertEquals("traceId", spanLink.getTraceId());
+        assertEquals("linkedSpanId", spanLink.getLinkedSpanId());
+        assertEquals("linkedTraceId", spanLink.getLinkedTraceId());
+        assertEquals(tracer.getStartTimeInMillis(), spanLink.getTimestamp());
+        assertEquals("SpanLink", spanLink.getType());
+        assertEquals(Collections.singletonMap("foo", "bar"), spanLink.getUserAttributes());
+    }
+
     private SpanEvent getSpanByName(SamplingPriorityQueue<SpanEvent> eventPool, String spanName) {
         for (SpanEvent spanEvent : eventPool.asList()) {
             if (spanEvent.getName().equals(spanName)) {
@@ -1123,9 +1152,9 @@ public class DefaultTracerTest {
     }
 
     /**
-     * @param host Host to report.
-     * @param port Port to report.
-     * @param expectedHost expected host in instance metric.
+     * @param host               Host to report.
+     * @param port               Port to report.
+     * @param expectedHost       expected host in instance metric.
      * @param expectedInstanceID expected identifier in instance metric.
      */
     public void checkInstanceMetric(String product, String host, Integer port, String expectedHost, String expectedInstanceID) {
