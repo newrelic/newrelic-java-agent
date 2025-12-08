@@ -172,7 +172,6 @@ class TelemetryData {
             traceData.add(trace.getDuration());
             traceData.add(trace.getRootMetricName());
             traceData.add(trace.getRequestUri());
-            // Todo: add trace details
             JSONArray traceDetailsJson = new JSONArray();
             for (Object item : trace.getTraceDetailsAsList()) {
                 if (item instanceof TransactionSegment) {
