@@ -93,6 +93,13 @@ public class TraceRatioBasedSamplerTest {
         assertNull(Sampler.traceIdFromTransaction(null));
     }
 
+    @Test
+    public void sampler_returnsCorrectDesc() {
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
+        TraceRatioBasedSampler sampler = new TraceRatioBasedSampler(mockSamplerConfig);
+        assertEquals("Trace Id Ratio Based Sampler, ratio=0.5000; threshold=4611686018427387904", sampler.getDescription());
+    }
+
     private int runSamplerWith(int iterationCount, float samplingRatio) {
         int iterations = 0;
         int sampledCount = 0;
