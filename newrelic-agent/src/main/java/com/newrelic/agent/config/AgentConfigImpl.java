@@ -126,7 +126,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JFR = "jfr";
     public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
-    public static final String SERVERLESS = "serverless";
+    public static final String SERVERLESS_MODE = "serverless_mode";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
     public static final String STRIP_EXCEPTION_MESSAGES = "strip_exception_messages";
@@ -318,9 +318,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         experimentalRuntime = allowExperimentalRuntimeVersions();
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
-        host = parseHost(region);
-        metricIngestUri = parseMetricIngestUri(region);
-        eventIngestUri = parseEventIngestUri(region);
+        serverlessConfig = initServerlessConfig();
+        host = parseHost(serverlessConfig, region);
+        metricIngestUri = parseMetricIngestUri(serverlessConfig, region);
+        eventIngestUri = parseEventIngestUri(serverlessConfig, region);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
@@ -379,7 +380,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         infiniteTracingConfig = initInfiniteTracingConfig(autoAppNamingEnabled);
         attributesConfig = initAttributesConfig();
         reinstrumentConfig = initReinstrumentConfig();
-        serverlessConfig = initServerlessConfig();
         circuitBreakerConfig = initCircuitBreakerConfig();
         segmentTimeoutInSec = initSegmentTimeout();
         tokenTimeoutInSec = initTokenTimeout();
@@ -448,7 +448,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * license key. If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the
      * new host using the region section of the license key.
      */
-    private String parseHost(String region) {
+    private String parseHost(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. The agent will not report to any host.");
+            return "";
+        }
         String host = getProperty(HOST);
         if (host != null) {
             Agent.LOG.log(Level.INFO, "Using configured collector host: {0}", host);
@@ -474,7 +478,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
      * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
      */
-    private String parseMetricIngestUri(String region) {
+    private String parseMetricIngestUri(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. Metric data will report to console and to {0}", serverlessConfig.filePath());
+            return serverlessConfig.filePath();
+        }
         String metricIngestUri = getProperty(METRIC_INGEST_URI);
         if (metricIngestUri != null) {
             Agent.LOG.log(Level.INFO, "Using configured metric ingest URI: {0}", metricIngestUri);
@@ -505,7 +513,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
      * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
      */
-    private String parseEventIngestUri(String region) {
+    private String parseEventIngestUri(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. Event data will report to console and to {0}", serverlessConfig.filePath());
+            return serverlessConfig.filePath();
+        }
         String eventIngestUri = getProperty(EVENT_INGEST_URI);
         if (eventIngestUri != null) {
             Agent.LOG.log(Level.INFO, "Using configured event ingest URI: {0}", eventIngestUri);
@@ -789,7 +801,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private ServerlessConfig initServerlessConfig() {
-        Map<String, Object> props = nestedProps(SERVERLESS);
+        Map<String, Object> props = nestedProps(SERVERLESS_MODE);
         return ServerlessConfigImpl.createServerlessConfig(props);
     }
 

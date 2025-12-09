@@ -59,6 +59,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
     private final Map<String, Object> intrinsicAttributes;
     private final long rootTracerStartTime;
     private Map<Tracer, Collection<Tracer>> children;
+
     private final String guid;
     private final Map<String, Map<String, String>> prefixedAttributes;
     private String syntheticsResourceId;
@@ -188,6 +189,10 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
 
     public long getStartTime() {
         return startTime;
+    }
+
+    public String getGuid() {
+        return guid;
     }
 
     private static SqlObfuscator getSqlObfuscator(String appName) {
@@ -347,6 +352,11 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
             JSONArray.writeJSONString(Arrays.asList(startTime, duration, rootMetricName, requestUri,
                     getData(writer, data), guid, null, forcePersist, xraySessionId, syntheticsResourceId), writer);
         }
+    }
+
+    // This is for serverless
+    public List<Object> getTraceDetailsAsList() {
+        return Arrays.asList(startTime, Collections.EMPTY_MAP, Collections.EMPTY_MAP, rootSegment, getAttributes());
     }
 
     private Object getData(Writer writer, List<Object> data) {

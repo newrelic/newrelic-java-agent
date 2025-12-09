@@ -1,7 +1,6 @@
 package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.logging.IAgentLogger;
-import org.json.simple.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,26 +8,24 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 
-public class ServerLessWriterImpl implements ServerlessWriter {
-    private static final String FILE_PATH = "/tmp/newrelic-telemetry";
+public class ServerlessWriterImpl implements ServerlessWriter {
     private final IAgentLogger logger;
     private final File pathFile;
 
-    public ServerLessWriterImpl(IAgentLogger logger) {
+    public ServerlessWriterImpl(IAgentLogger logger, String filePath) {
         this.logger = logger;
-        pathFile = new File(FILE_PATH);
+        pathFile = new File(filePath);
     }
 
     @Override
-    public void write(JSONObject payload) {
-        String payloadString = payload.toJSONString();
+    public void write(String filePayload, String consolePayload) {
         if (pathFile.exists()) {
             try (BufferedWriter pipe = new BufferedWriter(new FileWriter(pathFile, false))) {
-                pipe.write(payloadString);
+                pipe.write(filePayload);
             } catch (IOException ignored) {
                 logger.log(Level.FINEST, "Failed to write payload", ignored);
             }
         }
-        System.out.println(payloadString);
+        System.out.println(consolePayload);
     }
 }

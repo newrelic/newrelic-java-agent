@@ -104,6 +104,16 @@ public class AgentConfigImplTest {
     }
 
     @Test
+    public void testServerless() throws Exception {
+        Map<String, Object> localMap = new HashMap<>();
+        localMap.put("serverless_mode", Collections.singletonMap("enabled", true));
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals(ServerlessConfigImpl.DEFAULT_FILE_PATH, config.getMetricIngestUri());
+        assertEquals(ServerlessConfigImpl.DEFAULT_FILE_PATH, config.getEventIngestUri());
+        assertEquals("", config.getHost());
+    }
+
+    @Test
     public void defaultMetricIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
