@@ -39,6 +39,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class DataSenderServerlessImpl implements DataSender {
 
     private static final String ARN = "TMP_ARN"; // com.amazonaws:aws-lambda-java-events needs to be instrumented to grab the ARN
+    private static final String FUNCTION_VERSION = "15";
 
     private final ServerlessWriter serverlessWriter;
     private final IAgentLogger logger;
@@ -189,6 +190,7 @@ public class DataSenderServerlessImpl implements DataSender {
         metadata.put("agent_version", config.getAgentVersion());
         metadata.put("metadata_version", 2);
         metadata.put("agent_language", "java");
+        metadata.put("function_version", FUNCTION_VERSION);
         return metadata;
     }
 

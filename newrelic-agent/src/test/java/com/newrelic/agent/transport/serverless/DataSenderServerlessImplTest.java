@@ -78,12 +78,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAHWPQQrCMBBF7/LXQVtXpTtx4QXclVLGdLDBmNbMRITSu5sigi7czePPf8zM4BjH2PWkhLoJyXvTNGVhsJ1IBxjcWIQunCd+Wp7UjeHgSQRmRhKOe9XozklZUM+LgQuZgzi7MiinJWo8yJfIaTYF/akg8j2x6CZFlxf9aMkPo2hdFVWxVkTJXjuNZDlf+MbTSiXMF+3Qmo+r++fKliBk1yeOyfVo23Z5AeHRwnwDAQAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAHWPQQrCMBBF7/LXQVtXpTtx4QXclVLGdLDBmNbMRITSu5sigi7czePPf8zM4BjH2PWkhLoJyXvTNGVhsJ1IBxjcWIQunCd+Wp7UjeHgSQRmRhKOe9XozklZUM+LgQuZgzi7MiinJWo8yJfIaTYF/akg8j2x6CZFlxf9aMkPo2hdFVWxVkTJXjuNZDlf+MbTSiXMF+3Qmo+r++fKliBk1yeOyfVo23Z5AeHRwnwDAQAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"error_data\":[null,[[10,\"/path\",\"message\",\"exceptionClass\",{\"userAttributes\":{},\"intrinsics\":{\"attr1\":\"val1\"},\"agentAttributes\":{\"request.uri\":\"localhost:8080\"},\"stack_trace\":[\"stackTrace1\",\"stackTrace2\"],\"request_uri\":\"localhost:8080\"},\"transactionGuid\"]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"error_data\":[null,[[10,\"/path\",\"message\",\"exceptionClass\",{\"userAttributes\":{},\"intrinsics\":{\"attr1\":\"val1\"},\"agentAttributes\":{\"request.uri\":\"localhost:8080\"},\"stack_trace\":[\"stackTrace1\",\"stackTrace2\"],\"request_uri\":\"localhost:8080\"},\"transactionGuid\"]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -113,12 +113,12 @@ public class DataSenderServerlessImplTest {
         dataSender.sendErrorEvents(111, 1, errorEvents);
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAC3NMQoDIRQE0LtMbWNrlyI3CNuIyCf+QhANX11IxLtHl23fDDMDLFLE88m5+UCNYGzuKamBy6qvzBlGKwhXlrNE8TX+eJHWU1k7EB6tCQzCQQkK7ftZKV5CudK7xZKf+wNzbfa72nd1A91AFzjn5h/2EzpSkwAAAA==\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAC3NMQoDIRQE0LtMbWNrlyI3CNuIyCf+QhANX11IxLtHl23fDDMDLFLE88m5+UCNYGzuKamBy6qvzBlGKwhXlrNE8TX+eJHWU1k7EB6tCQzCQQkK7ftZKV5CudK7xZKf+wNzbfa72nd1A91AFzjn5h/2EzpSkwAAAA==\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"error_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"dAttr\":\"dVal\",\"type\":\"TransactionError\"},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"error_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"dAttr\":\"dVal\",\"type\":\"TransactionError\"},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -144,12 +144,12 @@ public class DataSenderServerlessImplTest {
         dataSender.sendSpanEvents(111, 1, spanEvents);
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAADXMQQpDIQwE0LtkLQW37nqGQjciEmoWUsmXqB9a8e4N8rucN8NMaBU50kncY8KO4DyPUsyEbS02IgZnDQg1kvPIElv+kpK1y3g/98PtnTmBgypHGi8SMNA/VVfw0FZTvvcuGvMTCyy9HxeMP+AFuCGEsH5J/geKnQAAAA==\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAADXMQQpDIQwE0LtkLQW37nqGQjciEmoWUsmXqB9a8e4N8rucN8NMaBU50kncY8KO4DyPUsyEbS02IgZnDQg1kvPIElv+kpK1y3g/98PtnTmBgypHGi8SMNA/VVfw0FZTvvcuGvMTCyy9HxeMP+AFuCGEsH5J/geKnQAAAA==\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"span_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"span.kind\":\"producer\",\"type\":\"Span\",\"iAttr\":\"iVal\"},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"span_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"span.kind\":\"producer\",\"type\":\"Span\",\"iAttr\":\"iVal\"},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -212,12 +212,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -239,12 +239,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAB3LQQrDIBBG4bv8azcNWbkrvUM2IjI0sxCsBmcMpOLda7p8H7wOypQuje/AJ2cNOynButxSMh1/kyDMGfZhUFm4niXWIPHLsMs6jHMdeh2z8Gqi5YMxz/ZUrZPaRumG4b0fPw4xtf9uAAAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAB3LQQrDIBBG4bv8azcNWbkrvUM2IjI0sxCsBmcMpOLda7p8H7wOypQuje/AJ2cNOynButxSMh1/kyDMGfZhUFm4niXWIPHLsMs6jHMdeh2z8Gqi5YMxz/ZUrZPaRumG4b0fPw4xtf9uAAAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":24},[[{\"type\":\"Custom\"},{\"uAttr\":\"uVal\"},{}]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":24},[[{\"type\":\"Custom\"},{\"uAttr\":\"uVal\"},{}]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -261,12 +261,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -282,12 +282,12 @@ public class DataSenderServerlessImplTest {
         dataSender.sendMetricData(1L, 2L, Collections.singletonList(metricData));
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsDMQGEHYsENQCALg9059iAAAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsDMQGEHYsENQCALg9059iAAAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,3.0,0.0,2.0]]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,3.0,0.0,2.0]]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -300,12 +300,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAD1PTYuDQAz9L+88bMftpXgrnvawK5TSi4gEjVWITpmJZRfpf++MwkIIycv7ICvU0xyo1dHNTaDpIdx0pIS8mhcRU1VZlpnMWmtQ6sD+oL8zDMS1JIMLmp/sycJstPWValekhktZXmFW9GdVjxz9jQSRUX1Gv2PybIdRuogujE1bGwQ38ceGF0IhxLDpr0jrN+vgOtT/nHT+oSlKcWfdXeoYR3vaM4VF8n0ZO5jtnZ4k8D7Cc3CLb/krWdavNxSd8FALAQAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAD1PTYuDQAz9L+88bMftpXgrnvawK5TSi4gEjVWITpmJZRfpf++MwkIIycv7ICvU0xyo1dHNTaDpIdx0pIS8mhcRU1VZlpnMWmtQ6sD+oL8zDMS1JIMLmp/sycJstPWValekhktZXmFW9GdVjxz9jQSRUX1Gv2PybIdRuogujE1bGwQ38ceGF0IhxLDpr0jrN+vgOtT/nHT+oSlKcWfdXeoYR3vaM4VF8n0ZO5jtnZ4k8D7Cc3CLb/krWdavNxSd8FALAQAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"transaction_sample_data\":[null,[[111,1000,\"Other/txn\",\"localhost:8080\",[111,{},{},[111,1111,\"ROOT\",{\"fAttr\":\"fVal\"},[[200,300,\"childValue\",{},[],\"some.childClass\",\"myChildMethod\"]],\"some.className\",\"getValue\"],{\"attr\":\"val\"}],\"guid\",null,false,null,\"resourceId\"]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"transaction_sample_data\":[null,[[111,1000,\"Other/txn\",\"localhost:8080\",[111,{},{},[111,1111,\"ROOT\",{\"fAttr\":\"fVal\"},[[200,300,\"childValue\",{},[],\"some.childClass\",\"myChildMethod\"]],\"some.className\",\"getValue\"],{\"attr\":\"val\"}],\"guid\",null,false,null,\"resourceId\"]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
@@ -369,12 +369,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},\"H4sIAAAAAAAAAKtWKi7MiS8pSkxOjU9JLElUsoqOjlZKyknMTfVNLSnKTPYDspR0lEqLMpV0DA0NdZQKS1OLKoEiuUjShgY6xjqGOqY6Sh4mxZ6OMOBdEl6ZbVYS5uMV7J1d5usdahhWmB7qWGZaHhlQbgFSYasUGxtbCwCJyRAjhQAAAA==\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWKi7MiS8pSkxOjU9JLElUsoqOjlZKyknMTfVNLSnKTPYDspR0lEqLMpV0DA0NdZQKS1OLKoEiuUjShgY6xjqGOqY6Sh4mxZ6OMOBdEl6ZbVYS5uMV7J1d5usdahhWmB7qWGZaHhlQbgFSYasUGxtbCwCJyRAjhQAAAA==\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2},{\"sql_trace_data\":[[[\"blameMetricName\",\"uri\",111,\"query\",\"metricName\",10,3,1,5,\"H4sIAAAAAAAAAKtWyk6tVLJSKkvMKU1VqgUAv5wYPw8AAAA=\"]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"sql_trace_data\":[[[\"blameMetricName\",\"uri\",111,\"query\",\"metricName\",10,3,1,5,\"H4sIAAAAAAAAAKtWyk6tVLJSKkvMKU1VqgUAv5wYPw8AAAA=\"]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
