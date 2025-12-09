@@ -284,6 +284,11 @@ public class SpanTest {
     static void asyncSpans(Executor executor, Consumer<Context> consumer) {
         Context context = Context.current();
         executor.execute(Context.current().wrap(() -> consumer.accept(context)));
+        try {
+            // sleep to prevent race condition failures with testAsyncSpans
+            Thread.sleep(5000);
+        } catch (InterruptedException ignored) {
+        }
     }
 
     static void asyncWork(Context context) {
