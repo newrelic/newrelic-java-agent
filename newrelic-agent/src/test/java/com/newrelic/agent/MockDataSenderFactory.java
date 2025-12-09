@@ -14,6 +14,9 @@ import com.newrelic.agent.transport.DataSender;
 import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.IDataSenderFactory;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessImpl;
+import com.newrelic.agent.transport.serverless.ServerlessWriter;
+import com.newrelic.agent.transport.serverless.ServerlessWriterImpl;
 
 public class MockDataSenderFactory implements IDataSenderFactory {
 
@@ -21,7 +24,8 @@ public class MockDataSenderFactory implements IDataSenderFactory {
 
     @Override
     public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
-        return null;
+        ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
+        return new DataSenderServerlessImpl(config, logger, serverlessWriter);
     }
 
     @Override
