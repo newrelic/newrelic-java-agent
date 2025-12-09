@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.agent.config;
 
 import java.util.Collections;
@@ -12,7 +19,7 @@ public class ServerlessConfigImpl extends BaseConfig implements ServerlessConfig
     public static final String FILE_PATH = "file_path";
 
     public static final String DEFAULT_FILE_PATH = "/tmp/newrelic-telemetry";
-    public static final Boolean DEFAULT_ENABLED = Boolean.TRUE;
+    public static final Boolean DEFAULT_ENABLED = Boolean.FALSE;
 
     private final boolean isEnabled;
     private final String filePath;

@@ -65,6 +65,9 @@ import com.newrelic.agent.transport.DataSenderWriter;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.IDataSenderFactory;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessImpl;
+import com.newrelic.agent.transport.serverless.ServerlessWriter;
+import com.newrelic.agent.transport.serverless.ServerlessWriterImpl;
 import com.newrelic.agent.utilization.UtilizationService;
 import org.junit.After;
 import org.junit.Before;
@@ -120,6 +123,10 @@ public class RPMServiceTest {
     }
 
     public static Map<String, Object> createStagingMap(boolean https, boolean isHighSec, boolean putForDataSend) {
+        return createStagingMap(https, isHighSec, putForDataSend, false);
+    }
+
+    public static Map<String, Object> createStagingMap(boolean https, boolean isHighSec, boolean putForDataSend, boolean serverlessMode) {
         Map<String, Object> map = new HashMap<>();
         map.put("host", "localhost");
         map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
@@ -127,6 +134,9 @@ public class RPMServiceTest {
         map.put("ca_bundle_path", "src/test/resources/server.cer");
         map.put(AgentConfigImpl.APP_NAME, "MyApplication");
         map.put(AgentConfigImpl.LABELS, "one:two;three:four");
+        if (serverlessMode) {
+            map.put("serverless_mode", Collections.singletonMap("enabled", true));
+        }
         if (isHighSec) {
             map.put("high_security", true);
         }
@@ -414,7 +424,8 @@ public class RPMServiceTest {
         IDataSenderFactory dataSenderFactory = new IDataSenderFactory() {
             @Override
             public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
-                return null;
+                ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
+                return new DataSenderServerlessImpl(config, logger, serverlessWriter);
             }
 
             @Override
@@ -478,6 +489,13 @@ public class RPMServiceTest {
         doTestLaunchAndRestart();
     }
 
+    @Test(timeout = 30000)
+    public void testLaunchAndRestartServerless() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false, true, true);
+        createServiceManager(config);
+        doTestLaunchAndRestart();
+    }
+
     private void doTestLaunchAndRestart() throws Exception {
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
@@ -503,6 +521,13 @@ public class RPMServiceTest {
     @Test(timeout = 30000)
     public void harvestWithPut() throws Exception {
         Map<String, Object> config = createStagingMap(true, false, true);
+        createServiceManager(config);
+        doHarvest();
+    }
+
+    @Test(timeout = 30000)
+    public void harvestServerless() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false, false, true);
         createServiceManager(config);
         doHarvest();
     }
