@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.MetricData;
@@ -28,9 +35,6 @@ import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-
-// Todo: reformat all data into a serverless spec
-// Todo: Unit tests once the data is properly formatted
 
 public class DataSenderServerlessImpl implements DataSender {
 
