@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.utilization;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AwsConfig;
 
 import java.io.IOException;
@@ -31,8 +32,10 @@ public class AwsFargateMetadataFetcher {
         URLConnection connection;
 
         if (awsConfig.isFargateMetadataEndpointProxyDisabled()) {
+            Agent.LOG.info("AWS Fargate metadata endpoint proxy is DISABLED via configuration.");
             connection = url.openConnection(Proxy.NO_PROXY);
         } else {
+            Agent.LOG.info("AWS Fargate metadata endpoint proxy is ENABLED.");
             connection = url.openConnection();
         }
         connection.setConnectTimeout(5000);
