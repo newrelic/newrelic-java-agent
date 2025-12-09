@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.Agent;
+
 import java.util.Map;
 
 public class AwsConfigImpl extends BaseConfig implements AwsConfig {
@@ -18,6 +20,8 @@ public class AwsConfigImpl extends BaseConfig implements AwsConfig {
     public AwsConfigImpl(Map<String, Object> props) {
         super(props, ROOT);
         disableFargateMetadataEndpointProxy = getProperty(FARGATE_METADATA_ENDPOINT_PROXY_DISABLE, false);
+
+        Agent.LOG.info("AWS Fargate Metadata Endpoint Proxy Disabled: " + disableFargateMetadataEndpointProxy);
     }
 
     @Override
