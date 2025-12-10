@@ -286,5 +286,10 @@ public class ServerlessHarvestServiceTest {
         public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
             return null;
         }
+
+        @Override
+        public void commitAndFlush() {
+
+        }
     }
 }

@@ -228,6 +228,11 @@ public class HarvestServiceTest {
             return null;
         }
 
+        @Override
+        public void commitAndFlush() {
+
+        }
+
     }
 
     private static class MergeStatsWork implements StatsWork {

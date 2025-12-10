@@ -875,7 +875,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             try {
                 long now = System.currentTimeMillis();
                 sendMetricDataSyncRestart(lastReportTime, now, data);
-                dataSender.commitAndFlush();
                 reportInterval = now - lastReportTime;
                 lastReportTime = now;
                 last503Error.set(0);
@@ -1017,6 +1016,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
         return (HealthDataProducer) dataSender;
+    }
+
+    @Override
+    public void commitAndFlush() {
+        try {
+            if (serverlessMode) {
+                dataSender.commitAndFlush();
+            }
+        } catch (Exception e) {
+            Agent.LOG.log(Level.WARNING, "Failed to commit and flush data when finishing a harvest {0}", e.toString());
+        }
     }
 
     @Override

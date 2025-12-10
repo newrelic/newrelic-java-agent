@@ -255,6 +255,8 @@ public class ServerlessHarvestService extends AbstractService implements Harvest
                 for (HarvestListener listener : harvestListeners) {
                     notifyListenerAfterHarvest(appName, listener);
                 }
+
+                rpmService.commitAndFlush();
             } finally {
                 if (harvestStatsEngine.getSize() > MetricIdRegistry.METRIC_LIMIT) {
                     harvestStatsEngine.clear();
