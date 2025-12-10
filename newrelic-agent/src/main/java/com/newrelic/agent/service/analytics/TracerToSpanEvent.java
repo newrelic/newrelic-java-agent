@@ -78,7 +78,7 @@ public class TracerToSpanEvent {
     }
 
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
-            boolean crossProcessOnly, boolean removeNonEssentialAttrs) {
+            boolean removeNonEssentialAttrs) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
 
         SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier, removeNonEssentialAttrs)
@@ -86,7 +86,7 @@ public class TracerToSpanEvent {
                 .setClmAttributes(tracer.getAgentAttributes())
                 .setTraceId(spanProxy.getOrCreateTraceId())
                 .setSampled(transactionData.sampled())
-                .setParentId(getParentId(tracer, transactionData, crossProcessOnly))
+                .setParentId(getParentId(tracer, transactionData))
                 .setTransactionId(transactionData.getGuid())
                 .setDurationInSeconds((float) tracer.getDuration() / TimeConversion.NANOSECONDS_PER_SECOND)
                 .setName(tracer.getTransactionSegmentName())
@@ -202,12 +202,7 @@ public class TracerToSpanEvent {
         return Maps.filterKeys(intrinsicAttributes, key -> !UNWANTED_SPAN_ATTRIBUTES.contains(key));
     }
 
-    private String getParentId(Tracer tracer, TransactionData transactionData, boolean crossProcessOnly) {
-        if (crossProcessOnly) {
-            // Cross process only uses transactionId for parenting instead of the parentId attribute so we do not have a parentId here
-            return null;
-        }
-
+    private String getParentId(Tracer tracer, TransactionData transactionData) {
         // This is the non cross_process_only case where we "parent" using the parent tracer
         // or the inbound payload id if this is the first/root tracer and we have an inbound payload
         Tracer parentSegment = AbstractTracer.getParentTracerWithSpan(tracer.getParentTracer());
