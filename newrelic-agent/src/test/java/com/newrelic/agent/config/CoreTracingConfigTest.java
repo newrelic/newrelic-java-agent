@@ -1,11 +1,10 @@
 package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableMap;
-import com.newrelic.agent.DistributedTracingConfigTestUtil.DTConfigMapBuilder;
+import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.SaveSystemPropertyProviderRule;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
-import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

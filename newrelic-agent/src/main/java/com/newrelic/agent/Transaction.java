@@ -58,6 +58,7 @@ import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.transaction.PriorityTransactionName;
@@ -282,9 +283,19 @@ public class Transaction {
 
     // TODO does this contract work for everyone?
     public enum PartialSampleType {
-        REDUCED,
-        ESSENTIAL,
-        COMPACT
+        REDUCED("Reduced"),
+        ESSENTIAL("Essential"),
+        COMPACT("Compact");
+
+        private final String displayName;
+
+        PartialSampleType(String displayName){
+         this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
     private PartialSampleType partialSampleType; // null if either not sampled or full granularity sample, value set if partally sampled
@@ -386,13 +397,15 @@ public class Transaction {
      * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
      */
 
-    public Float getPriorityFromInboundSamplingDecision(){
+    public Float getPriorityFromInboundSamplingDecision(Granularity granularity) {
         DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
         if (payload != null && payload.sampled != Sampled.UNKNOWN) {
             if (payload.priority != null) {
                 return payload.priority;
             } else {
-                return (payload.sampled.booleanValue() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
+                boolean sampled = payload.sampled.booleanValue();
+                float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             }
         }
         return null;

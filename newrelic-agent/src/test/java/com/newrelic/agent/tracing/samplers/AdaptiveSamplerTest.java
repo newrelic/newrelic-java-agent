@@ -1,9 +1,11 @@
 package com.newrelic.agent.tracing.samplers;
 
+import com.newrelic.agent.DistributedTracingTestUtil;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.agent.tracing.Granularity;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +25,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * The adaptive sampler is non-deterministic in its behavior, ie, we can almost never guarantee
@@ -214,17 +218,17 @@ public class AdaptiveSamplerTest {
     public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
         //both of these should use shared sampler instance, since sampling target is not specified
         SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
-        Mockito.when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
+        when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
         SamplerConfig samplerConfig2 = Mockito.mock(SamplerConfig.class);
-        Mockito.when(samplerConfig2.getSamplingTarget()).thenReturn(null);
+        when(samplerConfig2.getSamplingTarget()).thenReturn(null);
         //should use its own instance, even though the sampling target is the default
         SamplerConfig samplerConfig3 = Mockito.mock(SamplerConfig.class);
-        Mockito.when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
+        when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
         //should use their own instances, even though they have the same target
         SamplerConfig samplerConfig4 = Mockito.mock(SamplerConfig.class);
-        Mockito.when(samplerConfig4.getSamplingTarget()).thenReturn(12);
+        when(samplerConfig4.getSamplingTarget()).thenReturn(12);
         SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
-        Mockito.when(samplerConfig5.getSamplingTarget()).thenReturn(12);
+        when(samplerConfig5.getSamplingTarget()).thenReturn(12);
 
         assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig1));
         assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig2));
@@ -240,6 +244,50 @@ public class AdaptiveSamplerTest {
         assertNotSame(sampler4, sampler5);
     }
 
+    @Test
+    public void testExpectedPriorityGeneratedForGranularities(){
+        AdaptiveSampler sampler = new AdaptiveSampler(100, 5);
+
+        int sampledCount = 0;
+        for (int i = 0; i < 1000; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.FULL)) {
+                sampledCount++;
+            }
+        }
+        assertEquals(100, sampledCount);
+
+
+        sampler = new AdaptiveSampler(100, 5);
+        sampledCount = 0;
+        for (int i = 0; i <1000; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.PARTIAL);
+            if (DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL)) {
+                sampledCount++;
+            }
+        }
+        assertEquals(100, sampledCount);
+
+    }
+
+    @Test
+    public void samplerShouldReturnInboundPriorityWhenAvailable(){
+        AdaptiveSampler sampler = new AdaptiveSampler(100, 5);
+        Transaction tx = Mockito.mock(Transaction.class);
+
+        when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(1.789f);
+        assertEquals(1.789f, sampler.calculatePriority(tx, Granularity.FULL), 0.0001f);
+        assertEquals(1.789f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
+
+        when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(0.0234f);
+        assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.FULL), 0.0001f);
+        assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
+    }
+
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
         //fastest we're going to go for this test is 1 request per ms.
         requestsPerSecond = Math.max(1000, requestsPerSecond);
@@ -248,8 +296,8 @@ public class AdaptiveSamplerTest {
         int waitBetweenSamples = 1000 / requestsPerSecond;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
             Transaction tx = Mockito.mock(Transaction.class);
-            Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
-            float priority = sampler.calculatePriority(tx);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -269,8 +317,8 @@ public class AdaptiveSamplerTest {
         int totalSampled = 0;
         while (System.currentTimeMillis() - testStartTime < testLengthMillis) {
             Transaction tx = Mockito.mock(Transaction.class);
-            Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
-            float priority = sampler.calculatePriority(tx);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
             boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
             if (sampled) {
                 totalSampled++;
@@ -293,8 +341,8 @@ public class AdaptiveSamplerTest {
             executor.submit(() -> {
                 while(System.currentTimeMillis() - startTime < totalTestTimeMillis) {
                     Transaction tx = Mockito.mock(Transaction.class);
-                    Mockito.when(tx.getPriorityFromInboundSamplingDecision()).thenReturn(null);
-                    float priority = sampler.calculatePriority(tx);
+                    when(tx.getPriorityFromInboundSamplingDecision(Granularity.FULL)).thenReturn(null);
+                    float priority = sampler.calculatePriority(tx, Granularity.FULL);
                     boolean sampled = DistributedTraceUtil.isSampledPriority(priority);
                     if (sampled) {
                         totalSampled.incrementAndGet();

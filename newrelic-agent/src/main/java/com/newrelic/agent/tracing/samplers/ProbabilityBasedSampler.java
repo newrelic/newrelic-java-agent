@@ -9,6 +9,7 @@ package com.newrelic.agent.tracing.samplers;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -54,23 +55,23 @@ public class ProbabilityBasedSampler implements Sampler {
     }
 
     @Override
-    public float calculatePriority(Transaction tx) {
+    public float calculatePriority(Transaction tx, Granularity granularity) {
         String traceId = Sampler.traceIdFromTransaction(tx);
         if (traceId != null && traceId.length() == 32) {
             float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last14Chars = traceId.substring(18);
-                return initialPriority + (Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold ? 1.0f : 0.0f);
+                boolean sampled = Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold;
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }
-
         return 0.0f;
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.PROBABILITY;
+    public SamplerType getType() {
+        return SamplerType.PROBABILITY;
     }
 
     @Override

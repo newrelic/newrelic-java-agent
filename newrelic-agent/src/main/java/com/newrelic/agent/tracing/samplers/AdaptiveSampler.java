@@ -8,6 +8,7 @@ import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,6 +18,7 @@ public class AdaptiveSampler implements Sampler {
     //Configured values
     private final long reportPeriodMillis;
     private int target;
+    private final boolean isSharedInstance;
 
     //Instance stats - thread safety managed by synchronized methods
     private long startTimeMillis;
@@ -28,10 +30,26 @@ public class AdaptiveSampler implements Sampler {
 
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
+    /**
+     * Package-protected constructor for creating non-shared AdaptiveSampler instances.
+     * <p>
+     * This constructor always creates non-shared instances (isSharedInstance=false).
+     * To obtain the shared singleton instance, use {@link #getSharedInstance()} instead.
+     * External callers should use {@link #getAdaptiveSampler(SamplerConfig)}.
+     *
+     * @param target the sampling target
+     * @param reportPeriodSeconds the reporting period in seconds
+     */
+
     protected AdaptiveSampler(int target, int reportPeriodSeconds) {
+        this(target, reportPeriodSeconds, false);
+    }
+
+    private AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance) {
         this.target = target;
         this.reportPeriodMillis = reportPeriodSeconds * 1000L;
         this.startTimeMillis = System.currentTimeMillis();
+        this.isSharedInstance = isSharedInstance;
         this.seen = 0;
         this.seenLast = 0;
         this.sampledCount = 0;
@@ -56,7 +74,7 @@ public class AdaptiveSampler implements Sampler {
     public static synchronized AdaptiveSampler getSharedInstance() {
         if (SAMPLER_SHARED_INSTANCE == null) {
             AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds());
+            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true);
         }
         return SAMPLER_SHARED_INSTANCE;
     }
@@ -66,7 +84,6 @@ public class AdaptiveSampler implements Sampler {
         if (target == null) {
             return getSharedInstance();
         } else {
-            //Is this right (the sampling period in seconds)?? or should it use a hard-coded default?
             return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
         }
     }
@@ -95,9 +112,9 @@ public class AdaptiveSampler implements Sampler {
      * @return A float in [0.0f, 2.0f]
      */
     @Override
-    public synchronized float calculatePriority(Transaction tx) {
+    public synchronized float calculatePriority(Transaction tx, Granularity granularity) {
         resetPeriodIfElapsed();
-        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision();
+        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision(granularity);
         if (inboundPriority != null) {
             NewRelic.getAgent()
                     .getLogger()
@@ -107,12 +124,12 @@ public class AdaptiveSampler implements Sampler {
         NewRelic.getAgent()
                 .getLogger()
                 .log(Level.FINEST, "Adaptive Sampler did not find an inbound priority for transaction {0}. A new sampling decision will be made.", tx);
-        return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
+        return DistributedTraceServiceImpl.nextTruncatedFloat() + (computeSampled() ? granularity.priorityIncrement() : 0.0f);
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.ADAPTIVE;
+    public SamplerType getType() {
+        return SamplerType.ADAPTIVE;
     }
 
     @Override
@@ -121,7 +138,7 @@ public class AdaptiveSampler implements Sampler {
     }
 
     public boolean isShared(){
-        return this.equals(SAMPLER_SHARED_INSTANCE);
+        return isSharedInstance;
     }
 
     private void resetPeriodIfElapsed() {
