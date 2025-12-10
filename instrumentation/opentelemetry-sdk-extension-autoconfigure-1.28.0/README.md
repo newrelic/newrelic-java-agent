@@ -2,11 +2,17 @@
 
 This instrumentation module instruments parts of the OpenTelemetry SDK in order to incorporate signals (metrics, logs, and traces) emitted by OpenTelemetry APIs into the New Relic Java agent.
 
-Specifically, it can:
+The following functionality is supported:
 
-* Detect when Spans are emitted by OpenTelemetry APIs and incorporate them to New Relic Java agent traces.
-* Detect when LogRecords are emitted by OpenTelemetry APIs report them to the APM entity being monitored by the Java agent as New Relic LogEvents.
+OpenTelemetry Traces Signals
+* Detect when `Span`s are emitted by OpenTelemetry APIs and incorporate them to New Relic Java agent traces.
+* Detect [Links between Spans](https://opentelemetry.io/docs/specs/otel/overview/#links-between-spans) and report them to New Relic as `SpanLink` events.
+
+OpenTelemetry Dimensional Metrics Signals
 * Autoconfigure the OpenTelemetry SDK to export dimensional metrics (over OTLP) to the APM entity being monitored by the Java agent.
+
+OpenTelemetry Logs Signals
+* Detect when `LogRecord`s are emitted by OpenTelemetry APIs report them to the APM entity being monitored by the Java agent as New Relic LogEvents.
 
 ## OpenTelemetry Requirements
 
@@ -228,6 +234,59 @@ Depending on the OpenTelemetry Span `SpanKind`, it may result in the New Relic J
     * Creating a span with `SpanKind.PRODUCER` will not start a transaction. There is no explicit processing for `PRODUCER` spans currently.
     * If `SpanKind.PRODUCER` spans occur within an already existing New Relic transaction they will be included in the trace (though it's effectively no
       different from a `SpanKind.INTERNAL` span)
+
+### Span Links From OpenTelemetry Tracing API
+
+When processing OpenTelemetry Spans, any [Links](https://opentelemetry.io/docs/specs/otel/trace/api/#link) associated with Spans will be captured and reported to New Relic as `SpanLink` events, which enhance the distributed tracing experience by providing backwards and forwards links between Spans from different traces.
+
+`SpanLink` events are included in the `span_event_data` collector payload and do not have their own event sampling reservoir.
+
+Example of adding `Link`s via the OpenTelemetry Traces APIs:
+
+```java
+    public void createSpanLinks() {
+        System.out.println("Called doSpanLinks");
+        try {
+            SpanContext spanContext = upstreamSpan();
+            for (int i = 0; i < 20; i++) {
+                downstreamSpan(spanContext, i);
+            }
+            Thread.sleep(500);
+        } catch (InterruptedException ignored) {
+        }
+    }
+
+    @Trace(dispatcher = true)
+    public SpanContext upstreamSpan() throws InterruptedException {
+        Span span = tracer.spanBuilder("upstreamSpan").startSpan();
+        SpanContext spanContext;
+        try (Scope scope = span.makeCurrent()) {
+            System.out.println("Called upstreamSpan");
+            spanContext = span.getSpanContext();
+            Thread.sleep(1000);
+        } catch (Throwable t) {
+            span.recordException(t);
+            throw t;
+        } finally {
+            span.end();
+        }
+        return spanContext;
+    }
+
+    @Trace(dispatcher = true)
+    public void downstreamSpan(SpanContext spanContext, int iteration) throws InterruptedException {
+        Span span = tracer.spanBuilder("downstreamSpan").addLink(spanContext, Attributes.builder().put("iteration", iteration).put("customLinkAttribute", "someValue").build()).startSpan();
+        try (Scope scope = span.makeCurrent()) {
+            System.out.println("Called downstreamSpan");
+            Thread.sleep(1000);
+        } catch (Throwable t) {
+            span.recordException(t);
+            throw t;
+        } finally {
+            span.end();
+        }
+    }
+```
 
 ## OpenTelemetry Logs Signals
 

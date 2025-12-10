@@ -7,9 +7,12 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
+
+import java.util.List;
 
 /**
  * The internal bridge version of TracedMethod.
@@ -19,9 +22,29 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
     default String getTraceId() {
         return "0000000000000000";
     }
+
     default String getSpanId() {
         return "0000000000000000";
     }
+
+    /**
+     * Add a SpanLink to a collection stored on the traced method.
+     * <p>
+     * This is used to support the OpenTelemetry concept of a SpanLink,
+     * which allows a Span from one trace to link to a Span from
+     * a different trace, defining a relationship between the traces.
+     *
+     * @param link a SpanLink
+     */
+    void addSpanLink(SpanLink link);
+
+    /**
+     * Get a list of SpanLinks associated with this traced method.
+     *
+     * @return list of SpanLinks
+     */
+    List<SpanLink> getSpanLinks();
+
     /**
      * Returns the parent of this traced method, or null if this is the root tracer.
      *
@@ -38,19 +61,19 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
 
     /**
      * Add a rollup metric name that reports the exclusive time for <b>both</b> total and exclusive times.
-     *
+     * <p>
      * The reason for this is that external and database charts on APM show stacked graphs based on total duration of
      * our rollup metrics, when the intent seems to be to show stacked graphs of exclusive durations.  Previous tracer
      * implementations like AbstractExternalComponentTracer called ResponseTimeStats.recordResponseTime(
      * getExclusiveDuration(), TimeUnit.NANOSECONDS), presumably to "enable" this "feature".  So this method only exists
      * in the bridge API to replicate the old behavior.
-     *
+     * <p>
      * More investigation is necessary.  Use with care.
      *
      * @param metricNameParts The segments of the metric name. These values will be concatenated together separated by a
-     *        `/` char.
+     *                        `/` char.
      */
-    void addExclusiveRollupMetricName(String ... metricNameParts);
+    void addExclusiveRollupMetricName(String... metricNameParts);
 
     /**
      * Names the current transaction using this traced method. This is called by code injected as a result of xml
@@ -96,12 +119,12 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
     /**
      * Do not use. Use
      * {@link com.newrelic.api.agent.TracedMethod#addOutboundRequestHeaders(OutboundHeaders)} instead.
-     *
+     * <p>
      * To be called when performing an outbound external request using HTTP or JMS. This method must be called before
      * any headers are written to the output stream. This method is generally used in conjunction with reportAsExternal.
      *
      * @param outboundHeaders The headers that will be written to the output stream for the external request. This also
-     *        determines if the external call is HTTP or JMS.
+     *                        determines if the external call is HTTP or JMS.
      * @since 3.26.0
      */
     @Deprecated
@@ -118,16 +141,15 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
     void readInboundResponseHeaders(InboundHeaders inboundResponseHeaders);
 
     /**
+     * @param externalParameters The appropriate input parameters depending on the type external. Use the
+     *                           {@link com.newrelic.api.agent.ExternalParametersFactory} to create input parameters. For example,
+     *                           {@link com.newrelic.api.agent.ExternalParametersFactory}'s createForDatastore to report this TracedMethod as a datastore.
      * @Deprecated Do not use. Use
      * {@link com.newrelic.api.agent.TracedMethod#reportAsExternal(ExternalParameters)} instead.
-     *
+     * <p>
      * Used to report this traced method as an HTTP external call, datastore external call, or general external call.
      * Use {@link com.newrelic.api.agent.ExternalParametersFactory} to create the input externalParameters. If you are performing an external
      * HTTP call, be sure to call addOutboundRequestHeaders prior to the request being sent.
-     *
-     * @param externalParameters The appropriate input parameters depending on the type external. Use the
-     *        {@link com.newrelic.api.agent.ExternalParametersFactory} to create input parameters. For example,
-     *        {@link com.newrelic.api.agent.ExternalParametersFactory}'s createForDatastore to report this TracedMethod as a datastore.
      * @since 3.26.0
      */
     @Deprecated

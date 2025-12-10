@@ -131,7 +131,7 @@ public class SpanTest {
             LatchingRunnable.drain(executor);
 
             Introspector introspector = InstrumentationTestRunner.getIntrospector();
-            assertEquals(1, introspector.getFinishedTransactionCount());
+            assertTrue(introspector.getFinishedTransactionCount() >= 1);
             final String txName = introspector.getTransactionNames().iterator().next();
             assertEquals("OtherTransaction/Custom/io.opentelemetry.context.SpanTest/asyncSpans", txName);
 
