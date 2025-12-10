@@ -100,7 +100,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         // no need to add rootSpan to the list yet, we don't need to consider it during merging, add it later
 
         if (rootSpan == null) {
-            Agent.LOG.log(Level.FINER, "Root span partial granularity failed to be created for trace id: {0}, either the reservoir is full, we are in cross_process_only mode or there was an error.  No other spans will be created",
+            Agent.LOG.log(Level.FINER, "Root span partial granularity failed to be created for trace id: {0}, either the reservoir is full, or there was an error.  No other spans will be created",
                     transactionData.getTraceId());
             return spans;
         }
@@ -185,7 +185,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         List<SpanEvent> spans = new ArrayList<>(tracers.size()+1);
         Tracer rootTracer = transactionData.getRootTracer();
         SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, false);
-        if (rootSpan != null) { // we are in cross process only mode, so no span generated for root
+        if (rootSpan != null) {
             spans.add(rootSpan);
         }
 
@@ -210,11 +210,6 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
     private SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
             TransactionStats transactionStats, boolean removeNonEssentialAttrs) {
-        boolean crossProcessOnly = spanEventsConfig.isCrossProcessOnly();
-        if (crossProcessOnly && !isCrossProcessTracer(tracer)) {
-            // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
-            return null;
-        }
 
         String appName = transactionData.getApplicationName();
         SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
@@ -224,11 +219,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return null;
         }
 
-        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly, removeNonEssentialAttrs);
-    }
-
-    private boolean isCrossProcessTracer(Tracer tracer) {
-        return tracer.getExternalParameters() instanceof HttpParameters || tracer.getExternalParameters() instanceof DatastoreParameters;
+        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, removeNonEssentialAttrs);
     }
 
     @Override

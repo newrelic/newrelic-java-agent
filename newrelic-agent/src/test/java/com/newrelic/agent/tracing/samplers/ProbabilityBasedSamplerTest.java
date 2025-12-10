@@ -85,6 +85,12 @@ public class ProbabilityBasedSamplerTest {
         assertEquals(0.0f, sampler.calculatePriority(null, Granularity.FULL), 0.0f);
     }
 
+    @Test
+    public void sampler_returnsCorrectDesc() {
+        when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
+        ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
+        assertEquals("Probability Based Sampler, samplingProbability=0.5000; rejectionThreshold=36028797018963968", sampler.getDescription());
+    }
 
     private int runSamplerWith(int iterationCount, float samplingProbability) {
         int iterations = 0;

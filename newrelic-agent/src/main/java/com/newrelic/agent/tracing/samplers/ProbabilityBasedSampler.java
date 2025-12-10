@@ -32,6 +32,7 @@ import java.util.logging.Level;
  */
 public class ProbabilityBasedSampler implements Sampler {
     private final long rejectionThreshold;
+    private final String description;
 
     /**
      * Construct a new ProbabilityBasedSampler with the desired probability
@@ -49,6 +50,8 @@ public class ProbabilityBasedSampler implements Sampler {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "ProbabilityBasedSampler: Invalid sampling probability supplied; setting " +
                             "rejection threshold to {0}", rejectionThreshold);
         }
+
+        this.description = String.format("Probability Based Sampler, samplingProbability=%.4f; rejectionThreshold=%d", samplingProbability, rejectionThreshold);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class ProbabilityBasedSampler implements Sampler {
 
     @Override
     public String getDescription() {
-        return "Probability Based Sampler, rejection threshold=" + rejectionThreshold;
+        return description;
     }
 
     /**
