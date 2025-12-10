@@ -8,6 +8,7 @@ import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -111,9 +112,9 @@ public class AdaptiveSampler implements Sampler {
      * @return A float in [0.0f, 2.0f]
      */
     @Override
-    public synchronized float calculatePriority(Transaction tx) {
+    public synchronized float calculatePriority(Transaction tx, Granularity granularity) {
         resetPeriodIfElapsed();
-        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision();
+        Float inboundPriority = tx.getPriorityFromInboundSamplingDecision(granularity);
         if (inboundPriority != null) {
             NewRelic.getAgent()
                     .getLogger()
@@ -123,7 +124,7 @@ public class AdaptiveSampler implements Sampler {
         NewRelic.getAgent()
                 .getLogger()
                 .log(Level.FINEST, "Adaptive Sampler did not find an inbound priority for transaction {0}. A new sampling decision will be made.", tx);
-        return (computeSampled() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
+        return DistributedTraceServiceImpl.nextTruncatedFloat() + (computeSampled() ? granularity.priorityIncrement() : 0.0f);
     }
 
     @Override

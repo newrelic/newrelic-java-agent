@@ -22,6 +22,7 @@ import com.newrelic.agent.config.coretracing.CoreTracingConfig;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.agent.tracing.samplers.SamplerFactory;
+import com.newrelic.agent.tracing.samplers.SamplerType;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
@@ -212,36 +213,24 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     @Override
     public float calculatePriority(Transaction tx, SamplerCase samplerCase) {
         float priority = nextTruncatedFloat();
-        //if DT is disabled, or both full and partial granularity are disabled, priority should be random but <1.
         if (!isEnabled() || (!isFullGranularityEnabled() && !isPartialGranularityEnabled())){
             return priority;
         }
-        String granularity = null;
-        Sampler sampler = null;
+        Sampler sampler;
         if (isFullGranularityEnabled()) {
-            granularity = "full";
             sampler = fullGranularitySamplers.get(samplerCase);
-            priority = sampler.calculatePriority(tx);
+            priority = sampler.calculatePriority(tx, Granularity.FULL);
+            logSamplerDebug(tx, priority, samplerCase, sampler, Granularity.FULL);
         }
         if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
-            granularity = "partial";
             sampler = partialGranularitySamplers.get(samplerCase);
-            priority = sampler.calculatePriority(tx);
+            priority = sampler.calculatePriority(tx, Granularity.PARTIAL);
             if (DistributedTraceUtil.isSampledPriority(priority)) {
                 NewRelic.getAgent().getLogger().log(Level.FINEST, "Setting partial granularity sample type to {0} for transaction {1}", partialSampleType, tx);
                 tx.setPartialSampleType(partialSampleType);
             }
+            logSamplerDebug(tx, priority, samplerCase, sampler, Granularity.PARTIAL);
         }
-        NewRelic.getAgent()
-                .getLogger()
-                .log(Level.FINEST,
-                        "Calculated priority=" + priority +
-                                ", sampled=" + DistributedTraceUtil.isSampledPriority(priority) +
-                                " for transaction " + tx +
-                                ", using sampler=" + samplerCase.name() +
-                                ", granularity=" + granularity +
-                                (sampler == null ? "" : ", samplerDescription=" + sampler.getDescription())
-                );
         return priority;
     }
 
@@ -447,17 +436,41 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         if (isEnabled()) {
             if (isFullGranularityEnabled()) {
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
-                            fullGranularitySamplers.get(samplerCase).getType().getDisplayName()));
+                    Sampler sampler = fullGranularitySamplers.get(samplerCase);
+                    String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
+                            sampler.getType().getDisplayName());
+                    if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
+                        samplerMetric += "/Shared";
+                    }
+                    NewRelic.incrementCounter(samplerMetric);
                 }
             }
             if (isPartialGranularityEnabled()) {
-                NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_PARTIAL_GRANULARITY_TYPE,getPartialSampleType().getDisplayName()));
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
-                            partialGranularitySamplers.get(samplerCase).getType().getDisplayName()));
+                    Sampler sampler = partialGranularitySamplers.get(samplerCase);
+                    String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
+                            sampler.getType().getDisplayName());
+                    if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
+                        samplerMetric += "/Shared";
+                    }
+                    NewRelic.incrementCounter(samplerMetric);
                 }
             }
+        }
+    }
+
+    private void logSamplerDebug(Transaction tx, float priority, SamplerCase samplerCase, Sampler sampler, Granularity granularity) {
+        if (Agent.LOG.isFinestEnabled()) {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.FINEST,
+                            "Calculated priority=" + priority +
+                                    ", sampled=" + DistributedTraceUtil.isSampledPriority(priority) +
+                                    " for transaction " + tx +
+                                    ", using sampler=" + samplerCase.name() +
+                                    ", granularity=" + granularity.name() +
+                                    ", samplerDescription=" + sampler.getDescription()
+                    );
         }
     }
 

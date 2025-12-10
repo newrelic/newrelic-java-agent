@@ -55,14 +55,15 @@ public class TraceRatioBasedSampler implements Sampler {
     }
 
     @Override
-    public float calculatePriority(Transaction tx) {
+    public float calculatePriority(Transaction tx, Granularity granularity) {
         String traceId = Sampler.traceIdFromTransaction(tx);
 
         if (traceId != null && traceId.length() == 32) {
             float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last16Chars = traceId.substring(16);
-                return initialPriority + ((Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold) ? 1.0f : 0.0f);
+                boolean sampled = (Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold);
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }

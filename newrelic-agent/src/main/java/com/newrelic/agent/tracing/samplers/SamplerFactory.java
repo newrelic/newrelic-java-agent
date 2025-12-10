@@ -21,19 +21,20 @@ public class SamplerFactory {
      * @return the constructed Sampler instance
      */
     public static Sampler createSampler(SamplerConfig samplerConfig) {
-        SamplerType type = SamplerType.getSamplerTypeFromConfig(samplerConfig.getSamplerType());
-        switch (type) {
-            case ALWAYS_ON:
+        final String PROBABILITY = "probability"; //This setting is not yet enabled in config. Wired here for future use.
+
+        switch (samplerConfig.getSamplerType()) {
+            case SamplerConfig.ALWAYS_ON:
                 return new AlwaysOnSampler();
 
-            case ALWAYS_OFF:
+            case SamplerConfig.ALWAYS_OFF:
                 return new AlwaysOffSampler();
+
+            case SamplerConfig.TRACE_ID_RATIO_BASED:
+                return new TraceRatioBasedSampler(samplerConfig);
 
             case PROBABILITY:
                 return new ProbabilityBasedSampler(samplerConfig);
-
-            case TRACE_ID_RATIO_BASED:
-                return new TraceRatioBasedSampler(samplerConfig);
 
             default:
                 return AdaptiveSampler.getAdaptiveSampler(samplerConfig);

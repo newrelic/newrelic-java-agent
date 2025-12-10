@@ -9,6 +9,7 @@ package com.newrelic.agent.tracing.samplers;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.trace.TransactionGuidFactory;
+import com.newrelic.agent.tracing.Granularity;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -81,7 +82,7 @@ public class ProbabilityBasedSamplerTest {
     public void sampler_suppliedInvalidTraceId_returns0Priority() {
         when(mockSamplerConfig.getSamplerRatio()).thenReturn(0.5f);
         ProbabilityBasedSampler sampler = new ProbabilityBasedSampler(mockSamplerConfig);
-        assertEquals(0.0f, sampler.calculatePriority(null), 0.0f);
+        assertEquals(0.0f, sampler.calculatePriority(null, Granularity.FULL), 0.0f);
     }
 
 
@@ -97,7 +98,7 @@ public class ProbabilityBasedSamplerTest {
 
         while (++iterations <= iterationCount) {
             when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
-            if (sampler.calculatePriority(tx) >= 1.0f) {
+            if (sampler.calculatePriority(tx, Granularity.FULL) >= 1.0f) {
                 sampledCount++;
             }
         }

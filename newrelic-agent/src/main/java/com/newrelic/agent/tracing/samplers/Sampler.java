@@ -50,7 +50,7 @@ public interface Sampler {
      *
      * @return a priority value between 0.0f - 2.0f, inclusive
      */
-    float calculatePriority(Transaction tx);
+    float calculatePriority(Transaction tx, Granularity granularity);
 
     /**
      * Get the type of this Sampler

@@ -1,9 +1,15 @@
 package com.newrelic.agent;
 
+import com.newrelic.agent.tracing.Granularity;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class DistributedTracingConfigTestUtil {
+public class DistributedTracingTestUtil {
+
+    public static boolean isSampledPriorityForGranularity(float priority, Granularity granularity) {
+        return granularity == Granularity.FULL ? priority >= 2.0f : priority >= 1.0f && priority <= 2.0f;
+    }
 
     /**
      * The distributed tracing configuration is extremely complicated.
