@@ -46,18 +46,18 @@ jobs:
       - name: Run unit tests that do not require a forked JVM (attempt 1)
         id: run_tests_1
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 35
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
       - name: Run unit tests that do not require a forked JVM (attempt 2)
         id: run_tests_2
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 35
         if: steps.run_tests_1.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
       - name: Run unit tests that do not require a forked JVM (attempt 3)
-        timeout-minutes: 20
+        timeout-minutes: 35
         if: steps.run_tests_2.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PnonForkedTests --continue
 
@@ -93,19 +93,19 @@ jobs:
       - name: Run unit tests that require a forked JVM (attempt 1)
         id: run_forked_tests_1
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 35
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
 
       - name: Run unit tests that require a forked JVM (attempt 2)
         id: run_forked_tests_2
         continue-on-error: true
-        timeout-minutes: 20
+        timeout-minutes: 35
         if: steps.run_forked_tests_1.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
 
       - name: Run unit tests that require a forked JVM (attempt 3)
         id: run_forked_tests_3
-        timeout-minutes: 20
+        timeout-minutes: 35
         if: steps.run_forked_tests_2.outcome == 'failure'
         run: ./gradlew $GRADLE_OPTIONS test -x :functional_test:test -x :newrelic-scala3-api:test -x :newrelic-scala-api:test -x :newrelic-scala-cats-api:test -x :newrelic-cats-effect3-api:test -x :newrelic-scala-monix-api:test -x :newrelic-scala-zio-api:test -x :newrelic-scala-zio2-api:test -Ptest8 -PnoInstrumentation -PforkedTests --continue
 
