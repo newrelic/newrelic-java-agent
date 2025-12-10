@@ -852,7 +852,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             // we had a connection/run id once and reconnecting failed.
             // Assumption: failed re-connect should be a result of a temporary condition, and we need to retry
             try {
-                Agent.LOG.fine("Trying to re-establish connection to New Relic.");
+                if (serverlessMode) {
+                    Agent.LOG.log(Level.FINE, "Trying to re-establish connection for serverless mode.");
+                }
+                else {
+                    Agent.LOG.fine("Trying to re-establish connection to New Relic.");
+                }
                 this.launch();
             } catch (Exception e) {
                 Agent.LOG.fine("Problem trying to re-establish connection to New Relic: " + e.getMessage());
@@ -870,6 +875,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             try {
                 long now = System.currentTimeMillis();
                 sendMetricDataSyncRestart(lastReportTime, now, data);
+                dataSender.commitAndFlush();
                 reportInterval = now - lastReportTime;
                 lastReportTime = now;
                 last503Error.set(0);

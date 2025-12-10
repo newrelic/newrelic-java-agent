@@ -522,6 +522,11 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         }
     }
 
+    @Override
+    public void commitAndFlush() throws Exception {
+        // No-Op since all data fed to the DataSender is immediately sent to the collector and is not buffered.
+    }
+
     @VisibleForTesting
     void setMaxPayloadSizeInBytes(int payloadSizeInBytes) {
         maxPayloadSizeInBytes = payloadSizeInBytes;

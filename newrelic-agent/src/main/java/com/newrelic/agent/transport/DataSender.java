@@ -82,4 +82,9 @@ public interface DataSender {
 
     void shutdown(long timeMillis) throws Exception;
 
+    /**
+     * Saves and flushes any buffered telemetry. Used for serverless harvests and is a No-Op in all other scenarios.
+     */
+    void commitAndFlush() throws Exception;
+
 }

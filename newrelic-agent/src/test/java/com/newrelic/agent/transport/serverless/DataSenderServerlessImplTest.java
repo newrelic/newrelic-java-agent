@@ -43,10 +43,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DataSenderServerlessImplTest {
-    @Mock
     private ServerlessWriter serverlessWriter;
 
-    private DataSenderServerlessImpl dataSender;
+    private DataSenderServerlessImpl dataSender = null;
 
     @Mock
     public IAgentLogger logger;
@@ -54,6 +53,7 @@ public class DataSenderServerlessImplTest {
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
+        serverlessWriter = Mockito.mock(ServerlessWriter.class);
         DataSenderServerlessConfig config = new DataSenderServerlessConfig("9.0.0");
         this.dataSender = new DataSenderServerlessImpl(config, logger, serverlessWriter);
     }
@@ -75,6 +75,9 @@ public class DataSenderServerlessImplTest {
         Mockito.when(tracedError.getTransactionGuid()).thenReturn("transactionGuid");
 
         dataSender.sendErrorData(Collections.singletonList(tracedError));
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
@@ -111,6 +114,10 @@ public class DataSenderServerlessImplTest {
 
         errorEvents.add(errorEvent);
         dataSender.sendErrorEvents(111, 1, errorEvents);
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
                     String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAC3NMQoDIRQE0LtMbWNrlyI3CNuIyCf+QhANX11IxLtHl23fDDMDLFLE88m5+UCNYGzuKamBy6qvzBlGKwhXlrNE8TX+eJHWU1k7EB6tCQzCQQkK7ftZKV5CudK7xZKf+wNzbfa72nd1A91AFzjn5h/2EzpSkwAAAA==\"]";
@@ -142,6 +149,10 @@ public class DataSenderServerlessImplTest {
 
         spanEvents.add(spanEvent);
         dataSender.sendSpanEvents(111, 1, spanEvents);
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
                     String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAADXMQQpDIQwE0LtkLQW37nqGQjciEmoWUsmXqB9a8e4N8rucN8NMaBU50kncY8KO4DyPUsyEbS02IgZnDQg1kvPIElv+kpK1y3g/98PtnTmBgypHGi8SMNA/VVfw0FZTvvcuGvMTCyy9HxeMP+AFuCGEsH5J/geKnQAAAA==\"]";
@@ -157,12 +168,35 @@ public class DataSenderServerlessImplTest {
 
     @Test
     public void testAnalyticEvents() throws Exception {
-        addAndAssertTransactionEvent();
-        addAndAssertCustomEvent();
-        addAndAssertLogEvent();
+        sendTransactionEvent();
+        sendCustomEvent();
+        sendLogEvent();
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(filePayload -> {
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAG2PwYqDMBCG32XOoTRqe/BWtr2VPS29iMhsHUpAoyQTqRXffSdqWRY25JD5+OafyQRosRnZ3CsayHJVIyPkhQ1NoyZYmK88kYU8VeDIkxs64ypvXgS5To+zKooJ6uCQTSeW3svZ7RXUJ2YHOdQ3bEBKCf5GT+dfM1oWW8kBftrP+FLAYx/Bl0Pr8b6YAk1LnrHtpSvT2SFJs0OaxKsTncyyadimhTgtAtwALqBUsuQW/RE8dy381/XHu3aPS/z/GreKw9sry/kHuhZqjzwBAAA=\"]";
+                    return filePayload.equals(expected);
+                }),
+
+                Mockito.argThat(consolePayload -> {
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":3,\"reservoir_size\":136},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}],[{\"type\":\"Custom\"},{\"uAttr\":\"uVal\"},{}],[{\"type\":\"LogEvent\"},{\"attr\":\"val\"},{}]]]}]";
+                    return consolePayload.equals(expected);
+                })
+        );
+
+        // Verify the buffer actually cleared
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKuuBQBDv6ajAgAAAA==\"]",
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{}]"
+        );
     }
 
-    private void addAndAssertTransactionEvent() throws Exception {
+    private void sendTransactionEvent() throws Exception {
         Collection<TransactionEvent> transactionEvents = new ArrayList<>();
 
         Map<String, Object> userAttributes = new HashMap<>();
@@ -208,23 +242,13 @@ public class DataSenderServerlessImplTest {
         transactionEvent.setAgentAttributes(agentAttr);
 
         transactionEvents.add(transactionEvent);
+
         dataSender.sendAnalyticsEvents(111, 1, transactionEvents);
-
-        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
-                Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
-                    return filePayload.equals(expected);
-                }),
-
-                Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
-                    return consolePayload.equals(expected);
-                })
-        );
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
     }
 
 
-    private void addAndAssertCustomEvent() throws Exception {
+    private void sendCustomEvent() throws Exception {
         Collection<CustomInsightsEvent> customEvents = new ArrayList<>();
 
         Map<String, Object> userAttributes = new HashMap<>();
@@ -236,40 +260,18 @@ public class DataSenderServerlessImplTest {
         customEvents.add(customInsightsEvent);
 
         dataSender.sendCustomAnalyticsEvents(24, 1, customEvents);
-
-        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
-                Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAB3LQQrDIBBG4bv8azcNWbkrvUM2IjI0sxCsBmcMpOLda7p8H7wOypQuje/AJ2cNOynButxSMh1/kyDMGfZhUFm4niXWIPHLsMs6jHMdeh2z8Gqi5YMxz/ZUrZPaRumG4b0fPw4xtf9uAAAA\"]";
-                    return filePayload.equals(expected);
-                }),
-
-                Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":24},[[{\"type\":\"Custom\"},{\"uAttr\":\"uVal\"},{}]]]}]";
-                    return consolePayload.equals(expected);
-                })
-        );
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
     }
 
 
-    private void addAndAssertLogEvent() throws Exception {
+    private void sendLogEvent() throws Exception {
         Collection<LogEvent> logEvents = new ArrayList<>();
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("attr", "val");
         LogEvent logEvent = new LogEvent(attrs, 0.332f);
         logEvents.add(logEvent);
         dataSender.sendLogEvents(logEvents);
-
-        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
-                Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAEWOQQuDMAyF/0vOZdhOL94GO+80dhEpmc2hUKu0qcyJ/32tCAs5JB8v72UD9OhWtoOmhTxrg4zQdj45JzY4WNSRyEMrBQSKFJbJBh3tlzKSchddt4FJAdlORVXlulQCzI05QAvmhQ7ymo3fGOn+VxaVxzH7AH/8o0wCeJ0LeAb0EYdDmaEdKTKOc76qZd2oa91cVWmppNrzp+lMSyWtADwBHqDv+/0H5B941OwAAAA=\"]";
-                    return filePayload.equals(expected);
-                }),
-
-                Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"analytic_event_data\":[null,{\"events_seen\":1,\"reservoir_size\":111},[[{\"duration\":10000.0,\"dAttr\":\"dVal\",\"databaseDuration\":1.0,\"name\":\"txnName\",\"type\":\"Transaction\",\"timestamp\":1414523453253251212},{\"uAttr\":\"uVal\"},{\"aAttr\":\"aVal\"}]]]}]";
-                    return consolePayload.equals(expected);
-                })
-        );
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
     }
 
     @Test
@@ -280,6 +282,10 @@ public class DataSenderServerlessImplTest {
                 new StatsImpl(5, 2, 0, 3, 2));
 
         dataSender.sendMetricData(1L, 2L, Collections.singletonList(metricData));
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
                     String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsDMQGEHYsENQCALg9059iAAAA\"]";
@@ -297,6 +303,9 @@ public class DataSenderServerlessImplTest {
     public void testTransactionTraces() throws Exception {
         TransactionTrace trace = createTransactionTrace();
         dataSender.sendTransactionTraceData(Collections.singletonList(trace));
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
@@ -367,6 +376,9 @@ public class DataSenderServerlessImplTest {
         Mockito.when(sqlTrace.getParameters()).thenReturn(params);
         dataSender.sendSqlTraceData(Collections.singletonList(sqlTrace));
 
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
                     String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWKi7MiS8pSkxOjU9JLElUsoqOjlZKyknMTfVNLSnKTPYDspR0lEqLMpV0DA0NdZQKS1OLKoEiuUjShgY6xjqGOqY6Sh4mxZ6OMOBdEl6ZbVYS5uMV7J1d5usdahhWmB7qWGZaHhlQbgFSYasUGxtbCwCJyRAjhQAAAA==\"]";
@@ -388,6 +400,19 @@ public class DataSenderServerlessImplTest {
         dataSender.shutdown(1000);
         Assert.assertEquals(0, dataSender.sendProfileData(null).size());
         Assert.assertEquals(0, dataSender.connect(null).size());
+
+        dataSender.commitAndFlush();
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(filePayload -> {
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKuuBQBDv6ajAgAAAA==\"]";
+                    return filePayload.equals(expected);
+                }),
+
+                Mockito.argThat(consolePayload -> {
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{}]";
+                    return consolePayload.equals(expected);
+                })
+        );
     }
 
 }
