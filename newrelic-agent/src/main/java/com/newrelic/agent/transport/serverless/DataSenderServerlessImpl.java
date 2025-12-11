@@ -45,12 +45,14 @@ public class DataSenderServerlessImpl implements DataSender {
     private final IAgentLogger logger;
     private final DataSenderServerlessConfig config;
     private final String awsExecutionEnv;
+    private final TelemetryBuffer buffer;
 
     public DataSenderServerlessImpl(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessWriter serverlessWriter) {
         this.config = config;
         this.logger = logger;
         this.serverlessWriter = serverlessWriter;
         this.awsExecutionEnv = System.getenv("AWS_EXECUTION_ENV");
+        this.buffer = new TelemetryBuffer();
     }
 
     @Override
@@ -72,63 +74,49 @@ public class DataSenderServerlessImpl implements DataSender {
 
     @Override
     public void sendErrorData(List<TracedError> errors) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateTracedErrors(errors);
-        writeData(telemetryBuffer);
+        buffer.updateTracedErrors(errors);
     }
 
     @Override
     public void sendErrorEvents(int reservoirSize, int eventsSeen, Collection<ErrorEvent> errorEvents) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateErrorEvents(errorEvents);
-        telemetryBuffer.updateErrorReservoirSize(reservoirSize);
-        telemetryBuffer.updateErrorEventsSeen(eventsSeen);
-        writeData(telemetryBuffer);
+        buffer.updateErrorEvents(errorEvents);
+        buffer.updateErrorReservoirSize(reservoirSize);
+        buffer.updateErrorEventsSeen(eventsSeen);
     }
 
     @Override
     public <T extends AnalyticsEvent & JSONStreamAware> void sendAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<T> events) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateAnalyticEvents(events);
-        telemetryBuffer.updateAnalyticReservoirSize(reservoirSize);
-        telemetryBuffer.updateAnalyticEventsSeen(eventsSeen);
-        writeData(telemetryBuffer);
+        buffer.updateAnalyticEvents(events);
+        buffer.updateAnalyticReservoirSize(reservoirSize);
+        buffer.updateAnalyticEventsSeen(eventsSeen);
     }
 
     @Override
     public void sendCustomAnalyticsEvents(int reservoirSize, int eventsSeen, Collection<? extends CustomInsightsEvent> events) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateAnalyticEvents(events);
-        telemetryBuffer.updateCustomEventsReservoirSize(reservoirSize);
-        telemetryBuffer.updateCustomEventsSeen(eventsSeen);
-        writeData(telemetryBuffer);
+        buffer.updateAnalyticEvents(events);
+        buffer.updateCustomEventsReservoirSize(reservoirSize);
+        buffer.updateCustomEventsSeen(eventsSeen);
     }
 
     @Override
     public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateAnalyticEvents(events);
-        telemetryBuffer.updateLogEventsReservoir(events.size());
-        telemetryBuffer.updateLogEventsSeen(events.size());
-        writeData(telemetryBuffer);
+        buffer.updateAnalyticEvents(events);
+        buffer.updateLogEventsReservoir(events.size());
+        buffer.updateLogEventsSeen(events.size());
     }
 
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, Collection<SpanEvent> events) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateSpanEvents(events);
-        telemetryBuffer.updateSpanReservoirSize(reservoirSize);
-        telemetryBuffer.updateSpanEventsSeen(eventsSeen);
-        writeData(telemetryBuffer);
+        buffer.updateSpanEvents(events);
+        buffer.updateSpanReservoirSize(reservoirSize);
+        buffer.updateSpanEventsSeen(eventsSeen);
     }
 
     @Override
     public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateMetricData(metricData);
-        telemetryBuffer.updateMetricBeginTimeMillis(beginTimeMillis);
-        telemetryBuffer.updateMetricEndTimeMillis(endTimeMillis);
-        writeData(telemetryBuffer);
+        buffer.updateMetricData(metricData);
+        buffer.updateMetricBeginTimeMillis(beginTimeMillis);
+        buffer.updateMetricEndTimeMillis(endTimeMillis);
     }
 
     @Override
@@ -139,16 +127,12 @@ public class DataSenderServerlessImpl implements DataSender {
 
     @Override
     public void sendSqlTraceData(List<SqlTrace> sqlTraces) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateSqlTraces(sqlTraces);
-        writeData(telemetryBuffer);
+        buffer.updateSqlTraces(sqlTraces);
     }
 
     @Override
     public void sendTransactionTraceData(List<TransactionTrace> traces) throws Exception {
-        TelemetryBuffer telemetryBuffer = new TelemetryBuffer();
-        telemetryBuffer.updateTransactionTraces(traces);
-        writeData(telemetryBuffer);
+        buffer.updateTransactionTraces(traces);
     }
 
     @Override
@@ -161,9 +145,15 @@ public class DataSenderServerlessImpl implements DataSender {
         // Serverless mode does not write data on shutdown
     }
 
-    void writeData(TelemetryBuffer telemetryBuffer) {
-        JSONObject data = telemetryBuffer.formatJson();
+    @Override
+    public void commitAndFlush() throws Exception {
+        writeData();
+    }
+
+    void writeData() {
+        JSONObject data = this.buffer.formatJson();
         serverlessWriter.write(createFilePayload(data), createConsolePayload(data));
+        this.buffer.clear();
     }
 
     String createFilePayload(JSONObject data) {

@@ -31,20 +31,26 @@ import java.util.zip.GZIPOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Thread safe buffer to store telemetry to be outputted in serverless mode.
+ * Whenever telemetry is fed into the DataSender during a serverless harvest, it will be stored in this buffer until the harvest finishes.
+ * To finish a serverless harvest, the buffered data is formatted into JSON payloads to be sent to the ServerlessWriter.
+ * Afterward, the buffer is cleared for the next harvest.
+ */
 class TelemetryBuffer {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private List<TransactionTrace> transactionTraces = new ArrayList<>();
+    private final List<TransactionTrace> transactionTraces = new ArrayList<>();
 
-    private List<SqlTrace> sqlTraces = new ArrayList<>();
+    private final List<SqlTrace> sqlTraces = new ArrayList<>();
 
     private Integer spanReservoirSize = 0;
     private Integer spanEventsSeen = 0;
-    Collection<SpanEvent> spanEvents = new ArrayList<>();
+    private final Collection<SpanEvent> spanEvents = new ArrayList<>();
 
     private Integer errorReservoirSize = 0;
     private Integer errorEventsSeen = 0;
-    private Collection<ErrorEvent> errorEvents = new ArrayList<>();
-    private List<TracedError> tracedErrors = new ArrayList<>();
+    private final Collection<ErrorEvent> errorEvents = new ArrayList<>();
+    private final List<TracedError> tracedErrors = new ArrayList<>();
 
     private Integer analyticReservoirSize = 0;
     private Integer analyticEventsSeen = 0;
@@ -56,9 +62,9 @@ class TelemetryBuffer {
     private Integer logEventsReservoirSize = 0;
     private Integer logEventsSeen = 0;
 
-    Long metricBeginTimeMillis = 0L;
-    Long metricEndTimeMillis = 0L;
-    List<MetricData> metricData = new ArrayList<>();
+    private Long metricBeginTimeMillis = 0L;
+    private Long metricEndTimeMillis = 0L;
+    private final List<MetricData> metricData = new ArrayList<>();
 
     public TelemetryBuffer() {
     }
@@ -102,7 +108,6 @@ class TelemetryBuffer {
         } finally {
             lock.readLock().unlock();
         }
-
     }
 
     private static <T> void addEvents(Collection<T> events, JSONObject data, String eventKey,
@@ -516,6 +521,67 @@ class TelemetryBuffer {
         try {
             lock.readLock().lock();
             return metricEndTimeMillis;
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    public void clear() {
+        try{
+            lock.writeLock().lock();
+            this.transactionTraces.clear();
+
+            this.sqlTraces.clear();
+
+            this.spanReservoirSize = 0;
+            this.spanEventsSeen = 0;
+            this.spanEvents.clear();
+
+            this.errorReservoirSize = 0;
+            this.errorEventsSeen = 0;
+            this.errorEvents.clear();
+            this.tracedErrors.clear();
+
+            this.analyticReservoirSize = 0;
+            this.analyticEventsSeen = 0;
+            this.analyticEvents.clear();
+
+            this.customEventsReservoirSize = 0;
+            this.customEventsSeen = 0;
+
+            this.logEventsReservoirSize = 0;
+            this.logEventsSeen = 0;
+
+            this.metricBeginTimeMillis = 0L;
+            this.metricEndTimeMillis = 0L;
+            this.metricData.clear();
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public boolean isEmpty() {
+        try{
+            lock.readLock().lock();
+            return this.transactionTraces.isEmpty() &&
+                    this.sqlTraces.isEmpty() &&
+                    this.spanReservoirSize == 0 &&
+                    this.spanEventsSeen == 0 &&
+                    this.spanEvents.isEmpty() &&
+                    this.errorReservoirSize == 0 &&
+                    this.errorEventsSeen == 0 &&
+                    this.errorEvents.isEmpty() &&
+                    this.tracedErrors.isEmpty() &&
+                    this.analyticReservoirSize == 0 &&
+                    this.analyticEventsSeen == 0 &&
+                    this.analyticEvents.isEmpty() &&
+                    this.customEventsReservoirSize == 0 &&
+                    this.customEventsSeen == 0 &&
+                    this.logEventsReservoirSize == 0 &&
+                    this.logEventsSeen == 0 &&
+                    this.metricBeginTimeMillis == 0L &&
+                    this.metricEndTimeMillis == 0L &&
+                    this.metricData.isEmpty();
         } finally {
             lock.readLock().unlock();
         }

@@ -96,8 +96,9 @@ public class TelemetryBufferTest {
 
         Assert.assertEquals(0, ((Map<?, ?>)attributes.get("userAttributes")).size());
 
-
         Assert.assertEquals("transactionGuid", error.get(5));
+
+        clearAndAssertEmpty(data);
     }
 
     @Test
@@ -154,6 +155,7 @@ public class TelemetryBufferTest {
         Map<String, Object> formattedAgentAttr = (Map<String, Object>) formattedEvent.get(2);
         Assert.assertEquals("aVal", formattedAgentAttr.get("aAttr"));
 
+        clearAndAssertEmpty(data);
     }
 
     @Test
@@ -203,6 +205,8 @@ public class TelemetryBufferTest {
 
         Map<String, Object> formattedAgentAttr = (Map<String, Object>) formattedEvent.get(2);
         Assert.assertEquals("aVal", formattedAgentAttr.get("aAttr"));
+
+        clearAndAssertEmpty(data);
     }
 
     @Test
@@ -238,9 +242,12 @@ public class TelemetryBufferTest {
         JSONArray transactionEvent = (JSONArray) events.get(0);
         JSONArray customEvent = (JSONArray) events.get(1);
         JSONArray logEvent = (JSONArray) events.get(2);
+
         assertTransactionEvent(transactionEvent);
         assertCustomEvent(customEvent);
         assertLogEvent(logEvent);
+
+        clearAndAssertEmpty(data);
     }
 
     private void addTransactionEvent(TelemetryBuffer data) {
@@ -381,6 +388,7 @@ public class TelemetryBufferTest {
         Assert.assertEquals(0.0f, (float) statsJson.get(4), 0.0);
         Assert.assertEquals(2.0, (double) statsJson.get(5), 0.0);
 
+        clearAndAssertEmpty(data);
     }
 
     @Test
@@ -403,6 +411,8 @@ public class TelemetryBufferTest {
         data.updateMetricEndTimeMillis(300L);
         Assert.assertEquals((Long) 50L, data.getMetricBeginTimeMillis());
         Assert.assertEquals((Long) 300L, data.getMetricEndTimeMillis());
+
+        clearAndAssertEmpty(data);
     }
 
     @Test
@@ -411,6 +421,8 @@ public class TelemetryBufferTest {
         TransactionTrace trace = createTransactionTrace();
         data.updateTransactionTraces(Collections.singletonList(trace));
         assertTransactionTrace(data);
+
+        clearAndAssertEmpty(data);
     }
 
     private TransactionTrace createTransactionTrace() {
@@ -537,6 +549,14 @@ public class TelemetryBufferTest {
         String paramsJsonStr = new String(jsonUnzipped).trim();
         Assert.assertEquals("{\"key\":\"value\"}", paramsJsonStr);
 
+        clearAndAssertEmpty(data);
+    }
+
+    private void clearAndAssertEmpty(TelemetryBuffer buffer) {
+        buffer.clear();
+        JSONObject clearedJson = buffer.formatJson();
+        Assert.assertEquals(0, clearedJson.size());
+        Assert.assertTrue(buffer.isEmpty());
     }
 }
 
