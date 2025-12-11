@@ -188,7 +188,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jmxService = new JmxService(jmxConfig);
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
-        boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
+        boolean jarCollectorEnabled = !config.getServerlessConfig().isEnabled()
+                && configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
