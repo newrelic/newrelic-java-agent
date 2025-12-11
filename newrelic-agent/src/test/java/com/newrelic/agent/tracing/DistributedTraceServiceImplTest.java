@@ -251,6 +251,7 @@ public class DistributedTraceServiceImplTest {
         for (int i = 0; i < 1000; i++) {
             TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
             Transaction txn = Mockito.mock(Transaction.class);
+            when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(2.5f);
             Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(txn, REMOTE_PARENT_SAMPLED);
             minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
             maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
@@ -333,7 +334,7 @@ public class DistributedTraceServiceImplTest {
 
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
-        assertEquals(SamplerType.ALWAYS_ON, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ALWAYS_OFF, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
 
         Transaction txn = Mockito.mock(Transaction.class);
         Mockito.when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(2.5f);
