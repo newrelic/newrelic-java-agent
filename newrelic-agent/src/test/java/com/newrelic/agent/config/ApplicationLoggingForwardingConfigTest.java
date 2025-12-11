@@ -31,6 +31,7 @@ public class ApplicationLoggingForwardingConfigTest {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
                 false);
         assertTrue(config.getEnabled());
+        assertFalse(config.isAutoAppNamingAssociationEnabled());
     }
 
     @Test

@@ -93,4 +93,11 @@ public interface ApplicationLoggingConfig {
      * @return a Set of excluded labels
      */
     Set<String> getLogLabelsExcludeSet();
+
+    /**
+     * Return the enabled flag for the auto_app_naming_association flag
+     *
+     * @return true if auto_app_naming_association is enabled
+     */
+    boolean isAutoAppNamingAssociationEnabled();
 }
