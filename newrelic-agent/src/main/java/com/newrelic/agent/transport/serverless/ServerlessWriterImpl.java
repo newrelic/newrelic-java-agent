@@ -18,7 +18,7 @@ public class ServerlessWriterImpl implements ServerlessWriter {
     }
 
     @Override
-    public void write(String filePayload, String consolePayload) {
+    public synchronized void write(String filePayload, String consolePayload) {
         if (pathFile.exists()) {
             try (BufferedWriter pipe = new BufferedWriter(new FileWriter(pathFile, false))) {
                 pipe.write(filePayload);
