@@ -7,6 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.tracing.Granularity;
 
 public interface Sampler {
     /**
