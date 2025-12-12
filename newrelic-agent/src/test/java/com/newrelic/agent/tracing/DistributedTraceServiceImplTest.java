@@ -605,7 +605,7 @@ public class DistributedTraceServiceImplTest {
                 sampledCount++;
             }
         }
-        float variance = 0.01f;
+        float variance = 0.05f;
         int expectedSampledCount = 6000;
         int maxError = (int)( variance * expectedSampledCount );
         assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);

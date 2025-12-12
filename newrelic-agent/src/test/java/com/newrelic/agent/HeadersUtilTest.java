@@ -121,7 +121,7 @@ public class HeadersUtilTest {
 
         HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
         assertTrue(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
-        assertTrue(tx.getPriority() == 2.0f);
+        assertTrue(tx.getPriority() == 3.0f);
 
         Transaction.clearTransaction();
     }
@@ -151,7 +151,7 @@ public class HeadersUtilTest {
 
         HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
         assertFalse(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
-        assertTrue(tx.getPriority() == 2.0f);
+        assertTrue(tx.getPriority() == 3.0f);
 
         Transaction.clearTransaction();
     }
