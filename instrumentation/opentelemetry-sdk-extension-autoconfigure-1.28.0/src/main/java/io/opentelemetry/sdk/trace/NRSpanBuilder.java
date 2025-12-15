@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 import static com.nr.agent.instrumentation.utils.header.HeaderType.NEWRELIC;
 import static com.nr.agent.instrumentation.utils.header.HeaderType.W3C_TRACEPARENT;
@@ -68,7 +69,7 @@ class NRSpanBuilder implements SpanBuilder {
     private long startEpochNanos = 0L;
 
     private static final int MAX_LINKS_PER_SPAN = 100;
-    private static final int MAX_LINK_ATTRIBUTES = 254;
+    private static final int MAX_LINK_ATTRIBUTES = 64;
     private static final int MAX_LINK_ATTRIBUTE_LENGTH = 255;
 
     public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
@@ -136,6 +137,10 @@ class NRSpanBuilder implements SpanBuilder {
         }
         if (this.links.size() != MAX_LINKS_PER_SPAN) {
             this.links.add(link);
+        } else {
+            AgentBridge.getAgent()
+                    .getLogger()
+                    .log(Level.FINEST, "Unable to add span link because the limit of " + MAX_LINKS_PER_SPAN + " links per span has been reached.");
         }
     }
 
@@ -261,7 +266,7 @@ class NRSpanBuilder implements SpanBuilder {
                 if ("User-Agent".equalsIgnoreCase(name)) {
                     return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Host, attributes.keySet()));
                 }
-                // TODO is it possible to get the newrelic DT header from OTel???
+                // TODO is it possible to get the newrelic DT header from OTel??? It doesn't seem so.
                 if (NEWRELIC.equalsIgnoreCase(name)) {
                     return null;
                 }
