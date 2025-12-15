@@ -31,17 +31,14 @@ public abstract class RequestStreamHandler_Instrumentation {
     @Trace(dispatcher = true)
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
         try {
-            // Start transaction and capture Lambda metadata
             LambdaInstrumentationHelper.startTransaction(context);
         } catch (Throwable t) {
 
         }
 
-        // Execute the original handler method
         Weaver.callOriginal();
 
         try {
-            // Finish transaction - this triggers serverless harvest
             LambdaInstrumentationHelper.finishTransaction();
         } catch (Throwable t) {
 

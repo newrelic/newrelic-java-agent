@@ -69,7 +69,6 @@ public class RequestHandlerInstrumentationTest {
     public void testColdStartCaptured() {
         Context mockContext = createMockContext();
 
-        // First invocation - should be cold start
         TestRequestHandler handler1 = new TestRequestHandler();
         handler1.handleRequest("input1", mockContext);
 
@@ -83,7 +82,7 @@ public class RequestHandlerInstrumentationTest {
         // Clear introspector for second invocation
         introspector.clear();
 
-        // Second invocation - should NOT be cold start
+        // Second invocation: should NOT be cold start
         TestRequestHandler handler2 = new TestRequestHandler();
         handler2.handleRequest("input2", mockContext);
 

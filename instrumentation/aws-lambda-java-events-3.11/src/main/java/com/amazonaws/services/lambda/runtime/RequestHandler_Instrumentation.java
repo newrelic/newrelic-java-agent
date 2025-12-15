@@ -26,17 +26,14 @@ public abstract class RequestHandler_Instrumentation<I, O> {
     @Trace(dispatcher = true)
     public O handleRequest(I input, Context context) {
         try {
-            // Start transaction and capture Lambda metadata
             LambdaInstrumentationHelper.startTransaction(context);
         } catch (Throwable t) {
 
         }
 
-        // Execute the original handler method
         O result = Weaver.callOriginal();
 
         try {
-            // Finish transaction - this triggers serverless harvest
             LambdaInstrumentationHelper.finishTransaction();
         } catch (Throwable t) {
 
