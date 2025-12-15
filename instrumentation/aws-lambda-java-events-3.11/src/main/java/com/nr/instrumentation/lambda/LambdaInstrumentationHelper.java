@@ -33,23 +33,19 @@ public class LambdaInstrumentationHelper {
         }
 
         try {
-            // Get the current transaction
             Transaction transaction = AgentBridge.getAgent().getTransaction(false);
             if (transaction == null) {
                 NewRelic.getAgent().getLogger().log(Level.FINE, "No transaction available");
                 return false;
             }
 
-            // Set transaction name based on Lambda function name
             String functionName = context.getFunctionName();
             if (functionName != null && !functionName.isEmpty()) {
                 NewRelic.setTransactionName("Function", functionName);
             }
 
-            // Capture Lambda metadata
             captureLambdaMetadata(context);
 
-            // Track cold start
             handleColdStart();
 
             return true;
@@ -67,14 +63,12 @@ public class LambdaInstrumentationHelper {
      */
     private static void captureLambdaMetadata(Context context) {
         try {
-            // Capture ARN
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
                 NewRelic.addCustomParameter("aws.lambda.arn", arn);
                 LambdaMetadataProvider.setArn(arn);
             }
 
-            // Capture function version
             String functionVersion = context.getFunctionVersion();
             if (functionVersion != null && !functionVersion.isEmpty()) {
                 NewRelic.addCustomParameter("aws.lambda.function_version", functionVersion);
