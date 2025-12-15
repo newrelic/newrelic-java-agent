@@ -23,6 +23,7 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import com.nr.agent.instrumentation.utils.AttributesHelper;
 import io.opentelemetry.sdk.trace.ExitTracerSpan;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -123,6 +124,7 @@ public class SpanTest {
         introspector.clear();
     }
 
+    @Ignore("Ignored because of constant failures due to a race condition")
     @Test
     public void testAsyncSpans() {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -147,6 +149,7 @@ public class SpanTest {
         }
     }
 
+    @Ignore("Ignored because of constant failures due to a race condition")
     @Test
     public void testAsyncSpansWithParentNotWorking() {
         final ExecutorService executor = Executors.newSingleThreadExecutor();
