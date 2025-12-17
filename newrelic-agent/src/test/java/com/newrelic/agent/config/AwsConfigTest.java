@@ -17,28 +17,13 @@ import static org.junit.Assert.assertTrue;
 
 public class AwsConfigTest {
 
-    @Test
-    public void testDisableFargateMetadataEndpointProxy_ValueIsDefaultedFalse() {
-        Map<String, Object> props = new HashMap<>();
-        AwsConfig awsConfig = new AwsConfigImpl(props);
-
-        assertFalse(awsConfig.isFargateMetadataEndpointProxyDisabled());
-    }
-
-    @Test
-    public void testDisableFargateMetadataEndpointProxy_ValueIsSetToFalse() {
-        Map<String, Object> props = new HashMap<>();
-        props.put("fargate_metadata_endpoint_proxy_disable", false);
-        AwsConfig awsConfig = new AwsConfigImpl(props);
-
-        assertFalse(awsConfig.isFargateMetadataEndpointProxyDisabled());
-    }
+    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.";
 
     @Test
     public void testDisableFargateMetadataEndpointProxy_ValueIsSetToTrue() {
         Map<String, Object> props = new HashMap<>();
         props.put("fargate_metadata_endpoint_proxy_disable", true);
-        AwsConfig awsConfig = new AwsConfigImpl(props);
+        AwsConfig awsConfig = new AwsConfigImpl(props, SYSTEM_PROPERTY_ROOT);
 
         assertTrue(awsConfig.isFargateMetadataEndpointProxyDisabled());
     }

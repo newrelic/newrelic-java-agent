@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 public class DockerDataTest {
 
-    private final AwsConfig awsConfig = new AwsConfigImpl(Collections.emptyMap());
+    private final AwsConfig awsConfig = new AwsConfigImpl(Collections.emptyMap(), "newrelic.config");
     private final DockerData dockerData = new DockerData(awsConfig);
 
     @Test
