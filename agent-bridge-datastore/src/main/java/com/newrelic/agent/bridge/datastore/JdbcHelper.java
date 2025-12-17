@@ -305,12 +305,35 @@ public class JdbcHelper {
     }
 
     /**
+     * Add the SQL metadata comment to the target SQL, if necessary. If
+     * the comment has already been added to this statement, simply return
+     * the original SQL statement.
+     *
+     * @param sql the target SQL statement
+     *
+     * @return a SQL statement which might have the metadata comment prepended to it
+     */
+    public static String addSqlMetadataCommentIfNeeded(String sql) {
+        if (sql == null || sql.isEmpty()) {
+            return sql;
+        }
+
+        // Check if comment already exists
+        if (sql.startsWith("/* nr_trace_id=")) {
+            return sql;
+        }
+
+        String comment = generateSqlMetadataComment();
+        return comment.isEmpty() ? sql : comment + sql;
+    }
+
+    /**
      * If a transaction is in progress, create a comment to be prepended to the statement that contains the
      * trace id, span id and app name.
      *
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
-    public static String generateSqlMetadataComment() {
+    private static String generateSqlMetadataComment() {
         if (NewRelic.getAgent().getTransaction() != NoOpTransaction.INSTANCE) {
             TraceMetadata traceMetadata = NewRelic.getAgent().getTraceMetadata();
             return String.format("/* nr_trace_id=%s,nr_span_id=%s,nr_service=%s */ ", traceMetadata.getTraceId(), traceMetadata.getSpanId(),

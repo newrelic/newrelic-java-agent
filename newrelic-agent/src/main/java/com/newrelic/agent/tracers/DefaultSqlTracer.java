@@ -162,6 +162,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     public void setRawSql(String sql) {
         this.sql = sql;
+        System.out.println("DUF-- sql " + sql);
     }
 
     @Override
