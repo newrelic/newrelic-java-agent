@@ -803,8 +803,16 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private AwsConfig initAwsConfig() {
-        Map<String, Object> props = nestedProps(AwsConfigImpl.ROOT);
-        return new AwsConfigImpl(props);
+        Map<String, Object> cloudProps = nestedProps("cloud");
+        Map<String, Object> awsProps = null;
+
+        if (cloudProps != null) {
+            Object awsObject = cloudProps.get("aws");
+            if (awsObject instanceof Map) {
+                awsProps = (Map<String, Object>) awsObject;
+            }
+        }
+        return new AwsConfigImpl(awsProps, SYSTEM_PROPERTY_ROOT);
     }
 
     private BrowserMonitoringConfig initBrowserMonitoringConfig() {
