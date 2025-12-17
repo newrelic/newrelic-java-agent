@@ -10,17 +10,16 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
-import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.json.AttributeFilters;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
 import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.AbstractTracer;
-import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.SpanProxy;
@@ -85,7 +84,7 @@ public class TracerToSpanEvent {
 
     /**
      * Converts the OpenTelemetry SpanLinks stored on the Tracer into the New Relic LinkOnSpan
-     * data model and returns a list of all links to be added to the New Relic SpanEvent that
+     * data model and returns a list of all links to be added to the New Relic Span that
      * is being synthesized.
      *
      * @param tracer          represents a specific traced method
@@ -112,6 +111,34 @@ public class TracerToSpanEvent {
         return linkOnSpanEvents;
     }
 
+    /**
+     * Converts the OpenTelemetry SpanEvents stored on the Tracer into the New Relic EventOnSpan
+     * data model and returns a list of all events to be added to the New Relic Span that
+     * is being synthesized.
+     *
+     * @param tracer          represents a specific traced method
+     * @param transactionData data on a specific transaction
+     * @return List of EventOnSpan events or an empty list if there are no events
+     */
+    public List<EventOnSpan> createEventOnSpanEvents(Tracer tracer, TransactionData transactionData) {
+        List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> spanEvents = tracer.getSpanEvents();
+        if (spanEvents.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<EventOnSpan> eventOnSpanEvents = new ArrayList<>();
+        for (com.newrelic.agent.bridge.opentelemetry.SpanEvent spanEvent : spanEvents) {
+            EventOnSpan eventOnSpan = new EventOnSpanFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+                    .setTimestamp(tracer.getStartTimeInMillis())
+                    .setTraceId(spanEvent.getTraceId())
+                    .setSpanId(spanEvent.getSpanId())
+                    .setName(spanEvent.getName())
+                    .putAllUserAttributes(spanEvent.getUserAttributes())
+                    .build();
+            eventOnSpanEvents.add(eventOnSpan);
+        }
+        return eventOnSpanEvents;
+    }
+
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
             boolean crossProcessOnly) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
@@ -131,7 +158,8 @@ public class TracerToSpanEvent {
                 .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
                 .setIsRootSpanEvent(isRoot)
-                .setLinkOnSpanEvents(createLinkOnSpanEvents(tracer, transactionData));
+                .setLinkOnSpanEvents(createLinkOnSpanEvents(tracer, transactionData))
+                .setEventOnSpanEvents(createEventOnSpanEvents(tracer, transactionData));
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);

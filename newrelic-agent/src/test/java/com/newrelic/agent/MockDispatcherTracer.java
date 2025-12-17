@@ -9,6 +9,7 @@ package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -125,7 +126,7 @@ public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, 
 
     @Override
     public TransactionSegment getTransactionSegment(TransactionTracerConfig ttConfig, SqlObfuscator sqlObfuscator,
-                                                    long startTime, TransactionSegment lastSibling) {
+            long startTime, TransactionSegment lastSibling) {
         return null;
     }
 
@@ -227,6 +228,15 @@ public class MockDispatcherTracer extends AbstractTracer implements Dispatcher, 
 
     @Override
     public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
         return Collections.emptyList();
     }
 

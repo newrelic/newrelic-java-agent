@@ -7,6 +7,7 @@ The following functionality is supported:
 OpenTelemetry Traces Signals
 * Detect when `Span`s are emitted by OpenTelemetry APIs and incorporate them to New Relic Java agent traces.
 * Detect [Links between Spans](https://opentelemetry.io/docs/specs/otel/overview/#links-between-spans) and report them to New Relic as `SpanLink` events.
+* TODO
 
 OpenTelemetry Dimensional Metrics Signals
 * Autoconfigure the OpenTelemetry SDK to export dimensional metrics (over OTLP) to the APM entity being monitored by the Java agent.
@@ -287,6 +288,10 @@ Example of adding `Link`s via the OpenTelemetry Traces APIs:
         }
     }
 ```
+
+### Span Events From OpenTelemetry Tracing API
+
+TODO
 
 ## OpenTelemetry Logs Signals
 
