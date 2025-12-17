@@ -7,10 +7,10 @@
 
 package com.amazonaws.services.lambda.runtime;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
-import com.newrelic.agent.introspec.TransactionEvent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -19,7 +19,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Instrumentation test for RequestStreamHandler weaving.
- * Verifies that transactions are created and Lambda metadata is captured for stream-based handlers.
+ * Verifies that transactions are created and named correctly for stream-based handlers.
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda.runtime"})
@@ -53,12 +52,15 @@ public class RequestStreamHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals("Expected exactly one transaction", 1, introspector.getFinishedTransactionCount());
 
-        String transactionName = introspector.getTransactionNames().iterator().next();
-        assertEquals("OtherTransaction/Function/stream-function", transactionName);
+        // Verify serverless metadata was captured via AgentBridge
+        assertNotNull("ARN should be captured", AgentBridge.serverlessApi.getArn());
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:stream-function", AgentBridge.serverlessApi.getArn());
+        assertNotNull("Function version should be captured", AgentBridge.serverlessApi.getFunctionVersion());
+        assertEquals("v2", AgentBridge.serverlessApi.getFunctionVersion());
     }
 
     @Test
-    public void testRequestStreamHandlerCapturesMetadata() throws IOException {
+    public void testRequestStreamHandlerWithContext() throws IOException {
         Context mockContext = createMockContext();
 
         TestRequestStreamHandler handler = new TestRequestStreamHandler();
@@ -67,15 +69,11 @@ public class RequestStreamHandlerInstrumentationTest {
         handler.handleRequest(input, output, mockContext);
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
-        TransactionEvent event = introspector.getTransactionEvents("OtherTransaction/Function/stream-function").iterator().next();
+        assertEquals("Expected exactly one transaction", 1, introspector.getFinishedTransactionCount());
 
-        Map<String, Object> attributes = event.getAttributes();
-        assertTrue("Should capture aws.lambda.arn", attributes.containsKey("aws.lambda.arn"));
-        assertTrue("Should capture aws.lambda.function_version", attributes.containsKey("aws.lambda.function_version"));
-
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:stream-function",
-                     attributes.get("aws.lambda.arn"));
-        assertEquals("v2", attributes.get("aws.lambda.function_version"));
+        // Verify serverless metadata was captured
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:stream-function", AgentBridge.serverlessApi.getArn());
+        assertEquals("v2", AgentBridge.serverlessApi.getFunctionVersion());
     }
 
     @Test

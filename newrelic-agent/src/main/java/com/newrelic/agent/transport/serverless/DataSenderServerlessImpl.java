@@ -8,6 +8,7 @@
 package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.MetricData;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -37,8 +38,6 @@ import java.util.zip.GZIPOutputStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DataSenderServerlessImpl implements DataSender {
-
-    private static final String LAMBDA_METADATA_PROVIDER_CLASS = "com.nr.instrumentation.lambda.LambdaMetadataProvider";
 
     private final ServerlessWriter serverlessWriter;
     private final IAgentLogger logger;
@@ -184,13 +183,13 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     /**
-     * Gets the ARN from Lambda instrumentation or configuration fallback.
+     * Gets the ARN from serverless instrumentation or configuration fallback.
      *
      * @return The ARN, or null if not available
      */
     private String getArn() {
-        // Try to get from instrumentation via reflection
-        String arn = getLambdaMetadataViaReflection("getArn");
+        // Try to get from instrumentation via AgentBridge
+        String arn = AgentBridge.serverlessApi.getArn();
         if (arn != null && !arn.isEmpty()) {
             return arn;
         }
@@ -204,18 +203,18 @@ public class DataSenderServerlessImpl implements DataSender {
         }
 
         // No ARN available
-        logger.log(java.util.logging.Level.FINE, "Lambda ARN not available from instrumentation or configuration");
+        logger.log(java.util.logging.Level.FINE, "Serverless ARN not available from instrumentation or configuration");
         return null;
     }
 
     /**
-     * Gets the function version from Lambda instrumentation or configuration fallback.
+     * Gets the function version from serverless instrumentation or configuration fallback.
      *
      * @return The function version, or null if not available
      */
     private String getFunctionVersion() {
-        // Try to get from instrumentation via reflection
-        String version = getLambdaMetadataViaReflection("getFunctionVersion");
+        // Try to get from instrumentation via AgentBridge
+        String version = AgentBridge.serverlessApi.getFunctionVersion();
         if (version != null && !version.isEmpty()) {
             return version;
         }
@@ -229,31 +228,8 @@ public class DataSenderServerlessImpl implements DataSender {
         }
 
         // No version available
-        logger.log(java.util.logging.Level.FINE, "Lambda function version not available from instrumentation or configuration");
+        logger.log(java.util.logging.Level.FINE, "Serverless function version not available from instrumentation or configuration");
         return null;
-    }
-
-    /**
-     * Uses reflection to get metadata from LambdaMetadataProvider in instrumentation module.
-     * This avoids circular dependencies between modules.
-     *
-     * @param methodName The method name to invoke (getArn or getFunctionVersion)
-     * @return The metadata value, or null if not available
-     */
-    private String getLambdaMetadataViaReflection(String methodName) {
-        try {
-            Class<?> providerClass = Class.forName(LAMBDA_METADATA_PROVIDER_CLASS);
-            java.lang.reflect.Method method = providerClass.getMethod(methodName);
-            Object result = method.invoke(null);
-            return result != null ? result.toString() : null;
-        } catch (ClassNotFoundException e) {
-            // Lambda instrumentation not present; this is expected in non-Lambda environments
-            logger.log(java.util.logging.Level.FINEST, "Lambda instrumentation not present");
-            return null;
-        } catch (Exception e) {
-            logger.log(java.util.logging.Level.FINE, e, "Error accessing Lambda metadata via reflection");
-            return null;
-        }
     }
 
     /**

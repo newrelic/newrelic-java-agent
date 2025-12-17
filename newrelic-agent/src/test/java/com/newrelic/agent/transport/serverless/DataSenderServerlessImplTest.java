@@ -417,4 +417,27 @@ public class DataSenderServerlessImplTest {
         );
     }
 
+    @Test
+    public void testAgentBridgeServerlessApiIntegration() throws Exception {
+        com.newrelic.agent.bridge.AgentBridge.serverlessApi = new com.newrelic.agent.ServerlessApiImpl();
+
+        com.newrelic.agent.bridge.AgentBridge.serverlessApi.setArn("arn:aws:lambda:us-east-1:123456789012:function:test-function");
+        com.newrelic.agent.bridge.AgentBridge.serverlessApi.setFunctionVersion("$LATEST");
+
+        try {
+            dataSender.commitAndFlush();
+
+            Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                    Mockito.argThat(filePayload -> filePayload.contains("\"arn\":\"arn:aws:lambda:us-east-1:123456789012:function:test-function\"")
+                            && filePayload.contains("\"function_version\":\"$LATEST\"")),
+
+                    Mockito.argThat(consolePayload -> consolePayload.contains("\"arn\":\"arn:aws:lambda:us-east-1:123456789012:function:test-function\"")
+                            && consolePayload.contains("\"function_version\":\"$LATEST\""))
+            );
+        } finally {
+            // Clean up: reset AgentBridge to NoOp state
+            com.newrelic.agent.bridge.AgentBridge.serverlessApi = new com.newrelic.agent.bridge.NoOpServerlessApi();
+        }
+    }
+
 }

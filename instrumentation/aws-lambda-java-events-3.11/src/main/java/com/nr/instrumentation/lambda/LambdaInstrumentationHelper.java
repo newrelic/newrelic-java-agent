@@ -15,20 +15,26 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+/**
+ * Helper class for Lambda instrumentation.
+ * Uses AgentBridge.serverlessApi to communicate metadata to the core agent
+ * without creating circular dependencies.
+ */
 public class LambdaInstrumentationHelper {
 
     // Track whether this is the first invocation (cold start)
     private static final AtomicBoolean COLD_START = new AtomicBoolean(true);
 
     /**
-     * Starts a New Relic transaction for a Lambda invocation and captures metadata.
+     * Captures Lambda metadata and stores it via AgentBridge for serverless payload.
+     * Does not set transaction attributes - metadata is only used for serverless envelope.
      *
      * @param context The Lambda execution context
-     * @return true if transaction was started successfully, false otherwise
+     * @return true if metadata was captured successfully, false otherwise
      */
     public static boolean startTransaction(Context context) {
         if (context == null) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, "Lambda Context is null, cannot start transaction");
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Lambda Context is null, cannot capture metadata");
             return false;
         }
 
@@ -39,25 +45,20 @@ public class LambdaInstrumentationHelper {
                 return false;
             }
 
-            String functionName = context.getFunctionName();
-            if (functionName != null && !functionName.isEmpty()) {
-                NewRelic.setTransactionName("Function", functionName);
-            }
-
             captureLambdaMetadata(context);
 
             handleColdStart();
 
             return true;
         } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error starting Lambda transaction");
+            NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
             return false;
         }
     }
 
     /**
-     * Captures Lambda-specific metadata from the Context and adds it to the transaction.
-     * Stores ARN and function version in LambdaMetadataProvider for serverless payload.
+     * Captures Lambda-specific metadata from the Context via AgentBridge.
+     * Stores ARN and function version for inclusion in serverless payload envelope.
      *
      * @param context The Lambda execution context
      */
@@ -65,14 +66,12 @@ public class LambdaInstrumentationHelper {
         try {
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
-                NewRelic.addCustomParameter("aws.lambda.arn", arn);
-                LambdaMetadataProvider.setArn(arn);
+                AgentBridge.serverlessApi.setArn(arn);
             }
 
             String functionVersion = context.getFunctionVersion();
             if (functionVersion != null && !functionVersion.isEmpty()) {
-                NewRelic.addCustomParameter("aws.lambda.function_version", functionVersion);
-                LambdaMetadataProvider.setFunctionVersion(functionVersion);
+                AgentBridge.serverlessApi.setFunctionVersion(functionVersion);
             }
 
         } catch (Throwable t) {
@@ -82,14 +81,12 @@ public class LambdaInstrumentationHelper {
 
     /**
      * Tracks whether this is a cold start (first invocation).
-     * Sets a custom parameter only for the first invocation.
+     * For future use - currently just tracks state without reporting.
      */
     private static void handleColdStart() {
         try {
-            // Only set to true for the first invocation
-            if (COLD_START.compareAndSet(true, false)) {
-                NewRelic.addCustomParameter("aws.lambda.coldStart", true);
-            }
+            // Track cold start state (first invocation sets to false)
+            COLD_START.compareAndSet(true, false);
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error handling cold start");
         }

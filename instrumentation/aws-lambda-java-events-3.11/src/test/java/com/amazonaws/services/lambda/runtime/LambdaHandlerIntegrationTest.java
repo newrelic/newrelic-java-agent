@@ -7,7 +7,8 @@
 
 package com.amazonaws.services.lambda.runtime;
 
-import com.nr.instrumentation.lambda.LambdaMetadataProvider;
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.NoOpServerlessApi;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,12 +32,12 @@ public class LambdaHandlerIntegrationTest {
 
     @Before
     public void setUp() {
-        LambdaMetadataProvider.clear();
+        AgentBridge.serverlessApi = new NoOpServerlessApi();
     }
 
     @After
     public void tearDown() {
-        LambdaMetadataProvider.clear();
+        AgentBridge.serverlessApi = new NoOpServerlessApi();
     }
 
     @Test
