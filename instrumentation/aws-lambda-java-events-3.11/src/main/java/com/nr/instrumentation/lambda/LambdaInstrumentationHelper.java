@@ -26,8 +26,7 @@ public class LambdaInstrumentationHelper {
     private static final AtomicBoolean COLD_START = new AtomicBoolean(true);
 
     /**
-     * Captures Lambda metadata and stores it via AgentBridge for serverless payload.
-     * Does not set transaction attributes - metadata is only used for serverless envelope.
+     * Captures Lambda metadata and stores it via AgentBridge for the serverless payload.
      *
      * @param context The Lambda execution context
      * @return true if metadata was captured successfully, false otherwise
@@ -81,7 +80,7 @@ public class LambdaInstrumentationHelper {
 
     /**
      * Tracks whether this is a cold start (first invocation).
-     * For future use - currently just tracks state without reporting.
+     * For future use. Currently just tracks state without reporting.
      */
     private static void handleColdStart() {
         try {
