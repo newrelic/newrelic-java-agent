@@ -502,6 +502,61 @@ jobs:
           git commit -m "Update ingest metrics report for ${{ inputs.ingest-metrics-desc }} from workflow run ${{ github.run_id }}"
           git push
 
+      - name: Upload metrics summary files
+        if: ${{ success() }}
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: metrics-summary-${{ env.MATRIX }}
+          path: metrics_summary/${{ env.MATRIX }}-metrics-summary.json
+          if-no-files-found: ignore
+
+      - name: Display metrics summary results
+        run: |
+          SUMMARY_FILE="metrics_summary/${{ env.MATRIX }}-metrics-summary.json"
+          
+          if [ ! -f "$SUMMARY_FILE" ]; then
+            echo "No metrics summary file found at ${SUMMARY_FILE}" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          
+          echo "## Metrics Summary Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          TEST_NAME=$(jq -r '.metadata.test_name' "${SUMMARY_FILE}")
+          AGENT_VERSION=(jq -r '.metadata.agent_version' "${SUMMARY_FILE}")
+          JAVA_VERSION=$(jq -r '.metadata.java_version' "${SUMMARY_FILE}")
+          
+          CPU_TIME_RAW=$(jq -r '.metrics.cpu_time' "${SUMMARY_FILE}")
+          RESP_TIME_RAW=$(jq -r '.metrics.response_time_total' "${SUMMARY_FILE}")
+          RESP_TIME_COUNT=$(jq -r '.metrics.response_time_count' "${SUMMARY_FILE}")
+          THROUGHPUT=$(jq -r '.metrics.throughput' "${SUMMARY_FILE}")
+          ERROR_RATE=$(jq -r '.metrics.error_rate' "${SUMMARY_FILE}")
+          HEAP_PRESENT=$(jq -r '.metrics.heap_metrics_present' "${SUMMARY_FILE}")
+          HEAP_UTIL_RAW=$(jq -r '.metrics.heap_utilization_max' "${SUMMARY_FILE}")
+          HEAP_USED_RAW=$(jq -r '.metrics.heap_used_bytes_max' "${SUMMARY_FILE}")
+          
+          CPU_TIME=$(printf "%.2f" "${CPU_TIME_RAW}")
+          RESP_TIME=$(printf "%.2f" "${RESP_TIME_RAW}")
+          HEAP_UTIL=$(printf "%.2f" "${HEAP_UTIL_RAW}")
+          HEAP_USED=$(printf "%.0f" "${HEAP_USED_RAW}")
+          
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Name | ${TEST_NAME} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Agent Version | ${AGENT_VERSION} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Java Version | ${JAVA_VERSION} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CPU Time (s) | ${CPU_TIME} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Response Time (ms) | ${RESP_TIME} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Response Count | ${RESP_TIME_COUNT} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Throughput (requests) | ${THROUGHPUT} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Error Count | ${ERROR_COUNT} |" >> $GITHUB_STEP_SUMMARY
+          if [ "${HEAP_PRESENT}" = "true" ]; then
+            echo "| Max Heap Utilization (%) | ${HEAP_UTIL} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Max Heap Used (bytes) | ${HEAP_USED} |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Heap Metrics | Not reported during this test run |" >> $GITHUB_STEP_SUMMARY
+          fi
+
   notify-if-negative-values:
     needs: [ tests ]
     runs-on: ubuntu-22.04
