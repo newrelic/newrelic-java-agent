@@ -48,16 +48,20 @@ public class NettyUtil {
      * context pipeline is expired and the response is processed.
      */
     public static boolean processResponse(Object msg, Token token) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Netty Debug: in processResponse with msg: {0} and token: {1}", msg, token);
         if (token != null) {
             if (msg instanceof HttpResponse || msg instanceof Http2Headers) {
                 com.newrelic.api.agent.Transaction tx = token.getTransaction();
+                NewRelic.getAgent().getLogger().log(Level.INFO, "Netty Debug: in processResponse. Transaction for token {0} was {1}", token, tx);
                 if (tx != null) {
                     try {
                         if (msg instanceof HttpResponse) {
                             // HTTP/1 response
+                            NewRelic.getAgent().getLogger().log(Level.INFO, "Netty Debug: in processResponse. Setting Http1 Web Response.");
                             tx.setWebResponse(new ResponseWrapper((HttpResponse) msg));
                         } else {
                             // HTTP/2 response
+                            NewRelic.getAgent().getLogger().log(Level.INFO, "Netty Debug: in processResponse. Setting Http2 Web Response.");
                             tx.setWebResponse(new Http2ResponseHeaderWrapper((Http2Headers) msg));
                         }
                         tx.addOutboundResponseHeaders();
