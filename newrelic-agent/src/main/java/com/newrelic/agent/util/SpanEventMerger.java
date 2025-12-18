@@ -99,7 +99,7 @@ public class SpanEventMerger {
         }
 
         if (Agent.isDebugEnabled()) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Merged {0} spans in a group into 1 span with nr.ids: {1} and nr.duration: {2}",
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Merged {0} spans in a group into 1 span with nr.ids: {1} and nr.durations: {2}",
                     group.size(), nrIds, totalDuration);
         }
 
