@@ -9,6 +9,7 @@ package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.MetricData;
 import com.newrelic.agent.attributes.AttributeNames;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
@@ -50,11 +51,18 @@ public class DataSenderServerlessImplTest {
     @Mock
     public IAgentLogger logger;
 
+    @Mock
+    public ServerlessConfig serverlessConfig;
+
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
         serverlessWriter = Mockito.mock(ServerlessWriter.class);
-        DataSenderServerlessConfig config = new DataSenderServerlessConfig("9.0.0");
+
+        Mockito.when(serverlessConfig.getArn()).thenReturn("TMP_ARN");
+        Mockito.when(serverlessConfig.getFunctionVersion()).thenReturn("15");
+
+        DataSenderServerlessConfig config = new DataSenderServerlessConfig("9.0.0", serverlessConfig);
         this.dataSender = new DataSenderServerlessImpl(config, logger, serverlessWriter);
     }
 
@@ -288,12 +296,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsDMQGEHYsENQCALg9059iAAAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsAMTGEHYsENQCALpbhcFiAAAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,3.0,0.0,2.0]]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,0.0,3.0,2.0]]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
