@@ -288,12 +288,12 @@ public class DataSenderServerlessImplTest {
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
                 Mockito.argThat(filePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsDMQGEHYsENQCALg9059iAAAA\"]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WKk7OL0hVslLKrQwGs3SU8hJzQQL+JRmpRfq5lb5gvUq1OtGmOkZ6BmBsAMTGEHYsENQCALpbhcFiAAAA\"]";
                     return filePayload.equals(expected);
                 }),
 
                 Mockito.argThat(consolePayload -> {
-                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,3.0,0.0,2.0]]]]}]";
+                    String expected = "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"metric_data\":[null,1,2,[[{\"scope\":\"myScope\",\"name\":\"Other/myMetric\"},[5,2.0,2.0,0.0,3.0,2.0]]]]}]";
                     return consolePayload.equals(expected);
                 })
         );
