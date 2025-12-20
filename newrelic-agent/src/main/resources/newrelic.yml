@@ -114,6 +114,11 @@ common: &default_settings
       # When true, application logs will be forwarded to New Relic. The default is true.
       enabled: true
 
+      # When true and "enable_auto_app_naming" is also true, log events will be sent
+      # to their corresponding named entity rather than the roll up entity.
+      # Default is false.
+      auto_app_naming_association: false
+
       # Application log events are collected up to the configured amount. Afterwards,
       # events are sampled to maintain an even distribution across the harvest cycle.
       # Default is 10000. Setting to 0 will disable.

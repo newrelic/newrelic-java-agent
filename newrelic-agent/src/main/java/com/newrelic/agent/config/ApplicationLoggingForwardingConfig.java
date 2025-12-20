@@ -8,6 +8,7 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,12 +20,16 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     public static final String ROOT = "forwarding";
     public static final String ENABLED = "enabled";
     public static final String MAX_SAMPLES_STORED = "max_samples_stored";
+    public static final String AUTO_APP_NAMING_ASSOC = "auto_app_naming_association";
 
     public static final boolean DEFAULT_ENABLED = true;
     public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
+    public static final boolean DEFAULT_AUTO_APP_NAMING_ASSOC = false;
 
     private final boolean enabled;
     private final int maxSamplesStored;
+    private final boolean autoAppNamingAssociation;
+
     private final ApplicationLoggingContextDataConfig contextDataConfig;
     private final ApplicationLoggingLabelsConfig loggingLabelsConfig;
 
@@ -35,6 +40,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
         enabled = storedMoreThan0 && !highSecurity && getProperty(ENABLED, DEFAULT_ENABLED);
         contextDataConfig = createContextDataConfig(highSecurity);
         loggingLabelsConfig = createLoggingLabelsConfig();
+        autoAppNamingAssociation = initAutoAppNamingAssociationEnabledFlag();
     }
 
     private int initMaxSamplesStored() {
@@ -55,6 +61,15 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     private ApplicationLoggingLabelsConfig createLoggingLabelsConfig() {
         Map<String, Object> labelsProps = getProperty(ApplicationLoggingLabelsConfig.ROOT, Collections.emptyMap());
         return new ApplicationLoggingLabelsConfig(labelsProps, systemPropertyPrefix);
+    }
+
+    private boolean initAutoAppNamingAssociationEnabledFlag() {
+        // If enable_auto_app_naming is false, this association flag must also be false
+        if (!NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, false)) {
+            return false;
+        } else {
+            return getProperty(AUTO_APP_NAMING_ASSOC, DEFAULT_AUTO_APP_NAMING_ASSOC);
+        }
     }
 
     public boolean getEnabled() {
@@ -79,6 +94,10 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     public boolean isLogLabelsEnabled() {
         return enabled && loggingLabelsConfig.getEnabled();
+    }
+
+    public boolean isAutoAppNamingAssociationEnabled() {
+        return autoAppNamingAssociation;
     }
 
     public Map<String, String> removeExcludedLabels(Map<String, String> labels) {
