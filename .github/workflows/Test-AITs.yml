@@ -399,6 +399,19 @@ jobs:
           path: ${{ github.workspace }}/ingest-*.txt
           if-no-files-found: ignore
 
+      - name: Debug metrics summary files # Remove after testing is completed
+        run: |
+          echo "TEST_NAME=${TEST_NAME}"
+          ls -la agent-integration-tests/metrics_summary/ || true
+
+      - name: Upload metrics summary file
+        if: ${{ success() }}
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: metrics-summary-${{ env.MATRIX }}
+          path: agent-integration-tests/metrics_summary/${{ env.MATRIX }}-metrics-summary.json
+          if-no-files-found: ignore
+
   process-ingest-metric-files:
     name: Process Ingest Metrics
     needs: [ tests ]
