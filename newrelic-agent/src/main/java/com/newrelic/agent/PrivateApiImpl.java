@@ -29,10 +29,10 @@ public class PrivateApiImpl implements PrivateApi {
     }
 
     public static void initialize(Logger logger) {
-        PrivateApiImpl api = new PrivateApiImpl();
-        AgentBridge.privateApi = api;
+        AgentBridge.privateApi = new PrivateApiImpl();
         AgentBridge.asyncApi = new AsyncApiImpl(logger);
         AgentBridge.jmxApi = new JmxApiImpl();
+        AgentBridge.serverlessApi = new ServerlessApiImpl();
         AgentBridge.collectionFactory = new AgentCollectionFactory();
         AgentBridge.agent = new AgentImpl(logger);
     }

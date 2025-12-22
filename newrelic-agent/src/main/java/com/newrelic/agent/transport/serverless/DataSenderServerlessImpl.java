@@ -8,6 +8,7 @@
 package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.MetricData;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -37,9 +38,6 @@ import java.util.zip.GZIPOutputStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class DataSenderServerlessImpl implements DataSender {
-
-    private static final String ARN = "TMP_ARN"; // com.amazonaws:aws-lambda-java-events needs to be instrumented to grab the ARN
-    private static final String FUNCTION_VERSION = "15";
 
     private final ServerlessWriter serverlessWriter;
     private final IAgentLogger logger;
@@ -175,13 +173,63 @@ public class DataSenderServerlessImpl implements DataSender {
     private Map<String, Object> getMetadata() {
         final Map<String, Object> metadata = new HashMap<>();
         metadata.put("protocol_version", 16);
-        metadata.put("arn", ARN);
+        metadata.put("arn", getArn());
         metadata.put("execution_environment", awsExecutionEnv);
         metadata.put("agent_version", config.getAgentVersion());
         metadata.put("metadata_version", 2);
         metadata.put("agent_language", "java");
-        metadata.put("function_version", FUNCTION_VERSION);
+        metadata.put("function_version", getFunctionVersion());
         return metadata;
+    }
+
+    /**
+     * Gets the ARN from serverless instrumentation or configuration fallback.
+     *
+     * @return The ARN, or null if not available
+     */
+    private String getArn() {
+        // Try to get from instrumentation via AgentBridge
+        String arn = AgentBridge.serverlessApi.getArn();
+        if (arn != null && !arn.isEmpty()) {
+            return arn;
+        }
+
+        // Fall back to configuration
+        if (config.getServerlessConfig() != null) {
+            arn = config.getServerlessConfig().getArn();
+            if (arn != null && !arn.isEmpty()) {
+                return arn;
+            }
+        }
+
+        // No ARN available
+        logger.log(java.util.logging.Level.FINE, "Serverless ARN not available from instrumentation or configuration");
+        return null;
+    }
+
+    /**
+     * Gets the function version from serverless instrumentation or configuration fallback.
+     *
+     * @return The function version, or null if not available
+     */
+    private String getFunctionVersion() {
+        // Try to get from instrumentation via AgentBridge
+        String version = AgentBridge.serverlessApi.getFunctionVersion();
+        if (version != null && !version.isEmpty()) {
+            return version;
+        }
+
+        // Fall back to configuration
+        if (config.getServerlessConfig() != null) {
+            version = config.getServerlessConfig().getFunctionVersion();
+            if (version != null && !version.isEmpty()) {
+                return version;
+            }
+        }
+
+        // No version available
+        logger.log(java.util.logging.Level.FINE, "Serverless function version not available from instrumentation or configuration");
+        return null;
     }
 
     /**
