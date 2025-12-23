@@ -95,6 +95,7 @@ public class DatastoreParameters implements ExternalParameters {
          */
         private Object rawQuery = null;
         private QueryConverter<Object> queryConverter = null;
+        private String normalizedSqlHash = null;
 
         /**
          * Used for {@link SlowQueryWithInputDatastoreParameters}. The builder method below gives us type safety here.
@@ -157,7 +158,7 @@ public class DatastoreParameters implements ExternalParameters {
                         (SlowQueryDatastoreParameters<Object>) buildWithSlowQuery(), inputQueryLabel, rawInputQuery,
                         rawInputQueryConverter);
             } else if (rawQuery != null && queryConverter != null) {
-                return new SlowQueryDatastoreParameters<>(buildRegular(), rawQuery, queryConverter);
+                return new SlowQueryDatastoreParameters<>(buildRegular(), rawQuery, queryConverter, normalizedSqlHash);
             } else {
                 return buildRegular();
             }
@@ -169,9 +170,16 @@ public class DatastoreParameters implements ExternalParameters {
         }
 
         @Override
-        public <T> SlowQueryWithInputParameter slowQuery(T rawQuery, QueryConverter<T> queryConverter) {
+        public <T> SlowQueryWithInputParameter slowQuery(T rawQuery, QueryConverter<T> queryConverter, String normalizedSqlHash) {
             this.rawQuery = rawQuery;
             this.queryConverter = (QueryConverter<Object>) queryConverter;
+            this.normalizedSqlHash = normalizedSqlHash;
+            return this;
+        }
+
+        @Override
+        public <T> SlowQueryWithInputParameter slowQuery(T rawQuery, QueryConverter<T> queryConverter) {
+            slowQuery(rawQuery, queryConverter, null);
             return this;
         }
 
@@ -185,7 +193,7 @@ public class DatastoreParameters implements ExternalParameters {
         }
 
         private SlowQueryDatastoreParameters<?> buildWithSlowQuery() {
-            return new SlowQueryDatastoreParameters<>(buildRegular(), rawQuery, queryConverter);
+            return new SlowQueryDatastoreParameters<>(buildRegular(), rawQuery, queryConverter, normalizedSqlHash);
         }
 
         @Override
@@ -360,6 +368,17 @@ public class DatastoreParameters implements ExternalParameters {
     }
 
     public interface SlowQueryParameter extends Build {
+        /**
+         * Set a raw query and queryConverter to be used when reporting this call as a slow query
+         *
+         * @param rawQuery       The raw query object used for transforming into a raw and obfuscated query string
+         * @param queryConverter A converter to transform the rawQuery into a raw and obfuscated query string
+         * @param normalizedSqlHash the hash of the normalized SQL statement
+         * @param <T>            The type of the query
+         *
+         * @return the next builder interface
+         */
+        <T> SlowQueryWithInputParameter slowQuery(T rawQuery, QueryConverter<T> queryConverter, String normalizedSqlHash);
 
         /**
          * Set a raw query and queryConverter to be used when reporting this call as a slow query

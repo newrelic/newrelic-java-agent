@@ -21,21 +21,29 @@ public class SlowQueryDatastoreParameters<T> extends DatastoreParameters {
     private final T rawQuery;
 
     /**
+     * The hash of the normalized query string. This is used to link queries from
+     * the Query Management Platform (QMP) to APM.
+     */
+    private final String normalizedSqlHash;
+
+    /**
      * A converter to transform the rawQuery into a raw query String and obfuscated query String
      */
     private final QueryConverter<T> queryConverter;
 
     protected SlowQueryDatastoreParameters(DatastoreParameters datastoreParameters, T rawQuery,
-            QueryConverter<T> queryConverter) {
+            QueryConverter<T> queryConverter, String normalizedSqlHash) {
         super(datastoreParameters);
         this.rawQuery = rawQuery;
         this.queryConverter = queryConverter;
+        this.normalizedSqlHash = normalizedSqlHash;
     }
 
     protected SlowQueryDatastoreParameters(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
         super(slowQueryDatastoreParameters);
         this.rawQuery = slowQueryDatastoreParameters.rawQuery;
         this.queryConverter = slowQueryDatastoreParameters.queryConverter;
+        this.normalizedSqlHash = slowQueryDatastoreParameters.getNormalizedSqlHash();
     }
 
     /**
@@ -58,4 +66,12 @@ public class SlowQueryDatastoreParameters<T> extends DatastoreParameters {
         return queryConverter;
     }
 
+    /**
+     * Returns the hash of the normalized SQL statement
+     *
+     * @return hash value
+     */
+    public String getNormalizedSqlHash() {
+        return normalizedSqlHash;
+    }
 }

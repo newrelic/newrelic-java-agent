@@ -19,6 +19,7 @@ import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
+import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.StackTraces;
 import com.newrelic.api.agent.DatastoreParameters;
@@ -326,9 +327,12 @@ public class SpanEventFactory {
     }
 
     // datastore parameter
-    public SpanEventFactory setDatabaseStatement(String query) {
+    public SpanEventFactory setDatabaseStatement(String query, String normalizedSqlHash) {
         if (query != null) {
             builder.putAgentAttribute("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
+        }
+        if (normalizedSqlHash != null) {
+            builder.putAgentAttribute(SqlTracer.SQL_HASH_VALUE, normalizedSqlHash);
         }
         return this;
     }
@@ -426,7 +430,7 @@ public class SpanEventFactory {
             }
             if (datastoreParameters instanceof SlowQueryDatastoreParameters) {
                 SlowQueryDatastoreParameters<?> queryDatastoreParameters = (SlowQueryDatastoreParameters<?>) datastoreParameters;
-                setDatabaseStatement(determineObfuscationLevel(queryDatastoreParameters));
+                setDatabaseStatement(determineObfuscationLevel(queryDatastoreParameters), queryDatastoreParameters.getNormalizedSqlHash());
             }
             if (datastoreParameters.getPort() != null) {
                 setAddress(datastoreParameters.getHost(), String.valueOf(datastoreParameters.getPort()));

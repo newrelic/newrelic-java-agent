@@ -23,6 +23,7 @@ public interface SqlTracer extends SqlTracerExplainInfo, Tracer {
     // Tracer, Transaction and TransactionSegment attributes
     String SQL_PARAMETER_NAME = "sql";
     String SQL_OBFUSCATED_PARAMETER_NAME = "sql_obfuscated";
+    String SQL_HASH_VALUE = "sql_hash_value";
 
     /**
      * Returns a ConnectionFactory instance which can create a database connection on demand. This
@@ -101,4 +102,13 @@ public interface SqlTracer extends SqlTracerExplainInfo, Tracer {
      */
     Integer getPort();
 
+    /**
+     * If configured, a hash will be generated on the normalized SQL statement.
+     * This method will return that hash value, or null if a hash hasn't beem
+     * generated.
+     *
+     * @return the hash value of the normalized SQL statement or null
+     * if a hash hasn't been generated
+     */
+    String getNormalizedSqlHashValue();
 }

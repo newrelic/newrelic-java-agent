@@ -97,8 +97,12 @@ public class TransactionSegment implements JSONStreamAware {
     private Map<String, Object> getTracerAttributes(Tracer tracer) {
         if (tracer instanceof SqlTracerExplainInfo) {
             Object sql = ((SqlTracerExplainInfo) tracer).getSql();
+            String sqlHashValue = ((SqlTracer) tracer).getNormalizedSqlHashValue();
             if (sql != null) {
                 tracer.setAgentAttribute(SqlTracer.SQL_PARAMETER_NAME, sql);
+            }
+            if (sqlHashValue != null) {
+                tracer.setAgentAttribute(SqlTracer.SQL_HASH_VALUE, sqlHashValue);
             }
         }
         // this has to be a double or else the UI will get rid of the number unless it is greater than 1000.

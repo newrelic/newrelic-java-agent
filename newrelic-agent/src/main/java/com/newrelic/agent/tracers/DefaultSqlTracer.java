@@ -8,6 +8,8 @@
 package com.newrelic.agent.tracers;
 
 import java.net.InetSocketAddress;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -23,6 +25,8 @@ import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
+import com.newrelic.agent.sql.SqlStatementHasher;
+import com.newrelic.agent.sql.SqlStatementNormalizer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.QueryConverter;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +68,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     private Integer port = null;
     private String identifier = null;
     private String databaseName = null;
+    private String normalizedSqlHashValue = null;
 
     public DefaultSqlTracer(Transaction transaction, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags) {
@@ -108,6 +113,11 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     public String getRawSql() {
         return sql;
+    }
+
+    @Override
+    public String getNormalizedSqlHashValue() {
+        return normalizedSqlHashValue;
     }
 
     @Override
@@ -163,6 +173,17 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     public void setRawSql(String sql) {
         this.sql = sql;
         System.out.println("DUF-- sql " + sql);
+
+        // DUF TODO config check here
+        String normalizedSql = SqlStatementNormalizer.normalizeSql(sql);
+        if (!normalizedSql.isEmpty()) {
+            try {
+                normalizedSqlHashValue = SqlStatementHasher.hashSqlStatement(normalizedSql, MessageDigest.getInstance("MD5"));
+                System.out.println("DUF-- normalizedSql " + normalizedSql);
+                System.out.println("DUF-- hash " + normalizedSqlHashValue);
+            } catch (NoSuchAlgorithmException ignored) {
+            }
+        }
     }
 
     @Override
@@ -284,7 +305,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, getIdentifier())
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()), normalizedSqlHashValue)
                         .build());
             } else {
                 String portToReport = DatastoreMetrics.replacePort(getPort());
@@ -294,7 +315,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                         .operation(parsedDatabaseStatement.getOperation())
                         .instance(hostToReport, portToReport)
                         .databaseName(getDatabaseName())
-                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()))
+                        .slowQuery(rawSql, new SqlQueryConverter(appName, getDatabaseVendor()), normalizedSqlHashValue)
                         .build());
             }
 

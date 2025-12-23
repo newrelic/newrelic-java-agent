@@ -33,7 +33,7 @@ public abstract class SqlObfuscator {
     public static final String RAW_SETTING = "raw";
     public static final String OFF_SETTING = "off";
 
-    private SqlObfuscator() {
+    private  SqlObfuscator() {
     }
 
     /**
@@ -112,6 +112,9 @@ public abstract class SqlObfuscator {
                 return checkForUnmatchedPairs(MYSQL_UNMATCHED_PATTERN, obfuscatedSql);
             } else if (dialect.equals("postgresql") || dialect.equals("postgres")) {
                 String obfuscatedSql = POSTGRES_DIALECT_PATTERN.replacer("?").replace(sql);
+                String s = checkForUnmatchedPairs(POSTGRES_UNMATCHED_PATTERN, obfuscatedSql);
+                System.out.println("DUF obfuscated " + s);
+
                 return checkForUnmatchedPairs(POSTGRES_UNMATCHED_PATTERN, obfuscatedSql);
             } else if (dialect.equals("oracle")) {
                 String obfuscatedSql = ORACLE_DIALECT_PATTERN.replacer("?").replace(sql);

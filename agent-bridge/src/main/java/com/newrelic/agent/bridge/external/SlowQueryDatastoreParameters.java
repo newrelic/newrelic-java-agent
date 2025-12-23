@@ -21,7 +21,7 @@ import com.newrelic.agent.bridge.datastore.QueryConverter;
 public class SlowQueryDatastoreParameters<T> extends com.newrelic.api.agent.SlowQueryDatastoreParameters<T> implements ExternalParameters {
 
     protected SlowQueryDatastoreParameters(DatastoreParameters datastoreParameters, T rawQuery, QueryConverter<T> queryConverter) {
-        super(datastoreParameters, rawQuery, queryConverter);
+        super(datastoreParameters, rawQuery, queryConverter, null);
     }
 
 }
