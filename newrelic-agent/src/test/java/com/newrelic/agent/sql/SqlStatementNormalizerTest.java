@@ -80,8 +80,6 @@ public class SqlStatementNormalizerTest {
         }
     }
 
-    // ==================== Cross-Language Placeholder Normalization ====================
-
     @Test
     public void jdbcStylePlaceholders_normalizeToQuestionMark() {
         String sql = "SELECT * FROM users WHERE id = ? AND name = ?";
@@ -119,8 +117,6 @@ public class SqlStatementNormalizerTest {
         assertEquals("SELECT * FROM USERS WHERE A = ? AND B = ? AND C = ? AND D = ?", SqlStatementNormalizer.normalizeSql(sql));
     }
 
-    // ==================== Literal Value Normalization ====================
-
     @Test
     public void numericLiterals_normalizeToQuestionMark() {
         String sql = "SELECT * FROM users WHERE age > 25 AND balance < 1000.50 AND score = -42";
@@ -150,8 +146,6 @@ public class SqlStatementNormalizerTest {
         String sql = "SELECT * FROM products WHERE price = 19.99 AND discount = 0.15 AND tax = .08";
         assertEquals("SELECT * FROM PRODUCTS WHERE PRICE = ? AND DISCOUNT = ? AND TAX = ?", SqlStatementNormalizer.normalizeSql(sql));
     }
-
-    // ==================== IN Clause Normalization ====================
 
     @Test
     public void inClauseWithMultipleNumbers_normalizesToSinglePlaceholder() {
@@ -196,8 +190,6 @@ public class SqlStatementNormalizerTest {
         String sql = "SELECT * FROM orders WHERE user_id IN (1, 2, 3) AND status IN ('pending', 'shipped')";
         assertEquals("SELECT * FROM ORDERS WHERE USER_ID IN (?) AND STATUS IN (?)", SqlStatementNormalizer.normalizeSql(sql));
     }
-
-    // ==================== Cross-Language Consistency Tests ====================
 
     @Test
     public void sameQueryDifferentLanguages_producesSameNormalizedForm() {
@@ -257,8 +249,6 @@ public class SqlStatementNormalizerTest {
         assertEquals(expected, SqlStatementNormalizer.normalizeSql(withPlaceholders));
     }
 
-    // ==================== Edge Cases ====================
-
     @Test
     public void numbersInTableNames_notNormalized() {
         String sql = "SELECT * FROM table1 JOIN table2 ON table1.id = table2.id";
@@ -280,11 +270,9 @@ public class SqlStatementNormalizerTest {
 
     @Test
     public void colonInTimeValues_notTreatedAsPlaceholder() {
-        // This is tricky - we need to be careful with time formats
-        // For now, colons followed by letters/digits are treated as placeholders
-        // This may need refinement based on real-world usage
+        // The logic for this might need to be updated based on real world
+        // examples
         String sql = "SELECT * FROM events WHERE time > '10:30:00'";
-        // The string literal with colons is replaced entirely
         assertEquals("SELECT * FROM EVENTS WHERE TIME > ?", SqlStatementNormalizer.normalizeSql(sql));
     }
 
@@ -302,27 +290,18 @@ public class SqlStatementNormalizerTest {
 
     @Test
     public void signWithoutDigit_notNormalized() {
-        // A standalone + or - without a following digit should not be treated as a number
-        // This tests the edge case where we have a sign followed by something that's not a digit
         String sql = "SELECT x + y FROM data WHERE a - b > 0";
-        // The + and - are operators, the 0 is normalized
         assertEquals("SELECT X + Y FROM DATA WHERE A - B > ?", SqlStatementNormalizer.normalizeSql(sql));
     }
 
     @Test
-    public void incompleteDecimalNumber_handledCorrectly() {
-        // Test various edge cases with decimal points
-        // These are actual invalid SQL, but I'm adding the test for completeness
-
-        // Valid: number with decimal and digits after
+    public void decimalNumbers_handledCorrectly() {
         String sql1 = "SELECT * FROM data WHERE value = 1.5";
         assertEquals("SELECT * FROM DATA WHERE VALUE = ?", SqlStatementNormalizer.normalizeSql(sql1));
 
-        // Valid: decimal starting with point
         String sql2 = "SELECT * FROM data WHERE value = .5";
         assertEquals("SELECT * FROM DATA WHERE VALUE = ?", SqlStatementNormalizer.normalizeSql(sql2));
 
-        // Edge: dot not followed by digit (like table.column) - dot is not part of a number
         String sql3 = "SELECT users.name FROM users WHERE users.id = 123";
         assertEquals("SELECT USERS.NAME FROM USERS WHERE USERS.ID = ?", SqlStatementNormalizer.normalizeSql(sql3));
     }
@@ -354,8 +333,7 @@ public class SqlStatementNormalizerTest {
     @Test
     public void postgresAnyArraySyntax_normalizesCorrectly() {
         // PostgreSQL = ANY syntax with ARRAY constructor
-        // Note: ARRAY[...] uses square brackets, so IN clause optimization doesn't apply
-        // Each literal is normalized individually
+        // Each literal should be normalized individually
         String sql1 = "SELECT * FROM users WHERE id = ANY(ARRAY[1, 2, 3, 4, 5])";
         assertEquals("SELECT * FROM USERS WHERE ID = ANY(ARRAY[?, ?, ?, ?, ?])", SqlStatementNormalizer.normalizeSql(sql1));
 
@@ -372,8 +350,6 @@ public class SqlStatementNormalizerTest {
         assertEquals("SELECT * FROM USERS WHERE TAG = ANY(?)", SqlStatementNormalizer.normalizeSql(sql4));
     }
 
-    // ==================== Comprehensive Stress Test ====================
-
     @Test
     public void massiveComplexQuery_normalizesCorrectly() {
         long start = System.currentTimeMillis();
@@ -382,17 +358,14 @@ public class SqlStatementNormalizerTest {
 
         assertEquals(MASSIVE_COMPLEX_SQL_EXPECTED, result);
 
-        // Also verify key properties
-        assertFalse("Should not contain any literal numbers", result.matches(".*\\d+\\.\\d+.*"));
-        assertFalse("Should not contain any string literals", result.contains("'"));
-        assertTrue("Should not contain comments", !result.contains("/*") && !result.contains("--") && !result.contains("#"));
-        assertTrue("All placeholders should be ?", result.contains("?"));
-        assertTrue("Should collapse IN clauses", result.contains("IN (?)"));
+        assertFalse("no literal numbers", result.matches(".*\\d+\\.\\d+.*"));
+        assertFalse("no string literals", result.contains("'"));
+        assertTrue("no comments", !result.contains("/*") && !result.contains("--") && !result.contains("#"));
+        assertTrue("all placeholders should be ?", result.contains("?"));
+        assertTrue("collapse IN clauses", result.contains("IN (?)"));
 
-        System.out.println("Massive complex query normalization time: " + elapsed + "ms");
+        System.out.println("Complex query normalization time: " + elapsed + "ms");
     }
-
-    // ==================== Performance Test ====================
 
     @Test
     public void timingTest() {
@@ -414,16 +387,10 @@ public class SqlStatementNormalizerTest {
         System.out.println("Elapsed time: " + (System.currentTimeMillis() - start) + "ms");
     }
 
-    // ==================== Test Data Constants ====================
-
     /**
-     * A comprehensive SQL statement that tests all normalizer features:
-     * - All comment types (multiline, single-line, hash)
-     * - All placeholder styles (?, $1, :name, @name, %(name)s)
-     * - All numeric formats (integers, decimals, scientific notation)
-     * - IN clauses with literals and placeholders
-     * - String literals with special characters
-     * - Complex nested conditions and function calls
+     * A large SQL statement that contains multiple comment types,
+     * placeholder styles, number formats, string literals, IN clauses
+     * and function calls.
      */
     private static final String MASSIVE_COMPLEX_SQL = "/* Beginning of massive query */ \n" +
             "SELECT \n" +

@@ -427,4 +427,9 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     @Override
     public void excludeLeaf(){
     }
+
+    @Override
+    public String getNormalizedSqlHashValue() {
+        return "";
+    }
 }

@@ -82,7 +82,7 @@ public class SpanEventFactoryTest {
         char[] data = new char[5000];
         String fiveKStatement = new String(data);
 
-        SpanEvent target = spanEventFactory.setDatabaseStatement(fiveKStatement).build();
+        SpanEvent target = spanEventFactory.setDatabaseStatement(fiveKStatement, null).build();
 
         assertEquals(4095,
                 target.getAgentAttributes().get("db.statement").toString().length());

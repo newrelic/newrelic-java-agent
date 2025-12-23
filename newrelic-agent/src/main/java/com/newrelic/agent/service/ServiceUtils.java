@@ -18,6 +18,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 public class ServiceUtils {
     private static final int ROTATED_BIT_SHIFT = 31;
     private static final String PATH_HASH_SEPARATOR = ";";
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 
     private static final MessageDigest cloneableMd5Digest = initializeMd5Digest();
 
@@ -63,6 +64,25 @@ public class ServiceUtils {
         return (int) Long.parseLong(val, 16);
     }
 
+    public static String md5HashValueFor(String str) {
+        if (str == null || str.isEmpty()) {
+            return "";
+        }
+
+        byte[] hashBytes;
+        try {
+            if (cloneableMd5Digest != null) {
+                MessageDigest md = (MessageDigest) cloneableMd5Digest.clone();
+                hashBytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
+            } else {
+                return "";
+            }
+        } catch (Exception ignored) {
+            return "";
+        }
+        return hexStringFromDigestBytes(hashBytes);
+    }
+
     /**
      * Call before reading from shared variable.
      * 
@@ -79,6 +99,16 @@ public class ServiceUtils {
             i.set(0);
         }
     }
+
+     private static String hexStringFromDigestBytes(byte[] digestBytes) {
+      char[] hexChars = new char[digestBytes.length * 2];
+      for (int i = 0; i < digestBytes.length; i++) {
+          int v = digestBytes[i] & 0xFF;
+          hexChars[i * 2] = HEX_ARRAY[v >>> 4];
+          hexChars[i * 2 + 1] = HEX_ARRAY[v & 0x0F];
+      }
+      return new String(hexChars);
+  }
 
     /**
      * Call after writing to shared variable.

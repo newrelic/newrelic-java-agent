@@ -8,8 +8,6 @@
 package com.newrelic.agent.tracers;
 
 import java.net.InetSocketAddress;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -25,7 +23,7 @@ import com.newrelic.agent.bridge.datastore.DatastoreVendor;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
-import com.newrelic.agent.sql.SqlStatementHasher;
+import com.newrelic.agent.service.ServiceUtils;
 import com.newrelic.agent.sql.SqlStatementNormalizer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.QueryConverter;
@@ -177,12 +175,9 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         // DUF TODO config check here
         String normalizedSql = SqlStatementNormalizer.normalizeSql(sql);
         if (!normalizedSql.isEmpty()) {
-            try {
-                normalizedSqlHashValue = SqlStatementHasher.hashSqlStatement(normalizedSql, MessageDigest.getInstance("MD5"));
-                System.out.println("DUF-- normalizedSql " + normalizedSql);
-                System.out.println("DUF-- hash " + normalizedSqlHashValue);
-            } catch (NoSuchAlgorithmException ignored) {
-            }
+            normalizedSqlHashValue = ServiceUtils.md5HashValueFor(normalizedSql);
+            System.out.println("DUF-- normalizedSql " + normalizedSql);
+            System.out.println("DUF-- hash " + normalizedSqlHashValue);
         }
     }
 
