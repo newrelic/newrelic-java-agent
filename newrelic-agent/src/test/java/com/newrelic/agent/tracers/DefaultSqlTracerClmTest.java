@@ -169,7 +169,7 @@ public class DefaultSqlTracerClmTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(8, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, code.namespace, code.function, thread.id
+        assertEquals(9, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, code.namespace, code.function, thread.id
         assertEquals(inputSql, tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
         assertClm(tracer);
 
@@ -220,7 +220,7 @@ public class DefaultSqlTracerClmTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(5, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, code.namespace, code.function, thread.id
+        assertEquals(6, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, code.namespace, code.function, thread.id
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
         assertClm(tracer);
 
