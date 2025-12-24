@@ -103,7 +103,7 @@ public class DefaultSqlTracerTest {
         TransactionTracerConfig ttConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(2, tracer.getAgentAttributes().size()); // exclusive_duration_millis and sql
+        assertEquals(3, tracer.getAgentAttributes().size()); // exclusive_duration_millis and sql
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql"));
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
@@ -146,7 +146,7 @@ public class DefaultSqlTracerTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(6, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, thread.id
+        assertEquals(7, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, sql_obfuscated, host, port_path_or_id, thread.id
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
@@ -198,7 +198,7 @@ public class DefaultSqlTracerTest {
         SqlObfuscator sqlObfuscator = ServiceFactory.getDatabaseService().getDefaultSqlObfuscator();
         TransactionSegment segment = new TransactionSegment(ttConfig, sqlObfuscator, 0, tracer);
 
-        assertEquals(3, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, thread.id
+        assertEquals(4, tracer.getAgentAttributes().size()); // exclusive_duration_millis, sql, thread.id
         assertEquals(inputSql, (String) tracer.getAgentAttributes().get("sql")); // shouldn't be obfuscated yet
 
         JSONArray json = (JSONArray) AgentHelper.serializeJSON(segment);
