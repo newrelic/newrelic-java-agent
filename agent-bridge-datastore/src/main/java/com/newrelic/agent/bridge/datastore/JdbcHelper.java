@@ -314,17 +314,18 @@ public class JdbcHelper {
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
-        if (sql == null || sql.isEmpty()) {
-            return sql;
-        }
-
-        // Check if comment already exists
-        if (sql.startsWith("/* nr_trace_id=")) {
-            return sql;
-        }
-
-        String comment = generateSqlMetadataComment();
-        return comment.isEmpty() ? sql : comment + sql;
+        return sql;
+//        if (sql == null || sql.isEmpty()) {
+//            return sql;
+//        }
+//
+//        // Check if comment already exists
+//        if (sql.startsWith("/* nr_trace_id=")) {
+//            return sql;
+//        }
+//
+//        String comment = generateSqlMetadataComment();
+//        return comment.isEmpty() ? sql : comment + sql;
     }
 
     /**
