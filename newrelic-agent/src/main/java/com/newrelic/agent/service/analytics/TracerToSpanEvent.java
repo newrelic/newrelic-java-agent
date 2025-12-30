@@ -128,7 +128,6 @@ public class TracerToSpanEvent {
         List<EventOnSpan> eventOnSpanEvents = new ArrayList<>();
         for (com.newrelic.agent.bridge.opentelemetry.SpanEvent spanEvent : spanEvents) {
             EventOnSpan eventOnSpan = new EventOnSpanFactory(transactionData.getApplicationName(), filter, timestampSupplier)
-//                    .setTimestamp(tracer.getStartTimeInMillis())
                     .setTimestamp(spanEvent.getTimestamp())
                     .setTraceId(spanEvent.getTraceId())
                     .setSpanId(spanEvent.getSpanId())
