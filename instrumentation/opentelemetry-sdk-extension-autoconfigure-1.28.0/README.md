@@ -7,7 +7,7 @@ The following functionality is supported:
 OpenTelemetry Traces Signals
 * Detect when `Span`s are emitted by OpenTelemetry APIs and incorporate them to New Relic Java agent traces.
 * Detect [Links between Spans](https://opentelemetry.io/docs/specs/otel/overview/#links-between-spans) and report them to New Relic as `SpanLink` events.
-* TODO
+* Detect [Events on Spans](https://opentelemetry.io/docs/concepts/signals/traces/#span-events) and report them to New Relic as `SpanEvent` events.
 
 OpenTelemetry Dimensional Metrics Signals
 * Autoconfigure the OpenTelemetry SDK to export dimensional metrics (over OTLP) to the APM entity being monitored by the Java agent.
@@ -291,7 +291,39 @@ Example of adding `Link`s via the OpenTelemetry Traces APIs:
 
 ### Span Events From OpenTelemetry Tracing API
 
-TODO
+When processing OpenTelemetry Spans, any [Events](https://opentelemetry.io/docs/specs/otel/trace/api/#add-events) associated with Spans will be captured and reported to New Relic as `SpanEvent` events, which enhance the distributed tracing experience by providing log-like records that add extra details about what happened within a Span's execution.
+
+`SpanEvent` events are included in the `span_event_data` collector payload and do not have their own event sampling reservoir.
+
+Example of adding `Event`s via the OpenTelemetry Traces APIs. Note that `recordException` is a specialized variant of `addEvent` for recording exception events:
+
+```java
+    @Trace(dispatcher = true)
+    public void createSpanEvents() {
+        System.out.println("Called createSpanEvents");
+        Span span = tracer.spanBuilder("spanWithEvents").startSpan();
+        try (Scope scope = span.makeCurrent()) {
+            span
+                    .addEvent("event1")
+                    .addEvent("event2", Instant.ofEpochSecond(System.nanoTime()))
+                    .addEvent("event3", Attributes.builder().put("foo", "bar").build())
+                    .addEvent("event4", Attributes.builder().put("bar", "baz").build(), System.nanoTime(), TimeUnit.NANOSECONDS)
+                    .addEvent("event5", Attributes.builder().put("baz", "buz").build(), Instant.ofEpochSecond(System.nanoTime()))
+                    .addEvent("event6", System.nanoTime(), TimeUnit.NANOSECONDS);
+            Thread.sleep(1000);
+            throw new RuntimeException("Exception in createSpanEventException");
+        } catch (Throwable t) {
+            span.recordException(t);
+            span.recordException(t, Attributes.builder()
+                    .put("exception.message", t.getMessage())
+                    .put("exception.type", t.getClass().getName())
+                    .put("exception.stacktrace", Arrays.toString(t.getStackTrace()))
+                    .build());
+        } finally {
+            span.end();
+        }
+    }
+```
 
 ## OpenTelemetry Logs Signals
 

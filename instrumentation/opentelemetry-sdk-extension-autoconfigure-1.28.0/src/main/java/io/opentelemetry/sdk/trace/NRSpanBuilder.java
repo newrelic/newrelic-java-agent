@@ -217,8 +217,8 @@ class NRSpanBuilder implements SpanBuilder {
         }
         List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
         // TODO REVIEW - we're not picking up the global resources
-        return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), attributes,
-                endHandler, immutableLinks, totalNumberOfLinksAdded));
+        return onStart(new ExitTracerSpan(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), sharedState.getClock(), attributes,
+                endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
@@ -347,7 +347,7 @@ class NRSpanBuilder implements SpanBuilder {
         TracedMethod tracedMethod = transaction.getTracedMethod();
         List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
         return onStart(new ExitTracerSpan((ExitTracer) tracedMethod, instrumentationLibraryInfo, spanKind, spanName,
-                parentSpanContext, sharedState.getResource(), attributes, endHandler, immutableLinks, totalNumberOfLinksAdded));
+                parentSpanContext, sharedState.getResource(), sharedState.getClock(), attributes, endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
     }
 
     Span onStart(ReadWriteSpan span) {

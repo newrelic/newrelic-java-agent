@@ -85,7 +85,6 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private final SpanContext spanContext;
     private final Consumer<ExitTracerSpan> onEnd;
     private final SpanContext parentSpanContext;
-    private final long startEpochNanos;
     private boolean ended;
     private String spanName;
     private long endEpochNanos;
@@ -96,13 +95,16 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private List<EventData> events;
     private int totalNumberOfEventsAdded;
     private final AnchoredClock clock;
+    private final long startEpochNanos;
+    private final long userStartEpochNanos;
 
     private static final int MAX_EVENTS_PER_SPAN = 100;
     private static final int MAX_EVENT_ATTRIBUTES = 64;
     private static final int MAX_EVENT_ATTRIBUTE_LENGTH = 255;
 
     ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
-            Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links, int totalNumberOfLinksAdded) {
+            Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
+            int totalNumberOfLinksAdded, long userStartEpochNanos) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.spanName = spanName;
@@ -111,20 +113,45 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.onEnd = onEnd;
         this.resource = resource;
         this.instrumentationLibraryInfo = instrumentationLibraryInfo;
-        this.startEpochNanos = System.nanoTime();
         this.links = links;
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
         this.setAllAttributes(resource.getAttributes());
         this.totalNumberOfLinksAdded = totalNumberOfLinksAdded;
         this.totalNumberOfEventsAdded = 0;
         this.ended = false;
-        this.clock = AnchoredClock.create(Clock.getDefault());
+        this.clock = AnchoredClock.create(tracerClock);
+        this.userStartEpochNanos = userStartEpochNanos;
+        this.startEpochNanos = getStartEpochNanos();
     }
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {
         return new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.INTERNAL, tracer.getMetricName(), SpanContext.getInvalid(),
-                Resource.empty(), Collections.emptyMap(), span -> {
-        }, Collections.emptyList(), 0);
+                Resource.empty(), Clock.getDefault(), Collections.emptyMap(), span -> {
+        }, Collections.emptyList(), 0, Clock.getDefault().now());
+    }
+
+    private long getStartEpochNanos() {
+        Span parentSpan = Span.wrap(this.parentSpanContext);
+        boolean createdAnchoredClock;
+        AnchoredClock clock;
+        if (parentSpan instanceof ExitTracerSpan) {
+            ExitTracerSpan parentRecordEventsSpan = (ExitTracerSpan) parentSpan;
+            clock = parentRecordEventsSpan.clock;
+            createdAnchoredClock = false;
+        } else {
+            clock = this.clock;
+            createdAnchoredClock = true;
+        }
+
+        long startEpochNanos;
+        if (userStartEpochNanos != 0L) {
+            startEpochNanos = userStartEpochNanos;
+        } else if (createdAnchoredClock) {
+            startEpochNanos = clock.startTime();
+        } else {
+            startEpochNanos = clock.now();
+        }
+        return startEpochNanos;
     }
 
     @Override
@@ -144,7 +171,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
             int totalAttributeCount = attributes.size();
             this.addTimedEvent(
-                    EventData.create(this.clock.now(), name, AttributeUtil.applyAttributesLimit(attributes, MAX_EVENT_ATTRIBUTES, MAX_EVENT_ATTRIBUTE_LENGTH),
+                    EventData.create(getStartEpochNanos(), name,
+                            AttributeUtil.applyAttributesLimit(attributes, MAX_EVENT_ATTRIBUTES, MAX_EVENT_ATTRIBUTE_LENGTH),
                             totalAttributeCount));
             return this;
         }
@@ -254,7 +282,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 String linkedSpanId = linkData.getSpanContext().getSpanId();
                 String linkedTraceId = linkData.getSpanContext().getTraceId();
                 Map<String, Object> linkDataAttributes = toMap(linkData.getAttributes());
-                tracer.addSpanLink(new SpanLink(this.startEpochNanos, id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
+                tracer.addSpanLink(
+                        new SpanLink(TimeUnit.NANOSECONDS.toMillis(this.startEpochNanos), id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
             }
         }
     }
@@ -266,7 +295,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 String traceId = tracer.getTraceId();
                 String name = eventData.getName();
                 Map<String, Object> eventDataAttributes = toMap(eventData.getAttributes());
-                tracer.addSpanEvent(new SpanEvent(this.startEpochNanos, name, traceId, spanId, eventDataAttributes));
+                tracer.addSpanEvent(new SpanEvent(TimeUnit.NANOSECONDS.toMillis(this.startEpochNanos), name, traceId, spanId, eventDataAttributes));
             }
         }
     }
