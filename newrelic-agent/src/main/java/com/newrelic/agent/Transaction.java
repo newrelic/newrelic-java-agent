@@ -128,7 +128,11 @@ public class Transaction {
     static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
     "newrelic.scala.api.TraceOps$", "txn", null);
     public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
-    ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+        ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+
+    public static final int GENERIC_TXN_CLASS_SIGNATURE_ID =
+            ClassMethodSignatures.get().add(new ClassMethodSignature("", "", null));
+
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
     private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
