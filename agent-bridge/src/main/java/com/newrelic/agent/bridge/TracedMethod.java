@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
@@ -44,6 +45,22 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
      * @return list of SpanLinks
      */
     List<SpanLink> getSpanLinks();
+
+    /**
+     * Add a SpanEvent to a collection stored on the traced method.
+     * <p>
+     * This is used to support the OpenTelemetry concept of a SpanEvent.
+     *
+     * @param event a SpanEvent
+     */
+    void addSpanEvent(SpanEvent event);
+
+    /**
+     * Get a list of SpanEvents associated with this traced method.
+     *
+     * @return list of SpanEvents
+     */
+    List<SpanEvent> getSpanEvents();
 
     /**
      * Returns the parent of this traced method, or null if this is the root tracer.

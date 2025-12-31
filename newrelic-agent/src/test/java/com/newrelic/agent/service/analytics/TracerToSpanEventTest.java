@@ -99,6 +99,7 @@ public class TracerToSpanEventTest {
     private TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics;
     private TransactionStats txnStats;
     private final int numberOfSpanLinks = 5;
+    private final int numberOfSpanEvents = 5;
 
     @Before
     public void setup() {
@@ -144,6 +145,7 @@ public class TracerToSpanEventTest {
         when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
         when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
         when(tracer.getSpanLinks()).thenReturn(createMapOfSpanLinks());
+        when(tracer.getSpanEvents()).thenReturn(createMapOfSpanEvents());
         when(spanErrorBuilder.buildSpanError(tracer, isRoot, responseStatus, statusMessage, throwable)).thenReturn(spanError);
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
         when(txnData.getApplicationName()).thenReturn(appName);
@@ -168,6 +170,15 @@ public class TracerToSpanEventTest {
             spanLinks.add(new SpanLink(timestamp, fakeId, fakeId, fakeId, fakeId, Collections.singletonMap("foo", "bar")));
         }
         return spanLinks;
+    }
+
+    private List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> createMapOfSpanEvents() {
+        List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> spanEvents = new ArrayList<>();
+        for (int i = 0; i < numberOfSpanEvents; i++) {
+            String fakeId = String.valueOf(i);
+            spanEvents.add(new com.newrelic.agent.bridge.opentelemetry.SpanEvent(timestamp, "name", fakeId, fakeId, Collections.singletonMap("foo", "bar")));
+        }
+        return spanEvents;
     }
 
     @Test
@@ -770,6 +781,18 @@ public class TracerToSpanEventTest {
 
         assertEquals(expectedSpanEvent, spanEvent);
         assertEquals(numberOfSpanLinks, spanEvent.getLinkOnSpanEvents().size());
+    }
+
+    @Test
+    public void testCreateEventOnSpanEvents() {
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
+
+        assertEquals(expectedSpanEvent, spanEvent);
+        assertEquals(numberOfSpanEvents, spanEvent.getEventOnSpanEvents().size());
     }
 
     private SpanEvent buildExpectedSpanEvent() {

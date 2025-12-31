@@ -10,6 +10,7 @@ package io.opentelemetry.sdk.trace;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
@@ -28,7 +29,9 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.internal.AttributeUtil;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
@@ -37,6 +40,7 @@ import io.opentelemetry.sdk.trace.data.StatusData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +56,7 @@ import java.util.stream.Stream;
  * Representation of a Span
  */
 public class ExitTracerSpan implements ReadWriteSpan {
+    private final Object lock = new Object();
     // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
     static final String OTEL_SCOPE_VERSION = "otel.scope.version";
     static final AttributeKey<String> OTEL_SCOPE_NAME = AttributeKey.stringKey("otel.scope.name");
@@ -80,7 +85,6 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private final SpanContext spanContext;
     private final Consumer<ExitTracerSpan> onEnd;
     private final SpanContext parentSpanContext;
-    private final long startEpochNanos;
     private boolean ended;
     private String spanName;
     private long endEpochNanos;
@@ -88,9 +92,19 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private final AttributeMapper attributeMapper = AttributeMapper.getInstance();
     private final List<LinkData> links;
     private final int totalNumberOfLinksAdded;
+    private List<EventData> events;
+    private int totalNumberOfEventsAdded;
+    private final AnchoredClock clock;
+    private final long startEpochNanos;
+    private final long userStartEpochNanos;
+
+    private static final int MAX_EVENTS_PER_SPAN = 100;
+    private static final int MAX_EVENT_ATTRIBUTES = 64;
+    private static final int MAX_EVENT_ATTRIBUTE_LENGTH = 255;
 
     ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
-            Resource resource, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links, int totalNumberOfLinksAdded) {
+            Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
+            int totalNumberOfLinksAdded, long userStartEpochNanos) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.spanName = spanName;
@@ -99,17 +113,45 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.onEnd = onEnd;
         this.resource = resource;
         this.instrumentationLibraryInfo = instrumentationLibraryInfo;
-        this.startEpochNanos = System.nanoTime();
         this.links = links;
         this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
         this.setAllAttributes(resource.getAttributes());
         this.totalNumberOfLinksAdded = totalNumberOfLinksAdded;
+        this.totalNumberOfEventsAdded = 0;
+        this.ended = false;
+        this.clock = AnchoredClock.create(tracerClock);
+        this.userStartEpochNanos = userStartEpochNanos;
+        this.startEpochNanos = getStartEpochNanos();
     }
 
     public static ExitTracerSpan wrap(ExitTracer tracer) {
         return new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.INTERNAL, tracer.getMetricName(), SpanContext.getInvalid(),
-                Resource.empty(), Collections.emptyMap(), span -> {
-        }, Collections.emptyList(), 0);
+                Resource.empty(), Clock.getDefault(), Collections.emptyMap(), span -> {
+        }, Collections.emptyList(), 0, Clock.getDefault().now());
+    }
+
+    private long getStartEpochNanos() {
+        Span parentSpan = Span.wrap(this.parentSpanContext);
+        boolean createdAnchoredClock;
+        AnchoredClock clock;
+        if (parentSpan instanceof ExitTracerSpan) {
+            ExitTracerSpan parentRecordEventsSpan = (ExitTracerSpan) parentSpan;
+            clock = parentRecordEventsSpan.clock;
+            createdAnchoredClock = false;
+        } else {
+            clock = this.clock;
+            createdAnchoredClock = true;
+        }
+
+        long startEpochNanos;
+        if (userStartEpochNanos != 0L) {
+            startEpochNanos = userStartEpochNanos;
+        } else if (createdAnchoredClock) {
+            startEpochNanos = clock.startTime();
+        } else {
+            startEpochNanos = clock.now();
+        }
+        return startEpochNanos;
     }
 
     @Override
@@ -120,12 +162,55 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     @Override
     public Span addEvent(String name, Attributes attributes) {
-        return this;
+        if (name == null) {
+            return this;
+        } else {
+            if (attributes == null) {
+                attributes = Attributes.empty();
+            }
+
+            int totalAttributeCount = attributes.size();
+            this.addTimedEvent(
+                    EventData.create(getStartEpochNanos(), name,
+                            AttributeUtil.applyAttributesLimit(attributes, MAX_EVENT_ATTRIBUTES, MAX_EVENT_ATTRIBUTE_LENGTH),
+                            totalAttributeCount));
+            return this;
+        }
     }
 
     @Override
     public Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
-        return this;
+        if (name != null && unit != null) {
+            if (attributes == null) {
+                attributes = Attributes.empty();
+            }
+
+            int totalAttributeCount = attributes.size();
+            this.addTimedEvent(EventData.create(unit.toNanos(timestamp), name,
+                    AttributeUtil.applyAttributesLimit(attributes, MAX_EVENT_ATTRIBUTES, MAX_EVENT_ATTRIBUTE_LENGTH), totalAttributeCount));
+            return this;
+        } else {
+            return this;
+        }
+    }
+
+    private void addTimedEvent(EventData timedEvent) {
+        synchronized (this.lock) {
+            ++this.totalNumberOfEventsAdded;
+            if (!this.ended) {
+                if (this.events == null) {
+                    this.events = new ArrayList<>(MAX_EVENTS_PER_SPAN);
+                }
+
+                if (this.events.size() != MAX_EVENTS_PER_SPAN) {
+                    this.events.add(timedEvent);
+                } else {
+                    AgentBridge.getAgent()
+                            .getLogger()
+                            .log(Level.FINEST, "Unable to add span event because the limit of " + MAX_EVENTS_PER_SPAN + " events per span has been reached.");
+                }
+            }
+        }
     }
 
     @Override
@@ -179,11 +264,15 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         tracer.addCustomAttributes(filteredAttributes);
         copySpanLinksToTracer(links);
+        List<EventData> immutableEvents = this.events == null ? Collections.emptyList() : Collections.unmodifiableList(this.events);
+        copySpanEventsToTracer(immutableEvents);
         tracer.finish();
         endEpochNanos = System.nanoTime();
         ended = true;
         onEnd.accept(this);
     }
+
+    // TODO add status.code and status.description
 
     private void copySpanLinksToTracer(List<LinkData> links) {
         if (links != null && !links.isEmpty()) {
@@ -193,7 +282,20 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 String linkedSpanId = linkData.getSpanContext().getSpanId();
                 String linkedTraceId = linkData.getSpanContext().getTraceId();
                 Map<String, Object> linkDataAttributes = toMap(linkData.getAttributes());
-                tracer.addSpanLink(new SpanLink(this.startEpochNanos, id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
+                tracer.addSpanLink(
+                        new SpanLink(TimeUnit.NANOSECONDS.toMillis(this.startEpochNanos), id, traceId, linkedSpanId, linkedTraceId, linkDataAttributes));
+            }
+        }
+    }
+
+    private void copySpanEventsToTracer(List<EventData> events) {
+        if (events != null && !events.isEmpty()) {
+            for (EventData eventData : events) {
+                String spanId = tracer.getSpanId();
+                String traceId = tracer.getTraceId();
+                String name = eventData.getName();
+                Map<String, Object> eventDataAttributes = toMap(eventData.getAttributes());
+                tracer.addSpanEvent(new SpanEvent(TimeUnit.NANOSECONDS.toMillis(this.startEpochNanos), name, traceId, spanId, eventDataAttributes));
             }
         }
     }
@@ -403,7 +505,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
         @Override
         public List<EventData> getEvents() {
-            return Collections.emptyList();
+            return events;
         }
 
         @Override
@@ -423,7 +525,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
         @Override
         public int getTotalRecordedEvents() {
-            return 0;
+            return totalNumberOfEventsAdded;
         }
 
         @Override

@@ -13,6 +13,7 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
 import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
@@ -402,6 +403,39 @@ public class SpanEventFactoryTest {
         assertEquals(2, target.getLinkOnSpanEvents().size());
         assertEquals("linkOnSpan1", target.getLinkOnSpanEvents().get(0).getAppName());
         assertEquals("linkOnSpan2", target.getLinkOnSpanEvents().get(1).getAppName());
+    }
+
+    @Test
+    public void eventOnSpanEventsShouldBeSet() {
+        ArrayList<EventOnSpan> eventOnSpans = new ArrayList<>();
+
+        EventOnSpan eventOnSpan1 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan1")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        EventOnSpan eventOnSpan2 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan2")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        eventOnSpans.add(eventOnSpan1);
+        eventOnSpans.add(eventOnSpan2);
+
+        SpanEvent target = spanEventFactory.setEventOnSpanEvents(eventOnSpans).build();
+
+        assertFalse(target.getEventOnSpanEvents().isEmpty());
+        assertEquals(2, target.getEventOnSpanEvents().size());
+        assertEquals("eventOnSpan1", target.getEventOnSpanEvents().get(0).getAppName());
+        assertEquals("eventOnSpan2", target.getEventOnSpanEvents().get(1).getAppName());
     }
 
     private static class PassNothingAttributeFilter extends AttributeFilter.PassEverythingAttributeFilter {

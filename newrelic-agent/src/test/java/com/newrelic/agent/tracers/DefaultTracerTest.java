@@ -1136,6 +1136,25 @@ public class DefaultTracerTest {
         assertEquals(Collections.singletonMap("foo", "bar"), spanLink.getUserAttributes());
     }
 
+    @Test
+    public void testAddSpanEvent() {
+        DefaultTracer tracer = prepareTracer();
+        tracer.addSpanEvent(
+                new com.newrelic.agent.bridge.opentelemetry.SpanEvent(tracer.getStartTimeInMillis(), "name", "traceId", "spanId", Collections.singletonMap("foo", "bar")));
+        tracer.finish(0, null);
+
+        List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> spanEvents = tracer.getSpanEvents();
+        assertFalse(spanEvents.isEmpty());
+
+        com.newrelic.agent.bridge.opentelemetry.SpanEvent spanEvent = spanEvents.get(0);
+        assertEquals("spanId", spanEvent.getSpanId());
+        assertEquals("traceId", spanEvent.getTraceId());
+        assertEquals("name", spanEvent.getName());
+        assertEquals(tracer.getStartTimeInMillis(), spanEvent.getTimestamp());
+        assertEquals("SpanEvent", spanEvent.getType());
+        assertEquals(Collections.singletonMap("foo", "bar"), spanEvent.getUserAttributes());
+    }
+
     private SpanEvent getSpanByName(SamplingPriorityQueue<SpanEvent> eventPool, String spanName) {
         for (SpanEvent spanEvent : eventPool.asList()) {
             if (spanEvent.getName().equals(spanName)) {

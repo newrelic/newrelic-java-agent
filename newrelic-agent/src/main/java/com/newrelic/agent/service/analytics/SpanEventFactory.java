@@ -15,6 +15,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
 import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
@@ -74,6 +75,11 @@ public class SpanEventFactory {
 
     public SpanEventFactory setLinkOnSpanEvents(List<LinkOnSpan> linkOnSpanEvents) {
         builder.linkOnSpanEvents(linkOnSpanEvents);
+        return this;
+    }
+
+    public SpanEventFactory setEventOnSpanEvents(List<EventOnSpan> eventOnSpanEvents) {
+        builder.eventOnSpanEvents(eventOnSpanEvents);
         return this;
     }
 

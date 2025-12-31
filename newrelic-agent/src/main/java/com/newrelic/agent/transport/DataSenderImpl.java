@@ -373,20 +373,21 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
         /*
          * When creating the span_event_data json payload structure we need to pull
-         * all span links off the span and treat them as if they were spans themselves.
-         * This is because span links are not treated as first class event types with
-         * their own reservoir, and they also can't be stored alongside spans in the span
-         * event reservoir. Yet they are treated as if they were spans in the json payload.
-         * This was a hacky way to get the backend to accept new SpanLink event types
-         * without setting up a dedicated collector endpoint for them. The backend will
-         * synthesize SpanLink events based on the span_event_data payload.
+         * all links and events off each span and treat them as if they were spans
+         * themselves. This is because links and events are not treated as first class event
+         * types with their own reservoir, and they also can't be stored alongside spans in
+         * the span reservoir. Yet they are treated as if they were spans in the json payload.
+         * This was a hacky way to get the backend to accept new SpanLink/SpanEvent event
+         * types without setting up a dedicated collector endpoint for them. The backend
+         * will synthesize SpanLink/SpanEvent events based on the span_event_data payload.
          */
         if (method.equals(CollectorMethods.SPAN_EVENT_DATA)) {
-            List<AnalyticsEvent> combinedSpanEvents = new ArrayList<>(events);
+            List<AnalyticsEvent> flattenedSpanEvents = new ArrayList<>(events);
             for (SpanEvent event : (Collection<SpanEvent>) events) {
-                combinedSpanEvents.addAll(event.getLinkOnSpanEvents());
+                flattenedSpanEvents.addAll(event.getLinkOnSpanEvents());
+                flattenedSpanEvents.addAll(event.getEventOnSpanEvents());
             }
-            params.add(combinedSpanEvents);
+            params.add(flattenedSpanEvents);
         } else {
             params.add(events);
         }

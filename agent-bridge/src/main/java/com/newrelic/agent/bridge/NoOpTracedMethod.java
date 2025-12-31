@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
@@ -37,6 +38,15 @@ public final class NoOpTracedMethod implements TracedMethod {
 
     @Override
     public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
         return Collections.emptyList();
     }
 
