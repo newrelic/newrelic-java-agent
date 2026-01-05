@@ -15,6 +15,7 @@ import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
@@ -58,6 +59,7 @@ import java.util.logging.Level;
  */
 public class DefaultTracer extends AbstractTracer {
     private final List<SpanLink> spanLinks = new ArrayList<>();
+    private final List<SpanEvent> spanEvents = new ArrayList<>();
 
     // Tracers MUST NOT store references to the Transaction. Why: tracers are stored in the TransactionActivity,
     // and Activities can be reparented from one Transaction to another by the public APIs that support async.
@@ -623,6 +625,16 @@ public class DefaultTracer extends AbstractTracer {
     @Override
     public List<SpanLink> getSpanLinks() {
         return spanLinks;
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+        spanEvents.add(event);
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
+        return spanEvents;
     }
 
     @Override

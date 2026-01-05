@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2020 New Relic Corporation. All rights reserved.
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -12,31 +12,44 @@ import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
-
-    public static final String SPAN = "Span";
-    static final String CLIENT_SPAN_KIND = "client";
+/**
+ * This class represents the New Relic data model of a SpanEvent event.
+ * <p>
+ * <p>
+ * SpanEvent events have the following JSON structure of intrinsics, user attributes, and agent attributes:
+ * <p>
+ *      [
+ *        {
+ *          "trace.id": "123",
+ *          "span.id": "123",
+ *          "name": "MyEvent",
+ *          "type": "SpanEvent",
+ *          "timestamp": 123
+ *        },
+ *        {
+ *          "customUserAttribute1": "someVal1",
+ *          "customUserAttribute2": "someVal2",
+ *        },
+ *        {}
+ *      ]
+ */
+public class EventOnSpan extends AnalyticsEvent implements JSONStreamAware {
+    public static final String SPAN_EVENT = "SpanEvent";
 
     private final String appName;
     private final Map<String, Object> intrinsics;
     private final Map<String, Object> agentAttributes;
-    private final List<LinkOnSpan> linkOnSpanEvents;
-    private final List<EventOnSpan> eventOnSpanEvents;
 
-    private SpanEvent(Builder builder) {
-        super(SPAN, builder.timestamp, builder.priority, builder.userAttributes);
+    private EventOnSpan(Builder builder) {
+        super(SPAN_EVENT, builder.timestamp, builder.priority, builder.userAttributes);
         this.appName = builder.appName;
         this.agentAttributes = builder.agentAttributes;
         this.intrinsics = builder.intrinsics;
-        this.linkOnSpanEvents = builder.linkOnSpanEvents;
-        this.eventOnSpanEvents = builder.eventOnSpanEvents;
     }
 
     public static Builder builder() {
@@ -60,40 +73,16 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         JSONArray.writeJSONString(Arrays.asList(intrinsics, getMutableUserAttributes(), getAgentAttributes()), out);
     }
 
-    public List<LinkOnSpan> getLinkOnSpanEvents() {
-        return linkOnSpanEvents;
-    }
-
-    public List<EventOnSpan> getEventOnSpanEvents() {
-        return eventOnSpanEvents;
-    }
-
-    public String getTraceId() {
-        return (String) intrinsics.get("traceId");
-    }
-
-    public String getGuid() {
-        return (String) intrinsics.get("guid");
-    }
-
-    public String getParentId() {
-        return (String) intrinsics.get("parentId");
-    }
-
     public String getName() {
         return (String) intrinsics.get("name");
     }
 
-    public float getDuration() {
-        return (Float) intrinsics.get("duration");
+    public String getTraceId() {
+        return (String) intrinsics.get("trace.id");
     }
 
-    public String getTransactionId() {
-        return (String) intrinsics.get("transactionId");
-    }
-
-    public SpanCategory getCategory() {
-        return SpanCategory.fromString((String) intrinsics.get("category"));
+    public String getSpanId() {
+        return (String) intrinsics.get("span.id");
     }
 
     @Override
@@ -104,10 +93,10 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        SpanEvent spanEvent = (SpanEvent) o;
-        return Objects.equals(appName, spanEvent.appName) &&
-                Objects.equals(intrinsics, spanEvent.intrinsics) &&
-                Objects.equals(agentAttributes, spanEvent.agentAttributes) &&
+        EventOnSpan eventOnSpan = (EventOnSpan) o;
+        return Objects.equals(appName, eventOnSpan.appName) &&
+                Objects.equals(intrinsics, eventOnSpan.intrinsics) &&
+                Objects.equals(agentAttributes, eventOnSpan.agentAttributes) &&
                 super.equals(o);
     }
 
@@ -120,12 +109,9 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private final Map<String, Object> intrinsics = new HashMap<>();
         private final Map<String, Object> agentAttributes = new HashMap<>();
         private final Map<String, Object> userAttributes = new HashMap<>();
-        private List<LinkOnSpan> linkOnSpanEvents = new ArrayList<>();
-        private List<EventOnSpan> eventOnSpanEvents = new ArrayList<>();
         private String appName;
         private float priority;
         private long timestamp;
-        private Object spanKind;
 
         public Builder appName(String appName) {
             this.appName = appName;
@@ -133,21 +119,8 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         }
 
         public Builder priority(float priority) {
+            // priority isn't used on EventOnSpan events
             this.priority = priority;
-            return this;
-        }
-
-        public Builder linkOnSpanEvents(List<LinkOnSpan> linkOnSpanEvents) {
-            if (linkOnSpanEvents != null) {
-                this.linkOnSpanEvents = linkOnSpanEvents;
-            }
-            return this;
-        }
-
-        public Builder eventOnSpanEvents(List<EventOnSpan> eventOnSpanEvents) {
-            if (eventOnSpanEvents != null) {
-                this.eventOnSpanEvents = eventOnSpanEvents;
-            }
             return this;
         }
 
@@ -172,9 +145,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             if (userAttributes == null || userAttributes.isEmpty()) {
                 return this;
             }
-            for (Map.Entry<String, ?> entry : userAttributes.entrySet()) {
-                this.userAttributes.put(entry.getKey(), entry.getValue());
-            }
+            this.userAttributes.putAll(userAttributes);
             return this;
         }
 
@@ -197,31 +168,16 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             return this;
         }
 
-        public Builder spanKind(Object spanKind) {
-            putIntrinsic("span.kind", spanKind);
-            this.spanKind = spanKind;
-            return this;
-        }
-
-        public boolean isClientSpan() {
-            return CLIENT_SPAN_KIND.equals(spanKind);
-        }
-
-        public Object getSpanKindFromUserAttributes() {
-            Object result = userAttributes.get("span.kind");
-            return result == null ? CLIENT_SPAN_KIND : result;
-        }
-
         public Builder timestamp(long timestamp) {
             this.timestamp = timestamp;
             return this;
         }
 
-        public SpanEvent build() {
+        public EventOnSpan build() {
             if (timestamp == 0) {
                 timestamp = System.currentTimeMillis();
             }
-            return new SpanEvent(this);
+            return new EventOnSpan(this);
         }
     }
 }

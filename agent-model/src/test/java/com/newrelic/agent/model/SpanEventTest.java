@@ -102,6 +102,34 @@ public class SpanEventTest {
     }
 
     @Test
+    public void testEventOnSpanEvents() {
+        long now = System.currentTimeMillis();
+        SpanEvent spanNoEvents = baseBuilderEventOnSpan(now, Collections.emptyList()).build();
+
+        List<EventOnSpan> eventOnSpans = new ArrayList<>();
+        eventOnSpans.add(EventOnSpan.builder()
+                .appName("foo")
+                .timestamp(now)
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build());
+
+        SpanEvent spanWithEvents = baseBuilderEventOnSpan(now, eventOnSpans).build();
+
+        assertNotEquals(spanNoEvents.getEventOnSpanEvents().size(), spanWithEvents.getEventOnSpanEvents().size());
+        assertTrue(spanNoEvents.getEventOnSpanEvents().isEmpty());
+        assertFalse(spanWithEvents.getEventOnSpanEvents().isEmpty());
+
+        List<EventOnSpan> eventOnSpanEvents = spanWithEvents.getEventOnSpanEvents();
+        EventOnSpan eventOnSpan = eventOnSpanEvents.get(0);
+        assertEquals("foo", eventOnSpan.getAppName());
+        assertEquals("spanId", eventOnSpan.getSpanId());
+        assertEquals("traceId", eventOnSpan.getTraceId());
+        assertEquals("name", eventOnSpan.getName());
+    }
+
+    @Test
     public void testBuilderMethods() {
         long now = System.currentTimeMillis();
 
@@ -175,6 +203,10 @@ public class SpanEventTest {
 
     private SpanEvent.Builder baseBuilderLinkOnSpan(long now, List<LinkOnSpan> linkOnSpanList) {
         return baseBuilder(now).linkOnSpanEvents(linkOnSpanList);
+    }
+
+    private SpanEvent.Builder baseBuilderEventOnSpan(long now, List<EventOnSpan> eventOnSpanList) {
+        return baseBuilder(now).eventOnSpanEvents(eventOnSpanList);
     }
 
     private SpanEvent.Builder baseBuilder(long now) {

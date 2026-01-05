@@ -11,6 +11,7 @@ import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.external.ExternalParameters;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -204,6 +205,15 @@ public class UltraLightTracer implements Tracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
         return Collections.emptyList();
     }
 

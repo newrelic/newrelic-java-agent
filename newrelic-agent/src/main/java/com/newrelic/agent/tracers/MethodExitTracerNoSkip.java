@@ -10,6 +10,7 @@ package com.newrelic.agent.tracers;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -217,6 +218,15 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent link) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
         return Collections.emptyList();
     }
 }

@@ -12,6 +12,7 @@ import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.ExplainPlanExecutor;
@@ -286,6 +287,15 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
 
     @Override
     public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
         return Collections.emptyList();
     }
 
