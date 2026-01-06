@@ -19,6 +19,7 @@ public abstract class Statement_Weaved {
     @Trace(leaf = true)
     public ResultSet executeQuery(String sql) throws SQLException {
         DatastoreMetrics.noticeSql(getConnection(), sql, null);
+        System.out.println("DUF Statement executeQuery");
         return Weaver.callOriginal();
     }
 
@@ -31,6 +32,7 @@ public abstract class Statement_Weaved {
     @Trace(leaf = true)
     public boolean execute(String sql) throws SQLException {
         DatastoreMetrics.noticeSql(getConnection(), sql, null);
+        System.out.println("DUF Statement execute");
         return Weaver.callOriginal();
     }
 

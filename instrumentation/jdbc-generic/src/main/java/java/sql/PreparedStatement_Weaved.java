@@ -34,6 +34,7 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
         DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
+        System.out.println("DUF PreparedStatement executeQuery");
         return Weaver.callOriginal();
     }
 
@@ -52,6 +53,7 @@ public abstract class PreparedStatement_Weaved {
             preparedSql = JdbcHelper.getSql((Statement) this);
         }
         DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
+        System.out.println("DUF PreparedStatement execute()");
         return Weaver.callOriginal();
     }
 

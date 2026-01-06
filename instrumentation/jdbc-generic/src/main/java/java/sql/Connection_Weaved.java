@@ -8,9 +8,13 @@
 package java.sql;
 
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.TraceMetadata;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+
+import java.util.logging.Level;
 
 @Weave(originalName = "java.sql.Connection", type = MatchType.Interface)
 public abstract class Connection_Weaved {
@@ -84,5 +88,24 @@ public abstract class Connection_Weaved {
         PreparedStatement_Weaved preparedStatement = Weaver.callOriginal();
         preparedStatement.preparedSql = sql;
         return preparedStatement;
+    }
+
+    private void runMetaCorrelationStatements() {
+        TraceMetadata traceMetadata = NewRelic.getAgent().getTraceMetadata();
+        try {
+            try (CallableStatement stmt = this.prepareCall("{call DBMS_SESSION.SET_IDENTIFIER(?)}")) {
+                stmt.setString(1, traceMetadata.getTraceId() + ":" + traceMetadata.getSpanId());
+                stmt.execute();
+            }
+
+            try (CallableStatement stmt = this.prepareCall("{call DBMS_APPLICATION_INFO.SET_MODULE(?, ?)}")) {
+                stmt.setString(1, NewRelic.getAgent().getConfig().getValue("app_name"));
+                stmt.setString(2, NewRelic.getAgent().getTransaction().getTracedMethod().getMetricName());
+                stmt.execute();
+            }
+        } catch (SQLException e) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Error occurred executing native metadata correlation statements: {0}" +
+                    " SQL state: {1}  SQL error code: {2}", e.getMessage(), e.getSQLState(), e.getErrorCode());
+        }
     }
 }

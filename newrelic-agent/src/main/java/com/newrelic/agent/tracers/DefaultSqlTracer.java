@@ -71,21 +71,25 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     public DefaultSqlTracer(Transaction transaction, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags) {
         super(transaction, sig, object, metricNameFormatter, tracerFlags);
+        System.out.println("DUF SQLTracer");
     }
 
     public DefaultSqlTracer(Transaction transaction, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags, long time) {
         super(transaction.getTransactionActivity(), sig, object, metricNameFormatter, tracerFlags, time);
+        System.out.println("DUF SQLTracer");
     }
 
     public DefaultSqlTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags) {
         super(txa, sig, object, metricNameFormatter, tracerFlags);
+        System.out.println("DUF SQLTracer");
     }
 
     public DefaultSqlTracer(TransactionActivity txa, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags, long pStartTime) {
         super(txa, sig, object, metricNameFormatter, tracerFlags, pStartTime);
+        System.out.println("DUF SQLTracer");
     }
 
     @Override
@@ -96,6 +100,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     @Override
     public void setConnectionFactory(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
+        System.out.println("DUF SQLTracer setConnectionFactory");
     }
 
     public void setHost(String host) {
