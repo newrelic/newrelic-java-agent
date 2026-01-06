@@ -23,6 +23,7 @@ import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.Tracer;
@@ -54,6 +55,7 @@ import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_LIBRARY_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "io.opentelemetry" }, configName = "distributed_tracing.yml")
@@ -129,8 +131,16 @@ public class HybridAgentTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Map<String, String> spanDetails = createTransactionWhenServerSpanCreated("Foo");
 
+        Collection<SpanEvent> spanEvents = introspector.getSpanEvents();
+        SpanEvent[] eventArray = spanEvents.toArray(new SpanEvent[0]);
+
         AssertionEvaluator.assertTxnExists(introspector, "WebTransaction/Uri/Unknown");
         AssertionEvaluator.assertSpanDetails(introspector, spanDetails);
+
+        Map<String, Object> agentAttributes = eventArray[0].getAgentAttributes();
+        assertTrue(agentAttributes.containsKey("status.code"));
+        assertEquals("unset", agentAttributes.get("status.code"));
+        assertFalse(agentAttributes.containsKey("status.description"));
     }
 
     // Starting transaction tests
@@ -162,9 +172,18 @@ public class HybridAgentTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         Map<String, String> spanDetails = createOtelSegmentInTxn("Foo", SpanKind.INTERNAL);
 
+        Collection<SpanEvent> spanEvents = introspector.getSpanEvents();
+        SpanEvent[] eventArray = spanEvents.toArray(new SpanEvent[0]);
+
         AssertionEvaluator.assertSpanCount(introspector, 2);
         AssertionEvaluator.assertTxnExists(introspector, "OtherTransaction/Custom/io.opentelemetry.agent.otelhybrid.HybridAgentTest/createOtelSegmentInTxn");
         AssertionEvaluator.assertSpanDetails(introspector, spanDetails);
+
+        Map<String, Object> agentAttributes = eventArray[1].getAgentAttributes();
+        assertTrue(agentAttributes.containsKey("status.code"));
+        assertEquals("ok", agentAttributes.get("status.code"));
+        assertTrue(agentAttributes.containsKey("status.description"));
+        assertEquals("status is ok", agentAttributes.get("status.description"));
     }
 
     // Creates New Relic span as child of OpenTelemetry span
@@ -208,6 +227,12 @@ public class HybridAgentTest {
         SpanEvent[] eventArray = spanEvents.toArray(new SpanEvent[0]);
         AssertionEvaluator.assertExceptionExistsOnSpan(eventArray[1], "oops", "java.lang.Exception");
         AssertionEvaluator.assertSpanDetails(introspector, spanDetails);
+
+        Map<String, Object> agentAttributes = eventArray[1].getAgentAttributes();
+        assertTrue(agentAttributes.containsKey("status.code"));
+        assertEquals("error", agentAttributes.get("status.code"));
+        assertTrue(agentAttributes.containsKey("status.description"));
+        assertEquals("status is error", agentAttributes.get("status.description"));
     }
 
     // Inbound distributed tracing tests
@@ -379,6 +404,7 @@ public class HybridAgentTest {
     static Map<String, String> createOtelSegmentInTxn(String spanName, SpanKind spanKind) {
         Span span = OTEL_TRACER.spanBuilder(spanName).setSpanKind(spanKind).startSpan();
         Scope scope = span.makeCurrent();
+        span.setStatus(StatusCode.OK, "status is ok");
 
         Map<String, String> spanDetails = createOTelSpanDetailsMap(span);
 
@@ -434,6 +460,7 @@ public class HybridAgentTest {
         try {
             throw new Exception("oops");
         } catch (Exception e) {
+            span.setStatus(StatusCode.ERROR, "status is error");
             span.recordException(e);
             span.setAttribute(AttributeKey.stringKey("error.type"), e.getClass().getCanonicalName());
         } finally {

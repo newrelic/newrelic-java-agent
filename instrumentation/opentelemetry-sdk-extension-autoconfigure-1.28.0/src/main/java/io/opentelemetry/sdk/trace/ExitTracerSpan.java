@@ -12,6 +12,7 @@ import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
+import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
@@ -71,10 +72,13 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private static final AttributeKey<String> SERVER_ADDRESS = AttributeKey.stringKey("server.address");
     private static final AttributeKey<Long> SERVER_PORT = AttributeKey.longKey("server.port");
 
+    private static final AttributeKey<String> STATUS_CODE = AttributeKey.stringKey("status.code");
+    private static final AttributeKey<String> STATUS_DESCRIPTION = AttributeKey.stringKey("status.description");
+
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
-                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT)
+                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT, STATUS_CODE, STATUS_DESCRIPTION)
                             .map(AttributeKey::getKey)
                             .collect(Collectors.toSet()));
 
@@ -97,6 +101,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private final AnchoredClock clock;
     private final long startEpochNanos;
     private final long userStartEpochNanos;
+    private StatusData status = StatusData.unset();
 
     private static final int MAX_EVENTS_PER_SPAN = 100;
     private static final int MAX_EVENT_ATTRIBUTES = 64;
@@ -215,7 +220,18 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     @Override
     public Span setStatus(StatusCode statusCode, String description) {
-        return this;
+        if (statusCode == null) {
+            return this;
+        } else {
+            synchronized (this.lock) {
+                if (this.ended) {
+                    return this;
+                } else {
+                    this.status = StatusData.create(statusCode, description);
+                    return this;
+                }
+            }
+        }
     }
 
     @Override
@@ -257,6 +273,8 @@ public class ExitTracerSpan implements ReadWriteSpan {
             reportClientSpan();
         }
         tracer.setMetricName("Span", spanName);
+        setSpanStatusAgentAttributes();
+
         // db.statement is reported through DatastoreParameters.SlowQueryParameter.  That code path
         // will correctly obfuscate the sql based on agent settings.
         Map<String, Object> filteredAttributes = attributes.entrySet().stream()
@@ -272,7 +290,17 @@ public class ExitTracerSpan implements ReadWriteSpan {
         onEnd.accept(this);
     }
 
-    // TODO add status.code and status.description
+    public void setSpanStatusAgentAttributes() {
+        String statusCode = this.status.getStatusCode().name();
+        if (!statusCode.isEmpty()) {
+            ((Tracer) tracer).setAgentAttribute(STATUS_CODE.getKey(), statusCode.toLowerCase(), true);
+        }
+
+        String description = this.status.getDescription();
+        if (!description.isEmpty()) {
+            ((Tracer) tracer).setAgentAttribute(STATUS_DESCRIPTION.getKey(), description, true);
+        }
+    }
 
     private void copySpanLinksToTracer(List<LinkData> links) {
         if (links != null && !links.isEmpty()) {
@@ -490,7 +518,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
         @Override
         public StatusData getStatus() {
-            return StatusData.ok();
+            return status;
         }
 
         @Override

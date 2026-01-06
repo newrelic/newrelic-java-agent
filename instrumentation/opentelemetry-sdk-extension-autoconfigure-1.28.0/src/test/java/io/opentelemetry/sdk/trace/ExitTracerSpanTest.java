@@ -7,14 +7,13 @@
 
 package io.opentelemetry.sdk.trace;
 
-import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.security.deps.com.fasterxml.jackson.databind.ObjectMapper;
+import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.nr.agent.instrumentation.utils.AttributesHelper;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
@@ -22,7 +21,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Test;
@@ -51,7 +49,7 @@ public class ExitTracerSpanTest {
     public void testReportDatabaseClientSpan() throws Exception {
         final Map<String, Object> attributes = readSpanAttributes("db-span.json");
 
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         final List<ReadWriteSpan> started = new ArrayList<>();
         final List<ReadableSpan> ended = new ArrayList<>();
         SpanProcessor processor = new SpanProcessor() {
@@ -102,7 +100,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testReportDatabaseClientSpanMissingSqlTable() throws Exception {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         Map<String, Object> attributes = readSpanAttributes("db-span.json");
         attributes.remove("db.sql.table");
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), Clock.getDefault(),
@@ -120,7 +118,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testReportRpcClientSpan() throws Exception {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), Clock.getDefault(),
                 readSpanAttributes("external-rpc-span.json"), END_HANDLER, Collections.emptyList(), 0, Clock.getDefault().now()).end();
         final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
@@ -132,7 +130,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testReportHttpClientSpan() throws Exception {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), Clock.getDefault(),
                 readSpanAttributes("external-http-span.json"), END_HANDLER, Collections.emptyList(), 0, Clock.getDefault().now()).end();
         final ArgumentCaptor<HttpParameters> externalParams = ArgumentCaptor.forClass(HttpParameters.class);
@@ -144,7 +142,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testReportHttpClientSpanWithCodeFunction() throws Exception {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), Clock.getDefault(),
                 readSpanAttributes("external-http-span.json"), END_HANDLER, Collections.emptyList(), 0, Clock.getDefault().now())
                 .setAttribute(AttributeKey.stringKey("code.function"), "execute").end();
@@ -157,7 +155,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testBadClientSpan() throws Exception {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(), Resource.empty(), Clock.getDefault(),
                 readSpanAttributes("bad-client-span.json"), END_HANDLER, Collections.emptyList(), 0, Clock.getDefault().now()).end();
         verify(tracer, times(0)).reportAsExternal(any(ExternalParameters.class));
@@ -165,7 +163,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testLinkDataOnSpan() {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
         int numberOfLinks = 3;
 
         ArrayList<LinkData> linkData = new ArrayList<>();
@@ -184,7 +182,7 @@ public class ExitTracerSpanTest {
 
     @Test
     public void testEventDataOnSpan() {
-        ExitTracer tracer = mock(ExitTracer.class);
+        Tracer tracer = mock(Tracer.class);
 
         ExitTracerSpan exitTracerSpan = new ExitTracerSpan(tracer, InstrumentationLibraryInfo.empty(), SpanKind.CLIENT, "", SpanContext.getInvalid(),
                 Resource.empty(), Clock.getDefault(),
