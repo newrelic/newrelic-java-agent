@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -242,12 +243,15 @@ public class SpanTest {
         assertEquals(2, spanEvents.size());
         SpanEvent httpSpan = spanEvents.stream()
                 .filter(span -> "http".equals(span.category())).findFirst().get();
-        Map<String, Object> agentAttributes = ImmutableMap.of(
-                "server.address", "www.foo.bar",
-                "server.port", 8080,
-                "http.url", "https://www.foo.bar:8080/search",
-                "peer.hostname", "www.foo.bar",
-                "http.method", "GET");
+
+        Map<String, Object> agentAttributes = new HashMap<>();
+        agentAttributes.put("server.address", "www.foo.bar");
+        agentAttributes.put("server.port", 8080);
+        agentAttributes.put("http.url", "https://www.foo.bar:8080/search");
+        agentAttributes.put("peer.hostname", "www.foo.bar");
+        agentAttributes.put("http.method", "GET");
+        agentAttributes.put("status.code", "unset");
+
         assertEquals(agentAttributes.size(), httpSpan.getAgentAttributes().size());
         agentAttributes.forEach((key, value) -> assertEquals(value, httpSpan.getAgentAttributes().get(key)));
         agentAttributes.forEach((key, value) -> assertNull(key, httpSpan.getUserAttributes().get(key)));
