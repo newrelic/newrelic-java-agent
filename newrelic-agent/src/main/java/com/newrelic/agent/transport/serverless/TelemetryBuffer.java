@@ -253,8 +253,8 @@ class TelemetryBuffer {
             formattedStats.add(countStats.getCallCount());
             formattedStats.add(countStats.getTotal());
             formattedStats.add(countStats.getTotalExclusiveTime());
-            formattedStats.add(countStats.getMinCallTime());
             formattedStats.add(countStats.getMaxCallTime());
+            formattedStats.add(countStats.getMinCallTime());
             formattedStats.add(countStats.getSumOfSquares());
         }
         return formattedStats;
