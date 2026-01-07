@@ -13,10 +13,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.newrelic.agent.Agent;
+import com.newrelic.agent.logging.AgentLogManager;
+import com.newrelic.agent.logging.IAgentLogger;
 
 public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
@@ -69,10 +76,16 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
      * agent jar prefixes ("agent-bridge", "newrelic-api", etc.), has the ".jar"
      * extension and is older than the specified cutoff value.
      */
-    private void cleanupStaleTempJarFiles() {
+    public static void cleanupStaleTempJarFiles() {
         int thresholdInHours = getStaleTempJarFileAgeConfig();
 
         if (thresholdInHours > 0) {
+            IAgentLogger logger = AgentLogManager.getLogger();
+
+            // Add other prefixes to the list of file prefixes to clean up
+            List<String> internalJarNamePrefixes = new ArrayList<>(Arrays.asList(INTERNAL_JAR_FILE_NAMES));
+            internalJarNamePrefixes.addAll(Arrays.asList("instrumentation", "newrelic-bootstrap", "newrelic-security-api", "agent-bridge-datastore"));
+
             File tmpDir = BootstrapLoader.getTempDir();
             if (tmpDir == null) {
                 tmpDir = new File(System.getProperty(JAVA_IO_TMP_DIR));
@@ -87,7 +100,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
                 if (!name.endsWith(".jar")) {
                     return false;
                 }
-                for (String jarName : INTERNAL_JAR_FILE_NAMES) {
+                for (String jarName : internalJarNamePrefixes) {
                     if (name.startsWith(jarName)) {
                         return true;
                     }
@@ -98,7 +111,8 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
                 return;
             }
 
-            System.out.println("Removing stale temporary agent file jars from " + tmpDir.getAbsolutePath() + " older than " + thresholdInHours + " hours");
+
+            logger.info("New Relic Agent: Removing stale temporary agent file jars from " + tmpDir.getAbsoluteFile() + " older than " + thresholdInHours + " hour(s)");
 
             int deletedCount = 0;
             long totalBytes = 0;
@@ -116,9 +130,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
                 }
             }
 
-            if (deletedCount > 0) {
-                System.out.println("Deleted " + deletedCount + " stale temporary agent jar files freeing up " + totalBytes + " bytes");
-            }
+            logger.info("New Relic Agent: Deleted " + deletedCount + " stale temporary jar files freeing up " + totalBytes + " bytes");
         }
     }
 
@@ -155,7 +167,6 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
     public EmbeddedJarFilesImpl(String[] jarFileNames) {
         super();
         this.jarFileNames = jarFileNames;
-        cleanupStaleTempJarFiles();
     }
 
     @Override

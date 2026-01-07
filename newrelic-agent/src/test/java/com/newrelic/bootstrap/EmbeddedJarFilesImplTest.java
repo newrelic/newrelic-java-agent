@@ -188,6 +188,6 @@ public class EmbeddedJarFilesImplTest {
                 String.valueOf(thresholdHours));
 
         // Constructor triggers cleanup
-        new EmbeddedJarFilesImpl();
+        EmbeddedJarFilesImpl.cleanupStaleTempJarFiles();
     }
 }
