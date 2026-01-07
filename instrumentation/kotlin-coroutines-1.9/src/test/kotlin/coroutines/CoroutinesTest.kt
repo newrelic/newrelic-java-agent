@@ -14,7 +14,7 @@ import kotlin.test.Test
 val random: Random = Random()
 
 @RunWith(InstrumentationTestRunner::class)
-@InstrumentationTestConfig(includePrefixes = ["kotlinx.coroutines"])
+@InstrumentationTestConfig(includePrefixes = ["kotlinx.coroutines", "kotlin.coroutines", "com.newrelic.instrumentation.kotlin"])
 class CoroutinesTest {
 
     @Test
