@@ -44,6 +44,15 @@ public interface Transaction {
     boolean isTransactionNameSet();
 
     /**
+     * Gets the current transaction's name. The transaction name will include the full metric name with prefix
+     * and category (e.g., "WebTransaction/Servlet/MyController" or "OtherTransaction/Custom/MyBackgroundJob").
+     *
+     * @return The full transaction name, or null if not set.
+     * @since 9.0.0
+     */
+    String getTransactionName();
+
+    /**
      * Returns this transaction's last tracer.
      *
      * @return deprecated

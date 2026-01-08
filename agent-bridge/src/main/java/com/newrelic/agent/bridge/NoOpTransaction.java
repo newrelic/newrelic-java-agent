@@ -55,6 +55,11 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public String getTransactionName() {
+        return null;
+    }
+
+    @Override
     public TracedMethod getLastTracer() {
         return NoOpTracedMethod.INSTANCE;
     }

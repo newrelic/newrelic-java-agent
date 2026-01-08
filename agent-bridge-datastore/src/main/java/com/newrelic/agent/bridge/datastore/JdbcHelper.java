@@ -9,6 +9,7 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TraceMetadata;
 
@@ -314,31 +315,37 @@ public class JdbcHelper {
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
-        return sql;
-//        if (sql == null || sql.isEmpty()) {
-//            return sql;
-//        }
-//
-//        // Check if comment already exists
-//        if (sql.startsWith("/* nr_trace_id=")) {
-//            return sql;
-//        }
-//
-//        String comment = generateSqlMetadataComment();
-//        return comment.isEmpty() ? sql : comment + sql;
+        if (sql == null || sql.isEmpty()) {
+            return sql;
+        }
+
+        // Check if comment already exists
+        if (sql.startsWith("/* nr_service=")) {
+            return sql;
+        }
+
+        String comment = generateSqlMetadataComment();
+        return comment.isEmpty() ? sql : comment + sql;
     }
 
     /**
      * If a transaction is in progress, create a comment to be prepended to the statement that contains the
-     * trace id, span id and app name.
+     * app name and transaction name.
      *
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
     private static String generateSqlMetadataComment() {
-        if (NewRelic.getAgent().getTransaction() != NoOpTransaction.INSTANCE) {
-            TraceMetadata traceMetadata = NewRelic.getAgent().getTraceMetadata();
-            return String.format("/* nr_trace_id=%s,nr_span_id=%s,nr_service=%s */ ", traceMetadata.getTraceId(), traceMetadata.getSpanId(),
-                    NewRelic.getAgent().getConfig().getValue("app_name"));
+        com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
+        if (transaction != NoOpTransaction.INSTANCE) {
+            String transactionName = transaction.getTransactionName();
+
+            if (transactionName != null) {
+                return String.format("/* nr_service=%s,nr_txn=%s */ ",
+                        NewRelic.getAgent().getConfig().getValue("app_name"), transactionName);
+            } else {
+                return String.format("/* nr_service=%s */ ",
+                        NewRelic.getAgent().getConfig().getValue("app_name"));
+            }
         }
 
         return "";
