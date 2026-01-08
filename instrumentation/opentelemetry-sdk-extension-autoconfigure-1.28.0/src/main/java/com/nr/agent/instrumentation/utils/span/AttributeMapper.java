@@ -7,7 +7,7 @@
 package com.nr.agent.instrumentation.utils.span;
 
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
+import com.nr.agent.instrumentation.utils.jar.EmbeddedJarFilesImpl;
 import io.opentelemetry.api.trace.SpanKind;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
