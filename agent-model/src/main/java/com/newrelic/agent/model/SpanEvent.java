@@ -34,7 +34,6 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
     private final Map<String, Object> agentAttributes;
     private final List<LinkOnSpan> linkOnSpanEvents;
     private final List<EventOnSpan> eventOnSpanEvents;
-    private Map<String, Object> agentAttributes;
 
     // this is the list of attributes used for entity synthesis on the backend
     // when doing partial granularity tracing these attrs should be kept on spans for that purpose
