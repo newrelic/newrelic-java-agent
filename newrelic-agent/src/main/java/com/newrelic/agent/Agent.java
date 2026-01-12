@@ -163,6 +163,8 @@ public final class Agent {
             LOG.warning(msg);
         }
 
+        EmbeddedJarFilesImpl.cleanupStaleTempJarFiles();
+
         if (!tryToInitializeServiceManager(inst)) {
             return;
         }

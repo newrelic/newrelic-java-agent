@@ -19,7 +19,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 12.2.x (exclusive)
+  * WebLogic 12.1.2.1 to 14.1.1
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
@@ -104,14 +104,14 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Ning AsyncHttpClient 1.0 to 2.0.0 (exclusive)
   * OKHttp 3.6.0 to 4.4.0 (exclusive)
   * Play WS 2.6.0 to latest
-    * Scala 2.12: 2.6.0 to latest
     * Scala 2.13: 2.7.3 to latest
+    * Scala 2.12: 2.6.0 to latest
   * Spray 1.3.1 to latest
   * Spring Webclient 5.0.0.RELEASE to latest
   * Spring Webflux 5.0.0.RELEASE to latest
   * STTP 2.2.3 to latest
-    * Scala 2.13: 2.2.3 to latest
     * Scala 2.12: 2.2.3 to latest
+    * Scala 2.13: 2.2.3 to latest
 
   ## Logging libraries
   The agent automatically instruments the following logging libraries. For more information about the Java agent's logging solutions, including
