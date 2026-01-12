@@ -13,7 +13,7 @@ import com.google.gson.JsonObject;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
@@ -121,7 +121,7 @@ public class HeadersUtilTest {
 
         HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
         assertTrue(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
-        assertTrue(tx.getPriority() == 2.0f);
+        assertTrue(tx.getPriority() == 3.0f);
 
         Transaction.clearTransaction();
     }
@@ -151,7 +151,7 @@ public class HeadersUtilTest {
 
         HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
         assertFalse(tx.getSpanProxy().getInitiatingW3CTraceParent().sampled());
-        assertTrue(tx.getPriority() == 2.0f);
+        assertTrue(tx.getPriority() == 3.0f);
 
         Transaction.clearTransaction();
     }

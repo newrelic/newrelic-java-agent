@@ -17,6 +17,7 @@ import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;
@@ -55,6 +56,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.ROOT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -228,13 +232,13 @@ public class W3CTraceContextCrossAgentTest {
         if (forceSampledTrue != null) {
             Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
             if ("default".equals(remoteParentSampledSamplerType) || remoteParentSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentSampledSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(REMOTE_PARENT_SAMPLED, forceSampler);
             }
             if ("default".equals(remoteParentNotSampledSamplerType) || remoteParentNotSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentNotSampledSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(REMOTE_PARENT_NOT_SAMPLED, forceSampler);
             }
             if ("default".equals(rootSamplerType) || rootSamplerType == null) {
-                distributedTraceService.setRootSampler(forceSampler);
+                distributedTraceService.setFullGranularitySampler(ROOT, forceSampler);
             }
         }
 

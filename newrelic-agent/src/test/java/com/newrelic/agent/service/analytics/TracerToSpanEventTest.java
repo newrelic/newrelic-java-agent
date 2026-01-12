@@ -82,6 +82,7 @@ public class TracerToSpanEventTest {
     private Tracer tracer;
     private TransactionData txnData;
     private Map<String, Object> expectedAgentAttributes;
+    private Map<String, Object> expectedAgentAttributesEssentialOnly;
     private Map<String, Object> expectedIntrinsicAttributes;
     private Map<String, Object> expectedUserAttributes;
     private Map<String, SpanErrorBuilder> errorBuilderMap;
@@ -108,6 +109,7 @@ public class TracerToSpanEventTest {
         tracerAgentAttributes = new HashMap<>();
         tracerUserAttributes = new HashMap<>();
         expectedAgentAttributes = new HashMap<>();
+        expectedAgentAttributesEssentialOnly = new HashMap<>();
         expectedUserAttributes = new HashMap<>();
         tracerAgentAttributeNamesMarkedForSpans = new HashSet<>();
         expectedAgentAttributes.put("error.class", "0");
@@ -197,6 +199,46 @@ public class TracerToSpanEventTest {
     }
 
     @Test
+    public void testHappyPath_PartialGranularity() {
+        // setup
+        expectedAgentAttributesEssentialOnly.put("error.class","0");
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent_PartialGranularity();
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        // execution
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, true);
+
+        // assertions
+        assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testEssentialAttrsOnly_PartialGranularity() {
+        // setup
+        for (String attrName : SpanEvent.ESSENTIAL_ATTRIBUTES) {
+            tracerAgentAttributes.put(attrName, "test-"+attrName);
+            tracerAgentAttributeNamesMarkedForSpans.add(attrName);
+            expectedAgentAttributesEssentialOnly.put(attrName, "test-"+attrName);
+        }
+        expectedAgentAttributesEssentialOnly.put("error.class","0"); // overwrite the above, since there will be no error
+        tracerAgentAttributes.put("nonessential", "should be removed");
+
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent_PartialGranularity();
+
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        // execution
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, true, true);
+
+        // assertions
+        assertEquals(expectedSpanEvent, spanEvent);
+        assertNull(spanEvent.getAgentAttributes().get("nonessential"));
+    }
+
+    @Test
     public void testWithTraceState() {
         // setup
         String guid = "1234-abcd-dead-beef";
@@ -283,31 +325,6 @@ public class TracerToSpanEventTest {
 
         // execution
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
-
-        // assertions
-        assertEquals(expectedSpanEvent, spanEvent);
-    }
-
-    @Test
-    public void testCrossProcessOnly() {
-        // setup
-        String parentGuid = "98765";
-
-        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
-
-        Tracer parentTracer = mock(Tracer.class);
-
-        // the parent tracer and guid are used to make sure the test fails if crossProcessOnly isn't set
-        when(parentTracer.getGuid()).thenReturn(parentGuid);
-        when(parentTracer.isTransactionSegment()).thenReturn(true);
-        when(spanErrorBuilder.buildSpanError(tracer, false, responseStatus, statusMessage, throwable)).thenReturn(spanError);
-        when(tracer.getParentTracer()).thenReturn(parentTracer);
-
-        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
-                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
-
-        // execution
-        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, true);
 
         // assertions
         assertEquals(expectedSpanEvent, spanEvent);
@@ -805,4 +822,15 @@ public class TracerToSpanEventTest {
                 .timestamp(timestamp)
                 .build();
     }
+
+    private SpanEvent buildExpectedSpanEvent_PartialGranularity() {
+        return SpanEvent.builder()
+                .appName(appName)
+                .priority(priority)
+                .putAllAgentAttributes(expectedAgentAttributesEssentialOnly)
+                .putAllIntrinsics(expectedIntrinsicAttributes)
+                .timestamp(timestamp)
+                .build();
+    }
+
 }

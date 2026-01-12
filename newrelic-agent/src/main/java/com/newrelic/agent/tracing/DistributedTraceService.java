@@ -9,10 +9,9 @@ package com.newrelic.agent.tracing;
 
 import com.newrelic.agent.Transaction;
 import com.newrelic.api.agent.TransportType;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.DistributedTracePayload;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
 
 import java.util.Map;
 
@@ -28,10 +27,7 @@ public interface DistributedTraceService {
 
     String getApplicationId();
 
-
-    float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority);
-
-    float calculatePriorityRoot(Transaction tx);
+    float calculatePriority(Transaction tx, SamplerCase samplerCase);
 
     Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid, String traceId, TransportType transportType,
             long parentTransportDuration, long largestTransportDuration, String parentId, String parentSpanId, float priority);
