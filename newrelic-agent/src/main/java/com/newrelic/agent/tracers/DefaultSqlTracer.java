@@ -178,11 +178,14 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
         System.out.println("DUF-- sql " + sql);
 
         // DUF TODO config check here
-        String normalizedSql = SqlStatementNormalizer.normalizeSql(sql);
-        if (!normalizedSql.isEmpty()) {
-            normalizedSqlHashValue = ServiceUtils.md5HashValueFor(normalizedSql);
-            System.out.println("DUF-- normalizedSql " + normalizedSql);
-            System.out.println("DUF-- hash " + normalizedSqlHashValue);
+        String metadataHashConfig = System.getProperty("sql_metadata.hash", "");
+        if (!metadataHashConfig.isEmpty()) {
+            String normalizedSql = SqlStatementNormalizer.normalizeSql(sql);
+            if (!normalizedSql.isEmpty()) {
+                normalizedSqlHashValue = ServiceUtils.md5HashValueFor(normalizedSql);
+                System.out.println("DUF-- normalizedSql " + normalizedSql);
+                System.out.println("DUF-- hash " + normalizedSqlHashValue);
+            }
         }
     }
 

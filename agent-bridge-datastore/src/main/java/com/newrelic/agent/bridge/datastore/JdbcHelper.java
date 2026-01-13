@@ -319,13 +319,18 @@ public class JdbcHelper {
             return sql;
         }
 
-        // Check if comment already exists
-        if (sql.startsWith("/* nr_service=")) {
-            return sql;
+        String metadataCommentConfig = System.getProperty("sql_metadata.comment", "");
+        if (!metadataCommentConfig.isEmpty()) {
+            // Check if comment already exists
+            if (sql.startsWith("/* nr_")) {
+                return sql;
+            }
+
+            String comment = generateSqlMetadataComment(metadataCommentConfig);
+            return comment.isEmpty() ? sql : comment + sql;
         }
 
-        String comment = generateSqlMetadataComment();
-        return comment.isEmpty() ? sql : comment + sql;
+        return sql;
     }
 
     /**
@@ -334,18 +339,26 @@ public class JdbcHelper {
      *
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
-    private static String generateSqlMetadataComment() {
+    private static String generateSqlMetadataComment(String metadataCommentConfig) {
         com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
-        if (transaction != NoOpTransaction.INSTANCE) {
-            String transactionName = transaction.getTransactionName();
+        boolean txnNameAdded = false;
+        StringBuilder comment = new StringBuilder(64);
+        comment.append("/* ");
 
-            if (transactionName != null) {
-                return String.format("/* nr_service=%s,nr_txn=%s */ ",
-                        NewRelic.getAgent().getConfig().getValue("app_name"), transactionName);
-            } else {
-                return String.format("/* nr_service=%s */ ",
-                        NewRelic.getAgent().getConfig().getValue("app_name"));
-            }
+        if ((metadataCommentConfig.equals("TXN") || metadataCommentConfig.equals("BOTH")) && transaction != NoOpTransaction.INSTANCE) {
+            comment.append("nr_txn=").append(transaction.getTransactionName());
+            txnNameAdded = true;
+        }
+
+        if ((metadataCommentConfig.equals("SVC") || metadataCommentConfig.equals("BOTH"))) {
+            comment.append(txnNameAdded ? "," : "");
+            comment.append("nr_service=").append((String) NewRelic.getAgent().getConfig().getValue("app_name")).append(" ");
+        }
+
+        // Only return comment if metadata was added
+        if (comment.length() > 3) { // More than just "/* "
+            comment.append("*/");
+            return comment.toString();
         }
 
         return "";

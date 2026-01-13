@@ -7,7 +7,14 @@
 
 package javax.sql;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.logging.Level;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
@@ -15,6 +22,7 @@ import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcDataSourceConnectionFactory;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -44,16 +52,41 @@ public abstract class DataSource_Weaved {
 
             DatastoreInstanceDetection.associateAddress(connection);
 
+            String url = JdbcHelper.getConnectionURL(connection);;
+            DatabaseVendor vendor = JdbcHelper.getVendor(getClass(), url);
             if (!JdbcHelper.connectionFactoryExists(connection)) {
 
-                String url = JdbcHelper.getConnectionURL(connection);
                 if (url == null) {
                     return connection;
                 }
 
                 // Detect correct vendor type and then store new connection factory based on URL
-                DatabaseVendor vendor = JdbcHelper.getVendor(getClass(), url);
                 JdbcHelper.putConnectionFactory(url, new JdbcDataSourceConnectionFactory(vendor, (DataSource) this));
+            }
+
+            // TODO wrap in config check
+            // TODO Get Vendor and pull vendor specific native metadata SQL
+            String nativeMetadataConfig = System.getProperty("sql_metadata.native", "");
+            if (!nativeMetadataConfig.isEmpty()) {
+                System.out.println("SQL Native Metadata -- running query");
+                try {
+//                String sql = "SELECT now()";
+//                try (PreparedStatement pstmt = connection.prepareStatement(sql);
+//                     ResultSet rs = pstmt.executeQuery()) {
+//                    if (rs.next()) {
+//                        System.out.println("Current Time: " + rs.getTimestamp(1));
+//                    }
+//                }
+                    try (CallableStatement stmt = connection.prepareCall("{call DBMS_APPLICATION_INFO.SET_MODULE(?, ?)}")) {
+                        stmt.setString(1, NewRelic.getAgent().getConfig().getValue("app_name"));
+                        stmt.setString(2, NewRelic.getAgent().getTransaction().getTransactionName());
+                        stmt.execute();
+                    }
+                } catch (SQLException e) {
+                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Error occurred executing native metadata correlation statements: {0}" +
+                            " SQL state: {1}  SQL error code: {2}", e.getMessage(), e.getSQLState(), e.getErrorCode());
+                    System.out.println("SQL Native Metadata error: " + e.getMessage());
+                }
             }
 
             return connection;
@@ -102,5 +135,4 @@ public abstract class DataSource_Weaved {
             }
         }
     }
-
 }
