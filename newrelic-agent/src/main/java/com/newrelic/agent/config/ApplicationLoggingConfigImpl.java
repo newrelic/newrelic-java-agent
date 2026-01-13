@@ -140,5 +140,10 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public Set<String> getLogLabelsExcludeSet() {
         return applicationLoggingForwardingConfig.getLoggingLabelsExcludeSet();
     }
+
+    @Override
+    public boolean isAutoAppNamingAssociationEnabled() {
+        return applicationLoggingForwardingConfig.isAutoAppNamingAssociationEnabled();
+    }
 }
 
