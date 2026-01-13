@@ -287,46 +287,28 @@ public final class NewRelic {
     }
 
     /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     * 
-     * @return RUM JavaScript footer for the current web transaction.
-     */
-    public static String getBrowserTimingFooter() {
-        return AgentBridge.publicApi.getBrowserTimingFooter();
-    }
-
-    /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
-     * @return RUM JavaScript footer for the current web transaction.
-     */
-    public static String getBrowserTimingFooter(String nonce) {
-        return AgentBridge.publicApi.getBrowserTimingFooter(nonce);
-    }
-
-    /**
-     * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the user name for the current web transaction.
      * If high security mode is enabled, this method call does nothing.
-     * 
-     * @param name User name to associate with the RUM JavaScript footer.
+     *
+     * @param name User name for the current web transaction.
      */
     public static void setUserName(String name) {
         AgentBridge.publicApi.setUserName(name);
     }
 
     /**
-     * Set the account name to associate with the RUM JavaScript footer for the current web transaction.
-     * 
-     * @param name Account name to associate with the RUM JavaScript footer.
+     * Set the account name for the current web transaction.
+     *
+     * @param name Account name for the current web transaction.
      */
     public static void setAccountName(String name) {
         AgentBridge.publicApi.setAccountName(name);
     }
 
     /**
-     * Set the product name to associate with the RUM JavaScript footer for the current web transaction.
-     * 
-     * @param name Product name to associate with the RUM JavaScript footer.
+     * Set the product name for the current web transaction.
+     *
+     * @param name Product name for the current web transaction.
      */
     public static void setProductName(String name) {
         AgentBridge.publicApi.setProductName(name);

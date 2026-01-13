@@ -105,45 +105,24 @@ public interface PublicApi extends ErrorApi {
     String getBrowserTimingHeader(String nonce);
 
     /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     *
-     * @deprecated The full browser script is now included when calling {@link PublicApi#getBrowserTimingHeader}
-     * or {@link PublicApi#getBrowserTimingHeader(String)}
-     *
-     * @return RUM JavaScript footer for the current web transaction.
-     */
-    String getBrowserTimingFooter();
-
-    /**
-     * Get the RUM JavaScript footer for the current web transaction.
-     *
-     * @param nonce a random per-request nonce for sites using Content Security Policy (CSP)
-     * @deprecated The full browser script is not included when calling {@link PublicApi#getBrowserTimingHeader}
-     * or {@link PublicApi#getBrowserTimingHeader(String)}
-     *
-     * @return RUM JavaScript footer for the current web transaction.
-     */
-    String getBrowserTimingFooter(String nonce);
-
-    /**
-     * Set the user name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the user name for the current web transaction.
      * If high security mode is enabled, this method call does nothing.
      *
-     * @param name User name to associate with the RUM JavaScript footer.
+     * @param name User name for the current web transaction.
      */
     void setUserName(String name);
 
     /**
-     * Set the account name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the account name for the current web transaction.
      *
-     * @param name Account name to associate with the RUM JavaScript footer.
+     * @param name Account name for the current web transaction.
      */
     void setAccountName(String name);
 
     /**
-     * Set the product name to associate with the RUM JavaScript footer for the current web transaction.
+     * Set the product name for the current web transaction.
      *
-     * @param name Product name to associate with the RUM JavaScript footer.
+     * @param name Product name for the current web transaction.
      */
     void setProductName(String name);
 
