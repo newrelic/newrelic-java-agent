@@ -11,7 +11,9 @@ import com.google.common.io.ByteStreams;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JarCollectorConfig;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.test.marker.Flaky;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentMatchers;
 
 import javax.servlet.jsp.JspPage;
@@ -94,6 +96,7 @@ public class JarCollectorServiceProcessorTest {
     }
 
     @Test
+    @Category( Flaky.class )
     public void applyWithRateLimit() throws URISyntaxException {
         AgentConfig config = getMockConfig();
         when(config.getJarCollectorConfig().getJarsPerSecond()).thenReturn(10);

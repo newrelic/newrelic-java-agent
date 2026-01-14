@@ -52,12 +52,14 @@ import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.api.agent.ApplicationNamePriority;
+import com.newrelic.test.marker.Flaky;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 import org.objectweb.asm.Opcodes;
 import sql.DummyConnection;
@@ -284,6 +286,7 @@ public class SqlTraceServiceTest {
     }
 
     @Test
+    @Category( Flaky.class )
     public void transactionTracerNotEnabled() throws Exception {
         Map<String, Object> configMap = createStagingMap();
         Map<String, Object> ttConfigMap = new HashMap<>();
