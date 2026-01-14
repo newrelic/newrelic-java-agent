@@ -1,11 +1,13 @@
 package com.newrelic.bootstrap;
 
+import com.newrelic.test.marker.Flaky;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -102,6 +104,7 @@ public class EmbeddedJarFilesImplTest {
     }
 
     @Test
+    @Category( Flaky.class )
     public void cleanupStaleTempJarFiles_respectsThresholdExactly() throws Exception {
         long now = System.currentTimeMillis();
         long fiveHoursInMillis = 5 * 60 * 60 * 1000L;

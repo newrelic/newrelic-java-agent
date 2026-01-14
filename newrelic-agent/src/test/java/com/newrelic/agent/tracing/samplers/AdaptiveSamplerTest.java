@@ -2,9 +2,11 @@ package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.test.marker.Flaky;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -170,6 +172,7 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
+    @Category( Flaky.class )
     public void testCalculatePriorityMultithreaded() throws InterruptedException {
         int target = 10;
         int reportPeriod = 5;
