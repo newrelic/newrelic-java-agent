@@ -98,16 +98,6 @@ public class JarCollectorServiceProcessorTest {
     @Test
     @Category( Flaky.class )
     public void applyWithRateLimit() throws URISyntaxException {
-        System.out.print("Testing");
-        for (int i=1;i<=1000;i++) {
-            System.out.print(".");
-            if (i%100 == 0) System.out.println(i);
-            doTest();
-            System.out.flush();
-        }
-    }
-
-    private void doTest() throws URISyntaxException {
         AgentConfig config = getMockConfig();
         when(config.getJarCollectorConfig().getJarsPerSecond()).thenReturn(10);
         JarCollectorServiceProcessor target = spy(new JarCollectorServiceProcessor(mock(Logger.class), config));
@@ -121,8 +111,7 @@ public class JarCollectorServiceProcessorTest {
 
         // 50 urls at 10 per second should take 5 second, but the rate limiter has a warm up period
         // preventing perfect accuracy so we give it some leniency for more reliable testing.
-        //assertTrue(elapsedMillis > 4000);
-        if (elapsedMillis <= 4000) System.out.print(" "+elapsedMillis+" ");
+        assertTrue(elapsedMillis > 4000);
         verify(target, times(50)).apply(ArgumentMatchers.<URL>any());
     }
 
