@@ -115,7 +115,7 @@ public class EmbeddedJarFilesImplTest {
 
         // Create jar just after threshold - should not be deleted
         File afterThresholdJar = createTempJarFile(BootstrapLoader.AGENT_BRIDGE_JAR_NAME + "33333.jar", 0);
-        afterThresholdJar.setLastModified(now - fiveHoursInMillis + 1000);
+        afterThresholdJar.setLastModified(now - fiveHoursInMillis + 15000); // large padding for GHA warmup
 
         setThresholdAndCleanup(5);
 
