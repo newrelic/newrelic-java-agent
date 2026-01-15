@@ -46,6 +46,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = "adaptive_sampler_sampling_target";
     public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
+    public static final String CLOUD = "cloud";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
@@ -253,7 +254,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     // nested configs (alphabetized)
     private final AttributesConfig attributesConfig;
     private final AuditModeConfig auditModeConfig;
-    private final AwsConfig awsConfig;
+    private final CloudConfig cloudConfig;
     private final TransactionTracerConfigImpl backgroundTransactionTracerConfig;
     private final BrowserMonitoringConfig browserMonitoringConfig;
     private final ClassTransformerConfig classTransformerConfig;
@@ -360,7 +361,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         keyTransactionConfig = initKeyTransactionConfig(apdexTInMillis);
         sqlTraceConfig = initSqlTraceConfig();
         auditModeConfig = initAuditModeConfig();
-        awsConfig = initAwsConfig();
+        cloudConfig = initCloudConfig();
         browserMonitoringConfig = initBrowserMonitoringConfig();
         classTransformerConfig = initClassTransformerConfig(litemode);
         crossProcessConfig = initCrossProcessConfig();
@@ -802,17 +803,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
-    private AwsConfig initAwsConfig() {
-        Map<String, Object> cloudProps = nestedProps("cloud");
-        Map<String, Object> awsProps = null;
+    private CloudConfig initCloudConfig() {
 
-        if (cloudProps != null) {
-            Object awsObject = cloudProps.get("aws");
-            if (awsObject instanceof Map) {
-                awsProps = (Map<String, Object>) awsObject;
-            }
+        Map<String, Object> cloudProps = nestedProps(CLOUD);
+        if (cloudProps == null) {
+            cloudProps = Collections.emptyMap();
         }
-        return new AwsConfigImpl(awsProps, SYSTEM_PROPERTY_ROOT);
+        return new CloudConfigImpl(cloudProps, SYSTEM_PROPERTY_ROOT);
     }
 
     private BrowserMonitoringConfig initBrowserMonitoringConfig() {
@@ -1040,7 +1037,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
-    public AwsConfig getAwsConfig() { return awsConfig; }
+    public CloudConfig getCloudConfig() { return cloudConfig; }
 
     @Override
     public boolean liteMode() {
