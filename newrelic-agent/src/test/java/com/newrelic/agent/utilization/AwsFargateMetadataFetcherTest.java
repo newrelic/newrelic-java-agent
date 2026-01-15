@@ -60,7 +60,7 @@ public class AwsFargateMetadataFetcherTest {
         try {
             String url = "http://169.254.170.2/v4/task";
             AwsConfig awsConfig = mock(AwsConfig.class);
-            when(awsConfig.isFargateMetadataEndpointProxyDisabled()).thenReturn(false);
+            when(awsConfig.isFargateMetadataProxyBypassEnabled()).thenReturn(false);
 
             AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(url, awsConfig);
             awsFargateMetadataFetcher.openStream();
@@ -78,7 +78,7 @@ public class AwsFargateMetadataFetcherTest {
 
         try {
             AwsConfig awsConfig = mock(AwsConfig.class);
-            when(awsConfig.isFargateMetadataEndpointProxyDisabled()).thenReturn(true);
+            when(awsConfig.isFargateMetadataProxyBypassEnabled()).thenReturn(true);
 
             AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(testUrl, awsConfig);
             InputStream inputStream = awsFargateMetadataFetcher.openStream();

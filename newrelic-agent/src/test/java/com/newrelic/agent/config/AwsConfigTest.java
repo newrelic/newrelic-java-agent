@@ -12,7 +12,6 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class AwsConfigTest {
@@ -22,9 +21,9 @@ public class AwsConfigTest {
     @Test
     public void testDisableFargateMetadataEndpointProxy_ValueIsSetToTrue() {
         Map<String, Object> props = new HashMap<>();
-        props.put("fargate_metadata_endpoint_proxy_disable", true);
+        props.put("fargate_metadata_proxy_bypass_enabled", true);
         AwsConfig awsConfig = new AwsConfigImpl(props, SYSTEM_PROPERTY_ROOT);
 
-        assertTrue(awsConfig.isFargateMetadataEndpointProxyDisabled());
+        assertTrue(awsConfig.isFargateMetadataProxyBypassEnabled());
     }
 }

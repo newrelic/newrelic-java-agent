@@ -91,7 +91,7 @@ public class UtilizationService extends AbstractService {
         detectGcp = agentConfig.getValue(DETECT_GOOGLE_CLOUD_PROVIDER_KEY, Boolean.TRUE);
         detectAzure = agentConfig.getValue(DETECT_AZURE_KEY, Boolean.TRUE);
         detectKubernetes = agentConfig.getValue(DETECT_KUBERNETES_KEY, Boolean.TRUE);
-        dockerData = new DockerData(agentConfig.getAwsConfig());
+        dockerData = new DockerData(agentConfig.getCloudConfig().getAwsConfig());
 
         hostName = Hostname.getHostname(agentConfig);
         fullHostName = Hostname.getFullHostname(agentConfig);
