@@ -31,7 +31,9 @@ public class AwsFargateMetadataFetcher {
     public InputStream openStream() throws IOException {
         URLConnection connection;
 
-        if (awsConfig.isFargateMetadataEndpointProxyDisabled()) {
+        Agent.LOG.debug("Fargate Metadata Proxy Bypass Enabled: " + awsConfig.isFargateMetadataProxyBypassEnabled());
+
+        if (awsConfig.isFargateMetadataProxyBypassEnabled()) {
             connection = url.openConnection(Proxy.NO_PROXY);
         } else {
             connection = url.openConnection();
