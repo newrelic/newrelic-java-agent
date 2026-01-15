@@ -201,9 +201,9 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     AttributesConfig getAttributesConfig();
 
     /**
-     * Get the Aws configuration
+     * Get the cloud related configuration.
      */
-    AwsConfig getAwsConfig();
+    CloudConfig getCloudConfig();
 
     ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig();
 
