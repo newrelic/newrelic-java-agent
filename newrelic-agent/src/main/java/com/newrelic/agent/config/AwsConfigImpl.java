@@ -7,25 +7,23 @@
 
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.Agent;
-
 import java.util.Map;
 
 public class AwsConfigImpl extends BaseConfig implements AwsConfig {
 
-    public static final String ROOT = "cloud.aws";
-    public static final String FARGATE_METADATA_ENDPOINT_PROXY_DISABLE = "fargate_metadata_endpoint_proxy_disable";
-    private final boolean disableFargateMetadataEndpointProxy;
+    static final String AWS_ROOT = "aws.";
+    
+    public static final String FARGATE_METADATA_PROXY_BYPASS_ENABLED = "fargate_metadata_proxy_bypass_enabled";
+    public static final boolean DEFAULT_FARGATE_METADATA_PROXY_BYPASS_ENABLED = false;
 
-    public AwsConfigImpl(Map<String, Object> props, String parentRoot) {
-        super(props, parentRoot + ROOT + ".");
-        this.disableFargateMetadataEndpointProxy = getProperty(FARGATE_METADATA_ENDPOINT_PROXY_DISABLE, false);
+    public AwsConfigImpl(Map<String, Object> awsProps, String parentRoot) {
+        super(awsProps, parentRoot + AWS_ROOT);
 
-        Agent.LOG.info("AWS Fargate Metadata Endpoint Proxy Disabled: " + disableFargateMetadataEndpointProxy);
+        isFargateMetadataProxyBypassEnabled();
     }
 
     @Override
-    public boolean isFargateMetadataEndpointProxyDisabled() {
-        return disableFargateMetadataEndpointProxy;
+    public boolean isFargateMetadataProxyBypassEnabled() {
+        return getProperty(FARGATE_METADATA_PROXY_BYPASS_ENABLED, DEFAULT_FARGATE_METADATA_PROXY_BYPASS_ENABLED);
     }
 }
