@@ -4,6 +4,37 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.0.0
+## New features and improvements
+
+- Add config to delete stale agent temp jars on startup by @jtduffy in [2676](https://github.com/newrelic/newrelic-java-agent/pull/2676)
+- Add "inclusion" option to compliment the exclude configuration for selectively instrumenting applications @jtduffy in [2638](https://github.com/newrelic/newrelic-java-agent/pull/2638)
+  - To use this feature, set the environment variable `NEW_RELIC_STARTUP_JAVA_ARTIFACT_INCLUDES` or system property `newrelic.config.startup_java_artifact_includes`. Specify the artifacts that should be instrumented as a comma-separated list.
+
+## Fixes
+
+- Resolve IllegalAccessError by moving wrapper class out of S3AsyncClient_Instrumentation by @jtduffy in [2503](https://github.com/newrelic/newrelic-java-agent/pull/2503)
+- Fix mislabeled instrumentation version on log events in logback-classic-1.5.20 by @jasonjkeller in [2594](https://github.com/newrelic/newrelic-java-agent/pull/2594)
+- Fixed logging message for max attribute value by @jeffalder in [2680](https://github.com/newrelic/newrelic-java-agent/pull/2680)
+- Corrected Trace ratio and Probability sampler priorities by @jtduffy in [2583](https://github.com/newrelic/newrelic-java-agent/pull/2583)
+
+## Removals
+
+- Removes deprecated jdbc-inet-* modules by @obenkenobi in [2572](https://github.com/newrelic/newrelic-java-agent/pull/2572)
+- Removes deprecated java.completable-future-jdk8 instrumentation by @obenkenobi in [2562](https://github.com/newrelic/newrelic-java-agent/pull/2562)
+- Removes aws wrap instrumentation by @obenkenobi in [2567](https://github.com/newrelic/newrelic-java-agent/pull/2567)
+- Removes jdbc-sybase-6 module by @obenkenobi in [2614](https://github.com/newrelic/newrelic-java-agent/pull/2614)
+- Removes play 2.3 instrumentation by @obenkenobi in [2568](https://github.com/newrelic/newrelic-java-agent/pull/2568)
+- Removes deprecated thrift-0.8 module by @obenkenobi in [2569](https://github.com/newrelic/newrelic-java-agent/pull/2569)
+- Removes deprecated solr 4.0 & 5.0 modules by @obenkenobi in [2570](https://github.com/newrelic/newrelic-java-agent/pull/2570)
+- Removes deprecated module grails-1.3 by @obenkenobi in [2573](https://github.com/newrelic/newrelic-java-agent/pull/2573)
+- Removes deprecated module hibernate-3.3 by @obenkenobi in [2574](https://github.com/newrelic/newrelic-java-agent/pull/2574)
+- Removes deprecated footer injection API by @sharvath-newrelic in [2620](https://github.com/newrelic/newrelic-java-agent/pull/2620)
+- Removes deprecated Struts 1 pointcuts by @obenkenobi in [2561](https://github.com/newrelic/newrelic-java-agent/pull/2561)
+- Removes deprecated module glassfish-3 by @sharvath-newrelic in [2575](https://github.com/newrelic/newrelic-java-agent/pull/2575)
+- Removes deprecated rabbit-amqp modules 2.5.0, 2.4.1, 1.7.2 by @obenkenobi in [2571](https://github.com/newrelic/newrelic-java-agent/pull/2571)
+- Removes deployment marker function by @jtduffy in [2589](https://github.com/newrelic/newrelic-java-agent/pull/2589)
+
 ## Version 8.25.1
 ## Fixes
 - Fixes Kotlin Coroutine error about third party implementation of CancellableContinuation @dhilpipre in [2582](https://github.com/newrelic/newrelic-java-agent/pull/2582)
