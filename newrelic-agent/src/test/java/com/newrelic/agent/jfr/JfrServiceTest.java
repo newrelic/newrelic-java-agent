@@ -129,6 +129,7 @@ public class JfrServiceTest {
 
     @Category( { IBMJ9IncompatibleTest.class, Flaky.class } )
     @Test
+    // Flaky note: org.mockito.exceptions.verification.WantedButNotInvoked on verify(spyJfr, timeout(100)).startJfrLoop();
     public void jfrLoopDoesStart() {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);

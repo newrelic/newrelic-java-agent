@@ -97,6 +97,10 @@ public class JarCollectorServiceProcessorTest {
 
     @Test
     @Category( Flaky.class )
+    // Flaky note: Somehow the elapsedMillis is sometimes < 4000, which probably shouldn't happen, but
+    // I haven't investigated the warmup time of the SmoothBursty RateLimiter class
+    //  Also, I put this in a loop and ran locally 1000 times and never saw a failure, so it
+    // may be another strange timing issue in GH.
     public void applyWithRateLimit() throws URISyntaxException {
         AgentConfig config = getMockConfig();
         when(config.getJarCollectorConfig().getJarsPerSecond()).thenReturn(10);

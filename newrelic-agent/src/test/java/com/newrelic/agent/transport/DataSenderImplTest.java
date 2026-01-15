@@ -246,6 +246,8 @@ public class DataSenderImplTest {
 
     @Test
     @Category( Flaky.class )
+    // Flaky note: java.lang.ArrayIndexOutOfBoundsException inside assertDataUsageMetricValues
+    // on Object rawArgument = invocation.getRawArguments()[0];
     public void testDataUsageSupportability() throws Exception {
         AgentConfig config = AgentConfigImpl.createAgentConfig(configMap());
         HttpClientWrapper wrapperEmptyReturn = getHttpClientWrapper(ReadResult.create(

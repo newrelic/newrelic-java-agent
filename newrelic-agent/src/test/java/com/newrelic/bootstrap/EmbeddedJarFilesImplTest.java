@@ -105,6 +105,8 @@ public class EmbeddedJarFilesImplTest {
 
     @Test
     @Category( Flaky.class )
+    // Flaky note: GHA can sometimes take a very long time to go from afterThresholdJar.setLastModified to
+    // setting the cutoff time in the Impl class, which leads to the file being erroneously deleted
     public void cleanupStaleTempJarFiles_respectsThresholdExactly() throws Exception {
         long now = System.currentTimeMillis();
         long fiveHoursInMillis = 5 * 60 * 60 * 1000L;

@@ -286,7 +286,6 @@ public class SqlTraceServiceTest {
     }
 
     @Test
-    @Category( Flaky.class )
     public void transactionTracerNotEnabled() throws Exception {
         Map<String, Object> configMap = createStagingMap();
         Map<String, Object> ttConfigMap = new HashMap<>();
