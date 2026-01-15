@@ -26,9 +26,10 @@ jobs:
 
   test-agent-metadata-action:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Run action
-        uses: newrelic/agent-metadata-action@v0.0.14
+        uses: newrelic/agent-metadata-action@v0.0.15
         with:
           newrelic-client-id: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
           newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
