@@ -15,6 +15,7 @@ import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
 import com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader;
 import com.nr.agent.instrumentation.utils.span.AttributeMapper;
@@ -138,6 +139,7 @@ class NRSpanBuilder implements SpanBuilder {
         if (this.links.size() != MAX_LINKS_PER_SPAN) {
             this.links.add(link);
         } else {
+            NewRelic.incrementCounter("Supportability/SpanEvent/Links/Dropped");
             AgentBridge.getAgent()
                     .getLogger()
                     .log(Level.FINEST, "Unable to add span link because the limit of " + MAX_LINKS_PER_SPAN + " links per span has been reached.");
