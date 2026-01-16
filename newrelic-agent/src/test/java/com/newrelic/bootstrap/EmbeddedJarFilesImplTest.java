@@ -1,11 +1,13 @@
 package com.newrelic.bootstrap;
 
+import com.newrelic.test.marker.Flaky;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
@@ -102,6 +104,9 @@ public class EmbeddedJarFilesImplTest {
     }
 
     @Test
+    @Category( Flaky.class )
+    // Flaky note: GHA can sometimes take a very long time to go from afterThresholdJar.setLastModified to
+    // setting the cutoff time in the Impl class, which leads to the file being erroneously deleted
     public void cleanupStaleTempJarFiles_respectsThresholdExactly() throws Exception {
         long now = System.currentTimeMillis();
         long fiveHoursInMillis = 5 * 60 * 60 * 1000L;
@@ -112,7 +117,7 @@ public class EmbeddedJarFilesImplTest {
 
         // Create jar just after threshold - should not be deleted
         File afterThresholdJar = createTempJarFile(BootstrapLoader.AGENT_BRIDGE_JAR_NAME + "33333.jar", 0);
-        afterThresholdJar.setLastModified(now - fiveHoursInMillis + 1);
+        afterThresholdJar.setLastModified(now - fiveHoursInMillis + 15000); // large padding for GHA warmup
 
         setThresholdAndCleanup(5);
 

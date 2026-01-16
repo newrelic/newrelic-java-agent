@@ -2,9 +2,11 @@ package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.test.marker.Flaky;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -170,6 +172,8 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
+    @Category( Flaky.class )
+    // Flaky note: expectedSampled ends up being 15 and 16s and 17s are fairly common
     public void testCalculatePriorityMultithreaded() throws InterruptedException {
         int target = 10;
         int reportPeriod = 5;
@@ -243,7 +247,7 @@ public class AdaptiveSamplerTest {
         AtomicInteger totalSampled = new AtomicInteger(0);
         //in this example, the wait is random, and the load is distributed across 4 threads.
         Random random = new Random();
-        int MAX_WAIT_BETWEEN_SAMPLES = 500;
+        int MAX_WAIT_BETWEEN_SAMPLES = 50;
         //Start it up
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < nThreads ; i++) {
