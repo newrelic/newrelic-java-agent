@@ -129,4 +129,13 @@ public interface TransactionTracerConfig {
      */
     int getTopN();
 
+    /**
+     * The String that controls what information (if any) gets added to metadata comments prepended
+     * to SQL prior to execution. Valid values are "off", "app_name"", "txn_name", "trace_id". Default is
+     * "off" which disables metadata comments
+     *
+     * @return the configuration for SQL metadata comments
+     */
+    String getSqlMetadataComments();
+
 }

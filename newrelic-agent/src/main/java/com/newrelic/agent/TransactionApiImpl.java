@@ -111,6 +111,15 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
     }
 
     @Override
+    public String getTransactionName() {
+        Transaction tx = getTransactionIfExists();
+        if (tx != null) {
+            return tx.getPriorityTransactionName().getName();
+        }
+        return null;
+    }
+
+    @Override
     public TracedMethod getLastTracer() {
         return getTracedMethod();
     }

@@ -34,6 +34,15 @@ public interface Transaction {
     boolean setTransactionName(TransactionNamePriority namePriority, boolean override, String category, String... parts);
 
     /**
+     * Gets the current transaction's name. The transaction name will include the full metric name with prefix
+     * and category (e.g., "WebTransaction/Servlet/MyController" or "OtherTransaction/Custom/MyBackgroundJob").
+     *
+     * @return The full transaction name, or null if not set.
+     * @since 9.0.0
+     */
+    String getTransactionName();
+
+    /**
      * Returns true if the transaction name has been set. This method is inherently unreliable in the presence of
      * transactions with multiple threads, because another thread may set the transaction name after this method returns
      * but before the caller can act on the return value.

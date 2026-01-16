@@ -42,7 +42,7 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
 
     @Override
     public <T> void noticeTracer(Tracer tracer, SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
-        if (tracer.getDurationInMilliseconds() > thresholdInMillis) {
+        if (tracer.getDurationInMilliseconds() > -1) {
             T rawQuery = slowQueryDatastoreParameters.getRawQuery();
             QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
             if (rawQuery == null || queryConverter == null) {
