@@ -139,7 +139,7 @@ class NRSpanBuilder implements SpanBuilder {
         if (this.links.size() != MAX_LINKS_PER_SPAN) {
             this.links.add(link);
         } else {
-            NewRelic.incrementCounter("Supportability/SpanEvent/Links/Dropped");
+            NewRelic.incrementCounter("Supportability/Java/SpanEvent/Links/Dropped");
             AgentBridge.getAgent()
                     .getLogger()
                     .log(Level.FINEST, "Unable to add span link because the limit of " + MAX_LINKS_PER_SPAN + " links per span has been reached.");

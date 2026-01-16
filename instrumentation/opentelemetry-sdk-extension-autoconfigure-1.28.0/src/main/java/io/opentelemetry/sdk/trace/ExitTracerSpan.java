@@ -210,7 +210,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 if (this.events.size() != MAX_EVENTS_PER_SPAN) {
                     this.events.add(timedEvent);
                 } else {
-                    NewRelic.incrementCounter("Supportability/SpanEvent/Events/Dropped");
+                    NewRelic.incrementCounter("Supportability/Java/SpanEvent/Events/Dropped");
                     AgentBridge.getAgent()
                             .getLogger()
                             .log(Level.FINEST, "Unable to add span event because the limit of " + MAX_EVENTS_PER_SPAN + " events per span has been reached.");
