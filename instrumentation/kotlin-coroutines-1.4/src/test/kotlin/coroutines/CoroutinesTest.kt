@@ -168,7 +168,6 @@ class CoroutinesTest {
         multipleCoroutinesTransaction(latch)
         latch.await(5, TimeUnit.SECONDS)
 
-        // Verify all coroutines were tracked
         assertTrue("Should have finished transactions",
             introspector.finishedTransactionCount >= 1)
     }
@@ -209,7 +208,6 @@ class CoroutinesTest {
         val txnName = txnNames.first()
         val metrics = introspector.getMetricsForTransaction(txnName)
 
-        // Verify channel operations may be tracked
         assertNotNull("Transaction metrics should exist", metrics)
     }
 
