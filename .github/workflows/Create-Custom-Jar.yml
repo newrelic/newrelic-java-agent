@@ -10,6 +10,11 @@ on:
       description:
         description: "A description for the custom jar that will be generated. It will appear in the summary."
         required: true
+      s3_upload:
+        description: "Check to run the optional step"
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   create_custom_jar:
@@ -50,3 +55,7 @@ jobs:
           name: custom-newrelic-jar
           path: |
             newrelic-agent/build/newrelicJar/newrelic.jar
+
+      - name: Upload custom jar to AWS S3 (for internal testing)
+        if: ${{ inputs.s3_upload == true }}
+        run: echo "Checkbox was checked, running optional job."
