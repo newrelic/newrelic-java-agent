@@ -131,8 +131,8 @@ public interface TransactionTracerConfig {
 
     /**
      * The String that controls what information (if any) gets added to metadata comments prepended
-     * to SQL prior to execution. Valid values are "off", "app_name"", "txn_name", "trace_id". Default is
-     * "off" which disables metadata comments
+     * to SQL prior to execution. Valid values are "svc_name"", "txn_name", "trace_id". An empty
+     * value disables metadata comments
      *
      * @return the configuration for SQL metadata comments
      */
