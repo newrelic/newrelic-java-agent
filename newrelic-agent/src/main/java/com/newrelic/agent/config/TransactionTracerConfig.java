@@ -138,4 +138,11 @@ public interface TransactionTracerConfig {
      */
     String getSqlMetadataComments();
 
+    /**
+     * If enabled, hash values will be generated for slow queries and be reported
+     * up.
+     *
+     * @return true if SQL hashing is enabled
+     */
+    boolean isSqlHashingEnabled();
 }

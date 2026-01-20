@@ -51,12 +51,14 @@ public class DefaultSlowQueryListener implements SlowQueryListener {
             }
 
             String rawQueryString = queryConverter.toRawQueryString(rawQuery);
+            System.out.println("DUF- noticeTracer Raw " + rawQueryString);
             if (rawQueryString == null || rawQueryString.trim().isEmpty()) {
                 // Ignore tracer
                 return;
             }
 
             String obfuscatedQueryString = queryConverter.toObfuscatedQueryString(rawQuery);
+            System.out.println("DUF- noticeTracer Ob " + rawQueryString);
             if (obfuscatedQueryString == null) {
                 // Ignore tracer if no obfuscated query is provided
                 return;

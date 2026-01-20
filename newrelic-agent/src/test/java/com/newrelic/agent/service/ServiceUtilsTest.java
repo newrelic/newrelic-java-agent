@@ -10,6 +10,10 @@ package com.newrelic.agent.service;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.security.NoSuchAlgorithmException;
+
+import static org.junit.Assert.assertEquals;
+
 public class ServiceUtilsTest {
 
     @Test
@@ -51,5 +55,16 @@ public class ServiceUtilsTest {
                 "WebTransaction/Servlet/ExternalCallServlet", ServiceUtils.hexStringToInt("715f4c55"))));
         Assert.assertEquals("590a4241", ServiceUtils.intToHexString(ServiceUtils.calculatePathHash(null,
                 "WebTransaction/Servlet/TestServlet", ServiceUtils.hexStringToInt("6e0e25c0"))));
+    }
+
+    @Test
+    public void md5HashValueFor_withEmptyString_returnsEmptyString() throws NoSuchAlgorithmException {
+        assertEquals("", ServiceUtils.md5HashValueFor(""));
+        assertEquals("", ServiceUtils.md5HashValueFor(null));
+    }
+
+    @Test
+    public void md5HashValueFor_returnsCorrectMD5Hash() throws NoSuchAlgorithmException {
+        assertEquals("a380157ccd4d4715187c72cbe34a2123", ServiceUtils.md5HashValueFor("SELECT * FROM FOO"));
     }
 }
