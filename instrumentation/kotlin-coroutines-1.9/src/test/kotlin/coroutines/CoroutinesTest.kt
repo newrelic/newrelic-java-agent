@@ -40,7 +40,7 @@ class CoroutinesTest {
         val txnName = txnNames.first()
         val metrics = introspector.getMetricsForTransaction(txnName)
         assertTrue("Should contain runBlocking metric",
-            metrics.keys.any { it.contains("runBlocking") || it.contains("Builders") })
+            metrics.keys.any { it.contains("runBlocking") })
     }
 
     @Test
@@ -72,7 +72,7 @@ class CoroutinesTest {
         val metrics = introspector.getMetricsForTransaction(txnName)
 
         assertTrue("Should contain launch metric",
-            metrics.keys.any { it.contains("launch") || it.contains("Builders") })
+            metrics.keys.any { it.contains("launch") })
     }
 
     @Test
@@ -90,7 +90,7 @@ class CoroutinesTest {
         val metrics = introspector.getMetricsForTransaction(txnName)
 
         assertTrue("Should contain launch metric with coroutine name",
-            metrics.keys.any { it.contains("launch") || it.contains("MyLaunchCoroutine") || it.contains("Builders") })
+            metrics.keys.any { it.contains("launch") && it.contains("MyLaunchCoroutine") })
     }
 
     @Test
@@ -131,8 +131,8 @@ class CoroutinesTest {
         val txnName = txnNames.first()
         val metrics = introspector.getMetricsForTransaction(txnName)
 
-        assertTrue("Should contain awaitAll or await metric",
-            metrics.keys.any { it.contains("await") || it.contains("AwaitAll") })
+        assertTrue("Should contain awaitAll metric",
+            metrics.keys.any { it.contains("AwaitAll") })
     }
 
     @Test
