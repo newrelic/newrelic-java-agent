@@ -12,13 +12,18 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class SpanEventTest {
 
@@ -67,7 +72,65 @@ public class SpanEventTest {
     }
 
     @Test
-    public void testBuilderMethods(){
+    public void testLinkOnSpanEvents() {
+        long now = System.currentTimeMillis();
+        SpanEvent spanNoLinks = baseBuilderLinkOnSpan(now, Collections.emptyList()).build();
+
+        List<LinkOnSpan> linkOnSpans = new ArrayList<>();
+        linkOnSpans.add(LinkOnSpan.builder()
+                .appName("foo")
+                .timestamp(now)
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build());
+
+        SpanEvent spanWithLinks = baseBuilderLinkOnSpan(now, linkOnSpans).build();
+
+        assertNotEquals(spanNoLinks.getLinkOnSpanEvents().size(), spanWithLinks.getLinkOnSpanEvents().size());
+        assertTrue(spanNoLinks.getLinkOnSpanEvents().isEmpty());
+        assertFalse(spanWithLinks.getLinkOnSpanEvents().isEmpty());
+
+        List<LinkOnSpan> linkOnSpanEvents = spanWithLinks.getLinkOnSpanEvents();
+        LinkOnSpan linkOnSpan = linkOnSpanEvents.get(0);
+        assertEquals("foo", linkOnSpan.getAppName());
+        assertEquals("id", linkOnSpan.getId());
+        assertEquals("traceId", linkOnSpan.getTraceId());
+        assertEquals("linkedSpanId", linkOnSpan.getLinkedSpanId());
+        assertEquals("linkedTraceId", linkOnSpan.getLinkedTraceId());
+    }
+
+    @Test
+    public void testEventOnSpanEvents() {
+        long now = System.currentTimeMillis();
+        SpanEvent spanNoEvents = baseBuilderEventOnSpan(now, Collections.emptyList()).build();
+
+        List<EventOnSpan> eventOnSpans = new ArrayList<>();
+        eventOnSpans.add(EventOnSpan.builder()
+                .appName("foo")
+                .timestamp(now)
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build());
+
+        SpanEvent spanWithEvents = baseBuilderEventOnSpan(now, eventOnSpans).build();
+
+        assertNotEquals(spanNoEvents.getEventOnSpanEvents().size(), spanWithEvents.getEventOnSpanEvents().size());
+        assertTrue(spanNoEvents.getEventOnSpanEvents().isEmpty());
+        assertFalse(spanWithEvents.getEventOnSpanEvents().isEmpty());
+
+        List<EventOnSpan> eventOnSpanEvents = spanWithEvents.getEventOnSpanEvents();
+        EventOnSpan eventOnSpan = eventOnSpanEvents.get(0);
+        assertEquals("foo", eventOnSpan.getAppName());
+        assertEquals("spanId", eventOnSpan.getSpanId());
+        assertEquals("traceId", eventOnSpan.getTraceId());
+        assertEquals("name", eventOnSpan.getName());
+    }
+
+    @Test
+    public void testBuilderMethods() {
         long now = System.currentTimeMillis();
 
         SpanEvent.Builder builder = baseBuilder(now);
@@ -136,6 +199,14 @@ public class SpanEventTest {
 
     private SpanEvent.Builder baseBuilderExtraIntrinsic(long now, String extraIntrinsic, String value) {
         return baseBuilder(now).putAllAgentAttributes(singletonMap(extraIntrinsic, value));
+    }
+
+    private SpanEvent.Builder baseBuilderLinkOnSpan(long now, List<LinkOnSpan> linkOnSpanList) {
+        return baseBuilder(now).linkOnSpanEvents(linkOnSpanList);
+    }
+
+    private SpanEvent.Builder baseBuilderEventOnSpan(long now, List<EventOnSpan> eventOnSpanList) {
+        return baseBuilder(now).eventOnSpanEvents(eventOnSpanList);
     }
 
     private SpanEvent.Builder baseBuilder(long now) {

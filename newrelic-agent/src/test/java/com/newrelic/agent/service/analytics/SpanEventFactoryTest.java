@@ -13,6 +13,8 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
@@ -26,6 +28,7 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -365,6 +368,74 @@ public class SpanEventFactoryTest {
 
         assertEquals("yes", spanEvent.getAgentAttributes().get("filtered"));
         assertNull(spanEvent.getAgentAttributes().get("original"));
+    }
+
+    @Test
+    public void linkOnSpanEventsShouldBeSet() {
+        ArrayList<LinkOnSpan> linkOnSpans = new ArrayList<>();
+
+        LinkOnSpan linkOnSpan1 = LinkOnSpan
+                .builder()
+                .appName("linkOnSpan1")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build();
+
+        LinkOnSpan linkOnSpan2 = LinkOnSpan
+                .builder()
+                .appName("linkOnSpan2")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build();
+
+        linkOnSpans.add(linkOnSpan1);
+        linkOnSpans.add(linkOnSpan2);
+
+        SpanEvent target = spanEventFactory.setLinkOnSpanEvents(linkOnSpans).build();
+
+        assertFalse(target.getLinkOnSpanEvents().isEmpty());
+        assertEquals(2, target.getLinkOnSpanEvents().size());
+        assertEquals("linkOnSpan1", target.getLinkOnSpanEvents().get(0).getAppName());
+        assertEquals("linkOnSpan2", target.getLinkOnSpanEvents().get(1).getAppName());
+    }
+
+    @Test
+    public void eventOnSpanEventsShouldBeSet() {
+        ArrayList<EventOnSpan> eventOnSpans = new ArrayList<>();
+
+        EventOnSpan eventOnSpan1 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan1")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        EventOnSpan eventOnSpan2 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan2")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        eventOnSpans.add(eventOnSpan1);
+        eventOnSpans.add(eventOnSpan2);
+
+        SpanEvent target = spanEventFactory.setEventOnSpanEvents(eventOnSpans).build();
+
+        assertFalse(target.getEventOnSpanEvents().isEmpty());
+        assertEquals(2, target.getEventOnSpanEvents().size());
+        assertEquals("eventOnSpan1", target.getEventOnSpanEvents().get(0).getAppName());
+        assertEquals("eventOnSpan2", target.getEventOnSpanEvents().get(1).getAppName());
     }
 
     private static class PassNothingAttributeFilter extends AttributeFilter.PassEverythingAttributeFilter {
