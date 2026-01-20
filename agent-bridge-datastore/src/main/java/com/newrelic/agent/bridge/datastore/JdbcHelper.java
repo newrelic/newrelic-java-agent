@@ -56,12 +56,10 @@ public class JdbcHelper {
     private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
     private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
 
-    public static final String SQL_METADATA_COMMENTS_OFF = "off";
     public static final String SQL_METADATA_COMMENTS_SVC_NAME = "svc_name";
     public static final String SQL_METADATA_COMMENTS_TXN_NAME = "txn_name";
     public static final String SQL_METADATA_COMMENTS_TRACE_ID = "trace_id";
     private static final Set<String> VALID_SQL_METADATA_COMMENTS_OPTIONS = new HashSet<>(Arrays.asList(
-            SQL_METADATA_COMMENTS_OFF,
             SQL_METADATA_COMMENTS_SVC_NAME,
             SQL_METADATA_COMMENTS_TXN_NAME,
             SQL_METADATA_COMMENTS_TRACE_ID
@@ -330,7 +328,7 @@ public class JdbcHelper {
             return sql;
         }
 
-        if (!getMetadataCommentConfig().contains(SQL_METADATA_COMMENTS_OFF)) {
+        if (!getMetadataCommentConfig().isEmpty()) {
             // Check if comment already exists
             if (sql.startsWith("/*nr_")) {
                 return sql;
@@ -356,20 +354,22 @@ public class JdbcHelper {
         StringBuilder comment = new StringBuilder(64);
         comment.append("/*");
 
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME) && transaction != NoOpTransaction.INSTANCE) {
-            comment.append("nr_txn=").append(transaction.getTransactionName());
-            attributeAdded = true;
-        }
+        if (transaction != NoOpTransaction.INSTANCE) {
+            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
+                comment.append("nr_txn=").append(transaction.getTransactionName());
+                attributeAdded = true;
+            }
 
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
-            comment.append(attributeAdded ? "," : "");
-            comment.append("nr_service=").append((String) NewRelic.getAgent().getConfig().getValue("app_name"));
-            attributeAdded = true;
-        }
+            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
+                comment.append(attributeAdded ? "," : "");
+                comment.append("nr_service=").append((String) NewRelic.getAgent().getConfig().getValue("app_name"));
+                attributeAdded = true;
+            }
 
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
-            comment.append(attributeAdded ? "," : "");
-            comment.append("nr_trace_id=").append(NewRelic.getAgent().getTraceMetadata().getTraceId());
+            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
+                comment.append(attributeAdded ? "," : "");
+                comment.append("nr_trace_id=").append(NewRelic.getAgent().getTraceMetadata().getTraceId());
+            }
         }
 
         // Only return comment if metadata was added
@@ -402,13 +402,13 @@ public class JdbcHelper {
                 }
             }
         }
-        return (metadataCommentConfig != null) ? metadataCommentConfig : Collections.singleton(SQL_METADATA_COMMENTS_OFF);
+        return (metadataCommentConfig != null) ? metadataCommentConfig : Collections.emptySet();
     }
 
     /**
      * Parse the sql_metadata_comments config and return a Set of valid values contained in
-     * the supplied configuration String. If no valid options are present, a Set with the single
-     * String "off" will be returned.
+     * the supplied configuration String. If no valid options are present, an empty Set
+     * will be returned.
      *
      * @return a Set of valid sql_metadata_comment Strings
      */
@@ -418,11 +418,9 @@ public class JdbcHelper {
             return null;
         }
 
-        Set<String> configSet = Arrays.stream(options.split(","))
+        return Arrays.stream(options.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty() && VALID_SQL_METADATA_COMMENTS_OPTIONS.contains(s))
                 .collect(Collectors.toSet());
-
-        return configSet.isEmpty() ? Collections.singleton("off") : configSet;
     }
 }
