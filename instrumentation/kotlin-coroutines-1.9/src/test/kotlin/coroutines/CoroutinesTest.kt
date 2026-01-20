@@ -486,10 +486,12 @@ class CoroutinesTest {
         }
 
         runBlocking {
-            val job = GlobalScope.launch(handler) {
-                throw RuntimeException("Handled exception")
+            supervisorScope {
+                val job = launch(handler) {
+                    throw RuntimeException("Handled exception")
+                }
+                job.join()
             }
-            job.join()
         }
     }
 
