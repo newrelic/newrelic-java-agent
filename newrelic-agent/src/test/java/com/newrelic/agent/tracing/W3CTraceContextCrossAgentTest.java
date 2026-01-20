@@ -94,9 +94,7 @@ public class W3CTraceContextCrossAgentTest {
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
             String name = (String) testObject.get("test_name");
-            if (true){
-                result.add(new Object[]{name, testObject});
-            }
+            result.add(new Object[]{name, testObject});
         }
         return result;
     }
