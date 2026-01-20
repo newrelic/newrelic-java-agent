@@ -500,51 +500,6 @@ common: &default_settings
     # An example label
     #label_name: label_value
 
-  # Telemetry signals (Logs, Metrics, and Traces) emitted by OpenTelemetry APIs can
-  # be incorporated into the Java agent and controlled by the following config options.
-  opentelemetry:
-
-    # Set to true to allow individual OpenTelemetry signals to be enabled, false to disable all OpenTelemetry signals.
-    # Default is false.
-    enabled: false
-
-    # OpenTelemetry Logs signals.
-    logs:
-
-      # Set to true to enable OpenTelemetry Logs signals.
-      # Default is false.
-      enabled: false
-
-    # OpenTelemetry Metrics signals.
-    metrics:
-
-      # Set to true to enable OpenTelemetry Metrics signals.
-      # Default is false.
-      enabled: false
-
-      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included.
-      # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
-      #include:
-
-      # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded.
-      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
-      #exclude:
-
-    # OpenTelemetry Traces signals.
-    traces:
-
-      # Set to true to enable OpenTelemetry Traces signals.
-      # Default is false.
-      enabled: false
-
-      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included.
-      # By default, all Tracers are included. This will override any default Tracer excludes in the agent, effectively re-enabling them.
-      #include:
-
-      # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName3,TracerName4") whose signals should be excluded.
-      # This takes precedence over all other includes/excludes sources, effectively disabling the listed Tracers.
-      #exclude:
-
   # New Relic Security vulnerability detection.
   security:
     # Determines whether the security data is sent to New Relic or not. When this is disabled and agent.enabled is

@@ -19,16 +19,6 @@ public class SpanEventImpl implements SpanEvent {
         this.spanEvent = spanEvent;
     }
 
-    /**
-     * This method is just to facilitate testing
-     *
-     * @return String representing Span ID
-     */
-    @Override
-    public String getGuid() {
-        return spanEvent.getGuid();
-    }
-
     @Override
     public String getName() {
         return spanEvent.getName();
@@ -84,13 +74,9 @@ public class SpanEventImpl implements SpanEvent {
         return (String) spanEvent.getAgentAttributes().get("http.statusText");
     }
 
+
     @Override
     public Map<String, Object> getAgentAttributes() {
         return spanEvent.getAgentAttributes();
-    }
-
-    @Override
-    public Map<String, Object> getUserAttributes() {
-        return spanEvent.getUserAttributesCopy();
     }
 }

@@ -7,17 +7,13 @@
 
 package com.newrelic.agent.bridge;
 
-import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
-import com.newrelic.agent.bridge.opentelemetry.SpanLink;
-import com.newrelic.agent.util.Strings;
+import java.lang.reflect.Method;
+import java.util.Map;
+
 import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
-
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class MockTracer implements ExitTracer {
 
@@ -72,24 +68,6 @@ public class MockTracer implements ExitTracer {
     @Override
     public String getMetricName() {
         return Strings.join('/', metricName);
-    }
-
-    @Override
-    public void addSpanLink(SpanLink link) {
-    }
-
-    @Override
-    public List<SpanLink> getSpanLinks() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void addSpanEvent(SpanEvent event) {
-    }
-
-    @Override
-    public List<SpanEvent> getSpanEvents() {
-        return Collections.emptyList();
     }
 
     @Override
@@ -153,6 +131,6 @@ public class MockTracer implements ExitTracer {
     }
 
     @Override
-    public void excludeLeaf() {
+    public void excludeLeaf(){
     }
 }
