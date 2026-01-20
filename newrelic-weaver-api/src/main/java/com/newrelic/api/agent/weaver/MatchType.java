@@ -24,9 +24,6 @@ public enum MatchType {
     /**
      * The weave instrumentation will be injected into all classes which implement an interface with the exact same name
      * as the weave class.
-     *
-     * To instrument a `default` method on an interface, define the instrumentation
-     * class as `public abstract` and define the target method as `public`.
      */
     Interface(false);
 

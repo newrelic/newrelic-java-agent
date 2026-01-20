@@ -11,8 +11,6 @@ import java.sql.ResultSetMetaData;
 
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 
-import javax.annotation.Nullable;
-
 /**
  * Parses a sql string and returns a {@link ParsedDatabaseStatement}.
  * 
@@ -39,11 +37,12 @@ public interface DatabaseStatementParser {
 
     /**
      * Returns a parsed statement even if the statement is unparseable. Must not return null.
+     * 
      *
      * @param databaseVendor
      * @param statement
      * @param resultSetMetaData
      */
     ParsedDatabaseStatement getParsedDatabaseStatement(DatabaseVendor databaseVendor, String statement,
-            @Nullable ResultSetMetaData resultSetMetaData);
+            ResultSetMetaData resultSetMetaData);
 }
