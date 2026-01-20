@@ -11,6 +11,8 @@ import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.external.ExternalParameters;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.trace.TransactionSegment;
@@ -20,6 +22,7 @@ import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -152,12 +155,13 @@ public class UltraLightTracer implements Tracer {
         return segmentName;
     }
 
-    /////////////////////////////////////////////
-    //// No-ops below here
-    /////////////////////////////////////////////
+    /// //////////////////////////////////////////
+    /// / No-ops below here
+    /// //////////////////////////////////////////
 
     @Override
-    public void excludeLeaf(){}
+    public void excludeLeaf() {
+    }
 
     @Override
     public void addCustomAttribute(String key, Number value) {
@@ -193,6 +197,24 @@ public class UltraLightTracer implements Tracer {
     @Override
     public long getRunningDurationInNanos() {
         return 0;
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
+        return Collections.emptyList();
     }
 
     @Override

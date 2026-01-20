@@ -10,6 +10,8 @@ package com.newrelic.agent.introspec;
 import java.util.Map;
 
 public interface SpanEvent {
+    String getGuid();
+
     String getName();
 
     float duration();
@@ -33,4 +35,6 @@ public interface SpanEvent {
     String getStatusText();
 
     Map<String, Object> getAgentAttributes();
+
+    Map<String, Object> getUserAttributes();
 }

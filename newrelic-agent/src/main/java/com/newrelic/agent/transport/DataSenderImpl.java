@@ -15,6 +15,10 @@ import com.newrelic.agent.LicenseException;
 import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MetricData;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DataSenderConfig;
@@ -31,10 +35,6 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.agent.agentcontrol.AgentHealth;
-import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
-import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.trace.TransactionTrace;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
@@ -54,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 import java.rmi.UnexpectedException;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,7 +71,7 @@ import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
 
 /**
  * A class for sending and receiving New Relic data.
- *
+ * <p>
  * This class is thread-safe.
  */
 public class DataSenderImpl implements DataSender, HealthDataProducer {
@@ -370,7 +371,26 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         metadata.put("events_seen", eventsSeen);
         params.add(metadata);
 
-        params.add(events);
+        /*
+         * When creating the span_event_data json payload structure we need to pull
+         * all links and events off each span and treat them as if they were spans
+         * themselves. This is because links and events are not treated as first class event
+         * types with their own reservoir, and they also can't be stored alongside spans in
+         * the span reservoir. Yet they are treated as if they were spans in the json payload.
+         * This was a hacky way to get the backend to accept new SpanLink/SpanEvent event
+         * types without setting up a dedicated collector endpoint for them. The backend
+         * will synthesize SpanLink/SpanEvent events based on the span_event_data payload.
+         */
+        if (method.equals(CollectorMethods.SPAN_EVENT_DATA)) {
+            List<AnalyticsEvent> flattenedSpanEvents = new ArrayList<>(events);
+            for (SpanEvent event : (Collection<SpanEvent>) events) {
+                flattenedSpanEvents.addAll(event.getLinkOnSpanEvents());
+                flattenedSpanEvents.addAll(event.getEventOnSpanEvents());
+            }
+            params.add(flattenedSpanEvents);
+        } else {
+            params.add(events);
+        }
         invokeRunId(method, encoding, runId, params);
     }
 
@@ -604,7 +624,8 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
         if (auditMode && methodShouldBeAudited(method)) {
 
-            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, obfuscateLicenseKey(url.toString()), obfuscateLicenseKey(payloadJsonSent));
+            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, obfuscateLicenseKey(url.toString()),
+                    obfuscateLicenseKey(payloadJsonSent));
             logger.info(msg);
         }
 
@@ -640,8 +661,8 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     /**
      * Record metrics tracking amount of bytes sent and received for each agent endpoint payload
      *
-     * @param method method for the agent endpoint
-     * @param payloadJsonSent JSON String of the payload that was sent
+     * @param method              method for the agent endpoint
+     * @param payloadJsonSent     JSON String of the payload that was sent
      * @param payloadJsonReceived JSON String of the payload that was received
      */
     private void recordDataUsageMetrics(String method, String payloadJsonSent, String payloadJsonReceived) {
@@ -660,14 +681,15 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
                 StatsWorks.getRecordDataUsageMetricWork(
                         MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES, COLLECTOR, method),
                         payloadBytesSent, payloadBytesReceived),
-                        MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
+                MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
     }
 
     private void throwExceptionFromStatusCode(String method, ReadResult result, byte[] data, HttpClientWrapper.Request request)
             throws HttpError, LicenseException, ForceRestartException, ForceDisconnectException {
         // Comply with spec and send supportability metric only for error responses
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1),
+                MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
                 MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS);
 
@@ -821,7 +843,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
             long requestDuration = System.currentTimeMillis() - requestSent;
 
             statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
+                            MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
                     MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION + " " + method);
         }
     }
