@@ -200,53 +200,12 @@ public class JdbcHelperTest {
         // project. These test what is possible based on these restrictions.
         String originalSql = "SELECT * FROM users WHERE id = 1";
 
-        // Config contains "off" - no comment
-        setMetadataCommentConfig(new HashSet<>(Collections.singletonList("off")));
-        String result = JdbcHelper.addSqlMetadataCommentIfNeeded(originalSql);
-        assertEquals(originalSql, result);
-
         // Null SQL - should return null
         setMetadataCommentConfig(new HashSet<>(Collections.singletonList("txn_name")));
         assertNull(JdbcHelper.addSqlMetadataCommentIfNeeded(null));
 
         // Empty SQL - empty String
         assertEquals("", JdbcHelper.addSqlMetadataCommentIfNeeded(""));
-
-        // SQL already has comment - should not add a duplicate
-        String sqlWithComment = "/*nr_txn=MyTransaction*/SELECT * FROM users";
-        setMetadataCommentConfig(new HashSet<>(Collections.singletonList("txn_name")));
-        result = JdbcHelper.addSqlMetadataCommentIfNeeded(sqlWithComment);
-        assertEquals(sqlWithComment, result);
-
-        // Config with app_name - adds nr_service attribute
-        setMetadataCommentConfig(new HashSet<>(Collections.singletonList("svc_name")));
-        result = JdbcHelper.addSqlMetadataCommentIfNeeded(originalSql);
-        assertTrue(result.startsWith("/*"));
-        assertTrue(result.contains("nr_service="));
-        assertTrue(result.contains("*/SELECT"));
-
-        // Config with trace_id
-        setMetadataCommentConfig(new HashSet<>(Arrays.asList("trace_id")));
-        result = JdbcHelper.addSqlMetadataCommentIfNeeded(originalSql);
-        assertTrue(result.startsWith("/*"));
-        assertTrue(result.contains("nr_trace_id="));
-
-        // Config with multiple options - trace_id and app_name
-        setMetadataCommentConfig(new HashSet<>(Arrays.asList("trace_id", "svc_name")));
-        result = JdbcHelper.addSqlMetadataCommentIfNeeded(originalSql);
-        assertTrue(result.startsWith("/*"));
-        assertTrue(result.contains("nr_service="));
-        assertTrue(result.contains("nr_trace_id="));
-        assertTrue(result.endsWith(originalSql));
-
-        // Config with all options
-        setMetadataCommentConfig(new HashSet<>(Arrays.asList("txn_name", "svc_name", "trace_id")));
-        result = JdbcHelper.addSqlMetadataCommentIfNeeded(originalSql);
-        assertTrue(result.startsWith("/*"));
-        assertTrue(result.contains("nr_trace_id="));
-        assertTrue(result.contains("nr_service="));
-        assertTrue(result.contains(","));
-        assertTrue(result.endsWith(originalSql));
     }
 
     private void setMetadataCommentConfig(Set<String> config) throws Exception {

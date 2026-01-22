@@ -315,6 +315,18 @@ public class JdbcHelper {
     }
 
     /**
+     * This can be called to invalidate the configuration for metadata comments that
+     * are added to all executed SQL. Specifically, it's called from
+     * com.newrelic.agent.database.DatabaseService (agent project) when the
+     * AgentConfigListener.configChanged method is called. The JdbcHelper class
+     * is unable to implement AgentConfigListener since those classes aren't
+     * visible to the bridge projects.
+     */
+    public static void invalidateMetadataCommentConfig() {
+        metadataCommentConfig = null;
+    }
+
+    /**
      * Add the SQL metadata comment to the target SQL, if necessary. If
      * the comment has already been added to this statement, simply return
      * the original SQL statement.
@@ -383,8 +395,9 @@ public class JdbcHelper {
 
     /**
      * This initializes the metadata comment config when the config services is actually
-     * fully spun up. If the service isn't initialized, return a config set with "off".
-     * If it is initialized, cache the result and return it on subsequent calls.
+     * fully spun up (or the config is invalidated). If the service isn't initialized,
+     * return an empty config set. If it is initialized, cache the result and return
+     * it on subsequent calls.
      */
     private static Set<String> getMetadataCommentConfig() {
         if (metadataCommentConfig == null) {
@@ -396,7 +409,7 @@ public class JdbcHelper {
                         if (config != null) {
                             metadataCommentConfig = config;
                         }
-                    } catch (Exception e) {
+                    } catch (Exception ignored) {
                         // Config service not ready yet, will retry on next call
                     }
                 }
