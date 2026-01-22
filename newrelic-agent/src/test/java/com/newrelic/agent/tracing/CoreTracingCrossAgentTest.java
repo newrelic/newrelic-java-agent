@@ -214,7 +214,7 @@ public class CoreTracingCrossAgentTest {
             if (reservoirSpan.getName().equals(name)) {
                 if (foundMatchingAttrs(reservoirSpan.getAgentAttributes(), exactAgentAttrs, expectedAgentAttrs, unexpectedAgentAttrs)
                         && foundMatchingAttrs(reservoirSpan.getUserAttributesCopy(), exactUserAttrs, expectedUserAttrs, unexpectedUserAttrs)
-                        && foundParentSpan(reservoir, parent)) {
+                        && foundParentSpan(reservoir, name, parent)) {
                     return;
                 }
 
@@ -252,12 +252,20 @@ public class CoreTracingCrossAgentTest {
         return true;
     }
 
-    private boolean foundParentSpan(SamplingPriorityQueue<SpanEvent> reservoir, String parentName) {
+    private boolean foundParentSpan(SamplingPriorityQueue<SpanEvent> reservoir, String childName, String parentName) {
         if (parentName == null) return true;
+        String childsListedParentId = null;
+        String parentsId = null;
         for (SpanEvent reservoirSpan : reservoir.asList()) {
-            if (reservoirSpan.getName().equals(parentName)) return true;
+            if (reservoirSpan.getName().equals(childName)) {
+                childsListedParentId = reservoirSpan.getParentId();
+            } else if (reservoirSpan.getName().equals(parentName)) {
+                parentsId = reservoirSpan.getGuid();
+            }
         }
-        return false;
+        boolean result = childsListedParentId != null && parentsId != null
+                && childsListedParentId == parentsId;
+        return result;
     }
 
     private TransactionData generateTransactionData(Transaction tx, JSONObject tracerInfo, Transaction.PartialSampleType partialSampleType) throws Exception {
