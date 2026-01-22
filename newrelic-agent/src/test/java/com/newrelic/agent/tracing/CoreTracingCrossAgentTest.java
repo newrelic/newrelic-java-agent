@@ -7,11 +7,13 @@
 
 package com.newrelic.agent.tracing;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentHelper;
-import com.newrelic.agent.MockRPMService;
+import com.newrelic.agent.AgentImpl;
+import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.MockRPMServiceManager;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.MockSpanEventReservoirManager;
-import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionData;
@@ -19,24 +21,28 @@ import com.newrelic.agent.TransactionDataTestBuilder;
 import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.TransactionState;
 import com.newrelic.agent.attributes.AttributesService;
-import com.newrelic.agent.bridge.Instrumentation;
-import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.environment.EnvironmentService;
-import com.newrelic.agent.errors.ErrorAnalyzerImpl;
-import com.newrelic.agent.errors.ErrorMessageReplacer;
+import com.newrelic.agent.core.CoreService;
+import com.newrelic.agent.environment.EnvironmentServiceImpl;
+import com.newrelic.agent.instrumentation.InstrumentationImpl;
+import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.analytics.CollectorSpanEventSender;
-import com.newrelic.agent.service.analytics.SpanErrorBuilder;
+import com.newrelic.agent.service.SpanEventsServiceFactory;
 import com.newrelic.agent.service.analytics.SpanEventCreationDecider;
+import com.newrelic.agent.service.analytics.SpanEventsService;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
-import com.newrelic.agent.service.analytics.TracerToSpanEvent;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
+import com.newrelic.agent.service.analytics.TransactionEventsService;
+import com.newrelic.agent.stats.Stats;
+import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.TransactionStats;
+import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.tracers.OtherRootTracer;
@@ -51,7 +57,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.FileReader;
@@ -62,16 +67,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -80,60 +80,87 @@ public class CoreTracingCrossAgentTest {
     private static final String APP_NAME = "Test";
 
     private static MockServiceManager serviceManager;
-    private static MockRPMService rpmService;
-
-    private static Map<String, Object> defaultConfig;
-
-    private static Instrumentation savedInstrumentation;
-    private static com.newrelic.agent.bridge.Agent savedAgent;
-    private static ConfigService configService;
-
+    private StatsServiceImpl statsService;
+    private DistributedTraceServiceImpl distributedTraceService;
+    private TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics;
+    private ReservoirManager<SpanEvent> reservoirManager;
+    private SpanEventsService spanEventService;
     @Mock
     public SpanEventCreationDecider spanEventCreationDecider;
 
     @Before
     public void before() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        //savedInstrumentation = AgentBridge.instrumentation;
+        //savedAgent = AgentBridge.agent;
+
         serviceManager = new MockServiceManager();
-
-        Map<String, Object> localSettings = new HashMap<>();
-        localSettings.put(AgentConfigImpl.APP_NAME, APP_NAME);
-        localSettings.put("distributed_tracing", Collections.singletonMap("enabled", true));
-        localSettings.put("span_events", Collections.singletonMap("collect_span_events", true));
-        when(spanEventCreationDecider.shouldCreateSpans(any(TransactionData.class))).thenReturn(true);
-
-        AgentConfig agentConfig = AgentHelper.createAgentConfig(true, localSettings, new HashMap<String, Object>());
-        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, localSettings);
-        serviceManager.setConfigService(configService);
         ServiceFactory.setServiceManager(serviceManager);
 
+        Map<String, Object> config = new HashMap<>();
+        config.put(AgentConfigImpl.APP_NAME, APP_NAME);
+
+        // Configure the sampler based on the cross agent test data
+        // This is gross, but we need to extract the value for "ratio" and if present,
+        // it gets added as a sub-option to any sampler type of "trace_id_ratio_based".
+        // Currently, if the "ratio" key exists, it will be a valid float so we can skip
+        // validation.
+
+        config.put("distributed_tracing", Collections.singletonMap("enabled", true));
+        config.put("span_events", Collections.singletonMap("collect_span_events", true));
+
+
+        ConfigService configService = setupConfig(config);
+        serviceManager.setTransactionTraceService(new TransactionTraceService());
         serviceManager.setTransactionService(new TransactionService());
-        serviceManager.setThreadService(new ThreadService());
-        final MockSpanEventReservoirManager reservoirManager = new MockSpanEventReservoirManager(configService);
-        Consumer<SpanEvent> backendConsumer = spanEvent -> reservoirManager.getOrCreateReservoir(APP_NAME).add(spanEvent);
 
-        SpanErrorBuilder defaultSpanErrorBuilder = new SpanErrorBuilder(
-                new ErrorAnalyzerImpl(agentConfig.getErrorCollectorConfig()),
-                new ErrorMessageReplacer(agentConfig.getStripExceptionConfig()));
+        distributedTraceService = new DistributedTraceServiceImpl();
+        transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
+        serviceManager.setTransactionEventsService(new TransactionEventsService(transactionDataToDistributedTraceIntrinsics));
 
-        Map<String, SpanErrorBuilder> map = new HashMap<>();
-        map.put(agentConfig.getApplicationName(), defaultSpanErrorBuilder);
-
-        EnvironmentService environmentService = mock(EnvironmentService.class, RETURNS_DEEP_STUBS);
-        TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = mock(TransactionDataToDistributedTraceIntrinsics.class);
-        when(transactionDataToDistributedTraceIntrinsics.buildDistributedTracingIntrinsics(any(TransactionData.class), anyBoolean()))
-                .thenReturn(Collections.<String, Object>emptyMap());
-        TracerToSpanEvent tracerToSpanEvent = new TracerToSpanEvent(map, environmentService, transactionDataToDistributedTraceIntrinsics, defaultSpanErrorBuilder);
-        SpanEventsServiceImpl spanEventsService = SpanEventsServiceImpl.builder()
-                .agentConfig(agentConfig)
-                .reservoirManager(reservoirManager)
-                .collectorSender(mock(CollectorSpanEventSender.class))
-                .eventBackendStorage(backendConsumer)
-                .spanEventCreationDecider(spanEventCreationDecider)
-                .tracerToSpanEvent(tracerToSpanEvent)
-                .build();
-        serviceManager.setSpansEventService(spanEventsService);
+        serviceManager.setHarvestService(new HarvestServiceImpl());
+        statsService = new StatsServiceImpl();
+        serviceManager.setStatsService(statsService);
+        serviceManager.setEnvironmentService(new EnvironmentServiceImpl());
         serviceManager.setAttributesService(new AttributesService());
+        AgentBridge.instrumentation = new InstrumentationImpl(Agent.LOG);
+        AgentBridge.agent = new AgentImpl(Agent.LOG);
+
+        CoreService coreService = Mockito.mock(CoreService.class);
+        when(coreService.isEnabled()).thenReturn(true);
+        serviceManager.setCoreService(coreService);
+        MockRPMServiceManager rpmServiceManager = new MockRPMServiceManager();
+        serviceManager.setRPMServiceManager(rpmServiceManager);
+        ServiceFactory.getServiceManager().start();
+
+        ServiceFactory.getTransactionService().addTransactionListener(distributedTraceService);
+
+        spanEventService = createSpanEventService(configService, transactionDataToDistributedTraceIntrinsics);
+        serviceManager.setDistributedTraceService(distributedTraceService);
+        serviceManager.setSpansEventService(spanEventService);
+    }
+
+    private ConfigService setupConfig(Map<String, Object> config) {
+        ConfigService configService = ConfigServiceFactory.createConfigService(
+                AgentConfigImpl.createAgentConfig(config),
+                Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        reservoirManager = new MockSpanEventReservoirManager(configService);
+        spanEventService = createSpanEventService(configService, transactionDataToDistributedTraceIntrinsics);
+        serviceManager.setSpansEventService(spanEventService);
+        return configService;
+    }
+
+    private SpanEventsService createSpanEventService(ConfigService configService,
+            TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics) {
+        return SpanEventsServiceFactory.builder()
+                .configService(configService)
+                .reservoirManager(reservoirManager)
+                .transactionService(serviceManager.getTransactionService())
+                .rpmServiceManager(serviceManager.getRPMServiceManager())
+                .spanEventCreationDecider(new SpanEventCreationDecider(configService))
+                .environmentService(ServiceFactory.getEnvironmentService())
+                .transactionDataToDistributedTraceIntrinsics(transactionDataToDistributedTraceIntrinsics)
+                .build();
     }
 
     @After
@@ -170,6 +197,7 @@ public class CoreTracingCrossAgentTest {
         String partialGranularityType = (String) jsonTest.get("partial_granularity_type");
         JSONArray expectedSpans = (JSONArray) jsonTest.get("expected_spans");
         JSONArray unexpectedSpans = (JSONArray) jsonTest.get("unexpected_spans");
+        JSONArray expectedMetrics = (JSONArray) jsonTest.get("expected_metrics");
 
         Transaction tx = setupTransaction();
         TransactionData transactionData = generateTransactionData(tx, tracerInfo, Transaction.PartialSampleType.valueOf(partialGranularityType.toUpperCase()));
@@ -179,13 +207,13 @@ public class CoreTracingCrossAgentTest {
 
         SamplingPriorityQueue<SpanEvent> reservoir =  spanEventsService.getOrCreateDistributedSamplingReservoir(APP_NAME);
 
-        assertResults(reservoir, expectedSpans, unexpectedSpans);
+        assertResults(reservoir, expectedSpans, unexpectedSpans, expectedMetrics);
 
         // important between tests
         reservoir.clear();
     }
 
-    private void assertResults(SamplingPriorityQueue<SpanEvent> reservoir, JSONArray expectedSpans, JSONArray unexpectedSpans) {
+    private void assertResults(SamplingPriorityQueue<SpanEvent> reservoir, JSONArray expectedSpans, JSONArray unexpectedSpans, JSONArray expectedMetrics) {
         for (Object obj : expectedSpans) {
             JSONObject jsonObj = (JSONObject) obj;
             String name = (String)jsonObj.keySet().iterator().next();
@@ -196,6 +224,27 @@ public class CoreTracingCrossAgentTest {
         for (Object obj : unexpectedSpans) {
             String name = (String) obj;
             assertFalse(reservoir.asList().stream().anyMatch(reservoirSpan -> name.equals(reservoirSpan.getName())));
+        }
+
+        StatsEngine statsEngine = statsService.getStatsEngineForHarvest(APP_NAME);
+        assertExpectedMetrics(expectedMetrics, statsEngine);
+    }
+
+    private void assertExpectedMetrics(List metrics, StatsEngine statsEngine) {
+        if (metrics == null) {
+            return;
+        }
+
+        assertNotNull(statsEngine);
+
+        for (Object metric : metrics) {
+            List expectedStats = (List) metric;
+            String expectedMetricName = (String) expectedStats.get(0);
+
+            Long expectedMetricCount = (Long) ((JSONArray) metric).get(1);
+            final String message = String.format("Expected total %d for: %s", expectedMetricCount, expectedMetricName);
+            Stats actualStat = statsEngine.getStats(expectedMetricName);
+            assertEquals(message, expectedMetricCount.intValue(), ((Float)actualStat.getTotal()).intValue());
         }
     }
 
