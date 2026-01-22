@@ -487,9 +487,17 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @VisibleForTesting
-    void setFullGranularitySampler(SamplerCase samplerCase, Sampler sampler) {
-        Map<SamplerCase, Sampler> newSamplers = new HashMap<>(fullGranularitySamplers);
-        newSamplers.put(samplerCase, sampler);
-        fullGranularitySamplers = ImmutableMap.copyOf(newSamplers);
+    void setSampler(Granularity granularity, SamplerCase samplerCase, Sampler sampler) {
+        if (granularity == Granularity.FULL) {
+            Map<SamplerCase, Sampler> newSamplers = new HashMap<>(fullGranularitySamplers);
+            newSamplers.put(samplerCase, sampler);
+            fullGranularitySamplers = ImmutableMap.copyOf(newSamplers);
+        } else {
+            Map<SamplerCase, Sampler> newSamplers = new HashMap<>(partialGranularitySamplers);
+            newSamplers.put(samplerCase, sampler);
+            partialGranularitySamplers = ImmutableMap.copyOf(newSamplers);
+        }
+
     }
+
 }
