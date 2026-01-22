@@ -82,9 +82,9 @@ public class SpanEventMerger {
         }
 
         // now add 2 new attributes to the first span that represent all the merged-in spans
-        mergedSpan.getAgentAttributes().put("nr.ids", nrIds);
+        mergedSpan.getIntrinsics().put("nr.ids", nrIds);
         Double totalDuration = sumDurations(timeFrameEvents) / 1000.0; // we multiplied by 1000.0 when adding the TimeFrameEvents
-        mergedSpan.getAgentAttributes().put("nr.durations", totalDuration);
+        mergedSpan.getIntrinsics().put("nr.durations", totalDuration);
 
         // if we found a span with errors, overwrite the merged spans error attrs with that span's values
         if (errorSpanToUse != null) {

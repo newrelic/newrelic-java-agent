@@ -75,32 +75,32 @@ public class SpanEventMergerTest {
         assertEquals(5, mergedSpans.size());
 
         SpanEvent group1Span = mergedSpans.get(0);
-        assertEquals(0.4, (Double)group1Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
+        assertEquals(0.4, (Double)group1Span.getIntrinsics().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group1-0", group1Span.getGuid());
-        assertEquals(true, ((List<String>)group1Span.getAgentAttributes().get("nr.ids")).contains("group1-1"));
-        assertEquals(true, ((List<String>)group1Span.getAgentAttributes().get("nr.ids")).contains("group1-2"));
+        assertEquals(true, ((List<String>)group1Span.getIntrinsics().get("nr.ids")).contains("group1-1"));
+        assertEquals(true, ((List<String>)group1Span.getIntrinsics().get("nr.ids")).contains("group1-2"));
 
         SpanEvent group2Span = mergedSpans.get(1);
-        assertEquals(0.9, (Double)group2Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
+        assertEquals(0.9, (Double)group2Span.getIntrinsics().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group2-0", group2Span.getGuid());
-        assertEquals(true, ((List<String>)group2Span.getAgentAttributes().get("nr.ids")).contains("group2-1"));
-        assertEquals(true, ((List<String>)group2Span.getAgentAttributes().get("nr.ids")).contains("group2-2"));
+        assertEquals(true, ((List<String>)group2Span.getIntrinsics().get("nr.ids")).contains("group2-1"));
+        assertEquals(true, ((List<String>)group2Span.getIntrinsics().get("nr.ids")).contains("group2-2"));
 
         SpanEvent group3Span = mergedSpans.get(2);
-        assertEquals(1.1, (Double)group3Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
+        assertEquals(1.1, (Double)group3Span.getIntrinsics().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group3-0", group3Span.getGuid());
-        assertEquals(true, ((List<String>)group3Span.getAgentAttributes().get("nr.ids")).contains("group3-1"));
-        assertEquals(true, ((List<String>)group3Span.getAgentAttributes().get("nr.ids")).contains("group3-2"));
+        assertEquals(true, ((List<String>)group3Span.getIntrinsics().get("nr.ids")).contains("group3-1"));
+        assertEquals(true, ((List<String>)group3Span.getIntrinsics().get("nr.ids")).contains("group3-2"));
 
         SpanEvent group4Span = mergedSpans.get(3);
-        assertEquals(1.6, (Double)group4Span.getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
+        assertEquals(1.6, (Double)group4Span.getIntrinsics().get("nr.durations"), MAX_DURATION_DELTA);
         assertEquals("group4-2", group4Span.getGuid());
-        assertEquals(true, ((List<String>)group4Span.getAgentAttributes().get("nr.ids")).contains("group4-0"));
-        assertEquals(true, ((List<String>)group4Span.getAgentAttributes().get("nr.ids")).contains("group4-1"));
+        assertEquals(true, ((List<String>)group4Span.getIntrinsics().get("nr.ids")).contains("group4-0"));
+        assertEquals(true, ((List<String>)group4Span.getIntrinsics().get("nr.ids")).contains("group4-1"));
 
         SpanEvent group5Span = mergedSpans.get(4);
-        assertEquals(false, group5Span.getAgentAttributes().containsKey("nr.durations"));
-        assertEquals(false, group5Span.getAgentAttributes().containsKey("nr.ids"));
+        assertEquals(false, group5Span.getIntrinsics().containsKey("nr.durations"));
+        assertEquals(false, group5Span.getIntrinsics().containsKey("nr.ids"));
         assertEquals("group5-0", group5Span.getGuid());
     }
 
@@ -119,7 +119,7 @@ public class SpanEventMergerTest {
             List<SpanEvent> mergedSpans = SpanEventMerger.findGroupsAndMergeSpans(spans, true);
 
             assertEquals(1, mergedSpans.size());
-            assertEquals(SpanEventMerger.MAX_NR_IDS, ((List<String>)mergedSpans.get(0).getAgentAttributes().get("nr.ids")).size());
+            assertEquals(SpanEventMerger.MAX_NR_IDS, ((List<String>)mergedSpans.get(0).getIntrinsics().get("nr.ids")).size());
 
             // no idea why this is saying it's a float instead of an int, but whatever
             newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/Java/PartialGranularity/NrIds/Dropped"), eq(9.0f)));
@@ -256,7 +256,7 @@ public class SpanEventMergerTest {
 
         List<SpanEvent> mergedSpans = SpanEventMerger.findGroupsAndMergeSpans(spans, true);
 
-        assertEquals(expectedNrDurations, (Double)mergedSpans.get(0).getAgentAttributes().get("nr.durations"), MAX_DURATION_DELTA);
+        assertEquals(expectedNrDurations, (Double)mergedSpans.get(0).getIntrinsics().get("nr.durations"), MAX_DURATION_DELTA);
     }
 
 }

@@ -201,6 +201,10 @@ public class CoreTracingCrossAgentTest {
 
     private void assertSpanMatching(SamplingPriorityQueue<SpanEvent> reservoir, String name, JSONObject span) {
         String parent = (String)span.get("parent");
+        JSONObject intrinsics = (JSONObject) span.get("intrinsics");
+        JSONObject exactIntrinsics = intrinsics == null ? null : (JSONObject) intrinsics.get("exact");
+        JSONArray expectedIntrinsics = intrinsics == null ? null : (JSONArray) intrinsics.get("expected");
+        JSONArray unexpectedIntrinsics = intrinsics == null ? null : (JSONArray) intrinsics.get("unexpected");
         JSONObject agentAttrs = (JSONObject) span.get("agent_attrs");
         JSONObject exactAgentAttrs = agentAttrs == null ? null : (JSONObject) agentAttrs.get("exact");
         JSONArray expectedAgentAttrs = agentAttrs == null ? null : (JSONArray) agentAttrs.get("expected");
@@ -212,7 +216,8 @@ public class CoreTracingCrossAgentTest {
 
         for (SpanEvent reservoirSpan : reservoir.asList()) {
             if (reservoirSpan.getName().equals(name)) {
-                if (foundMatchingAttrs(reservoirSpan.getAgentAttributes(), exactAgentAttrs, expectedAgentAttrs, unexpectedAgentAttrs)
+                if (foundMatchingAttrs(reservoirSpan.getIntrinsics(), exactIntrinsics, expectedIntrinsics, unexpectedIntrinsics)
+                        && foundMatchingAttrs(reservoirSpan.getAgentAttributes(), exactAgentAttrs, expectedAgentAttrs, unexpectedAgentAttrs)
                         && foundMatchingAttrs(reservoirSpan.getUserAttributesCopy(), exactUserAttrs, expectedUserAttrs, unexpectedUserAttrs)
                         && foundParentSpan(reservoir, reservoirSpan, parent)) {
                     return;
@@ -228,9 +233,18 @@ public class CoreTracingCrossAgentTest {
         if (exact != null) {
             for (Object exactNameObj : exact.keySet()) {
                 String exactName = (String) exactNameObj;
-                if (!reservoirSpanAttrs.containsKey(exactName)
-                        || !reservoirSpanAttrs.get(exactName).equals(exact.get(exactName))) {
+                if (!reservoirSpanAttrs.containsKey(exactName)) {
                     return false;
+                }
+                if (exact.get(exactName) instanceof Double && reservoirSpanAttrs.get(exactName) instanceof Float) {
+                    Double reservoirDouble = Double.valueOf((reservoirSpanAttrs.get(exactName)).toString());
+                    if (!reservoirDouble.equals(exact.get(exactName))) {
+                        return false;
+                    }
+                } else {
+                    if (!reservoirSpanAttrs.get(exactName).equals(exact.get(exactName))) {
+                        return false;
+                    }
                 }
             }
         }

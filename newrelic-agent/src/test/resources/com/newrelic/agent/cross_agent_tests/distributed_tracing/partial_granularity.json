@@ -3,14 +3,14 @@
     "test_name": "partial_granularity_reduced",
     "comment": [ "Use transaction from tracer_info.json, with partial granularity set to 'reduced'",
       "We should drop the in-process span and keep the rest.",
-      "The external span External/B2 under the in-process span should be re-parented to the root span."],
+      "The External span External/B2 under the in-process span should be re-parented to the root span."],
     "tracer_info":"tracer_info_standard.json",
     "partial_granularity_type": "reduced",
     "expected_spans": [
       {
         "root": {
           "parent": null,
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
               "nr.pg": true
             }
@@ -18,7 +18,7 @@
         }
       },
       {
-        "External/ServiceB1": {
+        "External/B1": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -37,7 +37,7 @@
         }
       },
       {
-        "External/ServiceB2": {
+        "External/B2": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -50,7 +50,7 @@
         }
       },
       {
-        "External/ServiceC": {
+        "External/C": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -83,7 +83,7 @@
         }
       },
       {
-        "External/ServiceD": {
+        "External/D": {
           "parent": "Llm/SOMETHING/function",
           "agent_attrs": {
             "exact": {
@@ -99,7 +99,7 @@
     "test_name": "partial_granularity_essential",
     "comment": [ "Use transaction from tracer_info.json, with partial granularity set to 'essential'",
       "We should drop the in-process span and keep the rest.",
-      "The external span External/B2 under the in-process span should be re-parented to the root span.",
+      "The External span External/B2 under the in-process span should be re-parented to the root span.",
       "The non-essential attribute on External/B1 should be dropped"],
     "tracer_info":"tracer_info_standard.json",
     "partial_granularity_type": "essential",
@@ -107,7 +107,7 @@
       {
         "root": {
           "parent": null,
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
               "nr.pg": true
             }
@@ -115,7 +115,7 @@
         }
       },
       {
-        "External/ServiceB1": {
+        "External/B1": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -132,7 +132,7 @@
         }
       },
       {
-        "External/ServiceB2": {
+        "External/B2": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -145,7 +145,7 @@
         }
       },
       {
-        "External/ServiceC": {
+        "External/C": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -178,7 +178,7 @@
         }
       },
       {
-        "External/ServiceD": {
+        "External/D": {
           "parent": "Llm/SOMETHING/function",
           "agent_attrs": {
             "exact": {
@@ -194,16 +194,16 @@
     "test_name": "partial_granularity_compact",
     "comment": [ "Use transaction from tracer_info.json, with partial granularity set to 'compact'",
       "We should drop the in-process span and keep the rest.",
-      "The external span External/B2 under the in-process span should be merged into External/B1.",
+      "The External span External/B2 under the in-process span should be merged into External/B1.",
       "Their durations should be merged and the merged span should have 2 new attributes: nr.ids and nr.durations.",
-      "The non-essential attribute on externalB1 should be dropped"],
+      "The non-essential attribute on ExternalB1 should be dropped"],
     "tracer_info":"tracer_info_standard.json",
     "partial_granularity_type": "compact",
     "expected_spans": [
       {
         "root": {
           "parent": null,
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
               "nr.pg": true
             }
@@ -211,17 +211,21 @@
         }
       },
       {
-        "External/ServiceB1": {
+        "External/B1": {
           "parent": "root",
-          "timestamp": 1766435410010,
-          "duration": 0.1,
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
-              "http.url": "serviceB",
+              "timestamp": 1766435410010,
+              "duration": 0.1,
               "nr.durations": 0.16
             },
+            "expected": ["nr.ids"]
+          },
+          "agent_attrs": {
+            "exact": {
+              "http.url": "serviceB"
+            },
             "expected": [
-              "nr.ids",
               "error.class",
               "error.message",
               "error.expected"
@@ -236,7 +240,7 @@
         }
       },
       {
-        "External/ServiceC": {
+        "External/C": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -269,7 +273,7 @@
         }
       },
       {
-        "External/ServiceD": {
+        "External/D": {
           "parent": "root",
           "agent_attrs": {
             "exact": {
@@ -279,7 +283,7 @@
         }
       }
     ],
-    "unexpected_spans": ["inprocess", "External/ServiceServiceB2"]
+    "unexpected_spans": ["inprocess", "External/B2"]
   },
   {
     "test_name": "partial_granularity_compact_too_many_nrids",
@@ -296,7 +300,7 @@
       {
         "root": {
           "parent": null,
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
               "nr.pg": true
             }
@@ -304,26 +308,30 @@
         }
       },
       {
-        "External/Service1": {
+        "External/1": {
           "parent": "root",
-          "agent_attrs": {
+          "intrinsics": {
             "exact": {
-              "http.url": "service",
               "nr.durations": 0.7
             },
             "expected": ["nr.ids"]
+          },
+          "agent_attrs": {
+            "exact": {
+              "http.url": "service"
+            }
           }
         }
       }
     ],
-    "unexpected_spans": ["inprocess",
-      "External/Service2", "External/Service3", "External/Service4", "External/Service5", "External/Service6", "External/Service7", "External/Service8", "External/Service9", "External/Service10",
-      "External/Service11", "External/Service12", "External/Service13", "External/Service14", "External/Service15", "External/Service16", "External/Service17", "External/Service18", "External/Service19", "External/Service20",
-      "External/Service21", "External/Service22", "External/Service23", "External/Service24", "External/Service25", "External/Service26", "External/Service27", "External/Service28", "External/Service29", "External/Service30",
-      "External/Service31", "External/Service32", "External/Service33", "External/Service34", "External/Service35", "External/Service36", "External/Service37", "External/Service38", "External/Service39", "External/Service40",
-      "External/Service41", "External/Service42", "External/Service43", "External/Service44", "External/Service45", "External/Service46", "External/Service47", "External/Service48", "External/Service49", "External/Service50",
-      "External/Service51", "External/Service52", "External/Service53", "External/Service54", "External/Service55", "External/Service56", "External/Service57", "External/Service58", "External/Service59", "External/Service60",
-      "External/Service61", "External/Service62", "External/Service63", "External/Service64", "External/Service65", "External/Service66", "External/Service67", "External/Service68", "External/Service69", "External/Service70"
+    "unexpected_spans": ["External/2", "External/3", "External/4", "External/5", "External/6", "External/7", "External/8", "External/9", "External/10",
+      "External/11", "External/12", "External/13", "External/14", "External/15", "External/16", "External/17", "External/18", "External/19", "External/20",
+      "External/21", "External/22", "External/23", "External/24", "External/25", "External/26", "External/27", "External/28", "External/29", "External/30",
+      "External/31", "External/32", "External/33", "External/34", "External/35", "External/36", "External/37", "External/38", "External/39", "External/40",
+      "External/41", "External/42", "External/43", "External/44", "External/45", "External/46", "External/47", "External/48", "External/49", "External/50",
+      "External/51", "External/52", "External/53", "External/54", "External/55", "External/56", "External/57", "External/58", "External/59", "External/60",
+      "External/61", "External/62", "External/63", "External/64", "External/65", "External/66", "External/67", "External/68", "External/69", "External/70"
     ]
   }
 ]
+

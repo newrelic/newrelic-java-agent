@@ -247,10 +247,10 @@ public class SpanEventsServiceTest {
             boolean hadSpanWithNRIDsAttr = false;
             boolean hadSpanWithNRDurationAttr = false;
             for (SpanEvent span : reservoir.asList()) {
-                if (span.getAgentAttributes() == null) continue;
-                for (String attr : span.getAgentAttributes().keySet()) {
+                if (span.getIntrinsics() == null) continue;
+                for (String attr : span.getIntrinsics().keySet()) {
                     if ("nr.ids".equals(attr)) hadSpanWithNRIDsAttr = true;
-                    if ("nr.ids".equals(attr)) hadSpanWithNRDurationAttr = true;
+                    if ("nr.durations".equals(attr)) hadSpanWithNRDurationAttr = true;
                 }
             }
             assertEquals(true, hadSpanWithNRIDsAttr);
@@ -314,7 +314,7 @@ public class SpanEventsServiceTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(rootSpan);
-        assertEquals(true, rootSpan.getAgentAttributes().get("nr.pg"));
+        assertEquals(true, rootSpan.getIntrinsics().get("nr.pg"));
         SpanEvent llmSpan = null;
         SpanEvent externalDSpan = null;
         for (SpanEvent span : reservoir.asList()) {
