@@ -3,9 +3,9 @@ package com.newrelic.agent.config;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.config.coretracing.CoreTracingConfig;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
+import com.newrelic.agent.tracing.Granularity;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -15,6 +15,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class SamplerConfigCrossAgentTest {
@@ -29,11 +35,9 @@ public class SamplerConfigCrossAgentTest {
     public static Collection<Object[]> data() throws Exception {
         JSONArray tests = CrossAgentInput.readJsonAndGetTests("com/newrelic/agent/cross_agent_tests/samplers/sampler_configuration.json");
         List<Object[]> result = new LinkedList<>();
-        System.out.println("I'm here!");
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
             String name = (String) testObject.get("test_name");
-            System.out.println("name: " + name);
             result.add(new Object[]{name, testObject});
         }
         return result;
@@ -41,126 +45,82 @@ public class SamplerConfigCrossAgentTest {
 
     @Test
     public void testSamplerConfig() {
-
-        System.out.println("name: " + testName + " data: " + testData);
         JSONObject testConfig = (JSONObject) testData.get("config");
         Map<String, Object> config = buildConfigFromJSON(testConfig);
         DistributedTracingConfig dtConfig = new DistributedTracingConfig(config);
         JSONObject expectedSamplers = (JSONObject) testData.get("expected_samplers");
 
-        assertExpectedSampler(expectedSamplers.get("full_root"), dtConfig.getFullGranularityConfig().getRootSampler(), dtConfig.getFullGranularityConfig().isEnabled());
-        assertExpectedSampler(expectedSamplers.get("full_remote_parent_sampled"), dtConfig.getFullGranularityConfig().getRemoteParentSampledSampler(), dtConfig.getFullGranularityConfig().isEnabled());
-        assertExpectedSampler(expectedSamplers.get("full_remote_parent_not_sampled"), dtConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler(), dtConfig.getFullGranularityConfig().isEnabled());
-        assertExpectedSampler(expectedSamplers.get("partial_root"), dtConfig.getPartialGranularityConfig().getRootSampler(), dtConfig.getPartialGranularityConfig().isEnabled());
-        assertExpectedSampler(expectedSamplers.get("partial_remote_parent_sampled"), dtConfig.getPartialGranularityConfig().getRemoteParentSampledSampler(), dtConfig.getPartialGranularityConfig().isEnabled());
-        assertExpectedSampler(expectedSamplers.get("partial_remote_parent_not_sampled"), dtConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler(), dtConfig.getPartialGranularityConfig().isEnabled());
+        //check full samplers
+        assertExpectedSampler(expectedSamplers.get("full_root"), dtConfig, "root", Granularity.FULL);
+        assertExpectedSampler(expectedSamplers.get("full_remote_parent_sampled"), dtConfig, "remote_parent_sampled", Granularity.FULL);
+        assertExpectedSampler(expectedSamplers.get("full_remote_parent_not_sampled"), dtConfig, "remote_parent_not_sampled", Granularity.FULL);
 
-        System.out.println("Done!");
+        //check partial samplers
+        assertExpectedSampler(expectedSamplers.get("partial_root"), dtConfig, "root", Granularity.PARTIAL);
+        assertExpectedSampler(expectedSamplers.get("partial_remote_parent_sampled"), dtConfig, "remote_parent_sampled", Granularity.PARTIAL);
+        assertExpectedSampler(expectedSamplers.get("partial_remote_parent_not_sampled"), dtConfig, "remote_parent_not_sampled", Granularity.PARTIAL);
     }
 
-    private void assertExpectedSampler(Object expectedSampler, SamplerConfig actualSampler, boolean samplerEnabled) {
+    private void assertExpectedSampler(Object expectedSampler, DistributedTracingConfig dtConfig, String samplerCase, Granularity granularity) {
+        CoreTracingConfig ctConfig = granularity == Granularity.FULL ? dtConfig.getFullGranularityConfig() : dtConfig.getPartialGranularityConfig();
+        SamplerConfig actualSampler = ctConfig.getSamplerConfigForCase(samplerCase);
+        boolean samplerEnabled = ctConfig.isEnabled();
+
         if (expectedSampler == null) {
-            Assert.assertFalse(samplerEnabled);
+            assertFalse(samplerEnabled);
         } else {
+            //common assertions for all sampler types
+            assertTrue(samplerEnabled);
             JSONObject expectedSamplerProps = (JSONObject) expectedSampler;
-
             String expectedType = (String) expectedSamplerProps.get("type");
-            Assert.assertEquals(expectedType, actualSampler.getSamplerType());
+            assertEquals(expectedType, actualSampler.getSamplerType());
 
-
-            if (expectedSamplerProps.containsKey("ratio")){
-                Float expectedRatio = ((Double) expectedSamplerProps.get("ratio")).floatValue();
-                Assert.assertEquals(expectedRatio, actualSampler.getSamplerRatio(), 0.000001f);
+            //type-specific assertions: trace_id_ratio_based sampler
+            if (expectedType.equals("trace_id_ratio_based")){
+                float expectedRatio = ((Double) expectedSamplerProps.get("ratio")).floatValue();
+                assertEquals(expectedRatio, actualSampler.getSamplerRatio(), 0.000001f);
             }
 
-            if (expectedSamplerProps.containsKey("is_global_adaptive_sampler")){
-                //if it's not the global adaptive sampler, then target should be null. Otherwise, it should be a number.
+            //type-specific assertions: adaptive sampler
+            if (expectedType.equals("adaptive")){
                 Boolean isGlobalSampler = (Boolean) expectedSamplerProps.get("is_global_adaptive_sampler");
+                Integer expectedTarget = expectedSamplerProps.containsKey("target") ? ((Long) expectedSamplerProps.get("target")).intValue() : null;
                 if (isGlobalSampler) {
-                    Assert.assertNull(actualSampler.getSamplingTarget());
+                    assertNull(actualSampler.getSamplingTarget());
+                    if (expectedTarget != null) {
+                        assertEquals(expectedTarget.intValue(), dtConfig.getAdaptiveSamplingTarget());
+                    }
                 } else {
-                    Assert.assertNotNull(actualSampler.getSamplingTarget());
+                    assertNotNull(actualSampler.getSamplingTarget());
+                    assertEquals(expectedTarget.intValue(), actualSampler.getSamplingTarget().intValue());
                 }
             }
 
-//            if (expectedSamplerProps.containsKey("target")){
-//                Integer expectedTarget = ((Long) expectedSamplerProps.get("target")).intValue();
-//                //broken bc need to account for the case that it's a global sampler. move downwards to combine with is_global setting.
-//                Assert.assertEquals(expectedTarget, actualSampler.getSamplingTarget());
-//            }
         }
     }
 
     private Map<String, Object> buildConfigFromJSON(JSONObject testSpec) {
         Map<String, Object> config = new HashMap<>();
-
-        if (testSpec.containsKey("sampler")){
-            JSONObject samplerSpec =  (JSONObject) testSpec.get("sampler");
-
-            //base sampler settings
-            Map<String, Object> samplerConfig = new HashMap<>(getSamplerSettings(samplerSpec));
-            samplerConfig.putAll(getPropertyIfPresent(samplerSpec, "adaptive_sampling_target"));
-
-            //full granularity setting
-            if (samplerSpec.containsKey("full_granularity")){
-                JSONObject fgSpec = (JSONObject) samplerSpec.get("full_granularity");
-                Map<String, Object> fgSettings = new HashMap<>(getPropertyIfPresent(fgSpec, "enabled"));
-                samplerConfig.put("full_granularity", fgSettings);
-            }
-
-            //partial granularity settings
-            if(samplerSpec.containsKey("partial_granularity")){
-                JSONObject pgSpec = (JSONObject) samplerSpec.get("partial_granularity");
-                Map<String, Object> pgSettings = new HashMap<>(getSamplerSettings(pgSpec));
-                pgSettings.putAll(getPropertyIfPresent(pgSpec, "enabled"));
-                samplerConfig.put("partial_granularity", pgSettings);
-
-            }
-
-            config.put("sampler", samplerConfig);
+        if (testSpec.containsKey("sampler")) {
+            config.put("sampler", parseJSONAsMap((JSONObject) testSpec.get("sampler")));
         }
-
         return config;
     }
 
-    private Map<String, Object> getSamplerSettings(JSONObject specObj){
-        Map<String, Object> samplers = new HashMap<>();
-        String[] samplerCases = {"root", "remote_parent_sampled", "remote_parent_not_sampled"};
-        for (String samplerCase : samplerCases) {
-            if (specObj.containsKey(samplerCase)){
-                Object rootSampler = specObj.get(samplerCase);
-                if (rootSampler instanceof JSONObject) {
-                    JSONObject rootSamplerSpec = (JSONObject) rootSampler;
-                    Map<String, Object> rootSamplerSettings = new HashMap<>();
-                    for (Object samplerType : rootSamplerSpec.keySet()) {
-                        Map<String, Object> suboptions = new HashMap<>();
-                        Object suboptionSpec = rootSamplerSpec.get(samplerType);
-                        if (suboptionSpec instanceof JSONObject) {
-                            JSONObject suboptionSpecObj = (JSONObject) suboptionSpec;
-                            for (Object suboption : suboptionSpecObj.keySet()) {
-                                suboptions.put((String) suboption, suboptionSpecObj.get(suboption));
-                            }
-                        } else {
-                            throw new RuntimeException(samplerType + " is not a JSON object");
-                        }
-                        rootSamplerSettings.put((String) samplerType, suboptions);
-                        samplers.put(samplerCase, rootSamplerSettings);
-                    }
-                } else if (rootSampler instanceof String) {
-                    samplers.put(samplerCase, rootSampler);
-                }
-            }
+    private Map<String, Object> parseJSONAsMap(JSONObject json) {
+        Map<String, Object> result = new HashMap<>();
+        for (Object key : json.keySet()) {
+            result.put((String) key, parseValue(json.get(key)));
         }
-        return samplers;
+        return result;
     }
 
-    private Map<String, Object> getPropertyIfPresent(JSONObject specObj, String propertyName) {
-       Map<String, Object> propertySetting = new HashMap<>();
-       if (specObj.containsKey(propertyName)){
-           propertySetting.put(propertyName, specObj.get(propertyName));
-       }
-       return propertySetting;
+    private Object parseValue(Object value) {
+        //warning, this only handles JSON objects and primitives!! If you get parsing error, update this to be able to handle json arrays.
+        if (value instanceof JSONObject) {
+            return parseJSONAsMap((JSONObject) value);
+        } else {
+            return value;
+        }
     }
-
-
 }

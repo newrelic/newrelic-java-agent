@@ -193,4 +193,12 @@ public class AdaptiveSampler implements Sampler {
         return target;
     }
 
+    //DO NOT USE this method outside of test.
+    //This method nulls out the shared adaptive sampler instance, so that a new one can be created each time a new DT Service is spun up.
+    //This is required in some tests, but should not be done in the wild.
+    @VisibleForTesting
+    public static void resetForTesting(){
+        SAMPLER_SHARED_INSTANCE = null;
+    }
+
 }
