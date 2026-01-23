@@ -56,6 +56,13 @@ jobs:
           path: |
             newrelic-agent/build/newrelicJar/newrelic.jar
 
+      - name: Capture custom API jar
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        with:
+          name: custom-newrelic-api-jar
+          path: |
+            newrelic-api/build/libs/newrelic-api-.*.jar
+
       - name: Upload the custom jar to AWS S3 for internal testing
         if: ${{ inputs.s3_upload == true }}
         run: echo "Checkbox was checked, running optional job."
