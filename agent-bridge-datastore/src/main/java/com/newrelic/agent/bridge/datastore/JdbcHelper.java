@@ -9,6 +9,7 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 
 import java.sql.Connection;
@@ -64,6 +65,7 @@ public class JdbcHelper {
             SQL_METADATA_COMMENTS_TXN_NAME,
             SQL_METADATA_COMMENTS_TRACE_ID
     ));
+    private static volatile String cachedAppName = null;
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);
@@ -340,14 +342,19 @@ public class JdbcHelper {
             return sql;
         }
 
-        if (!getMetadataCommentConfig().isEmpty()) {
+        Set<String> config = getMetadataCommentConfig();
+        if (!config.isEmpty()) {
             // Check if comment already exists
             if (sql.startsWith("/*nr_")) {
                 return sql;
             }
 
-            String comment = generateSqlMetadataComment();
-            return comment.isEmpty() ? sql : comment + sql;
+            String comment = generateSqlMetadataComment(config);
+            if (comment.isEmpty()) {
+                return sql;
+            } else {
+                return comment + sql;
+            }
         }
 
         return sql;
@@ -359,34 +366,46 @@ public class JdbcHelper {
      *
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
-    private static String generateSqlMetadataComment() {
+    private static String generateSqlMetadataComment(Set<String> metadataCommentConfig) {
         com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
+        if (transaction == NoOpTransaction.INSTANCE) {
+            return "";
+        }
+
         boolean attributeAdded = false;
-        Set<String> metadataCommentConfig = getMetadataCommentConfig();
         StringBuilder comment = new StringBuilder(64);
         comment.append("/*");
 
-        if (transaction != NoOpTransaction.INSTANCE) {
-            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
-                comment.append("nr_txn=").append(transaction.getTransactionName());
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
+            String txnName = transaction.getTransactionName();
+            if (!txnName.contains("*/")) {
+                comment.append("nr_txn=").append(txnName);
                 attributeAdded = true;
             }
+        }
 
-            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
+            String appName = getAppName();
+            if (!appName.contains("*/")) {
                 comment.append(attributeAdded ? "," : "");
-                comment.append("nr_service=").append((String) NewRelic.getAgent().getConfig().getValue("app_name"));
+                comment.append("nr_service=").append(appName);
                 attributeAdded = true;
             }
+        }
 
-            if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
-                comment.append(attributeAdded ? "," : "");
-                comment.append("nr_trace_id=").append(NewRelic.getAgent().getTraceMetadata().getTraceId());
-            }
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
+            comment.append(attributeAdded ? "," : "");
+            comment.append("nr_trace_id=").append(NewRelic.getAgent().getTraceMetadata().getTraceId());
         }
 
         // Only return comment if metadata was added
         if (comment.length() > 2) {
             comment.append("*/");
+
+            Logger logger = AgentBridge.getAgent().getLogger();
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.log(Level.FINEST, "Adding metadata comment to SQL statement: {0}", comment);
+            }
             return comment.toString();
         }
 
@@ -435,5 +454,20 @@ public class JdbcHelper {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty() && VALID_SQL_METADATA_COMMENTS_OPTIONS.contains(s))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Retrieves the cached app_name value and initialize the value on first access.
+     */
+    private static String getAppName() {
+        if (cachedAppName == null) {
+            synchronized (JdbcHelper.class) {
+                if (cachedAppName == null) {
+                    cachedAppName = NewRelic.getAgent().getConfig().getValue("app_name");
+                }
+            }
+        }
+
+        return cachedAppName;
     }
 }
