@@ -215,7 +215,7 @@ jobs:
       # other cleanups were suggested on runner-images repo
       - name: Clean up disk
         run: |
-          docker rmi $(docker images -q)
+          docker images -q | xargs -r docker rmi
           sudo apt clean
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /opt/ghc

@@ -54,7 +54,7 @@ public class InsightsConfigImpl extends BaseConfig implements InsightsConfig {
             NewRelic.getAgent().getLogger().log(Level.WARNING,
                     "The value for custom_insights_events.max_attribute_value was too large {0}, we will use maximum allowed {1}",
                     maxAttributeValue,
-                    DEFAULT_MAX_SAMPLES_STORED);
+                    MAX_MAX_ATTRIBUTE_VALUE);
             maxAttributeValue = MAX_MAX_ATTRIBUTE_VALUE;
         }
         return maxAttributeValue;
