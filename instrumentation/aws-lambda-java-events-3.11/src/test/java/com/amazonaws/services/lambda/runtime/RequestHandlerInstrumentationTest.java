@@ -11,11 +11,18 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
+import com.newrelic.agent.introspec.TransactionEvent;
+import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Collection;
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +33,11 @@ import static org.mockito.Mockito.when;
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda.runtime"})
 public class RequestHandlerInstrumentationTest {
+
+    @Before
+    public void setUp() {
+        LambdaInstrumentationHelper.resetColdStartForTesting();
+    }
 
     @Test
     public void testRequestHandlerCreatesTransaction() {
@@ -44,6 +56,18 @@ public class RequestHandlerInstrumentationTest {
         assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", AgentBridge.serverlessApi.getArn());
         assertNotNull("Function version should be captured", AgentBridge.serverlessApi.getFunctionVersion());
         assertEquals("$LATEST", AgentBridge.serverlessApi.getFunctionVersion());
+
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
+
+        TransactionEvent event = transactionEvents.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey("aws.lambda.arn"));
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get("aws.lambda.arn"));
+
+        assertTrue("aws.requestId attribute should be present", attributes.containsKey("aws.requestId"));
+        assertEquals("request-123", attributes.get("aws.requestId"));
     }
 
     @Test
@@ -59,6 +83,18 @@ public class RequestHandlerInstrumentationTest {
         // Verify serverless metadata was captured
         assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", AgentBridge.serverlessApi.getArn());
         assertEquals("$LATEST", AgentBridge.serverlessApi.getFunctionVersion());
+
+        // Verify transaction attributes
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
+
+        TransactionEvent event = transactionEvents.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey("aws.lambda.arn"));
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get("aws.lambda.arn"));
+        assertTrue("aws.requestId attribute should be present", attributes.containsKey("aws.requestId"));
+        assertEquals("request-123", attributes.get("aws.requestId"));
     }
 
     @Test
@@ -91,6 +127,58 @@ public class RequestHandlerInstrumentationTest {
         // Verify transaction was still created (even without metadata)
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals("Expected exactly one transaction", 1, introspector.getFinishedTransactionCount());
+    }
+
+    @Test
+    public void testColdStartAttributeOnFirstInvocation() {
+        Context mockContext = createMockContext();
+
+        TestRequestHandler handler = new TestRequestHandler();
+        handler.handleRequest("first invocation", mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals("Expected exactly one transaction", 1, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
+
+        TransactionEvent event = transactionEvents.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("Cold start attribute should be present", attributes.containsKey("aws.lambda.coldStart"));
+        assertEquals("Cold start attribute should be true on first invocation", true, attributes.get("aws.lambda.coldStart"));
+    }
+
+    @Test
+    public void testColdStartAttributeNotPresentOnSubsequentInvocations() {
+        Context mockContext = createMockContext();
+
+        TestRequestHandler handler1 = new TestRequestHandler();
+        handler1.handleRequest("first invocation", mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals("Expected one transaction after first invocation", 1, introspector.getFinishedTransactionCount());
+
+        TestRequestHandler handler2 = new TestRequestHandler();
+        handler2.handleRequest("second invocation", mockContext);
+
+        assertEquals("Expected two transactions after second invocation", 2, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> allEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        assertEquals("Expected exactly two transaction events", 2, allEvents.size());
+
+        // Count how many events have the cold start attribute
+        // According to the spec, only the first invocation should have it
+        int coldStartCount = 0;
+        for (TransactionEvent event : allEvents) {
+            Map<String, Object> attributes = event.getAttributes();
+            if (attributes.containsKey("aws.lambda.coldStart")) {
+                coldStartCount++;
+                assertEquals("Cold start attribute should be true when present", true, attributes.get("aws.lambda.coldStart"));
+            }
+        }
+
+        assertEquals("Exactly one transaction should have cold start attribute", 1, coldStartCount);
     }
 
     /**

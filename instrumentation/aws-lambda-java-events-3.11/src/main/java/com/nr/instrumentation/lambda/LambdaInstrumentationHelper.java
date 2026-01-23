@@ -58,6 +58,10 @@ public class LambdaInstrumentationHelper {
     /**
      * Captures Lambda-specific metadata from the Context via AgentBridge.
      * Stores ARN and function version for inclusion in serverless payload envelope.
+     * Also adds transaction attributes for arn and requestId.
+     *
+     * Each attribute is extracted independently with its own error handling to ensure
+     * that a failure extracting one attribute doesn't impact the extraction of another.
      *
      * @param context The Lambda execution context
      */
@@ -66,26 +70,45 @@ public class LambdaInstrumentationHelper {
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
                 AgentBridge.serverlessApi.setArn(arn);
+                NewRelic.addCustomParameter("aws.lambda.arn", arn);
             }
+        } catch (Throwable t) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda ARN");
+        }
 
+        try {
             String functionVersion = context.getFunctionVersion();
             if (functionVersion != null && !functionVersion.isEmpty()) {
                 AgentBridge.serverlessApi.setFunctionVersion(functionVersion);
             }
-
         } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda function version");
+        }
+
+        try {
+            String requestId = context.getAwsRequestId();
+            if (requestId != null && !requestId.isEmpty()) {
+                NewRelic.addCustomParameter("aws.requestId", requestId);
+            }
+        } catch (Throwable t) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda request ID");
         }
     }
 
     /**
      * Tracks whether this is a cold start (first invocation).
-     * For future use. Currently just tracks state without reporting.
+     * Adds the aws.lambda.coldStart agent attribute when it's a cold start.
+     * According to the Lambda spec, the attribute should only be added when true (omitted when false).
      */
     private static void handleColdStart() {
         try {
-            // Track cold start state (first invocation sets to false)
-            COLD_START.compareAndSet(true, false);
+            // Check if this is a cold start (first invocation)
+            boolean isColdStart = COLD_START.compareAndSet(true, false);
+
+            if (isColdStart) {
+                NewRelic.addCustomParameter("aws.lambda.coldStart", true);
+                NewRelic.getAgent().getLogger().log(Level.FINE, "Cold start detected, added aws.lambda.coldStart attribute");
+            }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error handling cold start");
         }
@@ -98,5 +121,12 @@ public class LambdaInstrumentationHelper {
      */
     public static void finishTransaction() {
         // This method is a placeholder for any future cleanup logic
+    }
+
+    /**
+     * Resets the cold start state for testing purposes only.
+     */
+    public static void resetColdStartForTesting() {
+        COLD_START.set(true);
     }
 }
