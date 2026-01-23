@@ -84,7 +84,6 @@ public class RequestHandlerInstrumentationTest {
         assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", AgentBridge.serverlessApi.getArn());
         assertEquals("$LATEST", AgentBridge.serverlessApi.getFunctionVersion());
 
-        // Verify transaction attributes
         Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
         assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
 
@@ -93,6 +92,7 @@ public class RequestHandlerInstrumentationTest {
 
         assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey("aws.lambda.arn"));
         assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get("aws.lambda.arn"));
+
         assertTrue("aws.requestId attribute should be present", attributes.containsKey("aws.requestId"));
         assertEquals("request-123", attributes.get("aws.requestId"));
     }
