@@ -10,8 +10,8 @@ on:
       description:
         description: "A description for the custom jar that will be generated. It will appear in the summary."
         required: true
-      s3_upload:
-        description: "Upload the custom jar to AWS S3 for internal testing"
+      create_internal_testing_jars:
+        description: "Create custom agent and API jar for internal testing"
         type: boolean
         required: false
         default: false
@@ -49,20 +49,26 @@ jobs:
           echo "${{ inputs.description }}" >> $GITHUB_STEP_SUMMARY
           echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.agent-ref }}." >> $GITHUB_STEP_SUMMARY
 
+      - name: Rename jars for internal testing
+        if: ${{ inputs.create_internal_testing_jars == true }}
+        run: | 
+          mv newrelic-agent/build/newrelicJar/newrelic.jar newrelic-agent/build/newrelicJar/newrelic-${{ inputs.agent-ref }}.jar
+          mv newrelic-api/build/libs/newrelic-api-*.jar newrelic-api/build/libs/newrelic-${{ inputs.agent-ref }}.jar
+
       - name: Capture custom jar
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: custom-newrelic-jar
           path: |
-            newrelic-agent/build/newrelicJar/newrelic.jar
+            newrelic-agent/build/newrelicJar/*.jar
 
       - name: Capture custom API jar
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: custom-newrelic-api-jar
           path: |
-            newrelic-api/build/libs/newrelic-api-*.jar
+            newrelic-api/build/libs/*.jar
 
       - name: Upload the custom jar to AWS S3 for internal testing
-        if: ${{ inputs.s3_upload == true }}
+        if: ${{ inputs.create_internal_testing_jars == true }}
         run: echo "Running optional job to upload to upload artifacts to AWS S3 for ${{ inputs.agent-ref }}."
