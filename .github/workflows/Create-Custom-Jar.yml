@@ -65,4 +65,4 @@ jobs:
 
       - name: Upload the custom jar to AWS S3 for internal testing
         if: ${{ inputs.s3_upload == true }}
-        run: echo "Checkbox was checked, running optional job."
+        run: echo "Running optional job to upload to upload artifacts to AWS S3 for ${{ inputs.agent-ref }}."
