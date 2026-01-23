@@ -371,6 +371,13 @@ jobs:
           PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
           ./bin/runtest.sh tests/java/functionality/${{ matrix.tests }}
 
+      - name: Export TEST_NAME
+        if: ${{ always() }}
+        run: |
+          TEST_NAME=$(echo ${{ matrix.tests }} | sed 's|/|-|g')
+          echo "Exporting TEST_NAME=${TEST_NAME}"
+          echo "TEST_NAME=${TEST_NAME}" >> $GITHUB_ENV
+
       # Rename matrix item to remove problem characters
       - name: Rename Matrix item
         run: |
@@ -409,7 +416,7 @@ jobs:
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
           name: metrics-summary-${{ env.MATRIX }}
-          path: agent-integration-tests/metrics_summary/${{ env.MATRIX }}-metrics-summary.json
+          path: agent-integration-tests/metrics_summary/${{ env.TEST_NAME }}-metrics-summary.json
           if-no-files-found: ignore
 
   process-ingest-metric-files:
