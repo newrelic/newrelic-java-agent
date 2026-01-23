@@ -198,25 +198,11 @@ public class JdbcHelperTest {
         // These tests aren't 100% comprehensive because of the difficulty of
         // mocking the service manager and transaction objects in the bridge
         // project. These test what is possible based on these restrictions.
-        String originalSql = "SELECT * FROM users WHERE id = 1";
 
         // Null SQL - should return null
-        setMetadataCommentConfig(new HashSet<>(Collections.singletonList("txn_name")));
         assertNull(JdbcHelper.addSqlMetadataCommentIfNeeded(null));
 
         // Empty SQL - empty String
         assertEquals("", JdbcHelper.addSqlMetadataCommentIfNeeded(""));
-    }
-
-    private void setMetadataCommentConfig(Set<String> config) throws Exception {
-        Field field = JdbcHelper.class.getDeclaredField("metadataCommentConfig");
-        field.setAccessible(true);
-
-        // Remove final modifier
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-        field.set(null, config);
     }
 }
