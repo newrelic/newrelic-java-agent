@@ -15,6 +15,10 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_ARN_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_COLD_START_ATTRIBUTE;
+
 /**
  * Helper class for Lambda instrumentation.
  * Uses AgentBridge.serverlessApi to communicate metadata to the core agent
@@ -70,7 +74,7 @@ public class LambdaInstrumentationHelper {
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
                 AgentBridge.serverlessApi.setArn(arn);
-                NewRelic.addCustomParameter("aws.lambda.arn", arn);
+                NewRelic.addCustomParameter(LAMBDA_ARN_ATTRIBUTE, arn);
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda ARN");
@@ -88,7 +92,7 @@ public class LambdaInstrumentationHelper {
         try {
             String requestId = context.getAwsRequestId();
             if (requestId != null && !requestId.isEmpty()) {
-                NewRelic.addCustomParameter("aws.requestId", requestId);
+                NewRelic.addCustomParameter(AWS_REQUEST_ID_ATTRIBUTE, requestId);
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda request ID");
@@ -106,7 +110,7 @@ public class LambdaInstrumentationHelper {
             boolean isColdStart = COLD_START.compareAndSet(true, false);
 
             if (isColdStart) {
-                NewRelic.addCustomParameter("aws.lambda.coldStart", true);
+                NewRelic.addCustomParameter(LAMBDA_COLD_START_ATTRIBUTE, true);
                 NewRelic.getAgent().getLogger().log(Level.FINE, "Cold start detected, added aws.lambda.coldStart attribute");
             }
         } catch (Throwable t) {

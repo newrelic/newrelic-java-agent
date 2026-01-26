@@ -20,6 +20,9 @@ import org.junit.runner.RunWith;
 import java.util.Collection;
 import java.util.Map;
 
+import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_ARN_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_COLD_START_ATTRIBUTE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -63,11 +66,11 @@ public class RequestHandlerInstrumentationTest {
         TransactionEvent event = transactionEvents.iterator().next();
         Map<String, Object> attributes = event.getAttributes();
 
-        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey("aws.lambda.arn"));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get("aws.lambda.arn"));
+        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey(LAMBDA_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get(LAMBDA_ARN_ATTRIBUTE));
 
-        assertTrue("aws.requestId attribute should be present", attributes.containsKey("aws.requestId"));
-        assertEquals("request-123", attributes.get("aws.requestId"));
+        assertTrue("aws.requestId attribute should be present", attributes.containsKey(AWS_REQUEST_ID_ATTRIBUTE));
+        assertEquals("request-123", attributes.get(AWS_REQUEST_ID_ATTRIBUTE));
     }
 
     @Test
@@ -90,11 +93,11 @@ public class RequestHandlerInstrumentationTest {
         TransactionEvent event = transactionEvents.iterator().next();
         Map<String, Object> attributes = event.getAttributes();
 
-        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey("aws.lambda.arn"));
-        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get("aws.lambda.arn"));
+        assertTrue("aws.lambda.arn attribute should be present", attributes.containsKey(LAMBDA_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", attributes.get(LAMBDA_ARN_ATTRIBUTE));
 
-        assertTrue("aws.requestId attribute should be present", attributes.containsKey("aws.requestId"));
-        assertEquals("request-123", attributes.get("aws.requestId"));
+        assertTrue("aws.requestId attribute should be present", attributes.containsKey(AWS_REQUEST_ID_ATTRIBUTE));
+        assertEquals("request-123", attributes.get(AWS_REQUEST_ID_ATTRIBUTE));
     }
 
     @Test
@@ -145,8 +148,8 @@ public class RequestHandlerInstrumentationTest {
         TransactionEvent event = transactionEvents.iterator().next();
         Map<String, Object> attributes = event.getAttributes();
 
-        assertTrue("Cold start attribute should be present", attributes.containsKey("aws.lambda.coldStart"));
-        assertEquals("Cold start attribute should be true on first invocation", true, attributes.get("aws.lambda.coldStart"));
+        assertTrue("Cold start attribute should be present", attributes.containsKey(LAMBDA_COLD_START_ATTRIBUTE));
+        assertEquals("Cold start attribute should be true on first invocation", true, attributes.get(LAMBDA_COLD_START_ATTRIBUTE));
     }
 
     @Test
@@ -172,9 +175,9 @@ public class RequestHandlerInstrumentationTest {
         int coldStartCount = 0;
         for (TransactionEvent event : allEvents) {
             Map<String, Object> attributes = event.getAttributes();
-            if (attributes.containsKey("aws.lambda.coldStart")) {
+            if (attributes.containsKey(LAMBDA_COLD_START_ATTRIBUTE)) {
                 coldStartCount++;
-                assertEquals("Cold start attribute should be true when present", true, attributes.get("aws.lambda.coldStart"));
+                assertEquals("Cold start attribute should be true when present", true, attributes.get(LAMBDA_COLD_START_ATTRIBUTE));
             }
         }
 
