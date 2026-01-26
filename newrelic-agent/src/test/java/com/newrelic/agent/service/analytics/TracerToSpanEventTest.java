@@ -10,6 +10,7 @@ package com.newrelic.agent.service.analytics;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.bridge.TransactionNamePriority;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.environment.EnvironmentService;
@@ -29,9 +30,11 @@ import com.newrelic.agent.util.TimeConversion;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -52,9 +55,9 @@ import static com.newrelic.agent.attributes.AttributeNames.REQUEST_URI;
 import static com.newrelic.agent.attributes.AttributeNames.REQUEST_USER_AGENT_PARAMETER_NAME;
 import static com.newrelic.agent.attributes.AttributeNames.RESPONSE_CONTENT_TYPE_PARAMETER_NAME;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -96,6 +99,8 @@ public class TracerToSpanEventTest {
     private Environment environment;
     private TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics;
     private TransactionStats txnStats;
+    private final int numberOfSpanLinks = 5;
+    private final int numberOfSpanEvents = 5;
 
     @Before
     public void setup() {
@@ -141,6 +146,8 @@ public class TracerToSpanEventTest {
         when(tracer.getCustomAttributes()).thenReturn(tracerUserAttributes);
         when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
         when(tracer.getAgentAttributeNamesForSpans()).thenReturn(tracerAgentAttributeNamesMarkedForSpans);
+        when(tracer.getSpanLinks()).thenReturn(createMapOfSpanLinks());
+        when(tracer.getSpanEvents()).thenReturn(createMapOfSpanEvents());
         when(spanErrorBuilder.buildSpanError(tracer, isRoot, responseStatus, statusMessage, throwable)).thenReturn(spanError);
         when(spanErrorBuilder.areErrorsEnabled()).thenReturn(true);
         when(txnData.getApplicationName()).thenReturn(appName);
@@ -156,6 +163,24 @@ public class TracerToSpanEventTest {
         when(spanProxy.getOrCreateTraceId()).thenReturn(traceId);
         when(environmentService.getEnvironment()).thenReturn(environment);
         when(environment.getAgentIdentity()).thenReturn(new AgentIdentity("dispatcher", "1.2.3", 9191, "myInstance"));
+    }
+
+    private List<SpanLink> createMapOfSpanLinks() {
+        List<SpanLink> spanLinks = new ArrayList<>();
+        for (int i = 0; i < numberOfSpanLinks; i++) {
+            String fakeId = String.valueOf(i);
+            spanLinks.add(new SpanLink(timestamp, fakeId, fakeId, fakeId, fakeId, Collections.singletonMap("foo", "bar")));
+        }
+        return spanLinks;
+    }
+
+    private List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> createMapOfSpanEvents() {
+        List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> spanEvents = new ArrayList<>();
+        for (int i = 0; i < numberOfSpanEvents; i++) {
+            String fakeId = String.valueOf(i);
+            spanEvents.add(new com.newrelic.agent.bridge.opentelemetry.SpanEvent(timestamp, "name", fakeId, fakeId, Collections.singletonMap("foo", "bar")));
+        }
+        return spanEvents;
     }
 
     @Test
@@ -455,7 +480,6 @@ public class TracerToSpanEventTest {
         // assertions
         assertEquals(expectedSpanEvent, spanEvent);
     }
-
 
     @Test
     public void testUserAttributesAreCopied() {
@@ -762,6 +786,30 @@ public class TracerToSpanEventTest {
         SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
 
         assertEquals(expectedSpanEvent, spanEvent);
+    }
+
+    @Test
+    public void testCreateLinkOnSpanEvents() {
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
+
+        assertEquals(expectedSpanEvent, spanEvent);
+        assertEquals(numberOfSpanLinks, spanEvent.getLinkOnSpanEvents().size());
+    }
+
+    @Test
+    public void testCreateEventOnSpanEvents() {
+        SpanEvent expectedSpanEvent = buildExpectedSpanEvent();
+        TracerToSpanEvent testClass = new TracerToSpanEvent(errorBuilderMap, new AttributeFilter.PassEverythingAttributeFilter(), timestampProvider,
+                environmentService, transactionDataToDistributedTraceIntrinsics, spanErrorBuilder);
+
+        SpanEvent spanEvent = testClass.createSpanEvent(tracer, txnData, txnStats, isRoot, false);
+
+        assertEquals(expectedSpanEvent, spanEvent);
+        assertEquals(numberOfSpanEvents, spanEvent.getEventOnSpanEvents().size());
     }
 
     private SpanEvent buildExpectedSpanEvent() {

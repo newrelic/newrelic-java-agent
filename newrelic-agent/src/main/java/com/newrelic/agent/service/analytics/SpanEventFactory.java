@@ -10,10 +10,13 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.base.Joiner;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.datastore.SqlQueryConverter;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AttributesConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
@@ -21,12 +24,13 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.StackTraces;
+import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
-import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
+import com.newrelic.api.agent.QueryConverter;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 
 import java.net.URI;
@@ -72,6 +76,16 @@ public class SpanEventFactory {
 
     public SpanEventFactory(String appName) {
         this(appName, SPAN_EVENTS_ATTRIBUTE_FILTER, DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER, false);
+    }
+
+    public SpanEventFactory setLinkOnSpanEvents(List<LinkOnSpan> linkOnSpanEvents) {
+        builder.linkOnSpanEvents(linkOnSpanEvents);
+        return this;
+    }
+
+    public SpanEventFactory setEventOnSpanEvents(List<EventOnSpan> eventOnSpanEvents) {
+        builder.eventOnSpanEvents(eventOnSpanEvents);
+        return this;
     }
 
     public SpanEventFactory setPriority(float priority) {
@@ -165,7 +179,6 @@ public class SpanEventFactory {
         builder.putAllUserAttributes(userAttributes);
         return this;
     }
-
 
     public SpanEventFactory putAllUserAttributesIfAbsent(Map<String, ?> userAttributes) {
         builder.putAllUserAttributesIfAbsent(filter.filterUserAttributes(appName, userAttributes));
@@ -304,14 +317,13 @@ public class SpanEventFactory {
         return this;
     }
 
-    private void setCloudPlatform(String platform){
+    private void setCloudPlatform(String platform) {
         builder.putAgentAttribute(AttributeNames.CLOUD_PLATFORM, platform);
     }
 
-    private void setCloudResourceId(String name){
+    private void setCloudResourceId(String name) {
         builder.putAgentAttribute(AttributeNames.CLOUD_RESOURCE_ID, name);
     }
-
 
     public SpanEventFactory setMessagingSystem(String messagingSystem) {
         builder.putAgentAttribute(AttributeNames.MESSAGING_SYSTEM, messagingSystem);
@@ -471,7 +483,7 @@ public class SpanEventFactory {
 
     public SpanEventFactory setAgentAttributesMarkedForSpans(Set<String> agentAttributesMarkedForSpans, Map<String, Object> agentAttributes) {
         if (agentAttributesMarkedForSpans != null) {
-            for (String attributeName: agentAttributesMarkedForSpans) {
+            for (String attributeName : agentAttributesMarkedForSpans) {
                 Object value = agentAttributes.get(attributeName);
                 if (value != null) {
                     builder.putAgentAttribute(attributeName, value);
@@ -486,10 +498,18 @@ public class SpanEventFactory {
         if (config.isHighSecurity() || config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.OFF_SETTING)) {
             return null;
         } else if (config.getTransactionTracerConfig().getRecordSql().equals(SqlObfuscator.RAW_SETTING)) {
-            return slowQueryDatastoreParameters.getQueryConverter().toRawQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return getQueryConverter(slowQueryDatastoreParameters).toRawQueryString(slowQueryDatastoreParameters.getRawQuery());
         } else {
-            return slowQueryDatastoreParameters.getQueryConverter().toObfuscatedQueryString(slowQueryDatastoreParameters.getRawQuery());
+            return getQueryConverter(slowQueryDatastoreParameters).toObfuscatedQueryString(slowQueryDatastoreParameters.getRawQuery());
         }
+    }
+
+    private static <T> QueryConverter<T> getQueryConverter(SlowQueryDatastoreParameters<T> slowQueryDatastoreParameters) {
+        final QueryConverter<T> queryConverter = slowQueryDatastoreParameters.getQueryConverter();
+        if (queryConverter == SqlQueryConverter.INSTANCE) {
+            return (QueryConverter<T>) ServiceFactory.getDatabaseService().getDefaultSqlObfuscator().getQueryConverter();
+        }
+        return queryConverter;
     }
 
     public SpanEvent build() {

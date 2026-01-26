@@ -12,10 +12,12 @@ import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,11 +62,16 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             Stream.concat(ENTITY_SYNTHESIS_ATTRS.stream(), ERROR_ATTRS.stream())
             .collect(Collectors.toSet()));
 
+    private final List<LinkOnSpan> linkOnSpanEvents;
+    private final List<EventOnSpan> eventOnSpanEvents;
+
     private SpanEvent(Builder builder) {
         super(SPAN, builder.timestamp, builder.priority, builder.userAttributes);
         this.appName = builder.appName;
         this.agentAttributes = builder.agentAttributes;
         this.intrinsics = builder.intrinsics;
+        this.linkOnSpanEvents = builder.linkOnSpanEvents;
+        this.eventOnSpanEvents = builder.eventOnSpanEvents;
     }
 
     public static Builder builder() {
@@ -97,6 +104,14 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
     @Override
     public void writeJSONString(Writer out) throws IOException {
         JSONArray.writeJSONString(Arrays.asList(intrinsics, getMutableUserAttributes(), getAgentAttributes()), out);
+    }
+
+    public List<LinkOnSpan> getLinkOnSpanEvents() {
+        return linkOnSpanEvents;
+    }
+
+    public List<EventOnSpan> getEventOnSpanEvents() {
+        return eventOnSpanEvents;
     }
 
     public String getTraceId() {
@@ -162,7 +177,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             return false;
         }
         SpanEvent spanEvent = (SpanEvent) o;
-        return  Objects.equals(appName, spanEvent.appName) &&
+        return Objects.equals(appName, spanEvent.appName) &&
                 Objects.equals(intrinsics, spanEvent.intrinsics) &&
                 Objects.equals(agentAttributes, spanEvent.agentAttributes) &&
                 super.equals(o);
@@ -177,6 +192,8 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         private final Map<String, Object> intrinsics = new HashMap<>();
         private final Map<String, Object> agentAttributes = new HashMap<>();
         private final Map<String, Object> userAttributes = new HashMap<>();
+        private List<LinkOnSpan> linkOnSpanEvents = new ArrayList<>();
+        private List<EventOnSpan> eventOnSpanEvents = new ArrayList<>();
         private String appName;
         private float priority;
         private long timestamp;
@@ -191,6 +208,20 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
 
         public Builder priority(float priority) {
             this.priority = priority;
+            return this;
+        }
+
+        public Builder linkOnSpanEvents(List<LinkOnSpan> linkOnSpanEvents) {
+            if (linkOnSpanEvents != null) {
+                this.linkOnSpanEvents = linkOnSpanEvents;
+            }
+            return this;
+        }
+
+        public Builder eventOnSpanEvents(List<EventOnSpan> eventOnSpanEvents) {
+            if (eventOnSpanEvents != null) {
+                this.eventOnSpanEvents = eventOnSpanEvents;
+            }
             return this;
         }
 

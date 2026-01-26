@@ -7,19 +7,19 @@ This version of the Java Agent supports Java versions 8 - 25.
   ## App/Web severs
   The agent automatically instruments the following app/web servers.
 
-  * Glassfish 3.0 to latest
+  * Glassfish 6.0 to latest
   * JBoss 7.0 to latest
   * Jetty 7.0.0 to latest
   * Mule 3.4.0 to latest
   * Netty 3.3.0.Alpha1 to 5.0.0.Alpha1 (exclusive)
   * Netty Reactor 0.7.0.RELEASE to latest
   * Open Liberty 21.0.0.12 to latest
-  * Play 2.3.0 to latest
+  * Play 2.4.0-M3 to latest
   * Resin 3.1.9 to latest
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 12.2.x (exclusive)
+  * WebLogic 12.1.2.1 to 14.1.1
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
@@ -43,10 +43,10 @@ This version of the Java Agent supports Java versions 8 - 25.
     * Scala 2.13: 3.2 to 3.3.4
   * CXF 2.1.3 to latest
   * EJB 6.0 to latest
-  * Grails 1.3.0 to 3.0.0.RC1 (exclusive)
+  * Grails 2.0 to 3.0.0.RC1 (exclusive)
   * GraphQL 16.0 to 21.0 (exclusive)
   * GraphQL Java 21.0 to latest
-  * Hibernate 3.3.0.CR1 to 6.0.0.Alpha2 (exclusive)
+  * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
   * JAX-RS 1.0 to 4.0 (exclusive)
   * JCache API 1.0.0 to latest
@@ -64,7 +64,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Pekko Http Core 1.0.0 to latest
     * Scala 2.13: 1.0.0 to latest
     * Scala 3: 1.0.0 to latest
-  * Play 2.3.0 to latest
+  * Play 2.4.0-M3 to latest
   * Quartz Scheduler 1.7.2 to latest
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
@@ -76,7 +76,6 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Spring Web Services 1.5.7 to 4.0.0 (exclusive)
   * Spring WebFlux 5.0.0.RELEASE to latest
   * Struts 2.0 to latest
-  * Thrift 0.8.0 to latest
   * Vertx 3.2.0 to 5.0.0.CR1 (exclusive)
   * ZIO 1.0.9 to latest
     * Scala 2.13: 1.0.9 to latest
@@ -104,14 +103,14 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Ning AsyncHttpClient 1.0 to 2.0.0 (exclusive)
   * OKHttp 3.6.0 to 4.4.0 (exclusive)
   * Play WS 2.6.0 to latest
-    * Scala 2.12: 2.6.0 to latest
     * Scala 2.13: 2.7.3 to latest
+    * Scala 2.12: 2.6.0 to latest
   * Spray 1.3.1 to latest
   * Spring Webclient 5.0.0.RELEASE to latest
   * Spring Webflux 5.0.0.RELEASE to latest
   * STTP 2.2.3 to latest
-    * Scala 2.13: 2.2.3 to latest
     * Scala 2.12: 2.2.3 to latest
+    * Scala 2.13: 2.2.3 to latest
 
   ## Logging libraries
   The agent automatically instruments the following logging libraries. For more information about the Java agent's logging solutions, including
@@ -133,7 +132,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * AWS SQS 1.10.44 to latest
   * Azure Service Bus 7.15.0 to latest
   * JMS 1.1 to latest
-  * RabbitAMQP 1.7.2 to latest
+  * RabbitAMQP 2.7.0 to latest
   * Spring JMS 0 to latest
   * Spring Kafka 2.2.0.RELEASE to latest
 
@@ -172,7 +171,6 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Lettuce 4.2.1.Final to latest
   * MariaDB Java Client (3.0.2-rc,) to latest
   * MariaDB R2DBC 1.0.2 to latest
-  * Merlia 7.03 to latest
   * MongoDB 4.2.0 to 5.6.0 (exclusive)
   * MongoDB async clients 3.4.0 to 4.2.0 (exclusive)
   * MongoDB sync clients 3.1.0-rc0 to latest
@@ -181,14 +179,12 @@ This version of the Java Agent supports Java versions 8 - 25.
   * MySQL R2DBC 0.8.2 to latest
   * Oracle JDBC 5 to latest
   * Oracle R2DBC 0.0.0 to latest
-  * Oranxo 3.06 to latest
   * PostgreSQL 8.0-312.jdbc3 to latest
   * PostgreSQL R2DBC 0.9.0 to latest
   * Slick 3.0.0 to latest
-  * Solr 4.0.0 to latest
+  * Solr 5.1.0 to latest
   * Spymemcached 2.11 to latest
   * SQLServer jdk6 to latest
-  * Sybase 6 to latest
   * Vertx Sql Client 4.4.2 to 5.0.0 (exclusive)
 
   ## Instance-level database information
@@ -208,7 +204,6 @@ This version of the Java Agent supports Java versions 8 - 25.
   * AWS Bedrock 2.20.157 to latest
 
   ## Other instrumented features
-  * AWS Wrap 0.7.0 to latest
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
   * JSP 2.0 to latest
