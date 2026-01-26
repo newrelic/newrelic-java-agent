@@ -10,11 +10,14 @@ package com.newrelic.agent.tracers;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.trace.TransactionSegment;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -192,7 +195,7 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
 
     @Override
     public final TransactionSegment getTransactionSegment(TransactionTracerConfig ttConfig,
-                                                          SqlObfuscator sqlObfuscator, long startTime, TransactionSegment lastSibling) {
+            SqlObfuscator sqlObfuscator, long startTime, TransactionSegment lastSibling) {
         return new TransactionSegment(ttConfig, sqlObfuscator, startTime, this);
     }
 
@@ -207,5 +210,23 @@ public abstract class MethodExitTracerNoSkip extends AbstractTracer {
     @Override
     public String getGuid() {
         return null;
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent link) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
+        return Collections.emptyList();
     }
 }
