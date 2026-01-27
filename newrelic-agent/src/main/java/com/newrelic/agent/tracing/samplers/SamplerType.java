@@ -1,8 +1,11 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.agent.tracing.samplers;
-
-import com.newrelic.api.agent.NewRelic;
-
-import java.util.logging.Level;
 
 public enum SamplerType {
     ADAPTIVE("Adaptive"),
