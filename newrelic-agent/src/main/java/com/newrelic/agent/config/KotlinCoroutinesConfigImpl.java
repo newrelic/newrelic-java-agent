@@ -15,6 +15,7 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     public static final String IGNORE_REGEX = "ignoreRegex";
     public static final String DELAYED_ROOT = "delayed";
     public static final String ENABLED = "enabled";
+    public static final String SUSPENDS_ROOT = "suspends";
     private static final boolean DELAY_DEFAULT = true;
     private String[] ignoredContinuations = null;
     private String[] ignoredScopes = null;
@@ -74,6 +75,17 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
             }
         } else {
             delayedEnabled = DELAY_DEFAULT;
+        }
+
+        Map<String, String> suspended_root = getProperty(SUSPENDS_ROOT);
+        if (suspended_root != null) {
+            String suspendsToIgnore = suspended_root.get(IGNORE);
+            ignoredSuspends = splitString(suspendsToIgnore);
+            String suspendsToIgnoreRegex = suspended_root.get(IGNORE_REGEX);
+            ignoredRegexSuspends = splitString(suspendsToIgnoreRegex);
+        } else {
+            ignoredSuspends = new String[0];
+            ignoredRegexSuspends = new String[0];
         }
     }
 
