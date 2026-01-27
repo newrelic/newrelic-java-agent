@@ -20,13 +20,16 @@ import com.newrelic.agent.profile.ProfileData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transport.DataSender;
-import org.json.simple.JSONArray;
+import com.newrelic.agent.transport.InitialSizedJsonArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
+import org.json.simple.JSONValue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
@@ -144,30 +147,33 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
-    public void commitAndFlush() throws Exception {
-        writeData();
+    public void commitAndFlush() throws IOException {
+        writeJSONData();
     }
 
-    void writeData() {
+    void writeJSONData() throws IOException {
         JSONObject data = this.buffer.formatJson();
         serverlessWriter.write(createFilePayload(data), createConsolePayload(data));
         this.buffer.clear();
     }
 
-    String createFilePayload(JSONObject data) {
-        final List<Object> payload = Arrays.asList(2, "NR_LAMBDA_MONITORING", getMetadata(),
-                compressAndEncode(JSONObject.toJSONString(data).replace("\\/","/")));
+    String createFilePayload(JSONObject data) throws IOException {
+        InitialSizedJsonArray payload = new InitialSizedJsonArray(4);
+        payload.add(2);
+        payload.add("NR_LAMBDA_MONITORING");
+        payload.add(getMetadata());
+        payload.add(compressAndEncode(writeJSONData(data)));
 
-        return JSONArray.toJSONString(payload).replace("\\/","/");
+        return writeJSONData(payload);
     }
 
-    String createConsolePayload(JSONObject data) {
-        JSONArray jsonArray = new JSONArray();
-        jsonArray.add(2);
-        jsonArray.add("NR_LAMBDA_MONITORING");
-        jsonArray.add(getMetadata());
-        jsonArray.add(data);
-        return jsonArray.toJSONString().replace("\\/","/");
+    String createConsolePayload(JSONObject data) throws IOException {
+        InitialSizedJsonArray payload = new InitialSizedJsonArray(4);
+        payload.add(2);
+        payload.add("NR_LAMBDA_MONITORING");
+        payload.add(getMetadata());
+        payload.add(writeJSONData(data));
+        return writeJSONData(payload);
     }
 
     private Map<String, Object> getMetadata() {
@@ -230,6 +236,16 @@ public class DataSenderServerlessImpl implements DataSender {
         // No version available
         logger.log(java.util.logging.Level.FINE, "Serverless function version not available from instrumentation or configuration");
         return null;
+    }
+
+    private String writeJSONData(JSONStreamAware params) throws IOException {
+
+        try (ByteArrayOutputStream outStream = new ByteArrayOutputStream(); Writer out = new OutputStreamWriter(outStream, StandardCharsets.UTF_8)) {
+            JSONValue.writeJSONString(params, out);
+            out.flush();
+            String jsonStr = new String(outStream.toByteArray(), StandardCharsets.UTF_8).replace("\\/","/").replace("\\\"", "\"");
+            return jsonStr;
+        }
     }
 
     /**
