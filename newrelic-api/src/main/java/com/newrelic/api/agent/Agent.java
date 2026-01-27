@@ -13,6 +13,13 @@ import java.util.Map;
  * The New Relic Java Agent's API.
  */
 public interface Agent {
+    /**
+     * Returns a no-op instance of the Agent api.
+     * @since 8.7.1
+     */
+    static Agent noop() {
+        return NoOpAgent.INSTANCE;
+    }
 
     /**
      * Returns the current traced method. This can only be invoked within methods that are traced.

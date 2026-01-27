@@ -9,7 +9,6 @@ package com.newrelic.agent;
 
 import com.newrelic.agent.aimonitoring.AiMonitoringImpl;
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.NoOpMetricAggregator;
 import com.newrelic.agent.bridge.NoOpTracedMethod;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.TracedMethod;
@@ -136,7 +135,7 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINE, "getMetricAggregator() call failed : {0}", t.getMessage());
             Agent.LOG.log(Level.FINEST, t, "getMetricAggregator() call failed");
-            return NoOpMetricAggregator.INSTANCE;
+            return com.newrelic.api.agent.Agent.noop().getMetricAggregator();
         }
     }
 
