@@ -48,9 +48,9 @@ public class LambdaInstrumentationHelper {
                 return false;
             }
 
-            captureLambdaMetadata(context);
+            captureLambdaMetadata(context, transaction);
 
-            handleColdStart();
+            handleColdStart(transaction);
 
             return true;
         } catch (Throwable t) {
@@ -62,19 +62,20 @@ public class LambdaInstrumentationHelper {
     /**
      * Captures Lambda-specific metadata from the Context via AgentBridge.
      * Stores ARN and function version for inclusion in serverless payload envelope.
-     * Also adds transaction attributes for arn and requestId.
+     * Also adds agent attributes for arn and requestId.
      *
      * Each attribute is extracted independently with its own error handling to ensure
      * that a failure extracting one attribute doesn't impact the extraction of another.
      *
      * @param context The Lambda execution context
+     * @param transaction The current transaction
      */
-    private static void captureLambdaMetadata(Context context) {
+    private static void captureLambdaMetadata(Context context, Transaction transaction) {
         try {
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
                 AgentBridge.serverlessApi.setArn(arn);
-                NewRelic.addCustomParameter(LAMBDA_ARN_ATTRIBUTE, arn);
+                transaction.getAgentAttributes().put(LAMBDA_ARN_ATTRIBUTE, arn);
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda ARN");
@@ -92,7 +93,7 @@ public class LambdaInstrumentationHelper {
         try {
             String requestId = context.getAwsRequestId();
             if (requestId != null && !requestId.isEmpty()) {
-                NewRelic.addCustomParameter(AWS_REQUEST_ID_ATTRIBUTE, requestId);
+                transaction.getAgentAttributes().put(AWS_REQUEST_ID_ATTRIBUTE, requestId);
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda request ID");
@@ -103,14 +104,16 @@ public class LambdaInstrumentationHelper {
      * Tracks whether this is a cold start (first invocation).
      * Adds the aws.lambda.coldStart agent attribute when it's a cold start.
      * According to the Lambda spec, the attribute should only be added when true (omitted when false).
+     *
+     * @param transaction The current transaction
      */
-    private static void handleColdStart() {
+    private static void handleColdStart(Transaction transaction) {
         try {
             // Check if this is a cold start (first invocation)
             boolean isColdStart = COLD_START.compareAndSet(true, false);
 
             if (isColdStart) {
-                NewRelic.addCustomParameter(LAMBDA_COLD_START_ATTRIBUTE, true);
+                transaction.getAgentAttributes().put(LAMBDA_COLD_START_ATTRIBUTE, true);
                 NewRelic.getAgent().getLogger().log(Level.FINE, "Cold start detected, added aws.lambda.coldStart attribute");
             }
         } catch (Throwable t) {
