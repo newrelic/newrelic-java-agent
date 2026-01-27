@@ -301,6 +301,7 @@ public class DataSenderServerlessImplTest {
 
     @Test
     public void testMetrics() throws Exception {
+        dataSender.sendMetricData(2L, 3L, Collections.emptyList());
         MetricData metricData1 = MetricData.create(
                 MetricName.create("Other/myMetric", "myScope"),
                 null,
@@ -310,14 +311,14 @@ public class DataSenderServerlessImplTest {
                 1233,
                 new StatsImpl(5, 2, 0, 3, 2));
 
-        dataSender.sendMetricData(1L, 2L, Arrays.asList(metricData1, metricData2));
+        dataSender.sendMetricData(1L, 4L, Arrays.asList(metricData1, metricData2));
 
         Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
         dataSender.commitAndFlush();
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
-                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdKJjq5WykvMTVWyUvIvyUgt0s+t9AWrVNJRKk7OLwBJ5FYGg1m1OtGmOkZ6BmBsAMTGEHZsrE60oZGxMU7p2NhaAFY6tf6BAAAA\"]",
-                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"{\"metric_data\":[null,1,2,[[{\"name\":\"Other/myMetric\",\"scope\":\"myScope\"},[5,2.0,2.0,0.0,3.0,2.0]],[1233,[5,2.0,2.0,0.0,3.0,2.0]]]]}\"]"
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAAKtWyk0tKcpMjk9JLElUsorOK83J0THUMdGJjq5WykvMTVWyUvIvyUgt0s+t9AWrVNJRKk7OLwBJ5FYGg1m1OtGmOkZ6BmBsAMTGEHZsrE60oZGxMU7p2NhaAPW1fQaBAAAA\"]",
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"{\"metric_data\":[null,1,4,[[{\"name\":\"Other/myMetric\",\"scope\":\"myScope\"},[5,2.0,2.0,0.0,3.0,2.0]],[1233,[5,2.0,2.0,0.0,3.0,2.0]]]]}\"]"
         );
     }
 

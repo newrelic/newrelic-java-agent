@@ -1,38 +1,23 @@
 package com.newrelic.agent.transport.serverless;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.MetricData;
-import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.ErrorEvent;
-import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SqlTrace;
-import com.newrelic.agent.stats.CountStats;
-import com.newrelic.agent.stats.StatsBase;
-import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.agent.trace.TransactionTrace;
-import com.newrelic.agent.transport.InitialSizedJsonArray;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONStreamAware;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.zip.GZIPOutputStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Thread safe buffer to store telemetry to be outputted in serverless mode.
