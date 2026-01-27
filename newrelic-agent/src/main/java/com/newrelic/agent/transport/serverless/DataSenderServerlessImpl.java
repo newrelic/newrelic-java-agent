@@ -172,12 +172,12 @@ public class DataSenderServerlessImpl implements DataSender {
         payload.add(2);
         payload.add("NR_LAMBDA_MONITORING");
         payload.add(getMetadata());
-        payload.add(writeJSONData(data));
+        payload.add(data);
         return writeJSONData(payload);
     }
 
-    private Map<String, Object> getMetadata() {
-        final Map<String, Object> metadata = new HashMap<>();
+    private JSONObject getMetadata() {
+        JSONObject metadata = new JSONObject();
         metadata.put("protocol_version", 16);
         metadata.put("arn", getArn());
         metadata.put("execution_environment", awsExecutionEnv);
