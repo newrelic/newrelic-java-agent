@@ -133,6 +133,9 @@ public class DistributedSamplingPriorityQueue<E extends PriorityAware> implement
         return serviceName;
     }
 
+    //Warning: this method returns all sampled-level events that were
+    //added to the queue, including ones that were later evicted by a
+    //higher-priority sampled element.
     @Override
     public int getTotalSampledPriorityEvents(){
         return sampled.get();

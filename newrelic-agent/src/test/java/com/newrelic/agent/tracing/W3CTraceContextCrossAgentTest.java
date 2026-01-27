@@ -9,14 +9,17 @@ package com.newrelic.agent.tracing;
 
 import com.google.common.collect.Lists;
 import com.newrelic.agent.*;
+import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Instrumentation;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerType;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;
@@ -55,6 +58,9 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.ROOT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -109,17 +115,9 @@ public class W3CTraceContextCrossAgentTest {
         // it gets added as a sub-option to any sampler type of "trace_id_ratio_based".
         // Currently, if the "ratio" key exists, it will be a valid float so we can skip
         // validation.
-        Object maybeRatio = testData.get("ratio");
-        Map<String, Object> ratioConfig = maybeRatio == null ? null : Collections.singletonMap("ratio", maybeRatio);
-        Map<String, Object> samplerConfig = new HashMap<>();
-        samplerConfig.put("root", testData.get("root"));
-        samplerConfig.put("remote_parent_sampled", testData.get("remote_parent_sampled"));
-        samplerConfig.put("remote_parent_not_sampled", testData.get("remote_parent_not_sampled"));
-        addRatioSubOptionIfRequired(samplerConfig, ratioConfig);
 
-        Map<String, Object> dtConfig = new HashMap<>();
-        dtConfig.put(SamplerConfig.SAMPLER_CONFIG_ROOT, samplerConfig);
-        dtConfig.put("enabled", true);
+        Map<String, Object> dtConfig = setupCoreTracingOptions(testData);
+        dtConfig.putIfAbsent("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
         Map<String, Object> spanConfig = new HashMap<>();
@@ -155,6 +153,62 @@ public class W3CTraceContextCrossAgentTest {
         spanEventService = createSpanEventService(configService, transactionDataToDistributedTraceIntrinsics);
         serviceManager.setDistributedTraceService(distributedTraceService);
         serviceManager.setSpansEventService(spanEventService);
+    }
+
+    private Map<String, Object> setupCoreTracingOptions(JSONObject testData) {
+        //full granularity settings
+        HashMap<String, Object> dtConfig = new HashMap<>();
+
+        //top-level DT setting
+        Object isDTEnabled = testData.get("distributed_tracing_enabled");
+        if (isDTEnabled != null) {
+            dtConfig.put("enabled", isDTEnabled);
+        }
+
+        //sampler settings
+        HashMap<String, Object> samplerConfig = new HashMap<>();
+        Object fullGranRoot = testData.get("root");
+        if (fullGranRoot != null) {
+            samplerConfig.put("root", fullGranRoot);
+        }
+        Object remoteParentSampled = testData.get("remote_parent_sampled");
+        if (remoteParentSampled != null) {
+            samplerConfig.put("remote_parent_sampled", remoteParentSampled);
+        }
+        Object remoteParentNotSampled = testData.get("remote_parent_not_sampled");
+        if (remoteParentNotSampled != null) {
+            samplerConfig.put("remote_parent_not_sampled", remoteParentNotSampled);
+        }
+        Object fullGranularityRatio = testData.get("full_granularity_ratio");
+        Map<String, Object> ratioConfig = fullGranularityRatio == null ? null : Collections.singletonMap("ratio", fullGranularityRatio);
+        addRatioSubOptionIfRequired(samplerConfig, ratioConfig);
+
+        //full granularity settings
+        Object fullGranularityEnabled = testData.get("full_granularity_enabled");
+        if (fullGranularityEnabled != null) {
+            HashMap<String, Object> fullGranularityConfig = new HashMap<>();
+            fullGranularityConfig.put("enabled", fullGranularityEnabled);
+            samplerConfig.put("full_granularity", fullGranularityConfig);
+        }
+
+        //partial granularity settings
+        HashMap<String, Object> partialGranularityConfig = new HashMap<>();
+        Object partialGranularityEnabled = testData.get("partial_granularity_enabled");
+        if (partialGranularityEnabled != null) {
+            partialGranularityConfig.put("enabled", partialGranularityEnabled);
+        }
+        partialGranularityConfig.put("root", testData.get("partial_granularity_root"));
+        partialGranularityConfig.put("remote_parent_sampled", testData.get("partial_granularity_remote_parent_sampled"));
+        partialGranularityConfig.put("remote_parent_not_sampled", testData.get("partial_granularity_remote_parent_not_sampled"));
+        Object partialGranularityRatio = testData.get("partial_granularity_ratio");
+        Map<String, Object> partialRatioConfig = partialGranularityRatio == null ? null : Collections.singletonMap("ratio", partialGranularityRatio);
+        addRatioSubOptionIfRequired(partialGranularityConfig, partialRatioConfig);
+        if (!partialGranularityConfig.isEmpty()) {
+            samplerConfig.put("partial_granularity", partialGranularityConfig);
+        }
+
+        dtConfig.put("sampler",  samplerConfig);
+        return dtConfig;
     }
 
     @After
@@ -195,12 +249,13 @@ public class W3CTraceContextCrossAgentTest {
         String transportType = (String) testData.get("transport_type");
         Boolean webTransaction = (Boolean) testData.get("web_transaction");
         Boolean raisesException = (Boolean) testData.get("raises_exception");
-        Boolean forceSampledTrue = (Boolean) testData.get("force_adaptive_sampled_true");
         Boolean spanEventsEnabled = (Boolean) testData.get("span_events_enabled");
         JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
+        //core tracing settings
         String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
         String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
         String rootSamplerType = (String) testData.get("root");
+        Boolean forceSampledTrue = (Boolean) testData.get("force_adaptive_sampled");
 
         replaceConfig(spanEventsEnabled);
 
@@ -224,17 +279,30 @@ public class W3CTraceContextCrossAgentTest {
         AgentConfig agentConfig = AgentHelper.createAgentConfig(true, Collections.<String, Object>emptyMap(), connectInfo);
         distributedTraceService.connected(null, agentConfig);
 
+        DistributedTracingConfig dtConfig = serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
+
         //have to force the adaptive sampler if configured
         if (forceSampledTrue != null) {
             Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
-            if ("default".equals(remoteParentSampledSamplerType) || remoteParentSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentSampledSampler(forceSampler);
+            //correct the full granularity samplers, if applicable.
+            if (distributedTraceService.getFullGranularitySamplers().get(ROOT).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, ROOT, forceSampler);
             }
-            if ("default".equals(remoteParentNotSampledSamplerType) || remoteParentNotSampledSamplerType == null) {
-                distributedTraceService.setRemoteParentNotSampledSampler(forceSampler);
+            if (distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_SAMPLED, forceSampler);
             }
-            if ("default".equals(rootSamplerType) || rootSamplerType == null) {
-                distributedTraceService.setRootSampler(forceSampler);
+            if (distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
+            }
+            //correct the partial granularity samplers, if applicable.
+            if (distributedTraceService.getPartialGranularitySamplers().get(ROOT).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, ROOT, forceSampler);
+            }
+            if (distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_SAMPLED, forceSampler);
+            }
+            if (distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
             }
         }
 
@@ -345,10 +413,10 @@ public class W3CTraceContextCrossAgentTest {
         if (actualPriority == null) {
             fail();
         }
-        long myVal = (long) priorityBetween.get(0);
-        long myVal2 = (long) priorityBetween.get(1);
-        float minPriority = (float) myVal;
-        float maxPriority = (float) myVal2;
+        Number rawMin = (Number) priorityBetween.get(0);
+        Number rawMax = (Number) priorityBetween.get(1);
+        float minPriority = rawMin.floatValue();
+        float maxPriority = rawMax.floatValue();
         System.out.println("Expected range: " + priorityBetween + " actual priority: " + actualPriority);
         assertTrue(minPriority <= actualPriority && maxPriority >= actualPriority);
     }

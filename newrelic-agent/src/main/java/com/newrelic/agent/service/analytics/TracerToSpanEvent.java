@@ -140,15 +140,15 @@ public class TracerToSpanEvent {
     }
 
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
-            boolean crossProcessOnly) {
+            boolean removeNonEssentialAttrs) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
 
-        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier, removeNonEssentialAttrs)
                 .setGuid(tracer.getGuid())
                 .setClmAttributes(tracer.getAgentAttributes())
                 .setTraceId(spanProxy.getOrCreateTraceId())
                 .setSampled(transactionData.sampled())
-                .setParentId(getParentId(tracer, transactionData, crossProcessOnly))
+                .setParentId(getParentId(tracer, transactionData))
                 .setTransactionId(transactionData.getGuid())
                 .setDurationInSeconds((float) tracer.getDuration() / TimeConversion.NANOSECONDS_PER_SECOND)
                 .setName(tracer.getTransactionSegmentName())
@@ -173,7 +173,7 @@ public class TracerToSpanEvent {
             builder.setTracingVendors(vendorKeys);
         }
 
-        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(MAX_USER_ATTRIBUTES);
+        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(removeNonEssentialAttrs ? 0 : MAX_USER_ATTRIBUTES);
 
         // order matters here because we don't want transaction attributes to overwrite tracer attributes. This would be the case if there were 64
         // transaction attributes and they got added first to the span attributes map. Then none of the tracer attributes would make it in due
@@ -266,12 +266,7 @@ public class TracerToSpanEvent {
         return Maps.filterKeys(intrinsicAttributes, key -> !UNWANTED_SPAN_ATTRIBUTES.contains(key));
     }
 
-    private String getParentId(Tracer tracer, TransactionData transactionData, boolean crossProcessOnly) {
-        if (crossProcessOnly) {
-            // Cross process only uses transactionId for parenting instead of the parentId attribute so we do not have a parentId here
-            return null;
-        }
-
+    private String getParentId(Tracer tracer, TransactionData transactionData) {
         // This is the non cross_process_only case where we "parent" using the parent tracer
         // or the inbound payload id if this is the first/root tracer and we have an inbound payload
         Tracer parentSegment = AbstractTracer.getParentTracerWithSpan(tracer.getParentTracer());

@@ -189,6 +189,118 @@ public class SpanEventTest {
         assertEquals("wally", spanEvent.getAppName());
     }
 
+    @Test
+    public void spanEvent_updateParentId() {
+        SpanEvent span = SpanEvent.builder()
+                .putIntrinsic("parentId", "old")
+                .build();
+        assertEquals("old", span.getIntrinsics().get("parentId"));
+        span.updateParentSpanId("new");
+        assertEquals("new", span.getIntrinsics().get("parentId"));
+    }
+
+    @Test
+    public void spanEvent_matches_nonMatchingSpan() {
+        Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+        entitySynthesisAttrs1.put("http.url", "myurl1");
+        SpanEvent span1 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs1).build();
+
+        Map<String, String> entitySynthesisAttrs2 = new HashMap<>();
+        entitySynthesisAttrs2.put("http.url", "myurl2");
+        SpanEvent span2 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs2).build();
+
+        assertEquals(false, span1.matchesEntitySynthesisAttrs(span2));
+    }
+
+    @Test
+    public void spanEvent_matches_matchingSpan() {
+        Map<String, String> entitySynthesisAttrs = new HashMap<>();
+        for (String attrName : SpanEvent.ENTITY_SYNTHESIS_ATTRS) {
+            entitySynthesisAttrs.put(attrName, attrName+"-value");
+        }
+        SpanEvent span1 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs).build();
+        SpanEvent span2 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs).build();
+
+        assertEquals(true, span1.matchesEntitySynthesisAttrs(span2));
+    }
+
+    @Test
+    public void spanEvent_hasEntitySynthAttrs_true() {
+        for (String attrName : SpanEvent.ENTITY_SYNTHESIS_ATTRS) {
+            Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+            entitySynthesisAttrs1.put(attrName, "value");
+            SpanEvent span = SpanEvent.builder()
+                    .putAllAgentAttributes(entitySynthesisAttrs1).build();
+            assertEquals(true, span.shouldBeKeptForPartialGranularity());
+        }
+    }
+
+    @Test
+    public void spanEvent_hasEntitySynthAttrs_false() {
+        Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+        entitySynthesisAttrs1.put("non-an-entity-synth-attr", "value");
+        SpanEvent span = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs1).build();
+        assertEquals(false, span.shouldBeKeptForPartialGranularity());
+    }
+
+    @Test
+    public void spanEvent_hasErrorAttrs_true() {
+        for (String attrName : SpanEvent.ERROR_ATTRS) {
+            Map<String, String> errorAttrs1 = new HashMap<>();
+            errorAttrs1.put(attrName, "value");
+            SpanEvent span = SpanEvent.builder()
+                    .putAllAgentAttributes(errorAttrs1).build();
+            assertEquals(true, span.hasAnyErrorAttrs());
+        }
+    }
+
+    @Test
+    public void spanEvent_hasErrorAttrs_false() {
+        Map<String, String> errorAttrs1 = new HashMap<>();
+        errorAttrs1.put("not-an-error-attr", "value");
+        SpanEvent span = SpanEvent.builder()
+                .putAllAgentAttributes(errorAttrs1).build();
+        assertEquals(false, span.hasAnyErrorAttrs());
+    }
+
+    @Test
+    public void spanEvent_removeNonEssentialAttrs_true() {
+        runRemoveNonEssentialAttrsTest(true);
+    }
+
+    @Test
+    public void spanEvent_removeNonEssentialAttrs_false() {
+        runRemoveNonEssentialAttrsTest(false);
+    }
+
+    private void runRemoveNonEssentialAttrsTest(boolean removeNonEssentialAttrs) {
+        Map<String, Object> allAttrs = new HashMap<>();
+        for (String attrName : SpanEvent.ESSENTIAL_ATTRIBUTES) {
+            allAttrs.put(attrName, attrName+"-value");
+        }
+        allAttrs.put("to-be-removed", "value");
+
+        SpanEvent span = SpanEvent.builder()
+                .timestamp(100)
+                .removeNonEssentialAttrs(removeNonEssentialAttrs)
+                .putAgentAttribute("also-remove","value")
+                .putAllAgentAttributes(allAttrs)
+                .build();
+
+        assertEquals(!removeNonEssentialAttrs, span.getAgentAttributes().containsKey("to-be-removed"));
+        assertEquals(!removeNonEssentialAttrs, span.getAgentAttributes().containsKey("also-remove"));
+
+        for (String attrName : SpanEvent.ESSENTIAL_ATTRIBUTES) {
+            assertEquals(true, span.getAgentAttributes().containsKey(attrName));
+            assertEquals(attrName+"-value", span.getAgentAttributes().get(attrName));
+        }
+    }
+
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
         return baseBuilder(now).putAllUserAttributes(singletonMap(extraUserAttr, value));
     }
