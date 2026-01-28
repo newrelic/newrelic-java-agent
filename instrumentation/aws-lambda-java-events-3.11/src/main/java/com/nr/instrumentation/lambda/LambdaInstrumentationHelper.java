@@ -15,6 +15,10 @@ import com.newrelic.api.agent.NewRelic;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_ARN_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_COLD_START_ATTRIBUTE;
+
 /**
  * Helper class for Lambda instrumentation.
  * Uses AgentBridge.serverlessApi to communicate metadata to the core agent
@@ -44,9 +48,9 @@ public class LambdaInstrumentationHelper {
                 return false;
             }
 
-            captureLambdaMetadata(context);
+            captureLambdaMetadata(context, transaction);
 
-            handleColdStart();
+            handleColdStart(transaction);
 
             return true;
         } catch (Throwable t) {
@@ -58,34 +62,60 @@ public class LambdaInstrumentationHelper {
     /**
      * Captures Lambda-specific metadata from the Context via AgentBridge.
      * Stores ARN and function version for inclusion in serverless payload envelope.
+     * Also adds agent attributes for arn and requestId.
+     *
+     * Each attribute is extracted independently with its own error handling to ensure
+     * that a failure extracting one attribute doesn't impact the extraction of another.
      *
      * @param context The Lambda execution context
+     * @param transaction The current transaction
      */
-    private static void captureLambdaMetadata(Context context) {
+    private static void captureLambdaMetadata(Context context, Transaction transaction) {
         try {
             String arn = context.getInvokedFunctionArn();
             if (arn != null && !arn.isEmpty()) {
                 AgentBridge.serverlessApi.setArn(arn);
+                transaction.getAgentAttributes().put(LAMBDA_ARN_ATTRIBUTE, arn);
             }
+        } catch (Throwable t) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda ARN");
+        }
 
+        try {
             String functionVersion = context.getFunctionVersion();
             if (functionVersion != null && !functionVersion.isEmpty()) {
                 AgentBridge.serverlessApi.setFunctionVersion(functionVersion);
             }
-
         } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda function version");
+        }
+
+        try {
+            String requestId = context.getAwsRequestId();
+            if (requestId != null && !requestId.isEmpty()) {
+                transaction.getAgentAttributes().put(AWS_REQUEST_ID_ATTRIBUTE, requestId);
+            }
+        } catch (Throwable t) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda request ID");
         }
     }
 
     /**
      * Tracks whether this is a cold start (first invocation).
-     * For future use. Currently just tracks state without reporting.
+     * Adds the aws.lambda.coldStart agent attribute when it's a cold start.
+     * According to the Lambda spec, the attribute should only be added when true (omitted when false).
+     *
+     * @param transaction The current transaction
      */
-    private static void handleColdStart() {
+    private static void handleColdStart(Transaction transaction) {
         try {
-            // Track cold start state (first invocation sets to false)
-            COLD_START.compareAndSet(true, false);
+            // Check if this is a cold start (first invocation)
+            boolean isColdStart = COLD_START.compareAndSet(true, false);
+
+            if (isColdStart) {
+                transaction.getAgentAttributes().put(LAMBDA_COLD_START_ATTRIBUTE, true);
+                NewRelic.getAgent().getLogger().log(Level.FINE, "Cold start detected, added aws.lambda.coldStart attribute");
+            }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error handling cold start");
         }
@@ -98,5 +128,12 @@ public class LambdaInstrumentationHelper {
      */
     public static void finishTransaction() {
         // This method is a placeholder for any future cleanup logic
+    }
+
+    /**
+     * Resets the cold start state for testing purposes only.
+     */
+    public static void resetColdStartForTesting() {
+        COLD_START.set(true);
     }
 }
