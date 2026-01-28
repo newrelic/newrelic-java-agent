@@ -116,11 +116,12 @@ public final class DatastoreInstanceDetection {
             // and the 2nd/last address was always the worker
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "Two different addresses detected: previous: {0} and new: {1}", previousAddress, addressToStore);
-            String multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE.name());
-            if (MultiHostConfig.FIRST.equals(MultiHostConfig.getAndValidateFrom(multihostPreference))) {
+            String multihostPreferenceAsString = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE.name());
+            MultiHostConfig multihostPreference = MultiHostConfig.getAndValidateFrom(multihostPreferenceAsString);
+            if (MultiHostConfig.FIRST.equals(multihostPreference)) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
                 return;
-            } else if (MultiHostConfig.LAST.equals(MultiHostConfig.getAndValidateFrom(multihostPreference))) {
+            } else if (MultiHostConfig.LAST.equals(multihostPreference)) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address: "+addressToStore);
                 // just keep going, and we'll store the new address
             } else {
