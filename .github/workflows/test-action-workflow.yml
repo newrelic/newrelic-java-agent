@@ -21,8 +21,8 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag -f v0.0.6 HEAD
-          git push -f origin v0.0.6
+          git tag -f v0.0.7 HEAD
+          git push -f origin v0.0.7
 
   test-agent-metadata-action:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
           newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
           apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
           agent-type: "NRJavaAgent"
-          version: "0.0.6"
+          version: "0.0.7"
           cache: false
 
   cleanup-test-tag:
@@ -51,4 +51,4 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git push origin :refs/tags/v0.0.6 || true
+          git push origin :refs/tags/v0.0.7 || true
