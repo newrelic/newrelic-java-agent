@@ -36,10 +36,20 @@ public final class DatastoreInstanceDetection {
         }
     };
 
-    public static enum MultiHostConfig {
-        NONE, FIRST, LAST
+    public enum MultiHostConfig {
+        NONE, FIRST, LAST;
+
+        public static MultiHostConfig getAndValidateFrom(String value) {
+            if (value == null) {
+                return NONE;
+            }
+            try {
+                return MultiHostConfig.valueOf(value.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return NONE;
+            }
+        }
     }
-    public static MultiHostConfig multihostConfig = MultiHostConfig.NONE;
 
     private static final ThreadLocal<InetSocketAddress> address = new ThreadLocal<>();
     private static final Map<Object, InetSocketAddress> connectionToAddress = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
@@ -106,11 +116,11 @@ public final class DatastoreInstanceDetection {
             // and the 2nd/last address was always the worker
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "Two different addresses detected: previous: {0} and new: {1}", previousAddress, addressToStore);
-            MultiHostConfig multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE);
-            if (MultiHostConfig.FIRST.equals(multihostPreference)) {
+            String multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE.name());
+            if (MultiHostConfig.FIRST.equals(MultiHostConfig.getAndValidateFrom(multihostPreference))) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
                 return;
-            } else if (MultiHostConfig.LAST.equals(multihostPreference)) {
+            } else if (MultiHostConfig.LAST.equals(MultiHostConfig.getAndValidateFrom(multihostPreference))) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address: "+addressToStore);
                 // just keep going, and we'll store the new address
             } else {
