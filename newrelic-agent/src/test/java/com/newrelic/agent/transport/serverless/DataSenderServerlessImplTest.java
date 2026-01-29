@@ -85,7 +85,8 @@ public class DataSenderServerlessImplTest {
     @Before
     public void before() {
         MockitoAnnotations.initMocks(this);
-        setupServiceManager(new HashMap<String, Object>());
+        HashMap<String, Object> props = new HashMap<>();
+        setupServiceManager(props);
 
         serverlessWriter = Mockito.mock(ServerlessWriter.class);
 
@@ -331,8 +332,8 @@ public class DataSenderServerlessImplTest {
         dataSender.commitAndFlush();
 
         Mockito.verify(serverlessWriter, Mockito.times(1)).write(
-                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAADXQyW6CQACA4XfhCgnLgO008UApoGULICoYY0aGfV8UpOm71zbp4c93/7+IsUf1gMIxa+rLgKq2jC4YjYh4O9W3sqROJ5YDPMvxwq/CM0pgGIYilL6px6jGNL7hiKCIfyNRKfNC1qdcNNIY6kt3PCx7lpNfZl6WFcDMoFP6nY+DrsqaBWLSFHVGlxI6ciDQ/IAuszrjtHxGD5QmdLhInWH4DadyQPFmq0cfrTWDyY1S3JBMIHJDpZLa+Al9Z+VvCsNDcKgWoCpdQYcwxAuO/YNjT9L2Ksj32O4Y1d1oQiAFwC20ZGNJWj/NWqRksbE1ncS+STbYmale1qvH/bgNXMFstHpP89lrBWW95WT4cFmrlXfkkvYeP0z53buqr+/HIVmvnwuSW4YJ6m9fjMohOp/P3z+BDsA2aQEAAA==\"]",
-                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"transaction_sample_data\":[null,[[1234124512345234,5000,\"Frontend/dude\",\"/dude\",\"eAFljkELwjAMhf9LzqXWzV12E7x4EEF30x3qFrTYdZqmioz9d+NAL0LCg/eR93KYZ/lini2Kjxayahg/czCqMMYo2G23FUxOraDpOx3wSehdo+0ZA2smG+KtJ9YR6YHkMUa9smz3GFqk/c9cdzdfYWRQwCIb5EvfQq0GSHK5ZCZ3SkKgHOCKrwxKeFifMINRgQuCQ3TNhLln6yvXIZS5NoKnV/4i8m9ELp2E9yS1OpET+zhrU4swjvUbG8BXsg==\",\"guid\",null,false]]]}]"
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},\"H4sIAAAAAAAAADWQyW6CUABF/4UtJAwPbGniglJAyxRAVDDGPHnM8yRI03+vtuni3nPW5wsbOlj1MBjSurr0sGyK8ILgALG3UzUWBXE60QxgaYblnuQeIziKoghM7upqCCtEohGFGIH9MxTkIsslbcoEPYl4bWmPh2VPM9LLzEqSDKgZtHK385Dflmm98Ag3BI3SxJgMbR6onk8WaZUyajbDO0xiMljEVte9mlEYILuz2cGPxpzB5IQJqnHKF5i+VHB1+OQ9e+Vtct2FfF8uQJHbnAz4AC0o8g62NYnbKyfdIqulFGejcr7oAydX440pqt00q6GcRvrWsGNrFC2wMxKtqFb323HrO5xRq9WeZNPXkpe0hpH4u0ObjbTDl6Rz2X7Kbu5VeX0/9vF6/UgQjynCiN98ESz68E+fdz6fv38Afqp1pHMBAAA=\"]",
+                "[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"transaction_sample_data\":[null,[[1234124512345234,5000,\"Frontend/dude\",\"/dude\",\"eAFljkELwjAMhf9LzqXWzV12E7x4EEF30x3qFrTYdZqmioz9d+NAL0LCg/eR93KYZ/lini2Kjxayahg/czCqMMYo2G23FUxOraDpOx3wSehdo+0ZA2smG+KtJ9YR6YHkMUa9smz3GFqk/c9cdzdfYWRQwCIb5EvfQq0GSHK5ZCZ3SkKgHOCKrwxKeFifMINRgQuCQ3TNhLln6yvXIZS5NoKnV/4i8m9ELp2E9yS1OpET+zhrU4swjvUbG8BXsg==\",\"guid\",null,false,null,null]]]}]"
         );
     }
 
@@ -431,6 +432,9 @@ public class DataSenderServerlessImplTest {
     private void setupServiceManager(Map<String, Object> settings) {
         MockServiceManager serviceManager = new MockServiceManager();
         settings.put("app_name", "Unit Test");
+        Map<String, Object> serverlessModeSettings  = new HashMap<>();
+        serverlessModeSettings.put("enabled", true);
+        settings.put("serverless_mode", serverlessModeSettings);
         serviceManager.setConfigService(ConfigServiceFactory.createConfigServiceUsingSettings(settings));
         serviceManager.setTransactionTraceService(Mockito.mock(TransactionTraceService.class));
         serviceManager.setTransactionService(Mockito.mock(TransactionService.class));

@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
@@ -152,26 +151,27 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     void writeJSONData() throws IOException {
-        JSONObject data = this.buffer.formatJson();
-        serverlessWriter.write(createFilePayload(data), createConsolePayload(data));
+        JSONObject data = this.buffer.toJsonObject();
+        JSONObject metadata = getMetadata();
+        serverlessWriter.write(createFilePayload(data, metadata), createConsolePayload(data, metadata));
         this.buffer.clear();
     }
 
-    String createFilePayload(JSONObject data) throws IOException {
+    String createFilePayload(JSONObject data, JSONObject metadata) throws IOException {
         InitialSizedJsonArray payload = new InitialSizedJsonArray(4);
         payload.add(2);
         payload.add("NR_LAMBDA_MONITORING");
-        payload.add(getMetadata());
+        payload.add(metadata);
         payload.add(compressAndEncode(writeJSONData(data)));
 
         return writeJSONData(payload);
     }
 
-    String createConsolePayload(JSONObject data) throws IOException {
+    String createConsolePayload(JSONObject data, JSONObject metadata) throws IOException {
         InitialSizedJsonArray payload = new InitialSizedJsonArray(4);
         payload.add(2);
         payload.add("NR_LAMBDA_MONITORING");
-        payload.add(getMetadata());
+        payload.add(metadata);
         payload.add(data);
         return writeJSONData(payload);
     }

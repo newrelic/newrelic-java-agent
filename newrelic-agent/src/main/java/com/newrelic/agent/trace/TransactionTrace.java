@@ -67,6 +67,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
     private String syntheticsInitiator;
     private Map<String, String> syntheticsAttributes;
     private final String applicationName;
+    private final boolean isServerlessMode;
 
     private TransactionTrace(TransactionData transactionData, SqlObfuscator sqlObfuscator) {
         this.applicationName = transactionData.getApplicationName();
@@ -84,6 +85,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 userAttributes.putAll(transactionData.getUserAttributes());
             }
         }
+        isServerlessMode = ServiceFactory.getConfigService().getAgentConfig(applicationName).getServerlessConfig().isEnabled();
         prefixedAttributes = transactionData.getPrefixedAttributes();
         intrinsicAttributes = getIntrinsics(transactionData);
         startTime = transactionData.getWallClockStartTimeMs();
@@ -345,7 +347,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
 
         List<Object> data = Arrays.asList(startTime, Collections.EMPTY_MAP, Collections.EMPTY_MAP, rootSegment, getAttributes());
 
-        if (null == syntheticsResourceId) {
+        if (null == syntheticsResourceId && !isServerlessMode) {
             JSONArray.writeJSONString(Arrays.asList(startTime, duration, rootMetricName, requestUri,
                     getData(writer, data), guid, null, forcePersist), writer);
         } else {

@@ -57,7 +57,7 @@ class TelemetryBuffer {
     public TelemetryBuffer() {
     }
 
-    public JSONObject formatJson() {
+    public JSONObject toJsonObject() {
         try {
             lock.readLock().lock();
 
