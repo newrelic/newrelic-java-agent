@@ -23,6 +23,10 @@ public class NRRunnable implements Runnable {
 		token = t;
 	}
 
+	public void setToken(Token token) {
+		this.token = token;
+	}
+
 	@Override
 	@Trace(async = true)
 	public void run() {

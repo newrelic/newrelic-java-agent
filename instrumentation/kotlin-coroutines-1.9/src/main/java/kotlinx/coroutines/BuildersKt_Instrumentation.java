@@ -15,6 +15,8 @@ import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.jvm.internal.SuspendFunction;
 import kotlin.jvm.functions.Function2;
 
+import java.util.logging.Level;
+
 @SuppressWarnings({ "unchecked", "rawtypes" })
 @Weave(originalName = "kotlinx.coroutines.BuildersKt")
 public class BuildersKt_Instrumentation {
@@ -42,13 +44,13 @@ public class BuildersKt_Instrumentation {
 	@Trace(dispatcher = true)
 	public static <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
             Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block) {
-		if (Utils.continueWithScope(scope)) {
+		String name = Utils.getCoroutineName(context);
+		if(name == null) {
+			name = Utils.getCoroutineName(scope.getCoroutineContext());
+		}
+		if (Utils.continueWithScope(scope) && Utils.continueWithScope(name)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
-			String name = Utils.getCoroutineName(context);
-			if(name == null) {
-				name = Utils.getCoroutineName(scope.getCoroutineContext());
-			}
 			if(name != null) {
 				NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Builders","async",name);
 				NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineName", name);
@@ -91,14 +93,15 @@ public class BuildersKt_Instrumentation {
 	@Trace(dispatcher = true)
 	public static kotlinx.coroutines.Job launch(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
             Function2<? super CoroutineScope, ? super Continuation<? super Unit>, ?> block) {
-		if (Utils.continueWithScope(scope)) {
+
+		String name = Utils.getCoroutineName(context);
+		if (name == null) {
+			name = Utils.getCoroutineName(scope.getCoroutineContext());
+		}
+		if (Utils.continueWithScope(scope) &&  Utils.continueWithScope(name)) {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
-			
-			String name = Utils.getCoroutineName(context);
-			if (name == null) {
-				name = Utils.getCoroutineName(scope.getCoroutineContext());
-			}
+
 			if (name != null) {
 				NewRelic.getAgent().getTracedMethod().setMetricName("Custom", "Builders", "launch", name);
 				NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineName", name);

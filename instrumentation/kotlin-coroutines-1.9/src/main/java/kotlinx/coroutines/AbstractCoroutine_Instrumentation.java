@@ -1,9 +1,6 @@
 package kotlinx.coroutines;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.TracedMethod;
-import com.newrelic.api.agent.TransactionNamePriority;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;

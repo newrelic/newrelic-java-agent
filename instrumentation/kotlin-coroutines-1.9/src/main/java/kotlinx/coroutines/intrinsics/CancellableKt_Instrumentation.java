@@ -57,7 +57,7 @@ public abstract class CancellableKt_Instrumentation {
 		Weaver.callOriginal();
 	}
 
-	@Trace
+	@Trace(dispatcher = true)
 	public static void startCoroutineCancellable(Continuation<? super kotlin.Unit> completion, Continuation<?> cont) {
 		String completionString = Utils.getContinuationString(completion);
 		if(!(completion instanceof SuspendFunction)) {

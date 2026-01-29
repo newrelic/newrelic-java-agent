@@ -1,9 +1,9 @@
 package com.newrelic.agent.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.newrelic.api.agent.NewRelic;
+
+import java.util.*;
+import java.util.logging.Level;
 
 public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoroutinesConfig {
 
@@ -43,8 +43,10 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
 
         Map<String, String> scopes_root = getProperty(SCOPES_ROOT);
         if (scopes_root != null) {
+            NewRelic.getAgent().getLogger().log(Level.FINE,"Scopes root {0}", scopes_root);
             String scopesToIgnore = scopes_root.get(IGNORE);
             ignoredScopes = splitString(scopesToIgnore);
+            NewRelic.getAgent().getLogger().log(Level.FINE,"ignoredScopes {0}", Arrays.asList(ignoredScopes));
             String scopesToIgnoreRegex = scopes_root.get(IGNORE_REGEX);
             ignoredRegexScopes = splitString(scopesToIgnoreRegex);
         } else {
@@ -144,8 +146,12 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         String[] firstSplit = input.split("\"");
         List<String> result = new ArrayList<>();
         for (String s : firstSplit) {
-            if(!s.trim().equals(",")) {
-                result.add(s.trim());
+            String[] secondSplit = s.split(",");
+            for(String split : secondSplit) {
+
+                if(!split.trim().equals(",")) {
+                    result.add(split.trim());
+                }
             }
         }
         String[] returnValue = new String[result.size()];

@@ -23,4 +23,12 @@ public abstract class CoroutineDispatcher_Instrumentation {
 		
 		Weaver.callOriginal();
 	}
+
+	public void dispatchYield(CoroutineContext ctx, Runnable r) {
+		NRRunnable wrapper = Utils.getRunnableWrapper(r);
+		if(wrapper != null) {
+			r = wrapper;
+		}
+		Weaver.callOriginal();
+	}
 }

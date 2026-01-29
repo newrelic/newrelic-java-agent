@@ -1,5 +1,6 @@
 package com.newrelic.instrumentation.kotlin.coroutines_19;
 
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.kotlincoroutines.CoroutineConfigListener;
 import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -11,9 +12,8 @@ import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
 import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -49,6 +49,12 @@ public class Utils implements CoroutineConfigListener {
 		if(r instanceof NRRunnable) {
 			return null;
 		}
+		Transaction transaction = Transaction.getTransaction();
+		if(transaction.isIgnore()) {
+			return null;
+		}
+
+
 		if(r instanceof DispatchedTask) {
 			DispatchedTask<?> task = (DispatchedTask<?>)r;
 			Continuation<?> cont = task.getDelegate$kotlinx_coroutines_core();
@@ -65,6 +71,7 @@ public class Utils implements CoroutineConfigListener {
 			t.expire();
 			t = null;
 		}
+		NewRelic.getAgent().getLogger().log(Level.FINE, "Not wrapping runnable because there is no active transaction");
 		return null;
 	}
 
@@ -84,12 +91,16 @@ public class Utils implements CoroutineConfigListener {
 	 * coroutineScope can be a Coroutine name or CoroutineScope class name
 	 */
 	public static boolean continueWithScope(String coroutineScope) {
+		NewRelic.getAgent().getLogger().log(Level.FINE,"Checking name {0} is in {1} or matches one of {2}",coroutineScope, ignoredScopes, ignoredScopePatterns);
 		for(Pattern ignoredScope : ignoredScopePatterns) {
 			if(ignoredScope.matcher(coroutineScope).matches()) {
 				return false;
 			}
 		}
-		return !ignoredScopes.contains(coroutineScope);
+		boolean result = ignoredScopes.contains(coroutineScope);
+		NewRelic.getAgent().getLogger().log(Level.FINE,"Check of name {0} is in {1} is {2} ",coroutineScope, ignoredScopes, result);
+
+		return !result;
 	}
 
 	public static boolean continueWithContinuation(Continuation<?> continuation) {
@@ -229,13 +240,13 @@ public class Utils implements CoroutineConfigListener {
 
 		if (ignores != null) {
 			ignoredScopes.addAll(Arrays.asList(ignores));
-			NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these Scopes: {0}", ignoredScopes);
+			NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these {0} Scopes: {1}", ignoredScopes.size(), ignoredScopes);
 		}
 
 		if(ignoresRegExs != null) {
 			for(String ignore : ignoresRegExs) {
 				ignoredScopePatterns.add(Pattern.compile(ignore));
-				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these scope regexs: {0}", ignoredScopePatterns);
+				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these {0} scope regexs: {1}", ignoredScopePatterns.size(),ignoredScopePatterns);
 			}
 		}
 	}
