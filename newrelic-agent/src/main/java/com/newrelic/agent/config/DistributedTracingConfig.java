@@ -7,12 +7,12 @@
 
 package com.newrelic.agent.config;
 
-import java.util.Collections;
-import java.util.Map;
+import com.newrelic.agent.config.coretracing.BaseSamplerCoreTracingConfig;
+import com.newrelic.agent.config.coretracing.CoreTracingConfig;
+import com.newrelic.agent.config.coretracing.PartialGranularityConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 
-import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_NOT_SAMPLED;
-import static com.newrelic.agent.config.SamplerConfig.REMOTE_PARENT_SAMPLED;
-import static com.newrelic.agent.config.SamplerConfig.ROOT;
+import java.util.Map;
 
 public class DistributedTracingConfig extends BaseConfig {
 
@@ -27,16 +27,16 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String DISTRIBUTED_TRACING_ENABLED = SYSTEM_PROPERTY_ROOT + ENABLED;
     public static final String ENABLED_ENV_KEY = "NEW_RELIC_DISTRIBUTED_TRACING_ENABLED";
     public static final String EXCLUDE_NEWRELIC_HEADER = "exclude_newrelic_header";
+    public static final String FULL_GRANULARITY = "full_granularity";
+    public static final String PARTIAL_GRANULARITY = "partial_granularity";
 
     private final boolean enabled;
     private final String trustedAccountKey;
     private final String accountId;
     private final String primaryApplicationId;
     private final boolean includeNewRelicHeader;
-
-    private final SamplerConfig rootSamplerConfig;
-    private final SamplerConfig remoteParentSampledConfig;
-    private final SamplerConfig remoteParentNotSampledConfig;
+    // the top-level, legacy sampler configuration
+    private final BaseSamplerCoreTracingConfig baseSamplerConfig;
 
     // will be passed up on connect and come back down as just 'sampling_target'
     // which will get assigned to transaction_events.target_samples_stored
@@ -50,14 +50,8 @@ public class DistributedTracingConfig extends BaseConfig {
         this.accountId = getProperty(ACCOUNT_ID);
         this.primaryApplicationId = getProperty(PRIMARY_APPLICATION_ID);
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
-
-        this.rootSamplerConfig = createSamplerConfig(ROOT);
-        this.remoteParentSampledConfig = createSamplerConfig(REMOTE_PARENT_SAMPLED);
-        this.remoteParentNotSampledConfig = createSamplerConfig(REMOTE_PARENT_NOT_SAMPLED);
-
-        // The adaptive_sampling_target can be retrieved from any of the SamplerConfigs as
-        // they'll all return the same value. Here we use the root sampler SamplerConfig instance.
-        this.adaptiveSamplingTarget = this.rootSamplerConfig.getAdaptiveSamplingTarget();
+        this.baseSamplerConfig = new BaseSamplerCoreTracingConfig(nestedProps("sampler"), SYSTEM_PROPERTY_ROOT);
+        this.adaptiveSamplingTarget = this.baseSamplerConfig.getSharedAdaptiveSamplingTarget();
     }
 
     public String getTrustedAccountKey() {
@@ -80,24 +74,30 @@ public class DistributedTracingConfig extends BaseConfig {
         return includeNewRelicHeader;
     }
 
-    public Integer getAdaptiveSamplingTarget() {
+    public int getAdaptiveSamplingTarget() {
         return adaptiveSamplingTarget;
     }
 
-    private SamplerConfig createSamplerConfig(String samplerType) {
-        Map<String, Object> samplerProps = getProperty(SamplerConfig.SAMPLER_CONFIG_ROOT, Collections.emptyMap());
-        return new SamplerConfig(samplerType, samplerProps, systemPropertyPrefix);
+    public CoreTracingConfig getFullGranularityConfig() {
+        return baseSamplerConfig.getFullGranularityConfig();
     }
 
+    public PartialGranularityConfig getPartialGranularityConfig() {
+        return baseSamplerConfig.getPartialGranularityConfig();
+    }
+
+    @Deprecated
     public SamplerConfig getRootSamplerConfig() {
-        return rootSamplerConfig;
+        return getFullGranularityConfig().getRootSampler();
     }
 
+    @Deprecated
     public SamplerConfig getRemoteParentSampledSamplerConfig() {
-        return remoteParentSampledConfig;
+        return getFullGranularityConfig().getRemoteParentSampledSampler();
     }
 
+    @Deprecated
     public SamplerConfig getRemoteParentNotSampledSamplerConfig() {
-        return remoteParentNotSampledConfig;
+        return getFullGranularityConfig().getRemoteParentNotSampledSampler();
     }
 }

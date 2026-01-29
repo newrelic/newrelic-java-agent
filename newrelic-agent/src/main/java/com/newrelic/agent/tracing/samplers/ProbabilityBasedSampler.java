@@ -7,8 +7,9 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ import java.util.logging.Level;
  */
 public class ProbabilityBasedSampler implements Sampler {
     private final long rejectionThreshold;
+    private final String description;
 
     /**
      * Construct a new ProbabilityBasedSampler with the desired probability
@@ -48,26 +50,33 @@ public class ProbabilityBasedSampler implements Sampler {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "ProbabilityBasedSampler: Invalid sampling probability supplied; setting " +
                             "rejection threshold to {0}", rejectionThreshold);
         }
+
+        this.description = String.format("Probability Based Sampler, samplingProbability=%.4f; rejectionThreshold=%d", samplingProbability, rejectionThreshold);
     }
 
     @Override
-    public float calculatePriority(Transaction tx) {
+    public float calculatePriority(Transaction tx, Granularity granularity) {
         String traceId = Sampler.traceIdFromTransaction(tx);
         if (traceId != null && traceId.length() == 32) {
             float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last14Chars = traceId.substring(18);
-                return initialPriority + (Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold ? 1.0f : 0.0f);
+                boolean sampled = Long.parseUnsignedLong(last14Chars, 16) >= rejectionThreshold;
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }
-
         return 0.0f;
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.PROBABILITY;
+    public SamplerType getType() {
+        return SamplerType.PROBABILITY;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
     }
 
     /**

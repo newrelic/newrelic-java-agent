@@ -6,18 +6,12 @@
  */
 package com.newrelic.agent.tracing.samplers;
 
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 
 /**
  * Factory to create instances of the various samplers used by the agent.
  */
 public class SamplerFactory {
-    public static final String  ADAPTIVE = "adaptive";
-    public static final String  ALWAYS_ON = "always_on";
-    public static final String  ALWAYS_OFF = "always_off";
-    public static final String  PROBABILITY = "probability";
-    public static final String TRACE_RATIO_ID_BASED = "trace_id_ratio_based";
-    public static final String  DEFAULT = "default";
 
     /**
      * Factory method to create an instance of a Sampler
@@ -27,21 +21,23 @@ public class SamplerFactory {
      * @return the constructed Sampler instance
      */
     public static Sampler createSampler(SamplerConfig samplerConfig) {
+        final String PROBABILITY = "probability"; //This setting is not yet enabled in config. Wired here for future use.
+
         switch (samplerConfig.getSamplerType()) {
-            case ALWAYS_ON:
+            case SamplerConfig.ALWAYS_ON:
                 return new AlwaysOnSampler();
 
-            case ALWAYS_OFF:
+            case SamplerConfig.ALWAYS_OFF:
                 return new AlwaysOffSampler();
+
+            case SamplerConfig.TRACE_ID_RATIO_BASED:
+                return new TraceRatioBasedSampler(samplerConfig);
 
             case PROBABILITY:
                 return new ProbabilityBasedSampler(samplerConfig);
 
-            case TRACE_RATIO_ID_BASED:
-                return new TraceRatioBasedSampler(samplerConfig);
-
             default:
-                return AdaptiveSampler.getSharedInstance();
+                return AdaptiveSampler.getAdaptiveSampler(samplerConfig);
         }
     }
 }

@@ -7,13 +7,15 @@
 
 package com.newrelic.agent.service.analytics;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributesUtils;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.json.AttributeFilters;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.stats.TransactionStats;
@@ -25,8 +27,11 @@ import com.newrelic.agent.tracing.W3CTraceState;
 import com.newrelic.agent.tracing.W3CTraceStateSupport;
 import com.newrelic.agent.util.TimeConversion;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -77,16 +82,73 @@ public class TracerToSpanEvent {
         this.defaultSpanErrorBuilder = defaultSpanErrorBuilder;
     }
 
+    /**
+     * Converts the OpenTelemetry SpanLinks stored on the Tracer into the New Relic LinkOnSpan
+     * data model and returns a list of all links to be added to the New Relic Span that
+     * is being synthesized.
+     *
+     * @param tracer          represents a specific traced method
+     * @param transactionData data on a specific transaction
+     * @return List of LinkOnSpan events or an empty list if there are no links
+     */
+    public List<LinkOnSpan> createLinkOnSpanEvents(Tracer tracer, TransactionData transactionData) {
+        List<SpanLink> spanLinks = tracer.getSpanLinks();
+        if (spanLinks.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<LinkOnSpan> linkOnSpanEvents = new ArrayList<>();
+        for (SpanLink spanLink : spanLinks) {
+            LinkOnSpan linkOnSpan = new LinkOnSpanFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+                    .setTimestamp(tracer.getStartTimeInMillis())
+                    .setId(spanLink.getId())
+                    .setTraceId(spanLink.getTraceId())
+                    .setLinkedSpanId(spanLink.getLinkedSpanId())
+                    .setLinkedTraceId(spanLink.getLinkedTraceId())
+                    .putAllUserAttributes(spanLink.getUserAttributes())
+                    .build();
+            linkOnSpanEvents.add(linkOnSpan);
+        }
+        return linkOnSpanEvents;
+    }
+
+    /**
+     * Converts the OpenTelemetry SpanEvents stored on the Tracer into the New Relic EventOnSpan
+     * data model and returns a list of all events to be added to the New Relic Span that
+     * is being synthesized.
+     *
+     * @param tracer          represents a specific traced method
+     * @param transactionData data on a specific transaction
+     * @return List of EventOnSpan events or an empty list if there are no events
+     */
+    public List<EventOnSpan> createEventOnSpanEvents(Tracer tracer, TransactionData transactionData) {
+        List<com.newrelic.agent.bridge.opentelemetry.SpanEvent> spanEvents = tracer.getSpanEvents();
+        if (spanEvents.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<EventOnSpan> eventOnSpanEvents = new ArrayList<>();
+        for (com.newrelic.agent.bridge.opentelemetry.SpanEvent spanEvent : spanEvents) {
+            EventOnSpan eventOnSpan = new EventOnSpanFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+                    .setTimestamp(spanEvent.getTimestamp())
+                    .setTraceId(spanEvent.getTraceId())
+                    .setSpanId(spanEvent.getSpanId())
+                    .setName(spanEvent.getName())
+                    .putAllUserAttributes(spanEvent.getUserAttributes())
+                    .build();
+            eventOnSpanEvents.add(eventOnSpan);
+        }
+        return eventOnSpanEvents;
+    }
+
     public SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, TransactionStats transactionStats, boolean isRoot,
-            boolean crossProcessOnly) {
+            boolean removeNonEssentialAttrs) {
         SpanProxy spanProxy = transactionData.getSpanProxy();
 
-        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier)
+        SpanEventFactory builder = new SpanEventFactory(transactionData.getApplicationName(), filter, timestampSupplier, removeNonEssentialAttrs)
                 .setGuid(tracer.getGuid())
                 .setClmAttributes(tracer.getAgentAttributes())
                 .setTraceId(spanProxy.getOrCreateTraceId())
                 .setSampled(transactionData.sampled())
-                .setParentId(getParentId(tracer, transactionData, crossProcessOnly))
+                .setParentId(getParentId(tracer, transactionData))
                 .setTransactionId(transactionData.getGuid())
                 .setDurationInSeconds((float) tracer.getDuration() / TimeConversion.NANOSECONDS_PER_SECOND)
                 .setName(tracer.getTransactionSegmentName())
@@ -95,7 +157,9 @@ public class TracerToSpanEvent {
                 .setExternalParameterAttributes(tracer.getExternalParameters())
                 .setAgentAttributesMarkedForSpans(tracer.getAgentAttributeNamesForSpans(), tracer.getAgentAttributes())
                 .setStackTraceAttributes(tracer.getAgentAttributes())
-                .setIsRootSpanEvent(isRoot);
+                .setIsRootSpanEvent(isRoot)
+                .setLinkOnSpanEvents(createLinkOnSpanEvents(tracer, transactionData))
+                .setEventOnSpanEvents(createEventOnSpanEvents(tracer, transactionData));
 
         builder = maybeSetError(tracer, transactionData, isRoot, builder);
         builder = maybeSetGraphQLAttributes(tracer, builder);
@@ -109,7 +173,7 @@ public class TracerToSpanEvent {
             builder.setTracingVendors(vendorKeys);
         }
 
-        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(MAX_USER_ATTRIBUTES);
+        LimitedSizeHashMap<String, Object> spanUserAttributes = new LimitedSizeHashMap<>(removeNonEssentialAttrs ? 0 : MAX_USER_ATTRIBUTES);
 
         // order matters here because we don't want transaction attributes to overwrite tracer attributes. This would be the case if there were 64
         // transaction attributes and they got added first to the span attributes map. Then none of the tracer attributes would make it in due
@@ -127,7 +191,7 @@ public class TracerToSpanEvent {
     private SpanEventFactory maybeSetGraphQLAttributes(Tracer tracer, SpanEventFactory builder) {
         Map<String, Object> agentAttributes = tracer.getAgentAttributes();
         boolean containsGraphQLAttributes = agentAttributes.keySet().stream().anyMatch(key -> key.contains("graphql"));
-        if (containsGraphQLAttributes){
+        if (containsGraphQLAttributes) {
             agentAttributes.entrySet().stream()
                     .filter(e -> e.getKey().contains("graphql"))
                     .forEach(e -> builder.putAgentAttribute(e.getKey(), e.getValue()));
@@ -202,12 +266,7 @@ public class TracerToSpanEvent {
         return Maps.filterKeys(intrinsicAttributes, key -> !UNWANTED_SPAN_ATTRIBUTES.contains(key));
     }
 
-    private String getParentId(Tracer tracer, TransactionData transactionData, boolean crossProcessOnly) {
-        if (crossProcessOnly) {
-            // Cross process only uses transactionId for parenting instead of the parentId attribute so we do not have a parentId here
-            return null;
-        }
-
+    private String getParentId(Tracer tracer, TransactionData transactionData) {
         // This is the non cross_process_only case where we "parent" using the parent tracer
         // or the inbound payload id if this is the first/root tracer and we have an inbound payload
         Tracer parentSegment = AbstractTracer.getParentTracerWithSpan(tracer.getParentTracer());

@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -124,6 +125,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String OTEL = "opentelemetry";
     public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
