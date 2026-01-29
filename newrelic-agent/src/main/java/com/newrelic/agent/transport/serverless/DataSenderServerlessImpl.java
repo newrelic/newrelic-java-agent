@@ -243,7 +243,7 @@ public class DataSenderServerlessImpl implements DataSender {
         try (ByteArrayOutputStream outStream = new ByteArrayOutputStream(); Writer out = new OutputStreamWriter(outStream, StandardCharsets.UTF_8)) {
             JSONValue.writeJSONString(params, out);
             out.flush();
-            String jsonStr = new String(outStream.toByteArray(), StandardCharsets.UTF_8).replace("\\/","/").replace("\\\"", "\"");
+            String jsonStr = new String(outStream.toByteArray(), StandardCharsets.UTF_8).replace("\\/","/");
             return jsonStr;
         }
     }
