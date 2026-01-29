@@ -340,7 +340,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
 
     protected ExplainPlanExecutor createExplainPlanExecutor(String sql) {
         if (params != null && params.length > 0) {
-            return new PreparedStatementExplainPlanExecutor(this, getRawSql(), getParams(), getRecordSql());
+            return new PreparedStatementExplainPlanExecutor(this, getRawSql(), getParams(), getRecordSql(), getDatabaseVendor());
         }
         return new DefaultExplainPlanExecutor(this, sql, getRecordSql());
     }
