@@ -57,9 +57,9 @@ public class JdbcHelper {
     private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
     private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
 
-    public static final String SQL_METADATA_COMMENTS_SVC_NAME = "svc_name";
-    public static final String SQL_METADATA_COMMENTS_TXN_NAME = "txn_name";
-    public static final String SQL_METADATA_COMMENTS_TRACE_ID = "trace_id";
+    public static final String SQL_METADATA_COMMENTS_SVC_NAME = "nr_service";
+    public static final String SQL_METADATA_COMMENTS_TXN_NAME = "nr_txn";
+    public static final String SQL_METADATA_COMMENTS_TRACE_ID = "nr_trace_id";
     private static final Set<String> VALID_SQL_METADATA_COMMENTS_OPTIONS = new HashSet<>(Arrays.asList(
             SQL_METADATA_COMMENTS_SVC_NAME,
             SQL_METADATA_COMMENTS_TXN_NAME,
