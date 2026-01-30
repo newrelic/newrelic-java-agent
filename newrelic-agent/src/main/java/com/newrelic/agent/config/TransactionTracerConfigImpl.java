@@ -47,6 +47,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final String TOP_N = "top_n";
     public static final String TRANSACTION_THRESHOLD = "transaction_threshold";
     public static final String EXEC_CALL_SQL_REGEX_DISABLED = "exec_call_sql_regex_disabled";
+    public static final String SQL_METADATA_COMMENTS = "sql_metadata_comments";
 
     public static final boolean DEFAULT_COLLECT_TRACES = false;
     public static final boolean DEFAULT_ENABLED = true;
@@ -64,6 +65,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final int DEFAULT_TOKEN_LIMIT = 3000;
     public static final int DEFAULT_TOP_N = 20;
     public static final boolean DEFAULT_EXEC_CALL_SQL_REGEX_DISABLED = false;
+    public static final String DEFAULT_SQL_METADATA_COMMENTS = "";
     public static final int APDEX_F_MULTIPLE = 4;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.transaction_tracer.";
     public static final String CATEGORY_REQUEST_SYSTEM_PROPERTY_ROOT = "newrelic.config.transaction_tracer.category." + REQUEST_CATEGORY_NAME + ".";
@@ -88,6 +90,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     private final int maxTokens;
     private final int topN;
     private final boolean isExecCallSqlRegexDisabled;
+    private final String sqlMetadataComments;
     protected final String inheritedFromSystemPropertyRoot;
 
     private TransactionTracerConfigImpl(String systemPropertyRoot, String inheritedFromSystemPropertyRoot,
@@ -114,6 +117,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
         maxTokens = getIntProperty(TOKEN_LIMIT, DEFAULT_TOKEN_LIMIT);
         topN = getIntProperty(TOP_N, DEFAULT_TOP_N);
         isExecCallSqlRegexDisabled = getProperty(EXEC_CALL_SQL_REGEX_DISABLED, DEFAULT_EXEC_CALL_SQL_REGEX_DISABLED);
+        sqlMetadataComments = getProperty(SQL_METADATA_COMMENTS, DEFAULT_SQL_METADATA_COMMENTS);
     }
 
     private boolean initEnabled() {
@@ -339,6 +343,11 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     @Override
     public int getMaxTokens() {
         return maxTokens;
+    }
+
+    @Override
+    public String getSqlMetadataComments() {
+        return sqlMetadataComments;
     }
 
     TransactionTracerConfigImpl createRequestTransactionTracerConfig(long apdexTInMillis, boolean highSecurity) {
