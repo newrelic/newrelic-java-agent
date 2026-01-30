@@ -1,14 +1,10 @@
 package com.newrelic.agent.kotlincoroutines;
 
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentConfigListener;
-import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.config.KotlinCoroutinesConfig;
+import com.newrelic.agent.config.*;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class KotlinCoroutinesService extends AbstractService implements AgentConfigListener {
 
@@ -41,12 +37,7 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
 
     @Override
     protected void doStart() throws Exception {
-        for (CoroutineConfigListener listener : listeners) {
-            listener.configureDelay(coroutinesConfig.isDelayedEnabled());
-            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
-            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
-            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
-        }
+        reconfigure();
     }
 
     @Override
@@ -63,15 +54,85 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
         coroutinesConfig = agentConfig.getKotlinCoroutinesConfig();
+        reconfigure();
+    }
+
+    /**
+     * Used to reconfigure the ignores after some have been added.  The adding should only happen once
+     * rather than every time something is added.   User should add all the necessary and then reconfigure
+     */
+    public void reconfigure() {
+        Set<String> ignoredContinuations = KotlinIgnoresCache.getIgnoredContinuations();
+        Set<String> ignoredRegexContinuations = KotlinIgnoresCache.getIgnoredRegexContinuations();
+        Set<String> ignoredScopes = KotlinIgnoresCache.getIgnoredScopes();
+        Set<String> ignoredRegexScopes = KotlinIgnoresCache.getIgnoredRegexScopes();
+        Set<String> ignoredDispatched = KotlinIgnoresCache.getIgnoredDispatched();
+        Set<String> ignoredRegexDispatched = KotlinIgnoresCache.getIgnoredRegexDispatched();
+        Set<String> ignoredSuspends = KotlinIgnoresCache.getIgnoredSuspends();
+        Set<String> ignoredRegexSuspends = KotlinIgnoresCache.getIgnoredRegexSuspends();
+
+        String[] allIgnoredContinuations = merge(coroutinesConfig.getIgnoredContinuations(), ignoredContinuations);
+        String[] allIgnoredScopes = merge(coroutinesConfig.getIgnoredScopes(), ignoredScopes);
+        String[] allIgnoredDispatched = merge(coroutinesConfig.getIgnoredDispatched(), ignoredDispatched);
+        String[] allIgnoredSuspends = merge(coroutinesConfig.getIgnoredSuspends(), ignoredSuspends);
+
+        String[] allIgnoredRegexContinuations = merge(coroutinesConfig.getIgnoredRegExContinuations(), ignoredRegexContinuations);
+        String[] allIgnoredRegexScopes = merge(coroutinesConfig.getIgnoredRegexScopes(), ignoredRegexScopes);
+        String[] allIgnoredRegexDispatched = merge(coroutinesConfig.getIgnoredRegexDispatched(), ignoredRegexDispatched);
+        String[] allIgnoredRegexSuspends = merge(coroutinesConfig.getIgnoredRegexSuspends(), ignoredRegexSuspends);
+
         for (CoroutineConfigListener listener : listeners) {
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
-            listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(),coroutinesConfig.getIgnoredRegexScopes());
-            listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(),coroutinesConfig.getIgnoredRegexDispatched());
-            listener.configureContinuationIgnores(coroutinesConfig.getIgnoredContinuations(),coroutinesConfig.getIgnoredRegExContinuations());
+            listener.configureScopeIgnores(allIgnoredScopes,allIgnoredRegexScopes);
+            listener.configureDispatchedTasksIgnores(allIgnoredDispatched,allIgnoredRegexDispatched);
+            listener.configureContinuationIgnores(allIgnoredContinuations,allIgnoredRegexContinuations);
         }
         for(SuspendsConfigListener listener : suspendListeners) {
-            listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
+            listener.configureSuspendsIgnores(allIgnoredSuspends,allIgnoredRegexSuspends);
         }
-
     }
+
+    private static String[] merge(String[] array, Collection<String> collection) {
+        Set<String> set = new HashSet<>(Arrays.asList(array));
+        set.addAll(collection);
+        String[] result = new String[set.size()];
+        return set.toArray(result);
+    }
+
+    /*
+     * The following set of methods allow an instrumentation developer to add components
+     * to ignore automatically rather than relying on the user to include them in newrelic.yml
+     */
+    public void addIgnoredContinuation(String continuation) {
+        KotlinIgnoresCache.addIgnoredContinuation(continuation);
+    }
+
+    public void addIgnoredRegExContinuation(String continuationRegEx) {
+        KotlinIgnoresCache.addIgnoredRegexContinuation(continuationRegEx);
+    }
+
+    public void addIgnoredScope(String scope) {
+        KotlinIgnoresCache.addIgnoredScope(scope);
+    }
+
+    public void addIgnoredRegexScope(String scopeRegEx) {
+        KotlinIgnoresCache.addIgnoredRegexScope(scopeRegEx);
+    }
+
+    public void addIgnoredDispatched(String dispatched) {
+        KotlinIgnoresCache.addIgnoredDispatched(dispatched);
+    }
+
+    public void addIgnoredRegexDispatched(String dispatchedRegEx) {
+        KotlinIgnoresCache.addIgnoredRegexDispatched(dispatchedRegEx);
+    }
+
+    public void addIgnoredSuspends(String suspend) {
+        KotlinIgnoresCache.addIgnoredSuspend(suspend);
+    }
+
+    public void addIgnoredRegexSuspends(String suspendRegEx) {
+        KotlinIgnoresCache.addIgnoredRegexSuspend(suspendRegEx);
+    }
+
 }
