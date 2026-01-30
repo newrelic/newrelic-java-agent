@@ -143,7 +143,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
-    public static final DatastoreInstanceDetection.MultiHostConfig DEFAULT_DATASTORE_MULTIHOST_PREFERNCE = DatastoreInstanceDetection.MultiHostConfig.NONE;
+    public static final String DEFAULT_DATASTORE_MULTIHOST_PREFERENCE = DatastoreInstanceDetection.MultiHostConfig.NONE.name();
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
@@ -211,7 +211,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
-    private final DatastoreInstanceDetection.MultiHostConfig datastoreMultihostPreference;
+    private final String datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
     private final boolean enabled;
@@ -311,7 +311,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
-        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERNCE);
+        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERENCE);
         debug = DebugFlag.DEBUG;
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
@@ -1156,6 +1156,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         clearDeprecatedProperties();
         addDeprecatedProperties = false;
         return messages;
+    }
+
+    @Override
+    public DatastoreInstanceDetection.MultiHostConfig getDatastoreMultihostPreference() {
+        return DatastoreInstanceDetection.MultiHostConfig.getAndValidateFrom(datastoreMultihostPreference);
     }
 
     @Override
