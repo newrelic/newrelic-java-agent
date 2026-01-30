@@ -1,35 +1,23 @@
 package com.newrelic.agent.transport.serverless;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.MetricData;
-import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.ErrorEvent;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SqlTrace;
-import com.newrelic.agent.stats.CountStats;
-import com.newrelic.agent.stats.StatsBase;
-import com.newrelic.agent.trace.TransactionSegment;
 import com.newrelic.agent.trace.TransactionTrace;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.zip.GZIPOutputStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Thread safe buffer to store telemetry to be outputted in serverless mode.
@@ -69,7 +57,7 @@ class TelemetryBuffer {
     public TelemetryBuffer() {
     }
 
-    public JSONObject formatJson() {
+    public JSONObject toJsonObject() {
         try {
             lock.readLock().lock();
 
@@ -123,6 +111,11 @@ class TelemetryBuffer {
         JSONArray formattedEvents = new JSONArray();
 
         for (Object event : events) {
+            if (event instanceof TransactionEvent || event instanceof ErrorEvent || event instanceof SpanEvent) {
+                formattedEvents.add(event);
+                continue;
+            }
+
             Map<String, Object> intrinsicAttributes = new HashMap<>();
             Map<String, Object> userAttributes = new HashMap<>();
             Map<String, Object> agentAttributes = new HashMap<>();
@@ -132,30 +125,6 @@ class TelemetryBuffer {
                 userAttributes = analyticsEvent.getUserAttributesCopy();
                 intrinsicAttributes.put("type", analyticsEvent.getType());
             }
-
-            if (event instanceof ErrorEvent) {
-                ErrorEvent errorEvent = (ErrorEvent) event;
-                intrinsicAttributes.putAll(errorEvent.getDistributedTraceIntrinsics());
-                agentAttributes.putAll(errorEvent.getAgentAttributes());
-            }
-
-            if (event instanceof SpanEvent) {
-                SpanEvent spanEvent = (SpanEvent) event;
-                intrinsicAttributes.putAll(spanEvent.getIntrinsics());
-                agentAttributes.putAll(spanEvent.getAgentAttributes());
-            }
-
-            if (event instanceof TransactionEvent) {
-                TransactionEvent transactionEvent = (TransactionEvent) event;
-                intrinsicAttributes.putAll(transactionEvent.getDistributedTraceIntrinsics());
-                intrinsicAttributes.put("name", transactionEvent.getName());
-                intrinsicAttributes.put("duration", transactionEvent.getDuration());
-                intrinsicAttributes.put("databaseDuration", transactionEvent.getDatabaseDuration());
-                intrinsicAttributes.put("timestamp", transactionEvent.getTimestamp());
-
-                agentAttributes.putAll(transactionEvent.getAgentAttributesCopy());
-            }
-
             JSONArray eventData = new JSONArray();
             eventData.add(intrinsicAttributes);
             eventData.add(userAttributes);
@@ -170,53 +139,8 @@ class TelemetryBuffer {
     private static void addTransactions(List<TransactionTrace> transactionTraces, JSONObject data) {
         JSONArray list = new JSONArray();
         list.add(0, null);
-
-        JSONArray formattedTransactions = new JSONArray();
-        for (TransactionTrace trace : transactionTraces) {
-            JSONArray traceData = new JSONArray();
-            traceData.add(trace.getStartTime());
-            traceData.add(trace.getDuration());
-            traceData.add(trace.getRootMetricName());
-            traceData.add(trace.getRequestUri());
-            JSONArray traceDetailsJson = new JSONArray();
-            for (Object item : trace.getTraceDetailsAsList()) {
-                if (item instanceof TransactionSegment) {
-                    TransactionSegment txnSeg = (TransactionSegment) item;
-                    JSONArray segmentJson = formatTransactionSegment(txnSeg);
-                    traceDetailsJson.add(segmentJson);
-                } else {
-                    traceDetailsJson.add(item);
-                }
-            }
-            traceData.add(traceDetailsJson);
-            traceData.add(trace.getGuid());
-            traceData.add(null);
-            traceData.add(false);
-            traceData.add(null);
-            traceData.add(trace.getSyntheticsResourceId());
-            formattedTransactions.add(traceData);
-        }
-        list.add(1, formattedTransactions);
+        list.add(1, transactionTraces);
         data.put("transaction_sample_data", list);
-    }
-
-    private static JSONArray formatTransactionSegment(TransactionSegment txnSeg) {
-        JSONArray segmentJSON = new JSONArray();
-        segmentJSON.add(txnSeg.getStartTime());
-        segmentJSON.add(txnSeg.getEndTime());
-        segmentJSON.add(txnSeg.getMetricName());
-        segmentJSON.add(txnSeg.getFilteredAttributes());
-        JSONArray children = new JSONArray();
-        if (txnSeg.getChildren() != null) {
-            for (TransactionSegment item : txnSeg.getChildren()) {
-                JSONArray childSegmentJson = formatTransactionSegment(item);
-                children.add(childSegmentJson);
-            }
-        }
-        segmentJSON.add(children);
-        segmentJSON.add(txnSeg.getClassName());
-        segmentJSON.add(txnSeg.getMethodName());
-        return segmentJSON;
     }
 
     private static void addMetrics(List<MetricData> metrics, JSONObject data, Long metricsBegin, Long metricsEnd) {
@@ -225,101 +149,20 @@ class TelemetryBuffer {
         list.add(metricsBegin);
         list.add(metricsEnd);
 
-        JSONArray formattedMetrics = new JSONArray();
-
-        for (MetricData metricData : metrics) {
-            JSONObject metricStrings = new JSONObject();
-            metricStrings.put("name", metricData.getMetricName().getName());
-            metricStrings.put("scope", metricData.getMetricName().getScope());
-
-            JSONArray statsData = formatMetricStats(metricData);
-
-            JSONArray metricJson = new JSONArray();
-            metricJson.add(metricStrings);
-            metricJson.add(statsData);
-
-            formattedMetrics.add(metricJson);
-        }
-
-        list.add(formattedMetrics);
+        list.add(metrics);
         data.put("metric_data", list);
-    }
-
-    private static JSONArray formatMetricStats(MetricData metricData) {
-        JSONArray formattedStats = new JSONArray();
-        StatsBase stats = metricData.getStats();
-        if (stats instanceof CountStats) {
-            CountStats countStats = (CountStats) stats;
-            formattedStats.add(countStats.getCallCount());
-            formattedStats.add(countStats.getTotal());
-            formattedStats.add(countStats.getTotalExclusiveTime());
-            formattedStats.add(countStats.getMaxCallTime());
-            formattedStats.add(countStats.getMinCallTime());
-            formattedStats.add(countStats.getSumOfSquares());
-        }
-        return formattedStats;
     }
 
     private static void addSqlTraces(List<SqlTrace> sqlTraces, JSONObject data) {
         JSONArray list = new JSONArray();
-        JSONArray formattedSqlTraces = new JSONArray();
-        for (SqlTrace sqlTrace : sqlTraces) {
-            JSONArray sqlTraceData = new JSONArray();
-            sqlTraceData.add(sqlTrace.getBlameMetricName());
-            sqlTraceData.add(sqlTrace.getUri());
-            sqlTraceData.add(sqlTrace.getId());
-            sqlTraceData.add(sqlTrace.getQuery());
-            sqlTraceData.add(sqlTrace.getMetricName());
-            sqlTraceData.add(sqlTrace.getCallCount());
-            sqlTraceData.add(sqlTrace.getTotal());
-            sqlTraceData.add(sqlTrace.getMin());
-            sqlTraceData.add(sqlTrace.getMax());
-            sqlTraceData.add(compressAndEncodeSqlParams(sqlTrace.getParameters()));
-            formattedSqlTraces.add(sqlTraceData);
-        }
-
-        list.add(formattedSqlTraces);
+        list.add(sqlTraces);
         data.put("sql_trace_data", list);
-    }
-
-    private static Object compressAndEncodeSqlParams(Map<String, Object> params) {
-        String paramsJson = JSONObject.toJSONString(params).replace("\\/","/");
-        try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            GZIPOutputStream gzip = new GZIPOutputStream(output);
-            gzip.write(paramsJson.getBytes(UTF_8));
-            gzip.flush();
-            gzip.close();
-            return Base64.getEncoder().encodeToString(output.toByteArray());
-        } catch (IOException ignored) {
-        }
-        return params;
     }
 
     private static void addErrors(List<TracedError> tracedErrors, Map<String, Object> data) {
         JSONArray list = new JSONArray();
         list.add(0, null);
-        JSONArray formattedErrors = new JSONArray();
-        for (TracedError tracedError : tracedErrors) {
-            JSONArray errorData = new JSONArray();
-            errorData.add(tracedError.getTimestampInMillis());
-            errorData.add(tracedError.getPath());
-            errorData.add(tracedError.getMessage());
-            errorData.add(tracedError.getExceptionClass());
-
-            Map<String, Object> errorTraceAttributes = new HashMap<>();
-            errorTraceAttributes.put("agentAttributes", tracedError.getAgentAtts());
-            errorTraceAttributes.put("intrinsics", tracedError.getIntrinsicAtts());
-            errorTraceAttributes.put("request_uri", tracedError.getAgentAtts().get(AttributeNames.REQUEST_URI));
-            errorTraceAttributes.put("stack_trace", tracedError.stackTrace());
-            errorTraceAttributes.put("userAttributes", Collections.emptyMap());
-
-            errorData.add(errorTraceAttributes);
-            errorData.add(tracedError.getTransactionGuid());
-            formattedErrors.add(errorData);
-
-        }
-        list.add(formattedErrors);
+        list.add(tracedErrors);
         data.put("error_data", list);
     }
 
@@ -506,26 +349,6 @@ class TelemetryBuffer {
         }
     }
 
-    @VisibleForTesting
-    public Long getMetricBeginTimeMillis() {
-        try {
-            lock.readLock().lock();
-            return metricBeginTimeMillis;
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
-    @VisibleForTesting
-    public Long getMetricEndTimeMillis() {
-        try {
-            lock.readLock().lock();
-            return metricEndTimeMillis;
-        } finally {
-            lock.readLock().unlock();
-        }
-    }
-
     public void clear() {
         try{
             lock.writeLock().lock();
@@ -557,33 +380,6 @@ class TelemetryBuffer {
             this.metricData.clear();
         } finally {
             lock.writeLock().unlock();
-        }
-    }
-
-    public boolean isEmpty() {
-        try{
-            lock.readLock().lock();
-            return this.transactionTraces.isEmpty() &&
-                    this.sqlTraces.isEmpty() &&
-                    this.spanReservoirSize == 0 &&
-                    this.spanEventsSeen == 0 &&
-                    this.spanEvents.isEmpty() &&
-                    this.errorReservoirSize == 0 &&
-                    this.errorEventsSeen == 0 &&
-                    this.errorEvents.isEmpty() &&
-                    this.tracedErrors.isEmpty() &&
-                    this.analyticReservoirSize == 0 &&
-                    this.analyticEventsSeen == 0 &&
-                    this.analyticEvents.isEmpty() &&
-                    this.customEventsReservoirSize == 0 &&
-                    this.customEventsSeen == 0 &&
-                    this.logEventsReservoirSize == 0 &&
-                    this.logEventsSeen == 0 &&
-                    this.metricBeginTimeMillis == 0L &&
-                    this.metricEndTimeMillis == 0L &&
-                    this.metricData.isEmpty();
-        } finally {
-            lock.readLock().unlock();
         }
     }
 }

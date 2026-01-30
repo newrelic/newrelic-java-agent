@@ -293,7 +293,10 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
 
         Map<String, ?> filteredUserAtts = getUserFilteredMap(getMutableUserAttributes());
         Map<String, ?> filteredAgentAtts = getFilteredMap(agentAttributes);
-        if (filteredAgentAtts.isEmpty()) {
+
+        if (ServiceFactory.getConfigService().getAgentConfig(appName).getServerlessConfig().isEnabled()) {
+            JSONArray.writeJSONString(Arrays.asList(obj, filteredUserAtts, filteredAgentAtts), out);
+        } else if (filteredAgentAtts.isEmpty()) {
             if (filteredUserAtts.isEmpty()) {
                 JSONArray.writeJSONString(Collections.singletonList(obj), out);
             } else {
