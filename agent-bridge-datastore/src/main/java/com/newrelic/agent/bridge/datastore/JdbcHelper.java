@@ -379,7 +379,7 @@ public class JdbcHelper {
         if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
             String txnName = transaction.getTransactionName();
             if (!txnName.contains("*/")) {
-                comment.append("nr_txn=").append(txnName);
+                comment.append("nr_txn=").append("\"").append(txnName).append("\"");
                 attributeAdded = true;
             }
         }
@@ -388,14 +388,14 @@ public class JdbcHelper {
             String appName = getAppName();
             if (!appName.contains("*/")) {
                 comment.append(attributeAdded ? "," : "");
-                comment.append("nr_service=").append(appName);
+                comment.append("nr_service=").append("\"").append(appName).append("\"");
                 attributeAdded = true;
             }
         }
 
         if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
             comment.append(attributeAdded ? "," : "");
-            comment.append("nr_trace_id=").append(NewRelic.getAgent().getTraceMetadata().getTraceId());
+            comment.append("nr_trace_id=").append("\"").append(NewRelic.getAgent().getTraceMetadata().getTraceId()).append("\"");
         }
 
         // Only return comment if metadata was added
