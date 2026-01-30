@@ -193,4 +193,158 @@ public class PreparedStatementExplainPlanExecutorTest {
         verify(mockStatement).setObject(eq(1), eq(integerArray));
         assertNotNull(resultSet);
     }
+
+    // Tests for convertToObjectArray method for all primitive types
+    @Test
+    public void convertToObjectArray_handlesIntArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        int[] primitiveArray = {1, 2, 3, 4, 5};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(5, result.length);
+        org.junit.Assert.assertArrayEquals(new Integer[]{1, 2, 3, 4, 5}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesLongArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        long[] primitiveArray = {100L, 200L, 300L};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Long[]{100L, 200L, 300L}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesDoubleArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        double[] primitiveArray = {1.1, 2.2, 3.3};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Double[]{1.1, 2.2, 3.3}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesFloatArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        float[] primitiveArray = {1.5f, 2.5f, 3.5f};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Float[]{1.5f, 2.5f, 3.5f}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesBooleanArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        boolean[] primitiveArray = {true, false, true};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Boolean[]{true, false, true}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesShortArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        short[] primitiveArray = {10, 20, 30};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Short[]{10, 20, 30}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesByteArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        byte[] primitiveArray = {1, 2, 3};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Byte[]{1, 2, 3}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesCharArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        char[] primitiveArray = {'a', 'b', 'c'};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Character[]{'a', 'b', 'c'}, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesEmptyArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        int[] primitiveArray = {};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(0, result.length);
+    }
+
+    @Test
+    public void convertToObjectArray_passesThoughObjectArray() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        Integer[] objectArray = {1, 2, 3};
+        Object[] result = executor.convertToObjectArray(objectArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(objectArray, result);
+    }
+
+    @Test
+    public void convertToObjectArray_handlesMinMaxIntValues() {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "SELECT 1", new Object[]{}, RecordSql.raw, null);
+
+        int[] primitiveArray = {Integer.MIN_VALUE, 0, Integer.MAX_VALUE};
+        Object[] result = executor.convertToObjectArray(primitiveArray);
+
+        assertNotNull(result);
+        org.junit.Assert.assertEquals(3, result.length);
+        org.junit.Assert.assertArrayEquals(new Integer[]{Integer.MIN_VALUE, 0, Integer.MAX_VALUE}, result);
+    }
 }
