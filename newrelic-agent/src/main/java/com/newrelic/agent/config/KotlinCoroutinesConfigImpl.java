@@ -1,9 +1,6 @@
 package com.newrelic.agent.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoroutinesConfig {
 
@@ -137,15 +134,20 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         return delayedEnabled;
     }
 
-    private String[] splitString(String input) {
+
+    private static String[] splitString(String input) {
         if (input == null) {
             return new String[0];
         }
         String[] firstSplit = input.split("\"");
         List<String> result = new ArrayList<>();
         for (String s : firstSplit) {
-            if(!s.trim().equals(",")) {
-                result.add(s.trim());
+            String[] secondSplit = s.split(",");
+            for(String split : secondSplit) {
+
+                if(!split.trim().equals(",")) {
+                    result.add(split.trim());
+                }
             }
         }
         String[] returnValue = new String[result.size()];
