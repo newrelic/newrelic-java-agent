@@ -15,7 +15,6 @@ import com.newrelic.api.agent.NewRelic;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -57,15 +56,19 @@ public class JdbcHelper {
     private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
     private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
 
+    public static final String SQL_METADATA_COMMENTS_SVC_GUID = "nr_service_guid";
     public static final String SQL_METADATA_COMMENTS_SVC_NAME = "nr_service";
     public static final String SQL_METADATA_COMMENTS_TXN_NAME = "nr_txn";
     public static final String SQL_METADATA_COMMENTS_TRACE_ID = "nr_trace_id";
     private static final Set<String> VALID_SQL_METADATA_COMMENTS_OPTIONS = new HashSet<>(Arrays.asList(
+            SQL_METADATA_COMMENTS_SVC_GUID,
             SQL_METADATA_COMMENTS_SVC_NAME,
             SQL_METADATA_COMMENTS_TXN_NAME,
             SQL_METADATA_COMMENTS_TRACE_ID
     ));
+
     private static volatile String cachedAppName = null;
+    private static volatile String cachedEntityGuid = null;
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);
@@ -376,26 +379,35 @@ public class JdbcHelper {
         StringBuilder comment = new StringBuilder(64);
         comment.append("/*");
 
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
-            String txnName = transaction.getTransactionName();
-            if (!txnName.contains("*/")) {
-                comment.append("nr_txn=").append("\"").append(txnName).append("\"");
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
+            String appName = getAppName();
+            if (!appName.contains("*/")) {
+                comment.append(SQL_METADATA_COMMENTS_SVC_NAME).append("=\"").append(appName).append("\"");
                 attributeAdded = true;
             }
         }
 
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
-            String appName = getAppName();
-            if (!appName.contains("*/")) {
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_GUID)) {
+            String guid = getEntityGuid();
+            if ((guid != null) && (!guid.isEmpty())) {
                 comment.append(attributeAdded ? "," : "");
-                comment.append("nr_service=").append("\"").append(appName).append("\"");
+                comment.append(SQL_METADATA_COMMENTS_SVC_GUID).append("=\"").append(guid).append("\"");
+                attributeAdded = true;
+            }
+        }
+
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
+            String txnName = transaction.getTransactionName();
+            if (!txnName.contains("*/")) {
+                comment.append(attributeAdded ? "," : "");
+                comment.append(SQL_METADATA_COMMENTS_TXN_NAME).append("=\"").append(txnName).append("\"");
                 attributeAdded = true;
             }
         }
 
         if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
             comment.append(attributeAdded ? "," : "");
-            comment.append("nr_trace_id=").append("\"").append(NewRelic.getAgent().getTraceMetadata().getTraceId()).append("\"");
+            comment.append(SQL_METADATA_COMMENTS_TRACE_ID).append("=\"").append(NewRelic.getAgent().getTraceMetadata().getTraceId()).append("\"");
         }
 
         // Only return comment if metadata was added
@@ -469,5 +481,20 @@ public class JdbcHelper {
         }
 
         return cachedAppName;
+    }
+
+    /**
+     * Retrieves the cached entity GUID value and initialize the value on first access.
+     */
+    private static String getEntityGuid() {
+        if (cachedEntityGuid == null) {
+            synchronized (JdbcHelper.class) {
+                if (cachedEntityGuid == null) {
+                    cachedEntityGuid = AgentBridge.getAgent().getEntityGuid(false);
+                }
+            }
+        }
+
+        return cachedEntityGuid;
     }
 }
