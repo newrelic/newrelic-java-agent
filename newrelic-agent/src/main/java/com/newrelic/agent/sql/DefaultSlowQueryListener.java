@@ -13,7 +13,6 @@ import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.SqlTracer;
 import com.newrelic.agent.tracers.Tracer;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.QueryConverter;
 import com.newrelic.api.agent.SlowQueryDatastoreParameters;
 import com.newrelic.api.agent.SlowQueryWithInputDatastoreParameters;
