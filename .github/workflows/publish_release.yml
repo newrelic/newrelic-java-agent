@@ -78,14 +78,3 @@ jobs:
             echo "Artifacts were uploaded successfully to Central Sonatype."
             echo "Visit https://central.sonatype.com/publishing/deployments to view your artifacts."
           fi
-
-  update-agent-metadata:
-    needs: [publish_release]
-    uses: ./.github/workflows/Agent-Metadata.yml
-    with:
-      version: ${{ github.event.release.tag_name }}
-      agent-type: 'NRJavaAgent'
-    secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-      APM_CONTROL_NR_LICENSE_KEY_STAGING: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
