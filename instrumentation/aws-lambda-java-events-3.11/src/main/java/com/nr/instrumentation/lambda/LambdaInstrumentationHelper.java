@@ -177,7 +177,7 @@ public class LambdaInstrumentationHelper {
         String arn = null;
         String eventType = null;
 
-        // S3Event: Records[0].s3.bucket.arn
+        // S3Event
         try {
             if (event instanceof S3Event) {
                 S3Event s3Event = (S3Event) event;
@@ -190,7 +190,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from S3Event");
         }
 
-        // SNSEvent: Records[0].EventSubscriptionArn
+        // SNSEvent
         try {
             if (event instanceof SNSEvent) {
                 SNSEvent snsEvent = (SNSEvent) event;
@@ -203,7 +203,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from SNSEvent");
         }
 
-        // SQSEvent: Records[0].eventSourceArn
+        // SQSEvent
         try {
             if (event instanceof SQSEvent) {
                 SQSEvent sqsEvent = (SQSEvent) event;
@@ -216,7 +216,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from SQSEvent");
         }
 
-        // DynamodbEvent: Records[0].eventSourceARN
+        // DynamodbEvent
         try {
             if (event instanceof DynamodbEvent) {
                 DynamodbEvent dynamodbEvent = (DynamodbEvent) event;
@@ -229,7 +229,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from DynamodbEvent");
         }
 
-        // KinesisEvent: Records[0].eventSourceARN
+        // KinesisEvent
         try {
             if (event instanceof KinesisEvent) {
                 KinesisEvent kinesisEvent = (KinesisEvent) event;
@@ -242,7 +242,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from KinesisEvent");
         }
 
-        // KinesisFirehoseEvent: deliveryStreamArn
+        // KinesisFirehoseEvent
         try {
             if (event instanceof KinesisFirehoseEvent) {
                 KinesisFirehoseEvent firehoseEvent = (KinesisFirehoseEvent) event;
@@ -253,7 +253,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from KinesisFirehoseEvent");
         }
 
-        // CodeCommitEvent: Records[0].eventSourceArn
+        // CodeCommitEvent
         // Note: CodeCommit is not in the spec, so we extract ARN but omit eventType
         try {
             if (event instanceof CodeCommitEvent) {
@@ -266,7 +266,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from CodeCommitEvent");
         }
 
-        // ScheduledEvent: resources[0]
+        // ScheduledEvent
         try {
             if (event instanceof ScheduledEvent) {
                 ScheduledEvent scheduledEvent = (ScheduledEvent) event;
@@ -280,7 +280,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from ScheduledEvent");
         }
 
-        // ApplicationLoadBalancerRequestEvent: requestContext.elb.targetGroupArn
+        // ApplicationLoadBalancerRequestEvent
         try {
             if (event instanceof ApplicationLoadBalancerRequestEvent) {
                 ApplicationLoadBalancerRequestEvent albEvent = (ApplicationLoadBalancerRequestEvent) event;
@@ -293,7 +293,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from ApplicationLoadBalancerRequestEvent");
         }
 
-        // APIGatewayProxyRequestEvent: No ARN available
+        // APIGatewayProxyRequestEvent
         try {
             if (event instanceof APIGatewayProxyRequestEvent) {
                 eventType = EVENT_TYPE_API_GATEWAY;
@@ -302,7 +302,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from APIGatewayProxyRequestEvent");
         }
 
-        // APIGatewayV2HTTPEvent: No ARN available (HTTP APIs with payload format v2.0)
+        // APIGatewayV2HTTPEvent
         try {
             if (event instanceof APIGatewayV2HTTPEvent) {
                 eventType = EVENT_TYPE_API_GATEWAY;
@@ -311,7 +311,7 @@ public class LambdaInstrumentationHelper {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from APIGatewayV2HTTPEvent");
         }
 
-        // CloudFrontEvent: No ARN available
+        // CloudFrontEvent
         try {
             if (event instanceof CloudFrontEvent) {
                 eventType = EVENT_TYPE_CLOUDFRONT;
