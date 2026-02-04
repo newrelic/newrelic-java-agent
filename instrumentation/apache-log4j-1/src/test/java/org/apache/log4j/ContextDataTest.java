@@ -11,6 +11,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.test.marker.Java25IncompatibleTest;
+import com.newrelic.test.marker.Java26IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,7 +22,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)
-@org.junit.experimental.categories.Category({ Java25IncompatibleTest.class })
+@org.junit.experimental.categories.Category({ Java25IncompatibleTest.class, Java26IncompatibleTest.class })
 @InstrumentationTestConfig(includePrefixes = {"org.apache.log4j"}, configName = "application_logging_context_data_enabled.yml")
 public class ContextDataTest {
 
