@@ -8,6 +8,7 @@
 package com.newrelic.agent.database;
 
 import com.google.common.base.Joiner;
+import com.newrelic.api.agent.QueryConverter;
 import jregex.Pattern;
 
 import java.util.HashMap;
@@ -32,6 +33,17 @@ public abstract class SqlObfuscator {
     public static final String OBFUSCATED_SETTING = "obfuscated";
     public static final String RAW_SETTING = "raw";
     public static final String OFF_SETTING = "off";
+    private final QueryConverter<String> queryConverter = new QueryConverter<String>() {
+        @Override
+        public String toRawQueryString(String rawQuery) {
+            return rawQuery;
+        }
+
+        @Override
+        public String toObfuscatedQueryString(String rawQuery) {
+            return obfuscateSql(rawQuery);
+        }
+    };
 
     private SqlObfuscator() {
     }
@@ -59,6 +71,10 @@ public abstract class SqlObfuscator {
 
     public boolean isObfuscating() {
         return false;
+    }
+
+    public <String> QueryConverter<java.lang.String> getQueryConverter() {
+        return queryConverter;
     }
 
     static class DefaultSqlObfuscator extends SqlObfuscator {

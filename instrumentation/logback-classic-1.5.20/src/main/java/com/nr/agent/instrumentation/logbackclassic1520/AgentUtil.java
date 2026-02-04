@@ -44,7 +44,7 @@ public class AgentUtil {
 
         if (shouldCreateLogEvent(messageEmpty, throwable)) {
             Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
-            logEventMap.put(INSTRUMENTATION, "logback-classic-1.2");
+            logEventMap.put(INSTRUMENTATION, "logback-classic-1.5.20");
             if (!messageEmpty) {
                 logEventMap.put(MESSAGE, message);
             }

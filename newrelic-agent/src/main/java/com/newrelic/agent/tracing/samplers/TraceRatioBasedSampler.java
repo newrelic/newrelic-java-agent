@@ -7,8 +7,9 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ import java.util.logging.Level;
  */
 public class TraceRatioBasedSampler implements Sampler {
     private final long threshold;
+    private final String description;
 
     /**
      * Construct a new TraceRatioBasedSampler with the desired ratio
@@ -48,17 +50,19 @@ public class TraceRatioBasedSampler implements Sampler {
             NewRelic.getAgent().getLogger().log(Level.WARNING, "TraceRatioBasedSampler: Invalid sampling ratio supplied; setting " +
                     "threshold to {0}", threshold);
         }
+        this.description = String.format("Trace Id Ratio Based Sampler, ratio=%.4f; threshold=%d", traceRatio, threshold);
     }
 
     @Override
-    public float calculatePriority(Transaction tx) {
+    public float calculatePriority(Transaction tx, Granularity granularity) {
         String traceId = Sampler.traceIdFromTransaction(tx);
 
         if (traceId != null && traceId.length() == 32) {
             float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
             try {
                 String last16Chars = traceId.substring(16);
-                return initialPriority + ((Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold) ? 1.0f : 0.0f);
+                boolean sampled = (Math.abs(Long.parseUnsignedLong(last16Chars, 16)) <= threshold);
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             } catch (NumberFormatException ignored) {
             }
         }
@@ -67,8 +71,13 @@ public class TraceRatioBasedSampler implements Sampler {
     }
 
     @Override
-    public String getType() {
-        return SamplerFactory.TRACE_RATIO_ID_BASED;
+    public SamplerType getType() {
+        return SamplerType.TRACE_ID_RATIO_BASED;
+    }
+
+    @Override
+    public String getDescription(){
+        return description;
     }
 
     /**

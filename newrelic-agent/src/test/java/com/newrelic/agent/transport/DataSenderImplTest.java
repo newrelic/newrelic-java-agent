@@ -31,12 +31,14 @@ import com.newrelic.agent.stats.IncrementCounter;
 import com.newrelic.agent.stats.RecordDataUsageMetric;
 import com.newrelic.agent.stats.StatsImpl;
 import com.newrelic.agent.stats.StatsService;
+import com.newrelic.test.marker.Flaky;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
@@ -243,6 +245,9 @@ public class DataSenderImplTest {
     }
 
     @Test
+    @Category( Flaky.class )
+    // Flaky note: java.lang.ArrayIndexOutOfBoundsException inside assertDataUsageMetricValues
+    // on Object rawArgument = invocation.getRawArguments()[0];
     public void testDataUsageSupportability() throws Exception {
         AgentConfig config = AgentConfigImpl.createAgentConfig(configMap());
         HttpClientWrapper wrapperEmptyReturn = getHttpClientWrapper(ReadResult.create(

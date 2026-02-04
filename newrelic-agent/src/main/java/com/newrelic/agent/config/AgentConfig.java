@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
 import java.util.List;
@@ -245,6 +246,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     String getLogFilePath();
 
     String getLogLevel();
+
+    DatastoreInstanceDetection.MultiHostConfig getDatastoreMultihostPreference();
 
     /**
      * Jars which should be ignored by java agent and thus should not be sent up to the collector.

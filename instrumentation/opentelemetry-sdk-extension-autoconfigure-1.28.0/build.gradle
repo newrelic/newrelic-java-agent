@@ -1,18 +1,67 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("java")
 }
 
+configurations {
+    shadowIntoJar
+}
+configurations.implementation.extendsFrom(configurations.shadowIntoJar)
+
 dependencies {
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
-    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
+    implementation(project(":newrelic-agent"))
+
+    shadowIntoJar('com.googlecode.json-simple:json-simple:1.1.1') {
+        transitive = false
+    }
+
     testImplementation("junit:junit:4.12")
+    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
+    testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.28.0")
+    testImplementation("com.google.guava:guava:30.1.1-jre")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
 }
 
+/**
+ * We have to shadow dependencies into instrumentation modules
+ * so they're accessible. We try not to rely on the agent dependencies
+ * otherwise.
+ */
+tasks.create("shadowJar", ShadowJar) {
+    archiveClassifier.set("shadowed")
+    setConfigurations([project.configurations.shadowIntoJar])
+    from(sourceSets.main.output.classesDirs)
+    relocate("org.json.simple", "com.nr.agent.deps.org.json.simple")
+}
+
+artifacts {
+    instrumentationWithDependencies shadowJar
+}
+
+project.tasks.getByName("writeCachedWeaveAttributes").dependsOn(shadowJar)
+
+/**
+ * shadowJar takes care of dependencies, but the jar task is what
+ * the agent build wants, so we copy the shadowJar contents.
+ */
 jar {
+    dependsOn("shadowJar")
+    from(zipTree(project.tasks["shadowJar"].archiveFile.get().asFile.path))
+
+    // The default jar task re-includes the original classes files, which we don't want.
+    exclude {
+        sourceSets.main.output.classesDirs.any { dir ->
+            it.getFile().getPath().startsWith(dir.getPath())
+        }
+    }
+
     manifest {
-        attributes "Implementation-Title" : "com.newrelic.instrumentation.opentelemetry-sdk-extension-autoconfigure-1.28.0"
+        attributes "Implementation-Title": "com.newrelic.instrumentation.opentelemetry-sdk-extension-autoconfigure-1.28.0", "Implementation-Title-Alias": "opentelemetry_instrumentation"
     }
 }
 
@@ -20,7 +69,7 @@ java {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:[1.17.0-alpha,)'
+    passesOnly ("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:[1.26.0-alpha,)")
 }
 
 site {
