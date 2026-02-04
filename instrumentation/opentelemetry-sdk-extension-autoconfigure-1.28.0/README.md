@@ -66,14 +66,14 @@ Configuration via YAML:
     logs:
 
       # Set to true to enable OpenTelemetry Logs signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
     # OpenTelemetry Metrics signals.
     metrics:
 
       # Set to true to enable OpenTelemetry Metrics signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included. 
@@ -88,7 +88,7 @@ Configuration via YAML:
     traces:
 
       # Set to true to enable OpenTelemetry Traces signals.
-      # Default is false.
+      # Default is true.
       enabled: true
 
       # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included. 

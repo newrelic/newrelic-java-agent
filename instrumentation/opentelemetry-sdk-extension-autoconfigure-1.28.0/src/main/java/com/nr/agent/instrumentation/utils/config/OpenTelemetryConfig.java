@@ -29,18 +29,23 @@ public class OpenTelemetryConfig {
     public static final String OPENTELEMETRY_ENABLED = "opentelemetry.enabled";
     public static final Boolean OPENTELEMETRY_ENABLED_DEFAULT = false;
     public static final String OPENTELEMETRY_LOGS_ENABLED = "opentelemetry.logs.enabled";
-    public static final Boolean OPENTELEMETRY_LOGS_ENABLED_DEFAULT = false;
+    public static final Boolean OPENTELEMETRY_LOGS_ENABLED_DEFAULT = true;
     public static final String OPENTELEMETRY_METRICS_ENABLED = "opentelemetry.metrics.enabled";
-    public static final Boolean OPENTELEMETRY_METRICS_ENABLED_DEFAULT = false;
+    public static final Boolean OPENTELEMETRY_METRICS_ENABLED_DEFAULT = true;
     public static final String OPENTELEMETRY_TRACES_ENABLED = "opentelemetry.traces.enabled";
-    public static final Boolean OPENTELEMETRY_TRACES_ENABLED_DEFAULT = false;
+    public static final Boolean OPENTELEMETRY_TRACES_ENABLED_DEFAULT = true;
     public static final String OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED = "opentelemetry.sdk.autoconfigure.enabled";
-    public static final Boolean OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED_DEFAULT = OPENTELEMETRY_METRICS_ENABLED_DEFAULT;
+    public static final Boolean OPENTELEMETRY_SDK_AUTOCONFIGURE_ENABLED_DEFAULT = false;
 
     public static final String OPENTELEMETRY_METRICS_EXCLUDE = "opentelemetry.metrics.exclude";
     public static final String OPENTELEMETRY_METRICS_INCLUDE = "opentelemetry.metrics.include";
     public static final String OPENTELEMETRY_TRACES_EXCLUDE = "opentelemetry.traces.exclude";
     public static final String OPENTELEMETRY_TRACES_INCLUDE = "opentelemetry.traces.include";
+
+    public static final String OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL = "opentelemetry.metrics.export_interval";
+    public static final int OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT = 60_000; // export interval in milliseconds
+    public static final String OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT = "opentelemetry.metrics.export_timeout";
+    public static final int OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT = 10_000; // export timeout in milliseconds
 
     public static boolean isOpenTelemetrySdkAutoConfigureEnabled() {
         // Legacy setting that was only used to enable SDK exporting of OTel metrics. Kept for backwards compatability. This functioned the same as opentelemetry.enabled now does.
@@ -121,6 +126,27 @@ public class OpenTelemetryConfig {
         List<String> openTelemetryTracesExcludes = getOpenTelemetryTracesExcludes();
         return openTelemetryTracesExcludes.contains(instrumentationScopeName);
     }
+
+    /**
+     * Get the OTLP export interval for dimensional metrics.
+     *
+     * @return int export interval in milliseconds
+     */
+    public static int getOpenTelemetryMetricsExportInterval() {
+        // TODO add validation
+        return NewRelic.getAgent().getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL, OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT);
+    }
+
+    /**
+     * Get the OTLP export timeout for sending each dimensional metrics batch.
+     *
+     * @return int export timeout in milliseconds
+     */
+    public static int getOpenTelemetryMetricsExportTimeout() {
+        // TODO add validation
+        return NewRelic.getAgent().getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT, OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT);
+    }
+
 
     /**
      * Splits the given values String into a collection of Strings based on the provided separator character.
