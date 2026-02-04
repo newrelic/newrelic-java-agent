@@ -81,8 +81,6 @@ jobs:
 
   update-agent-metadata:
     needs: [publish_release]
-    permissions:
-      contents: read
     uses: ./.github/workflows/Agent-Metadata.yml
     with:
       version: ${{ github.event.release.tag_name }}
