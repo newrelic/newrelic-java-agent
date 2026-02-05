@@ -7,13 +7,13 @@
 
 package com.newrelic.agent.attributes;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.AgentBridge;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -26,7 +26,7 @@ import java.util.logging.Level;
  */
 public class DefaultDestinationPredicate implements DestinationPredicate {
 
-    private static final long MAX_CACHE_SIZE_BUFFER = 200L;
+    private static final int MAX_CACHE_SIZE_BUFFER = 200;
     /**
      * This is always run first. If we match any, then we are done. High security properties go in here
      */
@@ -43,7 +43,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
     /**
      * Holds recent keys and result values.
      */
-    private final LoadingCache<String, Boolean> cache;
+    private final Function<String, Boolean> cache;
     /**
      * The destination is mainly used for logging.
      */
@@ -56,7 +56,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
         configTrie = generateConfigTrie(dest, exclude, include);
         defaultExcludeTrie = generateDefaultTrie(dest, defaultExcludes);
         destination = dest;
-        cache = Caffeine.newBuilder().maximumSize(MAX_CACHE_SIZE_BUFFER).executor(Runnable::run).build(this::isIncluded);
+        cache = AgentBridge.collectionFactory.memorize(this::isIncluded, MAX_CACHE_SIZE_BUFFER);
     }
 
     private Boolean isIncluded(String key) {
@@ -86,7 +86,7 @@ public class DefaultDestinationPredicate implements DestinationPredicate {
      */
     @Override
     public boolean apply(String key) {
-        return changeToPrimitiveAndLog(key, cache.get(key));
+        return changeToPrimitiveAndLog(key, cache.apply(key));
     }
 
     private void logOutput(String key, boolean value) {

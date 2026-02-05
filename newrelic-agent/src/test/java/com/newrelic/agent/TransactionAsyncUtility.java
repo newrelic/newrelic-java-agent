@@ -8,11 +8,13 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.attributes.AttributesService;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
 import com.newrelic.agent.service.async.AsyncTransactionService;
@@ -116,6 +118,9 @@ public class TransactionAsyncUtility {
     }
 
     public static void createServiceManager(Map<String, Object> map) throws Exception {
+        // Initialize AgentBridge with real Caffeine factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
+
         ConfigService configService = ConfigServiceFactory.createConfigServiceUsingSettings(map);
         MockServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);

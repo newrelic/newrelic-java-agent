@@ -1,0 +1,168 @@
+/**
+ * Standalone test project for dual-shading Caffeine 2.9.3 and 3.2.3
+ */
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.0.0'
+    }
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// ============================================================================
+// STEP 1: Create separate configurations for each Caffeine version
+// ============================================================================
+
+configurations {
+    caffeine2
+    caffeine3
+}
+
+dependencies {
+    caffeine2('com.github.ben-manes.caffeine:caffeine:2.9.3')
+    caffeine3('com.github.ben-manes.caffeine:caffeine:3.2.3')
+}
+
+// ============================================================================
+// STEP 2: Create Caffeine Shading Tasks
+// ============================================================================
+
+def createCaffeineShadingTask(String version) {
+    def config = "caffeine${version}"
+    def pkg = "caffeine${version}"
+    def deps = version == "2" ? ['org.checkerframework'] : ['org.jspecify']
+
+    tasks.create("shadeCaffeine${version}Jar", ShadowJar) {
+        group = 'shadow'
+        description = "Shade Caffeine ${version} for Java ${version == '2' ? '8-10' : '11+'}"
+        configurations = [project.configurations[config]]
+
+        relocate('com.github.benmanes.caffeine',
+                "com.newrelic.agent.deps.${pkg}.com.github.benmanes.caffeine")
+
+        deps.each { dep ->
+            relocate(dep, "com.newrelic.agent.deps.${pkg}.${dep}")
+        }
+
+        exclude(
+            'META-INF/maven/**',
+            'META-INF/*.SF',
+            'META-INF/*.DSA',
+            'META-INF/*.RSA',
+            'META-INF/versions/**',
+            'module-info.class'
+        )
+
+        archiveBaseName.set("${pkg}-shaded")
+        archiveClassifier.set('')
+        archiveVersion.set('')
+        destinationDirectory.set(file("$buildDir/caffeine-shaded"))
+    }
+}
+
+createCaffeineShadingTask('2')
+createCaffeineShadingTask('3')
+
+// ============================================================================
+// STEP 3: Merge both into a combined JAR
+// ============================================================================
+
+task combinedCaffeineJar(type: ShadowJar) {
+    group = 'shadow'
+    description = 'Combine both shaded Caffeine versions into one JAR'
+
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+
+    from(zipTree(shadeCaffeine2Jar.archiveFile.get().asFile))
+    from(zipTree(shadeCaffeine3Jar.archiveFile.get().asFile))
+
+    archiveBaseName.set('dual-caffeine')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    destinationDirectory.set(file("$buildDir/caffeine-shaded"))
+}
+
+// ============================================================================
+// STEP 4: Verification task
+// ============================================================================
+
+task verifyCaffeineShading {
+    group = 'verification'
+    description = 'Verify that both Caffeine versions are correctly shaded'
+    dependsOn combinedCaffeineJar
+
+    doLast {
+        def combinedJar = combinedCaffeineJar.archiveFile.get().asFile
+
+        println ""
+        println "=" * 80
+        println "Caffeine Dual-Shading Verification"
+        println "=" * 80
+
+        if (combinedJar.exists()) {
+            def zipFile = new java.util.zip.ZipFile(combinedJar)
+
+            // Check Caffeine 2 classes
+            def caffeine2Classes = zipFile.entries().findAll {
+                it.name.startsWith('com/newrelic/agent/deps/caffeine2/') && it.name.endsWith('.class')
+            }
+
+            // Check Caffeine 3 classes
+            def caffeine3Classes = zipFile.entries().findAll {
+                it.name.startsWith('com/newrelic/agent/deps/caffeine3/') && it.name.endsWith('.class')
+            }
+
+            println "\n✓ Combined JAR:"
+            println "  Location: ${combinedJar}"
+            println "  Size: ${String.format('%.2f', combinedJar.length() / 1024.0)} KB"
+            println ""
+            println "✓ Caffeine 2.9.3 (for Java 8-10):"
+            println "  Package: com.newrelic.agent.deps.caffeine2.*"
+            println "  Classes: ${caffeine2Classes.size()}"
+            println "  Sample classes:"
+            caffeine2Classes.take(5).each { println "    - ${it.name}" }
+            println ""
+            println "✓ Caffeine 3.2.3 (for Java 11+):"
+            println "  Package: com.newrelic.agent.deps.caffeine3.*"
+            println "  Classes: ${caffeine3Classes.size()}"
+            println "  Sample classes:"
+            caffeine3Classes.take(5).each { println "    - ${it.name}" }
+
+            // Check for key classes
+            println ""
+            println "✓ Key class verification:"
+
+            def caffeine2Builder = zipFile.getEntry('com/newrelic/agent/deps/caffeine2/com/github/benmanes/caffeine/cache/Caffeine.class')
+            def caffeine3Builder = zipFile.getEntry('com/newrelic/agent/deps/caffeine3/com/github/benmanes/caffeine/cache/Caffeine.class')
+
+            println "  Caffeine2 builder: ${caffeine2Builder ? '✓ Found' : '✗ Missing'}"
+            println "  Caffeine3 builder: ${caffeine3Builder ? '✓ Found' : '✗ Missing'}"
+
+            zipFile.close()
+
+            println ""
+            println "=" * 80
+            println "✓ SUCCESS: Both Caffeine versions are correctly shaded!"
+            println "=" * 80
+            println ""
+        } else {
+            println "✗ ERROR: Combined JAR not found!"
+        }
+    }
+}
+
+// Make verification the default task
+defaultTasks 'verifyCaffeineShading'

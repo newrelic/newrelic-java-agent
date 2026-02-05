@@ -7,12 +7,12 @@
 
 package com.newrelic.agent.sql;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.newrelic.agent.bridge.AgentBridge;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
@@ -32,7 +32,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> {
     private final int maxCapacity;
     private final PriorityBlockingQueue<V> priorityQueue;
-    private final Cache<K, V> cache;
+    private final Map<K, V> cache;
 
     public BoundedConcurrentCache(int size) {
         this(size, null);
@@ -41,18 +41,15 @@ public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> 
     public BoundedConcurrentCache(int size, Comparator<V> comparator) {
         this.maxCapacity = size;
         this.priorityQueue = new PriorityBlockingQueue<>(size, comparator);
-        this.cache = Caffeine.newBuilder()
-                .initialCapacity(16)
-                .executor(Runnable::run)
-                .build();
+        cache = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
     }
 
     public V get(K sql) {
-        return cache.getIfPresent(sql);
+        return cache.get(sql);
     }
 
     public V putIfAbsent(K key, V value) {
-        V putValue = cache.asMap().putIfAbsent(key, value);
+        V putValue = cache.putIfAbsent(key, value);
         if (putValue != null) {
             return putValue;
         }
@@ -62,7 +59,7 @@ public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> 
         while (priorityQueue.size() > maxCapacity) {
             V val = priorityQueue.poll();
             K sqlToRemove = val.getKey();
-            cache.invalidate(sqlToRemove);
+            cache.remove(sqlToRemove);
         }
         return null;
     }
@@ -73,9 +70,9 @@ public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> 
      * @param key key of value to update.
      */
     public void putReplace(K key, V value) {
-        V valueToRemove = cache.getIfPresent(key);
+        V valueToRemove = cache.get(key);
         if (valueToRemove != null) {
-            cache.invalidate(key);
+            cache.remove(key);
             priorityQueue.remove(valueToRemove);
         }
 
@@ -87,7 +84,7 @@ public class BoundedConcurrentCache<K, V extends Comparable<V> & CacheValue<K>> 
     }
 
     public void clear() {
-        cache.invalidateAll();
+        cache.clear();
         priorityQueue.clear();
     }
 

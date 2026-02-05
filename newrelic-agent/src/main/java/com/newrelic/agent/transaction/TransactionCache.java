@@ -7,44 +7,44 @@
 
 package com.newrelic.agent.transaction;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.tracers.MetricNameFormatWithHost;
 
 import java.net.URL;
+import java.util.Map;
 
 public class TransactionCache {
 
     // These caches are setup with weak keys.
-    private Cache<Object, URL> urlCache;
-    private Cache<Object, MetricNameFormatWithHost> inputStreamCache;
+    private Map<Object, URL> urlCache;
+    private Map<Object, MetricNameFormatWithHost> inputStreamCache;
 
     public MetricNameFormatWithHost getMetricNameFormatWithHost(Object key) {
-        return getInputStreamCache().getIfPresent(key);
+        return getInputStreamCache().get(key);
     }
 
     public void putMetricNameFormatWithHost(Object key, MetricNameFormatWithHost val) {
         getInputStreamCache().put(key, val);
     }
 
-    private Cache<Object, MetricNameFormatWithHost> getInputStreamCache() {
+    private Map<Object, MetricNameFormatWithHost> getInputStreamCache() {
         if (inputStreamCache == null) {
-            inputStreamCache = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
+            inputStreamCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
         }
         return inputStreamCache;
     }
 
     public URL getURL(Object key) {
-        return (URL) getUrlCache().getIfPresent(key);
+        return getUrlCache().get(key);
     }
 
     public void putURL(Object key, URL val) {
         getUrlCache().put(key, val);
     }
 
-    private Cache<Object, URL> getUrlCache() {
+    private Map<Object, URL> getUrlCache() {
         if (urlCache == null) {
-            urlCache = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
+            urlCache = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
         }
         return urlCache;
     }

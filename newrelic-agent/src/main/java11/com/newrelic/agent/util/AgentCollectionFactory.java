@@ -14,6 +14,7 @@ import java.util.function.Function;
 import com.newrelic.agent.bridge.CacheRemovalListener;
 import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.bridge.CollectionFactory;
+import com.newrelic.agent.config.JavaVersionUtils;
 
 /**
  * This is the main instrumentation of CollectionFactory which is used when the agent is loaded.
@@ -22,7 +23,7 @@ import com.newrelic.agent.bridge.CollectionFactory;
  */
 public class AgentCollectionFactory implements CollectionFactory {
 
-    private static final CollectionFactory DELEGATE = new Caffeine2CollectionFactory();
+    private static final CollectionFactory DELEGATE = new Caffeine3CollectionFactory();
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
