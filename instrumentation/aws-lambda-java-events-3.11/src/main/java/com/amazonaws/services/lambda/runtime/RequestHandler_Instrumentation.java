@@ -26,7 +26,7 @@ public abstract class RequestHandler_Instrumentation<I, O> {
     @Trace(dispatcher = true)
     public O handleRequest(I input, Context context) {
         try {
-            LambdaInstrumentationHelper.startTransaction(context);
+            LambdaInstrumentationHelper.startTransaction(context, input);
         } catch (Throwable t) {
 
         }
