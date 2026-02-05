@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.bridge.datastore;
 
-import com.newrelic.api.agent.NewRelic;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -16,9 +15,11 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.SQLException;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class JdbcHelperTest {
 
@@ -143,11 +144,11 @@ public class JdbcHelperTest {
         Mockito.when(metaData.getURL()).thenReturn("connUrl1");
         final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
 
-        Assert.assertNull(JdbcHelper.getConnectionFactory(connection));
-        Assert.assertFalse(JdbcHelper.connectionFactoryExists(connection));
+        assertNull(JdbcHelper.getConnectionFactory(connection));
+        assertFalse(JdbcHelper.connectionFactoryExists(connection));
         JdbcHelper.putConnectionFactory("connUrl1", factory);
-        Assert.assertEquals(factory, JdbcHelper.getConnectionFactory(connection));
-        Assert.assertTrue(JdbcHelper.connectionFactoryExists(connection));
+        assertEquals(factory, JdbcHelper.getConnectionFactory(connection));
+        assertTrue(JdbcHelper.connectionFactoryExists(connection));
     }
 
     @Test
@@ -158,11 +159,11 @@ public class JdbcHelperTest {
         Mockito.when(metaData.getURL()).thenReturn("connUrl3");
         final ConnectionFactory factory = Mockito.mock(ConnectionFactory.class);
 
-        Assert.assertNull(JdbcHelper.getCachedDatabaseName(connection));
-        Assert.assertFalse(JdbcHelper.databaseNameExists(connection));
+        assertNull(JdbcHelper.getCachedDatabaseName(connection));
+        assertFalse(JdbcHelper.databaseNameExists(connection));
         JdbcHelper.putDatabaseName("connUrl3", "dbName1");
-        Assert.assertEquals("dbName1", JdbcHelper.getCachedDatabaseName(connection));
-        Assert.assertTrue(JdbcHelper.databaseNameExists(connection));
+        assertEquals("dbName1", JdbcHelper.getCachedDatabaseName(connection));
+        assertTrue(JdbcHelper.databaseNameExists(connection));
     }
 
     @Test
@@ -171,10 +172,10 @@ public class JdbcHelperTest {
         Mockito.when(vendor.getType()).thenReturn("test");
         Assert.assertEquals(UnknownDatabaseVendor.INSTANCE, JdbcHelper.getVendor(Driver.class, "jdbc:test"));
         JdbcHelper.putVendor(Driver.class, vendor);
-        Assert.assertEquals(vendor, JdbcHelper.getVendor(Driver.class, "jdbc:test"));
+        assertEquals(vendor, JdbcHelper.getVendor(Driver.class, "jdbc:test"));
 
         // also test to make sure we can get it by the url without a valid class
-        Assert.assertEquals(vendor, JdbcHelper.getVendor(JdbcHelperTest.class, "jdbc:test"));
+        assertEquals(vendor, JdbcHelper.getVendor(JdbcHelperTest.class, "jdbc:test"));
     }
 
     @Test
@@ -182,7 +183,20 @@ public class JdbcHelperTest {
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.getCatalog()).thenReturn("myCatalog");
 
-        Assert.assertEquals(JdbcHelper.UNKNOWN, JdbcHelper.getDatabaseName(null));
-        Assert.assertEquals("myCatalog", JdbcHelper.getDatabaseName(connection));
+        assertEquals(JdbcHelper.UNKNOWN, JdbcHelper.getDatabaseName(null));
+        assertEquals("myCatalog", JdbcHelper.getDatabaseName(connection));
+    }
+
+    @Test
+    public void testAddSqlMetadataCommentIfNeeded_withVariousConfigs() throws Exception {
+        // These tests aren't 100% comprehensive because of the difficulty of
+        // mocking the service manager and transaction objects in the bridge
+        // project. These test what is possible based on these restrictions.
+
+        // Null SQL - should return null
+        assertNull(JdbcHelper.addSqlMetadataCommentIfNeeded(null));
+
+        // Empty SQL - empty String
+        assertEquals("", JdbcHelper.addSqlMetadataCommentIfNeeded(""));
     }
 }
