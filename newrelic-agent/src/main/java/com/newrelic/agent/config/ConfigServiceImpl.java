@@ -13,6 +13,7 @@ import com.newrelic.agent.ConnectionConfigListener;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;

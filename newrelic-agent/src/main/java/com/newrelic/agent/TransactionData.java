@@ -400,4 +400,12 @@ public class TransactionData {
     public String getTraceId() {
         return getSpanProxy().getOrCreateTraceId();
     }
+
+    public Transaction.PartialSampleType getPartialSampleType() {
+        return tx.getPartialSampleType();
+    }
+
+    public boolean isIgnoreErrorPriority() {
+        return tx.isIgnoreErrorPriority();
+    }
 }

@@ -36,7 +36,9 @@ import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.SegmentTest;
 import com.newrelic.agent.util.Obfuscator;
@@ -53,8 +55,10 @@ import org.objectweb.asm.Opcodes;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
+import static com.newrelic.agent.DistributedTracingTestUtil.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @SuppressWarnings("deprecation")
 public class TransactionTest {
@@ -203,13 +207,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 1.1f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.2f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 1.2f;
+                } else {
+                    return 1.1f;
+                }
             }
         };
     }
@@ -1260,13 +1263,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 0.333f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 0.678f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 0.678f;
+                } else {
+                    return 0.333f;
+                }
             }
         });
 
@@ -1521,7 +1523,7 @@ public class TransactionTest {
         finishTransaction(transaction, dispatcherTracer);
         float priority3 = transaction.getPriority();
 
-        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriorityRoot(any());
+        Mockito.verify(mockDistributedTraceService, Mockito.times(1)).calculatePriority(any(), eq(SamplerCase.ROOT));
         assertEquals(priority1, priority2, 0.0f);
         assertEquals(priority1, priority3, 0.0f);
     }
@@ -1541,7 +1543,8 @@ public class TransactionTest {
         BasicRequestRootTracer dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
         Transaction transaction = dispatcherTracer.getTransactionActivity().getTransaction();
         transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
-        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL));
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL));
         finishTransaction(transaction, dispatcherTracer);
 
         //Case 2: Accept a Payload with inbound sampling and priority information on it.
@@ -1567,10 +1570,11 @@ public class TransactionTest {
                         "}";
 
         transaction.acceptDistributedTracePayload(inboundPayload);
-        assertEquals(0.567f, transaction.getPriorityFromInboundSamplingDecision(), 0.0f);
+        assertEquals(0.567f, transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL), 0.0f);
+        assertEquals(0.567f, transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL), 0.0f);
         finishTransaction(transaction, dispatcherTracer);
 
-        //Case 3: a payload that is missing inbound priority but has a sampled decision
+        //Case 3: a payload that is missing inbound priority but has a sampled=false decision
         Transaction.clearTransaction();
         dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
         transaction = dispatcherTracer.getTransactionActivity().getTransaction();
@@ -1592,13 +1596,44 @@ public class TransactionTest {
                         "}";
 
         transaction.acceptDistributedTracePayload(inboundPayload);
-        Float priority =  transaction.getPriorityFromInboundSamplingDecision();
         //sampled is false, we should have generated a random priority less than 1 without the use of the sampler.
-        assertTrue(priority > 0.0f);
-        assertTrue(priority < 1.0f);
+        Float priority =  transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL);
+        assertTrue(priority > 0.0f && priority < 1.0f);
+        priority = transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL);
+        assertTrue(priority > 0.0f && priority < 1.0f);
         finishTransaction(transaction, dispatcherTracer);
 
-        //Case 4: a payload that is missing a sampled decision but has an inbound priority.
+        //Case 4: a payload that is missing inbound priority but has a sampled=true decision
+        Transaction.clearTransaction();
+        dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
+        transaction = dispatcherTracer.getTransactionActivity().getTransaction();
+        transaction.getTransactionActivity().tracerStarted(dispatcherTracer);
+
+        inboundPayload =
+                "{" +
+                        "  \"v\": [0,2]," +
+                        "  \"d\": {" +
+                        "    \"ty\": \"Mobile\"," +
+                        "    \"ac\": \"9123\"," +
+                        "    \"tk\": \"67890\"," +
+                        "    \"ap\": \"51424\"" +
+                        "    \"id\": \"27856f70d3d314b7\"," +
+                        "    \"tr\": \"3221bf09aa0bcf0d\"," +
+                        "    \"sa\": true," +
+                        "    \"ti\": 1482959525577," +
+                        "  }" +
+                        "}";
+
+        transaction.acceptDistributedTracePayload(inboundPayload);
+        //This is the ONLY test in which expected behavior for Full and Partial is different.
+        //Full should return a priority in [2, 3] while Partial should return a priority in [1, 2].
+        priority =  transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL);
+        assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.FULL));
+        priority = transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL);
+        assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL));
+        finishTransaction(transaction, dispatcherTracer);
+
+        //Case 5: a payload that is missing a sampled decision but has an inbound priority.
         //In this case, a new sampling decision needs to be made (regardless of the priority value).
         Transaction.clearTransaction();
         dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
@@ -1621,10 +1656,11 @@ public class TransactionTest {
                         "}";
 
         transaction.acceptDistributedTracePayload(inboundPayload);
-        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL));
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL));
         finishTransaction(transaction, dispatcherTracer);
 
-        //Case 5: a payload that is missing both an inbound priority and a sampling decision
+        //Case 6: a payload that is missing both an inbound priority and a sampling decision
         Transaction.clearTransaction();
         dispatcherTracer = (BasicRequestRootTracer) createDispatcherTracer(true);
         transaction = dispatcherTracer.getTransactionActivity().getTransaction();
@@ -1645,7 +1681,8 @@ public class TransactionTest {
                         "}";
 
         transaction.acceptDistributedTracePayload(inboundPayload);
-        assertNull(transaction.getPriorityFromInboundSamplingDecision());
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.FULL));
+        assertNull(transaction.getPriorityFromInboundSamplingDecision(Granularity.PARTIAL));
         finishTransaction(transaction, dispatcherTracer);
     }
 
@@ -1966,13 +2003,12 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 2.0f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.0f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                if (samplerCase.equals(SamplerCase.ROOT)){
+                    return 1.0f;
+                } else {
+                    return 2.0f;
+                }
             }
         };
     }
@@ -2022,17 +2058,13 @@ public class TransactionTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                if (inboundPriority == null){
-                    return 1.0f;
+            public float calculatePriority(Transaction tx, SamplerCase samplerCase){
+                Float priority = tx.getPriorityFromInboundSamplingDecision(Granularity.FULL);
+                if (priority != null){
+                    return priority;
                 } else {
-                    return inboundPriority;
+                    return 2.0f;
                 }
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
-                return 1.0f;
             }
         };
     }

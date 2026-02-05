@@ -57,6 +57,8 @@ import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
+import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.transaction.PriorityTransactionName;
@@ -128,7 +130,11 @@ public class Transaction {
     static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
     "newrelic.scala.api.TraceOps$", "txn", null);
     public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
-    ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+        ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+
+    public static final int GENERIC_TXN_CLASS_SIGNATURE_ID =
+            ClassMethodSignatures.get().add(new ClassMethodSignature("", "", null));
+
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
     private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
@@ -279,6 +285,25 @@ public class Transaction {
         return Math.max(transportDurationInMillis, 0);
     }
 
+    // TODO does this contract work for everyone?
+    public enum PartialSampleType {
+        REDUCED("Reduced"),
+        ESSENTIAL("Essential"),
+        COMPACT("Compact");
+
+        private final String displayName;
+
+        PartialSampleType(String displayName){
+         this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    private PartialSampleType partialSampleType; // null if either not sampled or full granularity sample, value set if partally sampled
+
     // WARNING: Mutates this instance by mutating the span proxy
     public DistributedTracePayloadImpl createDistributedTracePayload(String spanId) {
         assignPriorityRootIfNotSet();
@@ -333,71 +358,58 @@ public class Transaction {
     }
 
     /**
-     * Assigns priority to this transaction using sampling and priority data from a remote parent.
-     *
-     * There are two kinds of parent data that are used:
-     * - The remote parent sampled flag, which indicates whether the remote parent is sampled or not. This
-     * determines which parent sampler (remote_parent_sampled or remote_parent_not_sampled) to use when making the priority assignment.
-     * - Inbound priority data, which is taken from the span proxy's inbound payload if available. This
-     * will be used by the adaptive sampler if configured, and ignored by all other sampler types.
+     * Assigns priority to this transaction using the sampling decision from a remote parent.
      *
      * @param remoteParentSampled whether the remote parent was sampled or not
      */
     public void assignPriorityFromRemoteParent(boolean remoteParentSampled) {
         DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
-        float priority = dtService.calculatePriorityRemoteParent(this, remoteParentSampled, getPriorityFromInboundSamplingDecision());
+        float priority = dtService.calculatePriority(this, remoteParentSampled ? SamplerCase.REMOTE_PARENT_SAMPLED : SamplerCase.REMOTE_PARENT_NOT_SAMPLED);
         this.priority.set(priority);
     }
 
     /**
      * Assigns priority to this transaction (unless previously assigned) without any information from a remote parent.
-     *
-     * If Distributed Tracing is enabled, and no priority has been set on this transaction, the configured root sampler
-     * will be used to obtain a priority for this transaction. No inbound priority data is read (because if an inbound
-     * payload was processed, it should have made a priority assignment earlier).
-     *
+     * <p>
      * If a priority assignment has already been made, this call is ignored. This is a required check to avoid
      * overwriting any priority decision that was made earlier, either because a remote parent was processed or a previous
      * call to this method was made earlier in the txn's lifecycle. It is also required to avoid accidentally running the
      * adaptive sampler twice on the same transaction.
-     *
-     * If Distributed Tracing is not enabled, or this is a synthetic transaction, a random priority in [0,1) is assigned.
+     * <p>
+     * If Distributed Tracing is not enabled, a random priority in [0,1) is assigned.
      */
     public void assignPriorityRootIfNotSet(){
-        if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
-            if (priority.get() == null){
-                //The "if" check above is required even though we do compareAndSet(null) below.
+        if (priority.get() == null){
+            if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
+                //Warning! The "if" check above is required even though we do compareAndSet(null) below.
                 //Its purpose is to avoid running the sampler more than once for the same txn.
-                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriorityRoot(this);
+                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriority(this, SamplerCase.ROOT);
                 priority.compareAndSet(null, samplerPriority);
+            } else {
+                priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
             }
-        } else {
-            priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
         }
     }
 
     /***
-     * Retrieve priority from the inbound payload (using both sampling and priority-related information).
-     *
-     * First, check to see if there is a sampling decision available on the inbound payload.
-     * - If there is a sampling decision, use the inbound priority if it exists or compute a new priority.
-     * - If there is no sampling decision, return null.
-     *
-     * In the case of W3C headers, this is distinct from the remoteParentSampled decision we get from the trace parent header.
-     * The sampling and priority values in the payload come from the trace state header (and they may be missing, even if we got a sampled
-     * flag on the trace parent header).
+     * Retrieve priority from the inbound distributed trace payload (using both sampling and priority-related information).
+     * <p>
+     * Inbound priority information is pulled from either New Relic headers or W3C headers. In the case of W3C headers, the sampling and priority values
+     * come from the trace state header. The trace state header may be missing sampling information, priority information, or both, even if
+     * a sampling decision was available on the trace parent header.
      *
      * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
      */
 
-    @VisibleForTesting
-    protected Float getPriorityFromInboundSamplingDecision(){
+    public Float getPriorityFromInboundSamplingDecision(Granularity granularity) {
         DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
         if (payload != null && payload.sampled != Sampled.UNKNOWN) {
             if (payload.priority != null) {
                 return payload.priority;
             } else {
-                return (payload.sampled.booleanValue() ? 1.0f : 0.0f) + DistributedTraceServiceImpl.nextTruncatedFloat();
+                boolean sampled = payload.sampled.booleanValue();
+                float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
             }
         }
         return null;
@@ -2630,6 +2642,10 @@ public class Transaction {
         return priority != null && isSampledPriority(priority);
     }
 
+    public boolean isIgnoreErrorPriority() {
+        return ignoreErrorPriority;
+    }
+
     private String getTransactionName() {
         // getName may return null
         String fullName = getPriorityTransactionName().getName();
@@ -2651,5 +2667,13 @@ public class Transaction {
 
     public SecurityMetaData getSecurityMetaData() {
         return securityMetaData;
+    }
+
+    public PartialSampleType getPartialSampleType() {
+        return partialSampleType;
+    }
+
+    public void setPartialSampleType(PartialSampleType partialSampleType) {
+        this.partialSampleType = partialSampleType;
     }
 }

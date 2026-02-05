@@ -11,6 +11,7 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.test.marker.Flaky;
 import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -141,8 +142,9 @@ public class JfrServiceTest {
         verify(spyJfr, times(0)).startJfrLoop();
     }
 
-    @Category( IBMJ9IncompatibleTest.class )
+    @Category( { IBMJ9IncompatibleTest.class, Flaky.class } )
     @Test
+    // Flaky note: org.mockito.exceptions.verification.WantedButNotInvoked on verify(spyJfr, timeout(100)).startJfrLoop();
     public void jfrLoopDoesStart() {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);

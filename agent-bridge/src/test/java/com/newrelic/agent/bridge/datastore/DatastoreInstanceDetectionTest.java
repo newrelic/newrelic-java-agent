@@ -53,7 +53,7 @@ public class DatastoreInstanceDetectionTest {
     public void testDifferentAddresses_UseFirst() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
         Mockito.when(mockAgent.getConfig().getValue("datastore_multihost_preference",
-                DatastoreInstanceDetection.MultiHostConfig.NONE)).thenReturn(DatastoreInstanceDetection.MultiHostConfig.FIRST);
+                DatastoreInstanceDetection.MultiHostConfig.NONE.name())).thenReturn(DatastoreInstanceDetection.MultiHostConfig.FIRST.name());
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
             DatastoreInstanceDetection.detectConnectionAddress();
@@ -73,7 +73,7 @@ public class DatastoreInstanceDetectionTest {
     public void testDifferentAddresses_UseLast() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
         Mockito.when(mockAgent.getConfig().getValue("datastore_multihost_preference",
-                DatastoreInstanceDetection.MultiHostConfig.NONE)).thenReturn(DatastoreInstanceDetection.MultiHostConfig.LAST);
+                DatastoreInstanceDetection.MultiHostConfig.NONE.name())).thenReturn(DatastoreInstanceDetection.MultiHostConfig.LAST.name());
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
             DatastoreInstanceDetection.detectConnectionAddress();

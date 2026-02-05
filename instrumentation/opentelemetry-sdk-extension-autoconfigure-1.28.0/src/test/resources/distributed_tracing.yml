@@ -1,0 +1,20 @@
+common: &default_settings
+  distributed_tracing:
+    enabled: true
+
+  opentelemetry:
+    enabled: true
+    # this was previously used to enable/disable metrics
+#    sdk:
+#      autoconfigure:
+#        enabled: false
+    logs:
+      enabled: true
+    metrics:
+      enabled: true
+      #include:
+      #exclude:
+    traces:
+      enabled: true
+      #include:
+      #exclude:

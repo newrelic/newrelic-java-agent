@@ -221,8 +221,8 @@ public class Utils implements CoroutineConfigListener {
 		if(ignoresRegExs != null) {
 			for(String ignore : ignoresRegExs) {
 				ignoredContinuationPatterns.add(Pattern.compile(ignore));
-				NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these continuations matching regex: {0}", ignore);
 			}
+			NewRelic.getAgent().getLogger().log(Level.FINER,"Will ignore these continuations regexs: {0}", ignoredContinuationPatterns);
 		}
 	}
 

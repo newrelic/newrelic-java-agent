@@ -42,7 +42,7 @@ public class TransactionProfileTest {
         TransactionActivity ta = Mockito.mock(TransactionActivity.class);
         Mockito.when(ta.getTracers()).thenReturn(Arrays.asList(tracer));
         Mockito.when(ta.getTotalCpuTime()).thenReturn(123L);
-        Mockito.when(ta.getThreadId()).thenReturn(1L);
+        Mockito.when(ta.getThreadId()).thenReturn(Thread.currentThread().getId());
         Mockito.when(ta.getRootTracer()).thenReturn(tracer);
         TransactionData td = Mockito.mock(TransactionData.class);
         Mockito.when(td.getTransactionActivities()).thenReturn(new HashSet<>(Arrays.asList(ta)));
