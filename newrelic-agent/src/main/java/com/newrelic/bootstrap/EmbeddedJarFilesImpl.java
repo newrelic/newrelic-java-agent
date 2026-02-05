@@ -13,15 +13,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 
@@ -43,29 +46,7 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
     /**
      * A map of jar names to the temp files containing those jars.
      */
-    private final LoadingCache<String, File> embeddedAgentJarFiles = Caffeine.newBuilder().executor(Runnable::run).build(
-            new CacheLoader<String, File>() {
-
-                @Override
-                public File load(String jarNameWithoutExtension) throws IOException {
-                    InputStream jarStream = EmbeddedJarFilesImpl.class.getClassLoader().getResourceAsStream(
-                            jarNameWithoutExtension + ".jar");
-                    if (jarStream == null) {
-                        throw new FileNotFoundException(jarNameWithoutExtension + ".jar");
-                    }
-
-                    File file = File.createTempFile(jarNameWithoutExtension, ".jar", BootstrapLoader.getTempDir());
-                    file.deleteOnExit(); // Doesn't need to be kept after shutdown.
-
-                    try (OutputStream out = new FileOutputStream(file)) {
-                        BootstrapLoader.copy(jarStream, out, 8096, true);
-
-                        return file;
-                    }
-
-                }
-
-            });
+    private final Function<String, File> embeddedAgentJarFiles = AgentBridge.collectionFactory.createLoadingCache(this::loadJarFile);
 
     /**
      * Cleanup any stale temporary agent jar files in the defined temp folder if a threshold has
@@ -171,11 +152,42 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
     @Override
     public File getJarFileInAgent(String jarNameWithoutExtension) throws IOException {
-        return embeddedAgentJarFiles.get(jarNameWithoutExtension);
+        try {
+            return embeddedAgentJarFiles.apply(jarNameWithoutExtension);
+        } catch (UncheckedIOException e) {
+            // Unwrap and rethrow as checked IOException
+            throw e.getCause();
+        }
     }
 
     @Override
     public String[] getEmbeddedAgentJarFileNames() {
         return jarFileNames;
+    }
+
+    /**
+     * Extracts an embedded JAR file to a temp file.
+     */
+    private File loadJarFile(String jarNameWithoutExtension) {
+        try {
+            InputStream jarStream = EmbeddedJarFilesImpl.class.getClassLoader()
+                    .getResourceAsStream(jarNameWithoutExtension + ".jar");
+
+            if (jarStream == null) {
+                throw new FileNotFoundException(jarNameWithoutExtension + ".jar");
+            }
+
+            File file = File.createTempFile(jarNameWithoutExtension, ".jar",
+                    BootstrapLoader.getTempDir());
+            file.deleteOnExit();
+
+            try (OutputStream out = new FileOutputStream(file)) {
+                BootstrapLoader.copy(jarStream, out, 8096, true);
+                return file;
+            }
+        } catch (IOException e) {
+            // Wrap checked exception since Function can't throw checked exceptions
+            throw new UncheckedIOException(e);
+        }
     }
 }

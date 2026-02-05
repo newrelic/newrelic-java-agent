@@ -60,4 +60,57 @@ public class DefaultCollectionFactory implements CollectionFactory {
     public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
         return loader;
     }
+
+    /**
+     * Note: In this implementation, this method will return the loader function as is.
+     */
+    @Override
+    public <K, V> Function<K, V> createLoadingCache(Function<K, V> loader) {
+        return loader;
+    }
+
+    /**
+     * Note: In this implementation, this method will return a synchronized weak hash map.
+     * The maxSize parameter is ignored since JDK WeakHashMap doesn't support size limits.
+     */
+    @Override
+    public <K, V> Map<K, V> createCacheWithWeakKeysAndSize(int maxSize) {
+        return Collections.synchronizedMap(new WeakHashMap<>());
+    }
+
+    /**
+     * Note: In this implementation, this method will return a synchronized weak hash map.
+     * The initialCapacity parameter is ignored.
+     */
+    @Override
+    public <K, V> Map<K, V> createWeakKeyedCacheWithInitialCapacity(int initialCapacity) {
+        return Collections.synchronizedMap(new WeakHashMap<>());
+    }
+
+    /**
+     * Note: In this implementation, this method will return a synchronized weak hash map.
+     * Both initialCapacity and maxSize parameters are ignored.
+     */
+    @Override
+    public <K, V> Map<K, V> createCacheWithWeakKeysInitialCapacityAndSize(int initialCapacity, int maxSize) {
+        return Collections.synchronizedMap(new WeakHashMap<>());
+    }
+
+    /**
+     * Note: In this implementation, this method will return a synchronized hash map.
+     * The initialCapacity parameter is ignored.
+     */
+    @Override
+    public <K, V> Map<K, V> createCacheWithInitialCapacity(int initialCapacity) {
+        return Collections.synchronizedMap(new HashMap<>());
+    }
+
+    /**
+     * Note: In this implementation, this method will return the loader function as is.
+     * The initialCapacity parameter is ignored and weak keys are not supported.
+     */
+    @Override
+    public <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader) {
+        return loader;
+    }
 }

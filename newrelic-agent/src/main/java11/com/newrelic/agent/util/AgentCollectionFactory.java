@@ -20,7 +20,7 @@ import com.newrelic.agent.config.JavaVersionUtils;
  */
 public class AgentCollectionFactory implements CollectionFactory {
 
-    private static final CollectionFactory DELEGATE = new Caffeine2CollectionFactory();
+    private static final CollectionFactory DELEGATE = new Caffeine3CollectionFactory();
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {

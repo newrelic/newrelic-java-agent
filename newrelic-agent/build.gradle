@@ -25,10 +25,20 @@ configurations {
     jarIntoJar
     // This configuration has the final artifact.
     finalArtifact
+    // Used to shadow caffeine v2 (Java 8 - 10)
+    caffeine2
+    // Used to shadow caffeine v3 (Java 9+)
+    caffeine3
 }
 
 configurations.implementation.extendsFrom(configurations.shadowIntoJar)
 configurations.implementation.extendsFrom(configurations.jarIntoJar)
+
+// Make java11 source set inherit dependencies from main
+configurations {
+    java11Implementation.extendsFrom(implementation)
+    java11CompileOnly.extendsFrom(compileOnly)
+}
 
 project.ext {
     instrumentProjects = {
@@ -46,6 +56,73 @@ java {
     withSourcesJar()
     withJavadocJar()
 }
+
+// Configure source sets for Multi-Release JAR
+sourceSets {
+    java11 {
+        java {
+            srcDirs = ['src/main/java11']
+        }
+    }
+}
+
+// Configure Java 11 compilation with Java 11 toolchain
+tasks.named('compileJava11Java') {
+    // Use Java 11 toolchain for compiling Java 11 sources
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+    // Set source and target compatibility
+    sourceCompatibility = '11'
+    targetCompatibility = '11'
+}
+
+/**
+ * Creates a Caffeine shading task for the given major version.
+ * @param Major Caffeine version (currently "2" or "3")
+ */
+def createCaffeineShadingTask(String version) {
+    def caffeineVerString = "caffeine${version}"
+
+    // Version-specific dependencies to relocate
+    def deps = version == "2" ? ['org.checkerframework'] : ['org.jspecify']
+
+    tasks.create("shadeCaffeine${version}Jar", ShadowJar) {
+        group = 'build'
+        description = "Shade Caffeine ${version} into ${caffeineVerString} package"
+        configurations = [project.configurations[caffeineVerString]]
+
+        // Relocate target Caffeine version
+        relocate('com.github.benmanes.caffeine',
+                "com.newrelic.agent.deps.${caffeineVerString}.com.github.benmanes.caffeine")
+
+        // Relocate version-specific dependencies
+        deps.each { dep ->
+            relocate(dep, "com.newrelic.agent.deps.${caffeineVerString}.${dep}")
+        }
+
+        // Standard excludes (same for all versions)
+        exclude(
+                'META-INF/maven/**',
+                'META-INF/*.SF',
+                'META-INF/*.DSA',
+                'META-INF/*.RSA',
+                'META-INF/versions/**',  // Multi-release JAR entries
+                'module-info.class'
+        )
+
+        archiveBaseName.set("${caffeineVerString}-shaded")
+        archiveClassifier.set('')
+        archiveVersion.set('')
+        destinationDirectory.set(file("$buildDir/caffeine-shaded"))
+    }
+}
+
+// Generate the 2 tasks for caffeine shading.
+// This generates two new tasks (shadeCaffeine2Jar, shadeCaffeine3Jar) and adds them to the
+// gradle task registry.
+createCaffeineShadingTask('2')
+createCaffeineShadingTask('3')
 
 dependencies {
     // remove this stuff after we re-write the instrumentation
@@ -97,9 +174,6 @@ dependencies {
 
     shadowIntoJar('com.google.guava:guava:30.1.1-jre')
 
-    shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
-
-    //shadowIntoJar("org.yaml:snakeyaml:1.33")
     shadowIntoJar('com.konloch:safeyaml:1.34.1')
 
     shadowIntoJar("org.crac:crac:1.5.0")
@@ -107,6 +181,19 @@ dependencies {
     implementation("javax.management.j2ee:management-api:1.1-rev-1") {
         transitive = false
     }
+
+    compileOnly('com.github.ben-manes.caffeine:caffeine:2.9.3')
+
+    // Artifacts for the caffeineX configs
+    caffeine2('com.github.ben-manes.caffeine:caffeine:2.9.3')
+    caffeine3('com.github.ben-manes.caffeine:caffeine:3.2.3')
+
+    compileOnly files(shadeCaffeine2Jar.outputs.files)
+
+    java11CompileOnly files(shadeCaffeine2Jar.outputs.files)
+    java11CompileOnly files(shadeCaffeine3Jar.outputs.files)
+
+    java11Implementation sourceSets.main.output
 
     testImplementation("com.google.code.gson:gson:2.8.9")
     testImplementation("org.apache.struts:struts-core:1.3.10")
@@ -140,6 +227,17 @@ task generateVersionProperties() {
     }
 }
 
+// Java 8 source only needs v2 of caffeine
+compileJava {
+    dependsOn shadeCaffeine2Jar
+    exclude '**/Caffeine3CollectionFactory.java'
+}
+
+// Java 11 source set - needs both Caffeine 2 and 3
+compileJava11Java {
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+}
+
 /**
  * The `relocatedShadowJar` task builds the initial shaded jar. It performs the following tasks:
  *   - Identifies all dependencies in the "shadowIntoJar" configuration
@@ -155,12 +253,17 @@ task generateVersionProperties() {
  *   - The newly-created Agent.properties from generateVersionProperties
  */
 task relocatedShadowJar(type: ShadowJar) {
-    dependsOn("classes", "processResources", "generateVersionProperties")
+    dependsOn("classes", "processResources", "generateVersionProperties", shadeCaffeine2Jar, shadeCaffeine3Jar)
 
     from sourceSets.main.output.classesDirs
     from(sourceSets.main.output.resourcesDir) {
         exclude("*.jar")
     }
+
+    // This extracts the relocated classes from the two caffeine jars
+    // and adds them to the uber jar.
+    from(zipTree(shadeCaffeine2Jar.archiveFile.get().asFile))
+    from(zipTree(shadeCaffeine3Jar.archiveFile.get().asFile))
 
     setConfigurations([project.configurations.shadowIntoJar])
 
@@ -173,7 +276,7 @@ task relocatedShadowJar(type: ShadowJar) {
             // stuff we use
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
-            "io.grpc", "com.squareup", "okio", "io.perfmark", "android", "com.github.benmanes",
+            "io.grpc", "com.squareup", "okio", "io.perfmark", "android",
             "org.crac",
 
             // The following rules are to prevent these transitive dependencies from breaking anything

@@ -1,0 +1,220 @@
+/**
+ * PROOF OF CONCEPT: Dual-Shading Caffeine 2.9.3 and 3.x
+ *
+ * This file demonstrates how to shade two versions of Caffeine into
+ * the agent JAR with different package names for runtime selection.
+ *
+ * Strategy:
+ * 1. Create separate configurations for each Caffeine version
+ * 2. Create intermediate ShadowJar tasks that shade each version independently
+ * 3. Merge both shaded JARs into the final relocatedShadowJar
+ *
+ * Result:
+ * - Caffeine 2.9.3 → com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.*
+ * - Caffeine 3.2.3 → com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine.*
+ */
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+// ============================================================================
+// STEP 1: Create separate configurations for each Caffeine version
+// ============================================================================
+
+configurations {
+    // Caffeine 2.9.3 - for Java 8-10 (uses sun.misc.Unsafe)
+    caffeine2
+
+    // Caffeine 3.x - for Java 11+ (uses VarHandle, no Unsafe)
+    caffeine3
+}
+
+dependencies {
+    // Add Caffeine 2.9.3 to caffeine2 configuration
+    caffeine2('com.github.ben-manes.caffeine:caffeine:2.9.3')
+
+    // Add Caffeine 3.2.3 to caffeine3 configuration
+    caffeine3('com.github.ben-manes.caffeine:caffeine:3.2.3')
+}
+
+// ============================================================================
+// STEP 2: Create intermediate ShadowJar task for Caffeine 2.9.3
+// ============================================================================
+
+task shadeCaffeine2Jar(type: ShadowJar) {
+    group = 'shadow'
+    description = 'Shade Caffeine 2.9.3 into com.newrelic.agent.deps.caffeine2.*'
+
+    // Use caffeine2 configuration as input
+    configurations = [project.configurations.caffeine2]
+
+    // Relocate Caffeine 2.9.3 to caffeine2 package
+    relocate('com.github.benmanes.caffeine', 'com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine')
+
+    // Also relocate Caffeine's dependencies to avoid conflicts
+    relocate('org.checkerframework', 'com.newrelic.agent.deps.caffeine2.org.checkerframework')
+    relocate('com.google.errorprone', 'com.newrelic.agent.deps.caffeine2.com.google.errorprone')
+
+    // Exclude unnecessary metadata
+    exclude(
+        'META-INF/maven/**',
+        'META-INF/*.SF',
+        'META-INF/*.DSA',
+        'META-INF/*.RSA',
+        'module-info.class'
+    )
+
+    archiveBaseName.set('caffeine2-shaded')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+
+    // Output to a temporary directory
+    destinationDirectory.set(file("$buildDir/caffeine-shaded"))
+}
+
+// ============================================================================
+// STEP 3: Create intermediate ShadowJar task for Caffeine 3.2.3
+// ============================================================================
+
+task shadeCaffeine3Jar(type: ShadowJar) {
+    group = 'shadow'
+    description = 'Shade Caffeine 3.2.3 into com.newrelic.agent.deps.caffeine3.*'
+
+    // Use caffeine3 configuration as input
+    configurations = [project.configurations.caffeine3]
+
+    // Relocate Caffeine 3.x to caffeine3 package
+    relocate('com.github.benmanes.caffeine', 'com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine')
+
+    // Also relocate Caffeine 3's dependencies (JSpecify instead of Checker Framework)
+    relocate('org.jspecify', 'com.newrelic.agent.deps.caffeine3.org.jspecify')
+    relocate('com.google.errorprone', 'com.newrelic.agent.deps.caffeine3.com.google.errorprone')
+
+    // Exclude unnecessary metadata
+    exclude(
+        'META-INF/maven/**',
+        'META-INF/*.SF',
+        'META-INF/*.DSA',
+        'META-INF/*.RSA',
+        'module-info.class',
+        'META-INF/versions/**'  // Caffeine 3.x has multi-release JAR entries
+    )
+
+    archiveBaseName.set('caffeine3-shaded')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+
+    // Output to a temporary directory
+    destinationDirectory.set(file("$buildDir/caffeine-shaded"))
+}
+
+// ============================================================================
+// STEP 4: Verify the shading worked correctly (optional diagnostic task)
+// ============================================================================
+
+task verifyCaffeineShading {
+    group = 'verification'
+    description = 'Verify that both Caffeine versions are correctly shaded'
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+
+    doLast {
+        def caffeine2Jar = shadeCaffeine2Jar.archiveFile.get().asFile
+        def caffeine3Jar = shadeCaffeine3Jar.archiveFile.get().asFile
+
+        println ""
+        println "=" * 80
+        println "Caffeine Shading Verification"
+        println "=" * 80
+
+        // Check Caffeine 2 JAR
+        println "\n✓ Caffeine 2.9.3 shaded JAR:"
+        println "  Location: ${caffeine2Jar}"
+        println "  Size: ${caffeine2Jar.length() / 1024} KB"
+
+        if (caffeine2Jar.exists()) {
+            def zipFile = new java.util.zip.ZipFile(caffeine2Jar)
+            def caffeine2Classes = zipFile.entries().findAll {
+                it.name.contains('caffeine2/com/github/benmanes/caffeine') && it.name.endsWith('.class')
+            }
+            println "  Classes found: ${caffeine2Classes.size()}"
+            println "  Sample classes:"
+            caffeine2Classes.take(3).each { println "    - ${it.name}" }
+            zipFile.close()
+        }
+
+        // Check Caffeine 3 JAR
+        println "\n✓ Caffeine 3.2.3 shaded JAR:"
+        println "  Location: ${caffeine3Jar}"
+        println "  Size: ${caffeine3Jar.length() / 1024} KB"
+
+        if (caffeine3Jar.exists()) {
+            def zipFile = new java.util.zip.ZipFile(caffeine3Jar)
+            def caffeine3Classes = zipFile.entries().findAll {
+                it.name.contains('caffeine3/com/github/benmanes/caffeine') && it.name.endsWith('.class')
+            }
+            println "  Classes found: ${caffeine3Classes.size()}"
+            println "  Sample classes:"
+            caffeine3Classes.take(3).each { println "    - ${it.name}" }
+            zipFile.close()
+        }
+
+        println "\n" + "=" * 80
+        println "Next step: Merge both JARs into relocatedShadowJar"
+        println "=" * 80
+        println ""
+    }
+}
+
+// ============================================================================
+// STEP 5: Example of how to integrate into existing relocatedShadowJar task
+// ============================================================================
+
+// NOTE: This is commented out to avoid breaking your existing build.
+// Uncomment and adapt this to integrate with your actual relocatedShadowJar task.
+
+/*
+task relocatedShadowJar(type: ShadowJar) {
+    dependsOn("classes", "processResources", "generateVersionProperties")
+    dependsOn(shadeCaffeine2Jar, shadeCaffeine3Jar)  // ADD THIS LINE
+
+    from sourceSets.main.output.classesDirs
+    from(sourceSets.main.output.resourcesDir) {
+        exclude("*.jar")
+    }
+
+    // ADD THESE LINES: Include both shaded Caffeine JARs
+    from(zipTree(shadeCaffeine2Jar.archiveFile.get().asFile)) {
+        include '**'  // Include everything from Caffeine 2
+    }
+    from(zipTree(shadeCaffeine3Jar.archiveFile.get().asFile)) {
+        include '**'  // Include everything from Caffeine 3
+    }
+
+    // REMOVE OR COMMENT OUT the original Caffeine dependency from shadowIntoJar:
+    // shadowIntoJar('com.github.ben-manes.caffeine:caffeine:2.9.3')
+
+    setConfigurations([project.configurations.shadowIntoJar])
+
+    // ... rest of your existing configuration
+}
+*/
+
+println """
+================================================================================
+Dual-Caffeine POC Loaded
+================================================================================
+
+Available tasks:
+  ./gradlew shadeCaffeine2Jar       - Shade Caffeine 2.9.3
+  ./gradlew shadeCaffeine3Jar       - Shade Caffeine 3.2.3
+  ./gradlew verifyCaffeineShading   - Build and verify both versions
+
+Expected output:
+  build/caffeine-shaded/caffeine2-shaded.jar  (~1.2 MB)
+  build/caffeine-shaded/caffeine3-shaded.jar  (~1.3 MB)
+
+Package structure:
+  Caffeine 2: com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.*
+  Caffeine 3: com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine.*
+
+================================================================================
+"""

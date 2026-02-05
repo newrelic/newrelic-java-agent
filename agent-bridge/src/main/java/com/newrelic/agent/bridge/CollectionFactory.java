@@ -61,4 +61,71 @@ public interface CollectionFactory {
      * @return a time based concurrent cache
      */
     <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader);
+
+    /**
+     * Create a loading cache that computes values on demand using the provided loader function.
+     *
+     * @param <K>    key type
+     * @param <V>    cached type
+     * @param loader the function to compute values for cache misses
+     * @return a function that caches results
+     */
+    <K, V> Function<K, V> createLoadingCache(Function<K, V> loader);
+
+    /**
+     * Create a cache with weak keys and a maximum size.
+     * Used for caching with automatic cleanup when keys are garbage collected.
+     *
+     * @param <K>     key type
+     * @param <V>     cached type
+     * @param maxSize maximum number of entries before eviction
+     * @return a map-backed cache with weak keys and size limit
+     */
+    <K, V> Map<K, V> createCacheWithWeakKeysAndSize(int maxSize);
+
+    /**
+     * Create a cache with weak keys and initial capacity.
+     * Used when weak key cleanup is needed with a known initial size.
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param initialCapacity initial capacity to pre-allocate
+     * @return a map-backed cache with weak keys
+     */
+    <K, V> Map<K, V> createWeakKeyedCacheWithInitialCapacity(int initialCapacity);
+
+    /**
+     * Create a cache with weak keys, initial capacity, and maximum size.
+     * Combines weak key cleanup with size bounds and initial capacity.
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param initialCapacity initial capacity to pre-allocate
+     * @param maxSize         maximum number of entries before eviction
+     * @return a map-backed cache with weak keys, initial capacity, and size limit
+     */
+    <K, V> Map<K, V> createCacheWithWeakKeysInitialCapacityAndSize(int initialCapacity, int maxSize);
+
+    /**
+     * Create a cache with initial capacity only.
+     * Used for simple caching without expiration or weak keys.
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param initialCapacity initial capacity to pre-allocate
+     * @return a map-backed cache
+     */
+    <K, V> Map<K, V> createCacheWithInitialCapacity(int initialCapacity);
+
+    /**
+     * Create a loading cache with weak keys and initial capacity.
+     * Combines weak key cleanup with automatic value loading.
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param initialCapacity initial capacity to pre-allocate
+     * @param loader          the function to compute values for cache misses
+     * @return a function that caches results with weak keys
+     */
+    <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader);
 }
