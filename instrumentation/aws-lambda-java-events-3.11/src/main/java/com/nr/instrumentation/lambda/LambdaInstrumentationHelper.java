@@ -24,13 +24,38 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
 import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ACCOUNT;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ACCOUNT_ID;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_API_ID;
 import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ARN_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_BUCKET_NAME;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_NAME;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_TIME;
 import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ID;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_LENGTH;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_MESSAGE_ID;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_KEY;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_SEQUENCER;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_SIZE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_REGION;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE_ID;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE_PATH;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_STAGE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TIME;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TIMESTAMP;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TOPIC_ARN;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TYPE;
+import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_X_AMZ_ID_2;
 import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_ALB;
 import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_API_GATEWAY;
 import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_CLOUDFRONT;
@@ -53,6 +78,24 @@ public class LambdaInstrumentationHelper {
 
     // Track whether this is the first invocation (cold start)
     private static final AtomicBoolean COLD_START = new AtomicBoolean(true);
+
+    // Map of event types to their extraction handlers
+    private static final Map<Class<?>, BiConsumer<Object, Transaction>> EVENT_EXTRACTORS = new HashMap<>();
+
+    static {
+        EVENT_EXTRACTORS.put(S3Event.class, (event, txn) -> extractS3Metadata((S3Event) event, txn));
+        EVENT_EXTRACTORS.put(SNSEvent.class, (event, txn) -> extractSNSMetadata((SNSEvent) event, txn));
+        EVENT_EXTRACTORS.put(SQSEvent.class, (event, txn) -> extractSQSMetadata((SQSEvent) event, txn));
+        EVENT_EXTRACTORS.put(DynamodbEvent.class, (event, txn) -> extractDynamodbMetadata((DynamodbEvent) event, txn));
+        EVENT_EXTRACTORS.put(KinesisEvent.class, (event, txn) -> extractKinesisMetadata((KinesisEvent) event, txn));
+        EVENT_EXTRACTORS.put(KinesisFirehoseEvent.class, (event, txn) -> extractKinesisFirehoseMetadata((KinesisFirehoseEvent) event, txn));
+        EVENT_EXTRACTORS.put(CodeCommitEvent.class, (event, txn) -> extractCodeCommitMetadata((CodeCommitEvent) event, txn));
+        EVENT_EXTRACTORS.put(ScheduledEvent.class, (event, txn) -> extractScheduledEventMetadata((ScheduledEvent) event, txn));
+        EVENT_EXTRACTORS.put(ApplicationLoadBalancerRequestEvent.class, (event, txn) -> extractALBMetadata((ApplicationLoadBalancerRequestEvent) event, txn));
+        EVENT_EXTRACTORS.put(APIGatewayProxyRequestEvent.class, (event, txn) -> extractAPIGatewayProxyMetadata((APIGatewayProxyRequestEvent) event, txn));
+        EVENT_EXTRACTORS.put(APIGatewayV2HTTPEvent.class, (event, txn) -> extractAPIGatewayV2HTTPMetadata((APIGatewayV2HTTPEvent) event, txn));
+        EVENT_EXTRACTORS.put(CloudFrontEvent.class, (event, txn) -> extractCloudFrontMetadata((CloudFrontEvent) event, txn));
+    }
 
     /**
      * Captures Lambda metadata and stores it via AgentBridge for the serverless payload.
@@ -163,8 +206,7 @@ public class LambdaInstrumentationHelper {
 
     /**
      * Extracts event source metadata (ARN and event type) from various AWS Lambda event types.
-     * Each event type is handled independently with its own error handling.
-     * Adds the aws.lambda.eventSource.arn and aws.lambda.eventSource.eventType attributes when successfully extracted.
+     * Uses a map-based dispatcher to delegate to specific extraction methods for each event type.
      *
      * @param event The Lambda event object (can be any supported event type)
      * @param transaction The current transaction
@@ -174,168 +216,317 @@ public class LambdaInstrumentationHelper {
             return;
         }
 
-        String arn = null;
-        String eventType = null;
+        BiConsumer<Object, Transaction> extractor = EVENT_EXTRACTORS.get(event.getClass());
+        if (extractor != null) {
+            extractor.accept(event, transaction);
+        }
+    }
 
-        // S3Event
+    /**
+     * Helper method to safely add a string attribute to the transaction.
+     *
+     * @param transaction The current transaction
+     * @param key The attribute key
+     * @param value The attribute value
+     */
+    private static void addAttribute(Transaction transaction, String key, String value) {
+        if (value != null && !value.isEmpty()) {
+            try {
+                transaction.getAgentAttributes().put(key, value);
+            } catch (Throwable t) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error adding attribute: " + key);
+            }
+        }
+    }
+
+    /**
+     * Helper method to safely add an integer attribute to the transaction.
+     *
+     * @param transaction The current transaction
+     * @param key The attribute key
+     * @param value The attribute value
+     */
+    private static void addAttribute(Transaction transaction, String key, Integer value) {
+        if (value != null) {
+            try {
+                transaction.getAgentAttributes().put(key, value);
+            } catch (Throwable t) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error adding attribute: " + key);
+            }
+        }
+    }
+
+    /**
+     * Helper method to safely add a long attribute to the transaction.
+     *
+     * @param transaction The current transaction
+     * @param key The attribute key
+     * @param value The attribute value
+     */
+    private static void addAttribute(Transaction transaction, String key, Long value) {
+        if (value != null) {
+            try {
+                transaction.getAgentAttributes().put(key, value);
+            } catch (Throwable t) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error adding attribute: " + key);
+            }
+        }
+    }
+
+    /**
+     * Extracts metadata from S3Event.
+     * Adds event source ARN, event type, and S3-specific attributes.
+     */
+    private static void extractS3Metadata(S3Event event, Transaction transaction) {
         try {
-            if (event instanceof S3Event) {
-                S3Event s3Event = (S3Event) event;
-                if (s3Event.getRecords() != null && !s3Event.getRecords().isEmpty()) {
-                    arn = s3Event.getRecords().get(0).getS3().getBucket().getArn();
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                S3Event.S3EventNotificationRecord firstRecord = event.getRecords().get(0);
+
+                // ARN and event type
+                if (firstRecord.getS3() != null && firstRecord.getS3().getBucket() != null) {
+                    addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, firstRecord.getS3().getBucket().getArn());
                 }
-                eventType = EVENT_TYPE_S3;
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_S3);
+
+                // S3-specific attributes
+                addAttribute(transaction, EVENT_SOURCE_LENGTH, event.getRecords().size());
+                addAttribute(transaction, EVENT_SOURCE_REGION, firstRecord.getAwsRegion());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_NAME, firstRecord.getEventName());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TIME, firstRecord.getEventTime() != null ? firstRecord.getEventTime().toString() : null);
+
+                if (firstRecord.getResponseElements() != null) {
+                    addAttribute(transaction, EVENT_SOURCE_X_AMZ_ID_2, firstRecord.getResponseElements().getxAmzId2());
+                }
+
+                if (firstRecord.getS3() != null) {
+                    if (firstRecord.getS3().getBucket() != null) {
+                        addAttribute(transaction, EVENT_SOURCE_BUCKET_NAME, firstRecord.getS3().getBucket().getName());
+                    }
+                    if (firstRecord.getS3().getObject() != null) {
+                        addAttribute(transaction, EVENT_SOURCE_OBJECT_KEY, firstRecord.getS3().getObject().getKey());
+                        addAttribute(transaction, EVENT_SOURCE_OBJECT_SEQUENCER, firstRecord.getS3().getObject().getSequencer());
+                        addAttribute(transaction, EVENT_SOURCE_OBJECT_SIZE, firstRecord.getS3().getObject().getSizeAsLong());
+                    }
+                }
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from S3Event");
         }
+    }
 
-        // SNSEvent
+    /**
+     * Extracts metadata from SNSEvent.
+     * Adds event source ARN, event type, and SNS-specific attributes.
+     */
+    private static void extractSNSMetadata(SNSEvent event, Transaction transaction) {
         try {
-            if (event instanceof SNSEvent) {
-                SNSEvent snsEvent = (SNSEvent) event;
-                if (snsEvent.getRecords() != null && !snsEvent.getRecords().isEmpty()) {
-                    arn = snsEvent.getRecords().get(0).getEventSubscriptionArn();
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                SNSEvent.SNSRecord firstRecord = event.getRecords().get(0);
+
+                // ARN and event type
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, firstRecord.getEventSubscriptionArn());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_SNS);
+
+                // SNS-specific attributes
+                addAttribute(transaction, EVENT_SOURCE_LENGTH, event.getRecords().size());
+                if (firstRecord.getSNS() != null) {
+                    addAttribute(transaction, EVENT_SOURCE_MESSAGE_ID, firstRecord.getSNS().getMessageId());
+                    addAttribute(transaction, EVENT_SOURCE_TIMESTAMP, firstRecord.getSNS().getTimestamp() != null ? firstRecord.getSNS().getTimestamp().toString() : null);
+                    addAttribute(transaction, EVENT_SOURCE_TOPIC_ARN, firstRecord.getSNS().getTopicArn());
+                    addAttribute(transaction, EVENT_SOURCE_TYPE, firstRecord.getSNS().getType());
                 }
-                eventType = EVENT_TYPE_SNS;
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from SNSEvent");
         }
+    }
 
-        // SQSEvent
+    /**
+     * Extracts metadata from SQSEvent.
+     * Adds event source ARN, event type, and SQS-specific attributes.
+     */
+    private static void extractSQSMetadata(SQSEvent event, Transaction transaction) {
         try {
-            if (event instanceof SQSEvent) {
-                SQSEvent sqsEvent = (SQSEvent) event;
-                if (sqsEvent.getRecords() != null && !sqsEvent.getRecords().isEmpty()) {
-                    arn = sqsEvent.getRecords().get(0).getEventSourceArn();
-                }
-                eventType = EVENT_TYPE_SQS;
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                // ARN and event type
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, event.getRecords().get(0).getEventSourceArn());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_SQS);
+
+                // SQS-specific attributes
+                addAttribute(transaction, EVENT_SOURCE_LENGTH, event.getRecords().size());
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from SQSEvent");
         }
+    }
 
-        // DynamodbEvent
+    /**
+     * Extracts metadata from DynamodbEvent.
+     * Adds event source ARN and event type.
+     */
+    private static void extractDynamodbMetadata(DynamodbEvent event, Transaction transaction) {
         try {
-            if (event instanceof DynamodbEvent) {
-                DynamodbEvent dynamodbEvent = (DynamodbEvent) event;
-                if (dynamodbEvent.getRecords() != null && !dynamodbEvent.getRecords().isEmpty()) {
-                    arn = dynamodbEvent.getRecords().get(0).getEventSourceARN();
-                }
-                eventType = EVENT_TYPE_DYNAMO_STREAMS;
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                // ARN and event type
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, event.getRecords().get(0).getEventSourceARN());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_DYNAMO_STREAMS);
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from DynamodbEvent");
         }
+    }
 
-        // KinesisEvent
+    /**
+     * Extracts metadata from KinesisEvent.
+     * Adds event source ARN, event type, and Kinesis-specific attributes.
+     */
+    private static void extractKinesisMetadata(KinesisEvent event, Transaction transaction) {
         try {
-            if (event instanceof KinesisEvent) {
-                KinesisEvent kinesisEvent = (KinesisEvent) event;
-                if (kinesisEvent.getRecords() != null && !kinesisEvent.getRecords().isEmpty()) {
-                    arn = kinesisEvent.getRecords().get(0).getEventSourceARN();
-                }
-                eventType = EVENT_TYPE_KINESIS;
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                KinesisEvent.KinesisEventRecord firstRecord = event.getRecords().get(0);
+
+                // ARN and event type
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, firstRecord.getEventSourceARN());
+                addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_KINESIS);
+
+                // Kinesis-specific attributes
+                addAttribute(transaction, EVENT_SOURCE_LENGTH, event.getRecords().size());
+                addAttribute(transaction, EVENT_SOURCE_REGION, firstRecord.getAwsRegion());
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from KinesisEvent");
         }
+    }
 
-        // KinesisFirehoseEvent
+    /**
+     * Extracts metadata from KinesisFirehoseEvent.
+     * Adds event source ARN, event type, and Kinesis Firehose-specific attributes.
+     */
+    private static void extractKinesisFirehoseMetadata(KinesisFirehoseEvent event, Transaction transaction) {
         try {
-            if (event instanceof KinesisFirehoseEvent) {
-                KinesisFirehoseEvent firehoseEvent = (KinesisFirehoseEvent) event;
-                arn = firehoseEvent.getDeliveryStreamArn();
-                eventType = EVENT_TYPE_FIREHOSE;
+            // ARN and event type
+            addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, event.getDeliveryStreamArn());
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_FIREHOSE);
+
+            // Kinesis Firehose-specific attributes
+            if (event.getRecords() != null) {
+                addAttribute(transaction, EVENT_SOURCE_LENGTH, event.getRecords().size());
             }
+            addAttribute(transaction, EVENT_SOURCE_REGION, event.getRegion());
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from KinesisFirehoseEvent");
         }
+    }
 
-        // CodeCommitEvent
-        // Note: CodeCommit is not in the spec, so we extract ARN but omit eventType
+    /**
+     * Extracts metadata from CodeCommitEvent.
+     * Note: CodeCommit is not in the spec, so we only extract ARN without event type.
+     */
+    private static void extractCodeCommitMetadata(CodeCommitEvent event, Transaction transaction) {
         try {
-            if (event instanceof CodeCommitEvent) {
-                CodeCommitEvent codeCommitEvent = (CodeCommitEvent) event;
-                if (codeCommitEvent.getRecords() != null && !codeCommitEvent.getRecords().isEmpty()) {
-                    arn = codeCommitEvent.getRecords().get(0).getEventSourceArn();
-                }
+            if (event.getRecords() != null && !event.getRecords().isEmpty()) {
+                // ARN only (no event type in spec)
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, event.getRecords().get(0).getEventSourceArn());
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from CodeCommitEvent");
         }
+    }
 
-        // ScheduledEvent
+    /**
+     * Extracts metadata from ScheduledEvent (CloudWatch Scheduled).
+     * Adds event source ARN, event type, and CloudWatch Scheduled-specific attributes.
+     */
+    private static void extractScheduledEventMetadata(ScheduledEvent event, Transaction transaction) {
         try {
-            if (event instanceof ScheduledEvent) {
-                ScheduledEvent scheduledEvent = (ScheduledEvent) event;
-                List<String> resources = scheduledEvent.getResources();
-                if (resources != null && !resources.isEmpty()) {
-                    arn = resources.get(0);
-                }
-                eventType = EVENT_TYPE_CLOUDWATCH_SCHEDULED;
+            // ARN and event type
+            List<String> resources = event.getResources();
+            if (resources != null && !resources.isEmpty()) {
+                String arn = resources.get(0);
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, arn);
+                addAttribute(transaction, EVENT_SOURCE_RESOURCE, arn);
             }
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_CLOUDWATCH_SCHEDULED);
+
+            // CloudWatch Scheduled-specific attributes
+            addAttribute(transaction, EVENT_SOURCE_ACCOUNT, event.getAccount());
+            addAttribute(transaction, EVENT_SOURCE_ID, event.getId());
+            addAttribute(transaction, EVENT_SOURCE_REGION, event.getRegion());
+            addAttribute(transaction, EVENT_SOURCE_TIME, event.getTime() != null ? event.getTime().toString() : null);
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from ScheduledEvent");
         }
+    }
 
-        // ApplicationLoadBalancerRequestEvent
+    /**
+     * Extracts metadata from ApplicationLoadBalancerRequestEvent.
+     * Adds event source ARN and event type.
+     */
+    private static void extractALBMetadata(ApplicationLoadBalancerRequestEvent event, Transaction transaction) {
         try {
-            if (event instanceof ApplicationLoadBalancerRequestEvent) {
-                ApplicationLoadBalancerRequestEvent albEvent = (ApplicationLoadBalancerRequestEvent) event;
-                if (albEvent.getRequestContext() != null && albEvent.getRequestContext().getElb() != null) {
-                    arn = albEvent.getRequestContext().getElb().getTargetGroupArn();
-                }
-                eventType = EVENT_TYPE_ALB;
+            // ARN and event type
+            if (event.getRequestContext() != null && event.getRequestContext().getElb() != null) {
+                addAttribute(transaction, EVENT_SOURCE_ARN_ATTRIBUTE, event.getRequestContext().getElb().getTargetGroupArn());
             }
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_ALB);
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from ApplicationLoadBalancerRequestEvent");
         }
+    }
 
-        // APIGatewayProxyRequestEvent
+    /**
+     * Extracts metadata from APIGatewayProxyRequestEvent.
+     * Adds event type and API Gateway-specific attributes.
+     */
+    private static void extractAPIGatewayProxyMetadata(APIGatewayProxyRequestEvent event, Transaction transaction) {
         try {
-            if (event instanceof APIGatewayProxyRequestEvent) {
-                eventType = EVENT_TYPE_API_GATEWAY;
+            // Event type
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_API_GATEWAY);
+
+            // API Gateway-specific attributes
+            if (event.getRequestContext() != null) {
+                addAttribute(transaction, EVENT_SOURCE_ACCOUNT_ID, event.getRequestContext().getAccountId());
+                addAttribute(transaction, EVENT_SOURCE_API_ID, event.getRequestContext().getApiId());
+                addAttribute(transaction, EVENT_SOURCE_RESOURCE_ID, event.getRequestContext().getResourceId());
+                addAttribute(transaction, EVENT_SOURCE_RESOURCE_PATH, event.getRequestContext().getResourcePath());
+                addAttribute(transaction, EVENT_SOURCE_STAGE, event.getRequestContext().getStage());
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from APIGatewayProxyRequestEvent");
         }
+    }
 
-        // APIGatewayV2HTTPEvent
+    /**
+     * Extracts metadata from APIGatewayV2HTTPEvent.
+     * Adds event type and API Gateway V2-specific attributes.
+     * Note: V2 uses routeKey instead of resourceId/resourcePath from V1.
+     */
+    private static void extractAPIGatewayV2HTTPMetadata(APIGatewayV2HTTPEvent event, Transaction transaction) {
         try {
-            if (event instanceof APIGatewayV2HTTPEvent) {
-                eventType = EVENT_TYPE_API_GATEWAY;
+            // Event type
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_API_GATEWAY);
+
+            // API Gateway V2-specific attributes (no resourceId/resourcePath in V2)
+            if (event.getRequestContext() != null) {
+                addAttribute(transaction, EVENT_SOURCE_ACCOUNT_ID, event.getRequestContext().getAccountId());
+                addAttribute(transaction, EVENT_SOURCE_API_ID, event.getRequestContext().getApiId());
+                addAttribute(transaction, EVENT_SOURCE_STAGE, event.getRequestContext().getStage());
             }
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from APIGatewayV2HTTPEvent");
         }
+    }
 
-        // CloudFrontEvent
+    /**
+     * Extracts metadata from CloudFrontEvent.
+     * Adds event type only (no ARN available).
+     */
+    private static void extractCloudFrontMetadata(CloudFrontEvent event, Transaction transaction) {
         try {
-            if (event instanceof CloudFrontEvent) {
-                eventType = EVENT_TYPE_CLOUDFRONT;
-            }
+            // Event type only
+            addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_CLOUDFRONT);
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from CloudFrontEvent");
-        }
-
-        // Add the ARN attribute if we successfully extracted one
-        if (arn != null && !arn.isEmpty()) {
-            try {
-                transaction.getAgentAttributes().put(EVENT_SOURCE_ARN_ATTRIBUTE, arn);
-            } catch (Throwable t) {
-                NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error adding event source ARN attribute");
-            }
-        }
-
-        // Add the event type attribute if we identified one
-        if (eventType != null) {
-            try {
-                transaction.getAgentAttributes().put(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, eventType);
-            } catch (Throwable t) {
-                NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error adding event source event type attribute");
-            }
         }
     }
 
