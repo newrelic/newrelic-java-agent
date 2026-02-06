@@ -93,4 +93,6 @@ public interface ApplicationLoggingConfig {
      * @return a Set of excluded labels
      */
     Set<String> getLogLabelsExcludeSet();
+
+    Set<String> getLogLevelDenylist();
 }

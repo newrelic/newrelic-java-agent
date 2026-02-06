@@ -140,5 +140,10 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public Set<String> getLogLabelsExcludeSet() {
         return applicationLoggingForwardingConfig.getLoggingLabelsExcludeSet();
     }
+
+    @Override
+    public Set<String> getLogLevelDenylist(){
+        return applicationLoggingForwardingConfig.getLogLevelDenylist();
+    }
 }
 
