@@ -19,33 +19,29 @@ on:
       use-cache:
         description: 'Use cache'
         required: false
-        default: false
+        default: true
         type: boolean
-      fetch-depth:
-        description: 'Number of commits to fetch (> 1 may be required for docs flow)'
-        required: false
-        default: '1'
-        type: string
-      oci-registry:
-        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
-        required: false
-        default: ''
-        type: string
-      oci-username:
-        description: 'OCI registry username (required if oci-registry is set)'
-        required: false
-        default: ''
-        type: string
-      oci-password:
-        description: 'OCI registry password or token (required if oci-registry is set)'
-        required: false
-        default: ''
-        type: string
-      binaries:
-        description: 'JSON array with artifact definitions'
-        required: false
-        default: ''
-        type: string
+# commented items below pertain to future work
+#      oci-registry:
+#        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
+#        required: false
+#        default: ''
+#        type: string
+#      oci-username:
+#        description: 'OCI registry username (required if oci-registry is set)'
+#        required: false
+#        default: ''
+#        type: string
+#      oci-password:
+#        description: 'OCI registry password or token (required if oci-registry is set)'
+#        required: false
+#        default: ''
+#        type: string
+#      binaries:
+#        description: 'JSON array with artifact definitions'
+#        required: false
+#        default: ''
+#        type: string
 
   # Allows calling from another workflow
   workflow_call:
@@ -62,33 +58,29 @@ on:
       use-cache:
         description: 'Use cache'
         required: false
-        default: false
+        default: true
         type: boolean
-      fetch-depth:
-        description: 'Number of commits to fetch (> 1 may be required for docs flow)'
-        required: false
-        default: '1'
-        type: string
-      oci-registry:
-        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
-        required: false
-        default: ''
-        type: string
-      oci-username:
-        description: 'OCI registry username (required if oci-registry is set)'
-        required: false
-        default: ''
-        type: string
-      oci-password:
-        description: 'OCI registry password or token (required if oci-registry is set)'
-        required: false
-        default: ''
-        type: string
-      binaries:
-        description: 'JSON array with artifact definitions'
-        required: false
-        default: ''
-        type: string
+# commented items below pertain to future work
+#      oci-registry:
+#        description: 'OCI registry URL for binary uploads (e.g., ghcr.io/newrelic/agents). Leave empty to skip binary upload.'
+#        required: false
+#        default: ''
+#        type: string
+#      oci-username:
+#        description: 'OCI registry username (required if oci-registry is set)'
+#        required: false
+#        default: ''
+#        type: string
+#      oci-password:
+#        description: 'OCI registry password or token (required if oci-registry is set)'
+#        required: false
+#        default: ''
+#        type: string
+#      binaries:
+#        description: 'JSON array with artifact definitions'
+#        required: false
+#        default: ''
+#        type: string
     secrets:
       FC_SYS_ID_CLIENT_ID:
         required: true
@@ -110,3 +102,4 @@ jobs:
           apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
           agent-type: TestAgent #${{ inputs.agent-type }}
           version: ${{ inputs.version }}
+          cache: ${{ inputs.use-cache }}
