@@ -76,13 +76,14 @@ Configuration via YAML:
       # Default is true.
       enabled: true
 
-      # Export interval in milliseconds for dimensional metrics.
-      # Default is 60,000 ms
-      export_interval: 60000
-
       # Timeout in milliseconds for sending each dimensional metrics batch.
       # Default is 10,000 ms
       export_timeout: 10000
+
+      # Export interval in milliseconds for dimensional metrics.
+      # Note that export_interval must be greater than, or equal to, export_timeout.
+      # Default is 60,000 ms
+      export_interval: 60000
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included. 
       # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
@@ -116,6 +117,8 @@ Configuration via system property:
 -Dnewrelic.config.opentelemetry.logs.enabled=true
 
 -Dnewrelic.config.opentelemetry.metrics.enabled=true
+-Dnewrelic.config.opentelemetry.metrics.export_timeout=10000
+-Dnewrelic.config.opentelemetry.metrics.export_interval=60000
 -Dnewrelic.config.opentelemetry.metrics.include=MeterName1,MeterName2
 -Dnewrelic.config.opentelemetry.metrics.exclude=MeterName3,MeterName4
 
@@ -132,6 +135,8 @@ NEW_RELIC_OPENTELEMETRY_ENABLED=true
 NEW_RELIC_OPENTELEMETRY_LOGS_ENABLED=true
 
 NEW_RELIC_OPENTELEMETRY_METRICS_ENABLED=true
+NEW_RELIC_OPENTELEMETRY_METRICS_EXPORT_TIMEOUT=10000
+NEW_RELIC_OPENTELEMETRY_METRICS_EXPORT_INTERVAL=60000
 NEW_RELIC_OPENTELEMETRY_METRICS_INCLUDE=MeterName1,MeterName2
 NEW_RELIC_OPENTELEMETRY_METRICS_EXCLUDE=MeterName3,MeterName4
 
