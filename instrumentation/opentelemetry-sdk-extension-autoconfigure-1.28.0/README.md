@@ -76,13 +76,21 @@ Configuration via YAML:
       # Default is true.
       enabled: true
 
+      # Export interval in milliseconds for dimensional metrics.
+      # Default is 60,000 ms
+      export_interval: 60000
+
+      # Timeout in milliseconds for sending each dimensional metrics batch.
+      # Default is 10,000 ms
+      export_timeout: 10000
+
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included. 
       # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
-      include: "MeterName1,MeterName2" 
+      include: "MeterName1,MeterName2"
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded. 
       # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
-      exclude: "MeterName3,MeterName4" 
+      exclude: "MeterName3,MeterName4"
 
     # OpenTelemetry Traces signals.
     traces:

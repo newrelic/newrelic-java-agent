@@ -57,8 +57,11 @@ final class OpenTelemetrySDKCustomizer {
             properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
             properties.put("otel.traces.exporter", "none"); // disable default traces exporter
             properties.put("otel.logs.exporter", "none"); // disable default logs exporter
-            properties.put("otel.metric.export.interval", String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
-            properties.put("otel.exporter.otlp.metrics.timeout", String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
+            // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
+            properties.put("otel.metric.export.interval",
+                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
+            properties.put("otel.exporter.otlp.metrics.timeout",
+                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
             properties.put("otel.exporter.otlp.protocol", "http/protobuf");
             properties.put("otel.span.attribute.value.length.limit", "4095");
             properties.put("otel.exporter.otlp.compression", "gzip");
