@@ -8,13 +8,15 @@
 package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.NoOpTransaction;
+import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
-import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class JdbcHelper {
 
@@ -48,10 +51,24 @@ public class JdbcHelper {
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     public static final String UNKNOWN = "unknown";
 
-
     private static final int cacheExpireTime = NewRelic.getAgent().getConfig().getValue("jdbc_helper_cache_expire_time", 7200);
+    private static volatile Set<String> metadataCommentConfig = null;
     private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
     private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
+
+    public static final String SQL_METADATA_COMMENTS_SVC_GUID = "nr_service_guid";
+    public static final String SQL_METADATA_COMMENTS_SVC_NAME = "nr_service";
+    public static final String SQL_METADATA_COMMENTS_TXN_NAME = "nr_txn";
+    public static final String SQL_METADATA_COMMENTS_TRACE_ID = "nr_trace_id";
+    private static final Set<String> VALID_SQL_METADATA_COMMENTS_OPTIONS = new HashSet<>(Arrays.asList(
+            SQL_METADATA_COMMENTS_SVC_GUID,
+            SQL_METADATA_COMMENTS_SVC_NAME,
+            SQL_METADATA_COMMENTS_TXN_NAME,
+            SQL_METADATA_COMMENTS_TRACE_ID
+    ));
+
+    private static volatile String cachedAppName = null;
+    private static volatile String cachedEntityGuid = null;
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);
@@ -300,5 +317,184 @@ public class JdbcHelper {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, t, "Unable to get database name for connection: {0}", connection);
             return UNKNOWN;
         }
+    }
+
+    /**
+     * This can be called to invalidate the configuration for metadata comments that
+     * are added to all executed SQL. Specifically, it's called from
+     * com.newrelic.agent.database.DatabaseService (agent project) when the
+     * AgentConfigListener.configChanged method is called. The JdbcHelper class
+     * is unable to implement AgentConfigListener since those classes aren't
+     * visible to the bridge projects.
+     */
+    public static void invalidateMetadataCommentConfig() {
+        metadataCommentConfig = null;
+    }
+
+    /**
+     * Add the SQL metadata comment to the target SQL, if necessary. If
+     * the comment has already been added to this statement, simply return
+     * the original SQL statement.
+     *
+     * @param sql the target SQL statement
+     *
+     * @return a SQL statement which might have the metadata comment prepended to it
+     */
+    public static String addSqlMetadataCommentIfNeeded(String sql) {
+        if (sql == null || sql.isEmpty()) {
+            return sql;
+        }
+
+        Set<String> config = getMetadataCommentConfig();
+        if (!config.isEmpty()) {
+            // Check if comment already exists
+            if (sql.startsWith("/*nr_")) {
+                return sql;
+            }
+
+            String comment = generateSqlMetadataComment(config);
+            if (comment.isEmpty()) {
+                return sql;
+            } else {
+                return comment + sql;
+            }
+        }
+
+        return sql;
+    }
+
+    /**
+     * If a transaction is in progress, create a comment to be prepended to the statement that contains the
+     * attributes specified by the configuration.
+     *
+     * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
+     */
+    private static String generateSqlMetadataComment(Set<String> metadataCommentConfig) {
+        com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
+        if (transaction == NoOpTransaction.INSTANCE) {
+            return "";
+        }
+
+        boolean attributeAdded = false;
+        StringBuilder comment = new StringBuilder(64);
+        comment.append("/*");
+
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
+            String appName = getAppName();
+            if (!appName.contains("*/")) {
+                comment.append(SQL_METADATA_COMMENTS_SVC_NAME).append("=\"").append(appName).append("\"");
+                attributeAdded = true;
+            }
+        }
+
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_GUID)) {
+            String guid = getEntityGuid();
+            if ((guid != null) && (!guid.isEmpty())) {
+                comment.append(attributeAdded ? "," : "");
+                comment.append(SQL_METADATA_COMMENTS_SVC_GUID).append("=\"").append(guid).append("\"");
+                attributeAdded = true;
+            }
+        }
+
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
+            String txnName = transaction.getTransactionName();
+            if (!txnName.contains("*/")) {
+                comment.append(attributeAdded ? "," : "");
+                comment.append(SQL_METADATA_COMMENTS_TXN_NAME).append("=\"").append(txnName).append("\"");
+                attributeAdded = true;
+            }
+        }
+
+        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
+            comment.append(attributeAdded ? "," : "");
+            comment.append(SQL_METADATA_COMMENTS_TRACE_ID).append("=\"").append(NewRelic.getAgent().getTraceMetadata().getTraceId()).append("\"");
+        }
+
+        // Only return comment if metadata was added
+        if (comment.length() > 2) {
+            comment.append("*/");
+
+            Logger logger = AgentBridge.getAgent().getLogger();
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.log(Level.FINEST, "Adding metadata comment to SQL statement: {0}", comment);
+            }
+            return comment.toString();
+        }
+
+        return "";
+    }
+
+    /**
+     * This initializes the metadata comment config when the config services is actually
+     * fully spun up (or the config is invalidated). If the service isn't initialized,
+     * return an empty config set. If it is initialized, cache the result and return
+     * it on subsequent calls.
+     */
+    private static Set<String> getMetadataCommentConfig() {
+        if (metadataCommentConfig == null) {
+            synchronized (JdbcHelper.class) {
+                if (metadataCommentConfig == null) {
+                    try {
+                        Set<String> config = parseSqlMetadataCommentsConfig();
+                        // Only cache if we got a non-null value (config service is ready)
+                        if (config != null) {
+                            metadataCommentConfig = config;
+                        }
+                    } catch (Exception ignored) {
+                        // Config service not ready yet, will retry on next call
+                    }
+                }
+            }
+        }
+        return (metadataCommentConfig != null) ? metadataCommentConfig : Collections.emptySet();
+    }
+
+    /**
+     * Parse the sql_metadata_comments config and return a Set of valid values contained in
+     * the supplied configuration String. If no valid options are present, an empty Set
+     * will be returned.
+     *
+     * @return a Set of valid sql_metadata_comment Strings
+     */
+    private static Set<String> parseSqlMetadataCommentsConfig() {
+        String options = NewRelic.getAgent().getConfig().getValue("transaction_tracer.sql_metadata_comments");
+        if (options == null) {
+            return null;
+        }
+
+        return Arrays.stream(options.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty() && VALID_SQL_METADATA_COMMENTS_OPTIONS.contains(s))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Retrieves the cached app_name value and initialize the value on first access.
+     */
+    private static String getAppName() {
+        if (cachedAppName == null) {
+            synchronized (JdbcHelper.class) {
+                if (cachedAppName == null) {
+                    cachedAppName = NewRelic.getAgent().getConfig().getValue("app_name");
+                }
+            }
+        }
+
+        return cachedAppName;
+    }
+
+    /**
+     * Retrieves the cached entity GUID value and initialize the value on first access.
+     */
+    private static String getEntityGuid() {
+        if (cachedEntityGuid == null) {
+            synchronized (JdbcHelper.class) {
+                if (cachedEntityGuid == null) {
+                    cachedEntityGuid = AgentBridge.getAgent().getEntityGuid(false);
+                }
+            }
+        }
+
+        return cachedEntityGuid;
     }
 }
