@@ -41,4 +41,34 @@ public class AgentCollectionFactory implements CollectionFactory {
     public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
         return DELEGATE.createAccessTimeBasedCache(ageInSeconds, initialCapacity, loader);
     }
+
+    @Override
+    public <K, V> Function<K, V> createLoadingCache(Function<K, V> loader) {
+        return DELEGATE.createLoadingCache(loader);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createCacheWithWeakKeysAndSize(int maxSize) {
+        return DELEGATE.createCacheWithWeakKeysAndSize(maxSize);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createWeakKeyedCacheWithInitialCapacity(int initialCapacity) {
+        return DELEGATE.createWeakKeyedCacheWithInitialCapacity(initialCapacity);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createCacheWithWeakKeysInitialCapacityAndSize(int initialCapacity, int maxSize) {
+        return DELEGATE.createCacheWithWeakKeysInitialCapacityAndSize(initialCapacity, maxSize);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createCacheWithInitialCapacity(int initialCapacity) {
+        return DELEGATE.createCacheWithInitialCapacity(initialCapacity);
+    }
+
+    @Override
+    public <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader) {
+        return DELEGATE.createWeakKeyedLoadingCacheWithInitialCapacity(initialCapacity, loader);
+    }
 }

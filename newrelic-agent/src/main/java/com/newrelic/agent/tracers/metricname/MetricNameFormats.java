@@ -7,20 +7,25 @@
 
 package com.newrelic.agent.tracers.metricname;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.util.Strings;
 
 public class MetricNameFormats {
 
-    private static final Cache<MNFKey, MetricNameFormat> cmsToMnf = Caffeine.newBuilder()
-                                                                                .executor(Runnable::run)
-                                                                                .build();
+    /**
+     * Cache for MetricNameFormat instances. Uses AgentCollectionFactory to automatically
+     * select correct Caffeine version:
+     * - Java 8-10: Uses Caffeine 2.9.3
+     * - Java 11+:  Uses Caffeine 3.2.3 (no Unsafe)
+     */
+    private static final Map<MNFKey, MetricNameFormat> cmsToMnf =
+        AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
 
     private MetricNameFormats() {
     }
@@ -51,7 +56,7 @@ public class MetricNameFormats {
         }
 
         final MNFKey key = new MNFKey(sig, invocationTarget, null, 0);
-        return cmsToMnf.get(key, k -> new ClassMethodMetricNameFormat(sig, key.invocationTargetClassName));
+        return cmsToMnf.computeIfAbsent(key, k -> new ClassMethodMetricNameFormat(sig, key.invocationTargetClassName));
     }
 
     public static MetricNameFormat getFormatter(final Object invocationTarget, final ClassMethodSignature sig,
@@ -61,7 +66,7 @@ public class MetricNameFormats {
         }
 
         final MNFKey key = new MNFKey(sig, invocationTarget, metricName, flags);
-        return cmsToMnf.get(
+        return cmsToMnf.computeIfAbsent(
                 key,
                 k -> metricName == null
                         ? sig.getMetricNameFormat(key.invocationTargetClassName, flags)

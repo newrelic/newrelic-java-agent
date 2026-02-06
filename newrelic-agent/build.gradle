@@ -194,6 +194,7 @@ dependencies {
     java11CompileOnly files(shadeCaffeine3Jar.outputs.files)
 
     java11Implementation sourceSets.main.output
+    testCompileOnly files(shadeCaffeine2Jar.outputs.files)
 
     testImplementation("com.google.code.gson:gson:2.8.9")
     testImplementation("org.apache.struts:struts-core:1.3.10")
@@ -236,6 +237,10 @@ compileJava {
 // Java 11 source set - needs both Caffeine 2 and 3
 compileJava11Java {
     dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+}
+
+compileTestJava {
+    dependsOn shadeCaffeine2Jar
 }
 
 /**

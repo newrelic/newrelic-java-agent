@@ -55,6 +55,7 @@ public class Caffeine2CollectionFactory implements CollectionFactory {
         LoadingCache<K, V> cache = Caffeine.newBuilder()
                 .initialCapacity(initialCapacity)
                 .expireAfterAccess(ageInSeconds, TimeUnit.SECONDS)
+                .executor(Runnable::run)
                 .build(loader::apply);
         return cache::get;
     }

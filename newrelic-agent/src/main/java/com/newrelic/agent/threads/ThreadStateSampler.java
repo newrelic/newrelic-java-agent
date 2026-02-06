@@ -11,12 +11,14 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
@@ -33,8 +35,8 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final LoadingCache<Long, ThreadTracker> threads = Caffeine.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).executor(Runnable::run).build(
-            threadId -> new ThreadTracker());
+    private final Function<Long, ThreadTracker> threads =
+            AgentBridge.collectionFactory.createAccessTimeBasedCache(180, 16, threadId -> new ThreadTracker());
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final MetricAggregator metricAggregator;
@@ -52,7 +54,7 @@ public class ThreadStateSampler implements Runnable {
         for (ThreadInfo thread : threadInfos) {
             // a thread may terminate after getting its tid but before getting its thread info
             if (thread != null) {
-                threads.get(thread.getThreadId()).update(thread);
+                threads.apply(thread.getThreadId()).update(thread);
             } else {
                 Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
             }

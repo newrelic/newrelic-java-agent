@@ -930,8 +930,8 @@ These require the new factory methods we just added:
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **EmbeddedJarFilesImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/bootstrap/` | `Caffeine.newBuilder().build(loader)` |
-| **MetricNameFormats.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/tracers/metricname/` | `Caffeine.newBuilder().build()` + `.get(key, loader)` |
+| EmbeddedJarFilesImpl.java | `/newrelic-agent/src/main/java/com/newrelic/bootstrap/` | `Caffeine.newBuilder().build(loader)` |
+| MetricNameFormats.java | `/newrelic-agent/src/main/java/com/newrelic/agent/tracers/metricname/` | `Caffeine.newBuilder().build()` + `.get(key, loader)` |
 | **ThreadStateSampler.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/threads/` | `Caffeine.newBuilder().expireAfterAccess(...).build(loader)` |
 | **TransactionProfile.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
 | **TransactionProfileSessionImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
