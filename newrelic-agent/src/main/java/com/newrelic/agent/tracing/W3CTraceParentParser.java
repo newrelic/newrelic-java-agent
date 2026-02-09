@@ -38,6 +38,7 @@ public class W3CTraceParentParser {
     static W3CTraceParent parseHeader(String traceParentHeader) {
         String[] traceParentFields = traceParentHeader.split(W3CTraceParentHeader.W3C_TRACE_PARENT_DELIMITER);
         if (traceParentFields.length < 4) {
+            Agent.LOG.log(Level.INFO, "   DTTrace: traceParentHeader length < 4, returning null");
             ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_FIELD_COUNT);
             // We do not support any version that has less than 4 fields
             return null;
@@ -48,6 +49,8 @@ public class W3CTraceParentParser {
         String parentId = traceParentFields[2];
         String unparsedFlags = traceParentFields[3];
 
+        Agent.LOG.log(Level.INFO, "   DTTrace: traceParent fields  version: {0}   traceId {1}  parentId: {2}  unparsedFlags: {3}", version, traceId, parentId, unparsedFlags);
+
         boolean valid = W3CTraceParentValidator.forHeader(traceParentHeader)
                 .version(version)
                 .traceId(traceId)
@@ -56,10 +59,13 @@ public class W3CTraceParentParser {
                 .isValid();
 
         if (!valid) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceParentHeader is invalid and will be discarded");
             ServiceFactory.getStatsService().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_PARENT_INVALID);
             // The payload was invalid and will be discarded
             return null;
         }
+
+        Agent.LOG.log(Level.INFO, "DTTrace: traceParentHeader is VALID");
 
         int flags = Integer.parseInt(unparsedFlags, 16);
         return new W3CTraceParent(version, traceId, parentId, flags);

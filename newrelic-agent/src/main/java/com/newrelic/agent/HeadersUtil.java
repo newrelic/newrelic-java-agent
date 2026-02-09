@@ -182,9 +182,16 @@ public class HeadersUtil {
 
     private static List<String> getHeadersTryingDifferentCases(InboundHeaders inboundHeaders, String... caseVariants) {
         for (String variant : caseVariants) {
+            Agent.LOG.log(Level.INFO, "DTTrace: Attempt to extracting headers for case variant: {0}", variant);
             List<String> headers = getHeaders(inboundHeaders, variant);
             if (headers != null) {
+                Agent.LOG.log(Level.INFO, "DTTrace: Returning this list of headers for variant {0} ...", variant);
+                for (String h : headers) {
+                    Agent.LOG.log(Level.INFO, "    DTTrace: ", h);
+                }
                 return headers;
+            } else {
+                Agent.LOG.log(Level.INFO, "DTTrace: No headers for variant {0} ...", variant);
             }
         }
 

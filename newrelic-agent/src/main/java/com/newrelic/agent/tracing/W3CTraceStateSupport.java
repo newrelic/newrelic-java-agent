@@ -8,6 +8,7 @@
 package com.newrelic.agent.tracing;
 
 import com.google.common.base.Joiner;
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.NewRelic;
@@ -19,6 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.newrelic.agent.tracing.W3CTraceStateHeader.MULTI_TENANT_VENDOR_STATE_KEY;
@@ -50,16 +52,25 @@ public class W3CTraceStateSupport {
 
     static W3CTraceState parseHeaders(List<String> traceStateHeaders) {
         if (traceStateHeaders == null || traceStateHeaders.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceStateHeaders length is null or empty; returning null");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_STATE_HEADER_COUNT);
             return null;
         }
 
         String agentTrustKey = ServiceFactory.getDistributedTraceService().getTrustKey();
+        Agent.LOG.log(Level.INFO, "DTTrace: traceStateHeaders agentTrustKey: {0}", agentTrustKey);
         VendorStateResult vendorStateResult = flattenVendorStatesAndExtractNrState(traceStateHeaders, agentTrustKey);
 
         List<String> vendorStates = vendorStateResult.getVendorStates();
+        if (vendorStates != null && !vendorStates.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceStateHeaders vendorStates...");
+            for (String v : vendorStates) {
+                Agent.LOG.log(Level.INFO, "    DTTrace: {0}", v);
+            }
+        }
 
         String nrState = vendorStateResult.getNrState();
+        Agent.LOG.log(Level.INFO, "DTTrace: traceStateHeaders nrState: {0}", nrState);
         W3CTraceState traceState = new W3CTraceState(traceStateHeaders, vendorStates);
 
         if (nrState == null) {
@@ -70,12 +81,15 @@ public class W3CTraceStateSupport {
 
         String[] trustKeyAndFields = nrState.split(NR_VENDOR);
         if (trustKeyAndFields.length != 2) {
+            Agent.LOG.log(Level.INFO, "DTTrace: trustKeyAndFields is invalid (length != 2");
             // NR state header must have a key and a value separated by an "=" and the key ending in "@nr"
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             return traceState;
         }
 
         String trustKey = trustKeyAndFields[0];
+        Agent.LOG.log(Level.INFO, "DTTrace: trustKey: {0}", trustKey);
+        Agent.LOG.log(Level.INFO, "DTTrace: traceFields: {0}", trustKeyAndFields[1]);
         boolean isTrustedAccountKey = agentTrustKey.equals(trustKey);
         if (!isTrustedAccountKey) {
             // not a trusted account
@@ -85,12 +99,14 @@ public class W3CTraceStateSupport {
 
         String[] traceFields = trustKeyAndFields[1].split(NR_TRACE_STATE_DELIMITER, 10);
         if (traceFields.length < 9) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields length < 9");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // NR state header requires 9 or more fields
             return traceState;
         }
 
         if (traceFields[0].isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[0] is empty");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // version cannot be empty
             return traceState;
@@ -98,12 +114,14 @@ public class W3CTraceStateSupport {
 
         int version = Integer.parseInt(traceFields[0]);
         if (version < NR_HEADER_VERSION_INT) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[0] (version) is unsupported");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // unsupported NR version
             return traceState;
         }
 
         if (traceFields[1].isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[1] is empty");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // must provide parent type
             return traceState;
@@ -111,6 +129,7 @@ public class W3CTraceStateSupport {
 
         ParentType parentType = ParentType.getParentTypeFromValue(Integer.parseInt(traceFields[1]));
         if (parentType == null || parentType.value < ParentType.App.value || parentType.value > ParentType.Mobile.value) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[1] (parentType) is unsupported");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // the provided parentType value was not one of the values we support
             return traceState;
@@ -118,6 +137,7 @@ public class W3CTraceStateSupport {
 
         String accountId = traceFields[2];
         if (accountId.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[2] is empty");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // must provide account id
             return traceState;
@@ -125,6 +145,7 @@ public class W3CTraceStateSupport {
 
         String applicationId = traceFields[3];
         if (applicationId.isEmpty()) {
+            Agent.LOG.log(Level.INFO, "DTTrace: traceFields[3] is empty");
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);
             // must provide account id
             return traceState;
@@ -143,6 +164,9 @@ public class W3CTraceStateSupport {
         String guid = traceFields[4];
         String txnId = !traceFields[5].isEmpty() ? traceFields[5] : null;
         String unparsedTimestamp = traceFields[8];
+
+        Agent.LOG.log(Level.INFO, "DTTrace: guid: {0}  txnId: {1}  unparsedTimestamp: {2}", guid, txnId, unparsedTimestamp);
+
         if (unparsedTimestamp.isEmpty()) {
             // must provide timestamp
             NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_INVALID_NR_ENTRY);

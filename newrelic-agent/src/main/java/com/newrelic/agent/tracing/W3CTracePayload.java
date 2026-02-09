@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.tracing;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.api.agent.DistributedTracePayload;
@@ -40,6 +41,24 @@ public class W3CTracePayload {
     }
 
     public static W3CTracePayload parseHeaders(Transaction tx, List<String> parentHeaders, List<String> stateHeaders) {
+        Agent.LOG.log(Level.INFO, "DTTrace: W3CTracePayload.parseHeaders, list of parentHeaders:");
+        if (parentHeaders != null) {
+            for (String h : parentHeaders) {
+                Agent.LOG.log(Level.INFO, "   DTTrace: W3CTracePayload.parseHeaders {0}", h);
+            }
+        } else {
+            Agent.LOG.log(Level.INFO, "   DTTrace: List is null");
+        }
+
+        Agent.LOG.log(Level.INFO, "DTTrace: W3CTracePayload.parseHeaders, list of stateHeaders:");
+        if (stateHeaders != null) {
+            for (String h : stateHeaders) {
+                Agent.LOG.log(Level.INFO, "   DTTrace: W3CTracePayload.parseHeaders {0}", h);
+            }
+        } else {
+            Agent.LOG.log(Level.INFO, "   DTTrace: List is null");
+        }
+
         try {
             if (parentHeaders == null) {
                 tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_NULL_PARENT);

@@ -46,6 +46,7 @@ public class DistributedTracePayloadParser {
             return null;
         }
 
+        logger.log(Level.INFO, "DTPayload: raw payload in parse(): " + payload);
         if (!payload.trim().isEmpty()) {
             payload = payload.trim();
             char firstChar = payload.charAt(0);
@@ -80,6 +81,8 @@ public class DistributedTracePayloadParser {
             String payloadTrustKey = (String) data.get(TRUSTED_ACCOUNT_KEY);
             String trustKey = distributedTraceService.getTrustKey();
 
+            logger.log(Level.INFO, "DTPayload: payloadAcctId: {0}   payloadTrustKey: {1}   trustKey: {2}", payloadAccountId, payloadTrustKey, trustKey);
+
             //the agent obtains the trustKey from the connect payload
             if (trustKey == null) {
                 logger.log(Level.FINER,
@@ -94,6 +97,7 @@ public class DistributedTracePayloadParser {
             }
 
             String applicationId = (String) data.get(APPLICATION_ID);
+            logger.log(Level.INFO, "DTPayload: applicationId: {0}", applicationId);
             if (applicationId == null) {
                 logger.log(Level.FINER, "Incoming distributed trace payload is missing application id");
                 metricAggregator.incrementCounter(MetricNames.SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION);
@@ -111,6 +115,7 @@ public class DistributedTracePayloadParser {
             }
 
             long timestamp = (Long) data.get(TIMESTAMP);
+            logger.log(Level.INFO, "DTPayload: timestamp: {0}", timestamp);
             if (timestamp <= 0) {
                 logger.log(Level.FINER, "Invalid payload {0}. Payload missing keys.", data);
                 metricAggregator.incrementCounter(MetricNames.SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION);
@@ -118,6 +123,7 @@ public class DistributedTracePayloadParser {
             }
 
             String parentType = (String) data.get(PARENT_TYPE);
+            logger.log(Level.INFO, "DTPayload: parentType: {0}", parentType);
             if (parentType == null) {
                 logger.log(Level.FINER, "Incoming distributed trace payload is missing type");
                 metricAggregator.incrementCounter(MetricNames.SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION);
@@ -125,6 +131,7 @@ public class DistributedTracePayloadParser {
             }
 
             String traceId = (String) data.get(TRACE_ID);
+            logger.log(Level.INFO, "DTPayload: traceId: {0}", traceId);
             if (traceId == null) {
                 logger.log(Level.FINER, "Incoming distributed trace payload is missing traceId");
                 metricAggregator.incrementCounter(MetricNames.SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION);
@@ -133,6 +140,7 @@ public class DistributedTracePayloadParser {
 
             String guid = (String) data.get(GUID);
             String txnId = (String) data.get(TX);
+            logger.log(Level.INFO, "DTPayload: guid: {0}   txnId: {1}", guid, txnId);
             if (guid == null && txnId == null) {
                 // caller has span events disabled and there's no transaction?
                 // they must be using txn-less api, but no spans?
