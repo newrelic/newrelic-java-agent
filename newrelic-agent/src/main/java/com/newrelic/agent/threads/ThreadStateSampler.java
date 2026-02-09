@@ -14,8 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.bridge.AgentBridge;

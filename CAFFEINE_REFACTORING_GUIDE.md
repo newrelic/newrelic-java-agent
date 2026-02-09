@@ -932,10 +932,10 @@ These require the new factory methods we just added:
 |------|----------|-----------------|
 | EmbeddedJarFilesImpl.java | `/newrelic-agent/src/main/java/com/newrelic/bootstrap/` | `Caffeine.newBuilder().build(loader)` |
 | MetricNameFormats.java | `/newrelic-agent/src/main/java/com/newrelic/agent/tracers/metricname/` | `Caffeine.newBuilder().build()` + `.get(key, loader)` |
-| **ThreadStateSampler.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/threads/` | `Caffeine.newBuilder().expireAfterAccess(...).build(loader)` |
-| **TransactionProfile.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
+| ThreadStateSampler.java | `/newrelic-agent/src/main/java/com/newrelic/agent/threads/` | `Caffeine.newBuilder().expireAfterAccess(...).build(loader)` |
+| TransactionProfile.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
 | **TransactionProfileSessionImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
-| **Profile.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
+| Profile.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
 | **DiscoveryProfile.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` |
 | **DefaultDestinationPredicate.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/attributes/` | `Caffeine.newBuilder().maximumSize(200).build(loader)` |
 | **ThreadService.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/` | `Caffeine.newBuilder().expireAfterAccess(5 min).build()` |
