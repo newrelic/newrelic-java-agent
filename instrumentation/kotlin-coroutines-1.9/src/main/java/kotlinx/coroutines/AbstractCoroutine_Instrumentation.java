@@ -21,12 +21,10 @@ public abstract class AbstractCoroutine_Instrumentation<T> {
 	public abstract String nameString$kotlinx_coroutines_core();
 
 	protected void onCompleted(T value) {
-		Utils.expireToken(getContext());
 		Weaver.callOriginal();
 	}
 
 	protected void onCancelled(Throwable t, boolean b) {
-		Utils.expireToken(getContext());
 		Weaver.callOriginal();
 	}
 

@@ -32,11 +32,6 @@ public class NRFunction2SuspendWrapper<S, T, R> implements Function2<S, T, R> {
 		boolean name_set = false;
 		if(s instanceof CoroutineScope) {
 			CoroutineScope scope = (CoroutineScope)s;
-			CoroutineContext ctx = scope.getCoroutineContext();
-			Token token = Utils.getToken(ctx);
-			if(token != null) {
-				token.link();
-			}
 			CoroutineContext context = scope.getCoroutineContext();
 			String coroutineName = Utils.getCoroutineName(context);
 			if(coroutineName != null) {
