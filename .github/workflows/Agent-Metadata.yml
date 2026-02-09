@@ -1,14 +1,14 @@
 name: Agent Metadata
 
 permissions:
-  contents: write
+  contents: read
 
 on:
   # Allows manual triggering with parameters
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v0.0.8)'
+        description: 'Version tag (e.g., v9.0.0)'
         required: true
         type: string
       agent-type:
@@ -95,11 +95,11 @@ jobs:
     continue-on-error: true
     steps:
       - name: Run action
-        uses: newrelic/agent-metadata-action@v1.0.0
+        uses: newrelic/agent-metadata-action@v1.0.1
         with:
           newrelic-client-id: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
           newrelic-private-key: ${{ secrets.FC_SYS_ID_PR_KEY }}
-          apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }}
-          agent-type: TestAgent #${{ inputs.agent-type }}
+          apm-control-nr-license-key: ${{ secrets.APM_CONTROL_NR_LICENSE_KEY_STAGING }} # action app is instrumented and supported by APM Control team
+          agent-type: ${{ inputs.agent-type }}
           version: ${{ inputs.version }}
           cache: ${{ inputs.use-cache }}
