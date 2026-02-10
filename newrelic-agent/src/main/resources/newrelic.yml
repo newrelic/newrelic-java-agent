@@ -225,6 +225,16 @@ common: &default_settings
     # Default is apdex_f.
     transaction_threshold: apdex_f
 
+    # Controls the addition of comments to the beginning of executed SQL
+    # statements to be used by the New Relic Query Performance Monitoring
+    # product for entity linking. An empty String disables SQL comments
+    # (default setting).
+    # Allowed options are:
+    # nr_service_guid - The GUID of the New Relic entity this agent is instrumenting
+    # A resulting comment would resemble this:
+    # /*nr_service_guid=MTE3NDc2MDB8QVBNfEFQUExJQ0FUSU9OfDI4MTc5NDEIEA*/
+    sql_metadata_comments:
+
     # For large SQL statements, executing the regular expressions that attempt to parse exec and
     # call statements can take a significant amount of time. Setting this to true will disable the
     # execution of these complex regular expressions.
