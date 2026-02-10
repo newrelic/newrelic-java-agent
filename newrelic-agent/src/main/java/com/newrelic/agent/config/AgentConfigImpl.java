@@ -170,8 +170,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
     public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
     public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
-    public static final String EU_METRIC_INGEST_URI = "https://metric-api.eu.newrelic.com/metric/v1";
-    public static final String EU_EVENT_INGEST_URI = "https://insights-collector.eu01.nr-data.net/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
@@ -485,15 +483,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return DEFAULT_METRIC_INGEST_URI;
         }
 
-        if (region.toLowerCase().contains("eu")) {
-            Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", EU_METRIC_INGEST_URI);
-            return EU_METRIC_INGEST_URI;
-        }
+        metricIngestUri = "https://metric-api." + region + ".newrelic.com/metric/v1";
+        Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", metricIngestUri);
 
-        Agent.LOG.log(Level.INFO,
-                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}",
-                METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
-        return DEFAULT_METRIC_INGEST_URI;
+        return metricIngestUri;
     }
 
     /**
@@ -516,15 +509,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return DEFAULT_EVENT_INGEST_URI;
         }
 
-        if (region.toLowerCase().contains("eu")) {
-            Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", EU_EVENT_INGEST_URI);
-            return EU_EVENT_INGEST_URI;
-        }
+        eventIngestUri = "https://insights-collector." + region + ".nr-data.net/v1/accounts/events";
+        Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", eventIngestUri);
 
-        Agent.LOG.log(Level.INFO,
-                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
-                EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
-        return DEFAULT_EVENT_INGEST_URI;
+        return eventIngestUri;
     }
 
     private DistributedTracingConfig initDistributedTracing() {
