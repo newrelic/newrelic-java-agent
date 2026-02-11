@@ -54,13 +54,15 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
     @Override
     public SamplerConfig createSamplerConfig(String samplerCase){
         SamplerConfig sampler = super.createSamplerConfig(samplerCase);
-        NewRelic.getAgent()
-                .getLogger()
-                .log(Level.INFO,
-                        "The full granularity " + samplerCase + " sampler was configured to use the " +
-                                sampler.getSamplerType() + " sampler type" +
-                                (sampler.getSamplerRatio() != null ? " with a ratio of " + sampler.getSamplerRatio() : "") +
-                                (sampler.getSamplingTarget() != null ? " with a target of " + sampler.getSamplingTarget() : "") + ".");
+        if (isEnabled()) {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.INFO,
+                            "The full granularity " + samplerCase + " sampler was configured to use the " +
+                                    sampler.getSamplerType() + " sampler type" +
+                                    (sampler.getSamplerRatio() != null ? " with a ratio of " + sampler.getSamplerRatio() : "") +
+                                    (sampler.getSamplingTarget() != null ? " with a target of " + sampler.getSamplingTarget() : "") + ".");
+        }
         return sampler;
     }
 }
