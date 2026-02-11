@@ -179,6 +179,14 @@ common: &default_settings
   #proxy_password: password
   #proxy_scheme: https
 
+  # Cloud environment settings for container metadata collection:
+  # When running in containerized environments (like AWS Fargate) with a proxy,
+  # metadata endpoints may need to bypass the proxy to be accessible.
+  #cloud:
+    # Set to true to bypass proxy for cloud metadata endpoint access.
+    # Default is false.
+    #metadata_proxy_bypass_enabled: false
+
   # Limits the number of lines to capture for each stack trace.
   # Default is 30
   max_stack_trace_lines: 30
