@@ -804,12 +804,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     private CloudConfig initCloudConfig() {
-
         Map<String, Object> cloudProps = nestedProps(CLOUD);
-        if (cloudProps == null) {
-            cloudProps = Collections.emptyMap();
-        }
-        return new CloudConfigImpl(cloudProps, SYSTEM_PROPERTY_ROOT);
+        return new CloudConfigImpl(cloudProps);
     }
 
     private BrowserMonitoringConfig initBrowserMonitoringConfig() {

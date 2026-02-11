@@ -7,7 +7,7 @@
 
 package com.newrelic.agent.utilization;
 
-import com.newrelic.agent.config.AwsConfig;
+import com.newrelic.agent.config.CloudConfig;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.After;
 import org.junit.Before;
@@ -59,10 +59,10 @@ public class AwsFargateMetadataFetcherTest {
 
         try {
             String url = "http://169.254.170.2/v4/task";
-            AwsConfig awsConfig = mock(AwsConfig.class);
-            when(awsConfig.isFargateMetadataProxyBypassEnabled()).thenReturn(false);
+            CloudConfig cloudConfig = mock(CloudConfig.class);
+            when(cloudConfig.isCloudMetadataProxyBypassEnabled()).thenReturn(false);
 
-            AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(url, awsConfig);
+            AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(url, cloudConfig);
             awsFargateMetadataFetcher.openStream();
 
         } finally {
@@ -77,10 +77,10 @@ public class AwsFargateMetadataFetcherTest {
         System.setProperty("http.proxyPort", "65000"); // closed port
 
         try {
-            AwsConfig awsConfig = mock(AwsConfig.class);
-            when(awsConfig.isFargateMetadataProxyBypassEnabled()).thenReturn(true);
+            CloudConfig cloudConfig = mock(CloudConfig.class);
+            when(cloudConfig.isCloudMetadataProxyBypassEnabled()).thenReturn(true);
 
-            AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(testUrl, awsConfig);
+            AwsFargateMetadataFetcher awsFargateMetadataFetcher = new AwsFargateMetadataFetcher(testUrl, cloudConfig);
             InputStream inputStream = awsFargateMetadataFetcher.openStream();
             String body = readBody(inputStream);
 

@@ -1,27 +1,19 @@
 package com.newrelic.agent.config;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class CloudConfigImpl extends BaseConfig implements CloudConfig {
 
-    static final String AWS_ROOT = "aws";
-    static final String CLOUD_ROOT = "cloud.";
+    public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.cloud.";
+    public static final String METADATA_PROXY_BYPASS_ENABLED = "metadata_proxy_bypass_enabled";
+    public static final boolean DEFAULT_METADATA_PROXY_BYPASS_ENABLED = false;
 
-    private final AwsConfig awsConfig;
-
-    public CloudConfigImpl(Map<String, Object> cloudProps, String parentRoot) {
-        super(cloudProps, parentRoot + CLOUD_ROOT);
-
-        Map<String, Object> awsProps = nestedProps(AWS_ROOT);
-        if (awsProps == null) {
-            awsProps = Collections.emptyMap();
-        }
-        this.awsConfig = new AwsConfigImpl(awsProps, parentRoot + CLOUD_ROOT);
+    public CloudConfigImpl(Map<String, Object> cloudProps) {
+        super(cloudProps, SYSTEM_PROPERTY_ROOT);
     }
 
     @Override
-    public AwsConfig getAwsConfig() {
-        return awsConfig;
+    public boolean isCloudMetadataProxyBypassEnabled() {
+        return getProperty(METADATA_PROXY_BYPASS_ENABLED, DEFAULT_METADATA_PROXY_BYPASS_ENABLED);
     }
 }

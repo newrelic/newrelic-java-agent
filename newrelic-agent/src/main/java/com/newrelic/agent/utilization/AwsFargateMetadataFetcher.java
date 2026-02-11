@@ -7,7 +7,7 @@
 package com.newrelic.agent.utilization;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.config.AwsConfig;
+import com.newrelic.agent.config.CloudConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,19 +21,19 @@ import java.net.URLConnection;
  */
 public class AwsFargateMetadataFetcher {
     private final URL url;
-    private final AwsConfig awsConfig;
+    private final CloudConfig cloudConfig;
 
-    public AwsFargateMetadataFetcher(String metadataUrl, AwsConfig awsConfig) throws MalformedURLException {
+    public AwsFargateMetadataFetcher(String metadataUrl, CloudConfig cloudConfig) throws MalformedURLException {
         url = new URL(metadataUrl);
-        this.awsConfig = awsConfig;
+        this.cloudConfig = cloudConfig;
     }
 
     public InputStream openStream() throws IOException {
         URLConnection connection;
 
-        Agent.LOG.debug("Fargate Metadata Proxy Bypass Enabled: " + awsConfig.isFargateMetadataProxyBypassEnabled());
+        Agent.LOG.debug("Cloud Metadata Proxy Bypass Enabled: " + cloudConfig.isCloudMetadataProxyBypassEnabled());
 
-        if (awsConfig.isFargateMetadataProxyBypassEnabled()) {
+        if (cloudConfig.isCloudMetadataProxyBypassEnabled()) {
             connection = url.openConnection(Proxy.NO_PROXY);
         } else {
             connection = url.openConnection();

@@ -9,7 +9,6 @@ package com.newrelic.agent.utilization;
 
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AwsConfig;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.service.AbstractService;
@@ -91,7 +90,7 @@ public class UtilizationService extends AbstractService {
         detectGcp = agentConfig.getValue(DETECT_GOOGLE_CLOUD_PROVIDER_KEY, Boolean.TRUE);
         detectAzure = agentConfig.getValue(DETECT_AZURE_KEY, Boolean.TRUE);
         detectKubernetes = agentConfig.getValue(DETECT_KUBERNETES_KEY, Boolean.TRUE);
-        dockerData = new DockerData(agentConfig.getCloudConfig().getAwsConfig());
+        dockerData = new DockerData(agentConfig.getCloudConfig());
 
         hostName = Hostname.getHostname(agentConfig);
         fullHostName = Hostname.getFullHostname(agentConfig);

@@ -12,5 +12,5 @@ package com.newrelic.agent.config;
  */
 
 public interface CloudConfig extends Config {
-    AwsConfig getAwsConfig();
+    boolean isCloudMetadataProxyBypassEnabled();
 }
