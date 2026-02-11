@@ -934,44 +934,44 @@ These require the new factory methods we just added:
 | MetricNameFormats.java | `/newrelic-agent/src/main/java/com/newrelic/agent/tracers/metricname/` | `Caffeine.newBuilder().build()` + `.get(key, loader)` |
 | ThreadStateSampler.java | `/newrelic-agent/src/main/java/com/newrelic/agent/threads/` | `Caffeine.newBuilder().expireAfterAccess(...).build(loader)` |
 | TransactionProfile.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
-| **TransactionProfileSessionImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
+| TransactionProfileSessionImpl.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
 | Profile.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` (2 caches) |
-| **DiscoveryProfile.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` |
-| **DefaultDestinationPredicate.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/attributes/` | `Caffeine.newBuilder().maximumSize(200).build(loader)` |
-| **ThreadService.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/` | `Caffeine.newBuilder().expireAfterAccess(5 min).build()` |
-| **TransactionEventsService.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/` | `Caffeine.newBuilder().maximumSize().expireAfterAccess().build(loader)` |
-| **LogSenderServiceImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/service/logging/` | `Caffeine.newBuilder().maximumSize(1000).expireAfterAccess(70s).build(loader)` |
-| **InsightsServiceImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/` | `Caffeine.newBuilder().maximumSize(1000).expireAfterAccess(70s).build(loader)` |
+| DiscoveryProfile.java | `/newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/` | `Caffeine.newBuilder().build(loader)` |
+| DefaultDestinationPredicate.java | `/newrelic-agent/src/main/java/com/newrelic/agent/attributes/` | `Caffeine.newBuilder().maximumSize(200).build(loader)` |
+| ThreadService.java | `/newrelic-agent/src/main/java/com/newrelic/agent/` | `Caffeine.newBuilder().expireAfterAccess(5 min).build()` |
+| TransactionEventsService.java | `/newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/` | `Caffeine.newBuilder().maximumSize().expireAfterAccess().build(loader)` |
+| LogSenderServiceImpl.java | `/newrelic-agent/src/main/java/com/newrelic/agent/service/logging/` | `Caffeine.newBuilder().maximumSize(1000).expireAfterAccess(70s).build(loader)` |
+| InsightsServiceImpl.java | `/newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/` | `Caffeine.newBuilder().maximumSize(1000).expireAfterAccess(70s).build(loader)` |
 
 #### **Use `createCacheWithWeakKeysAndSize(int)`** (1 file)
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **CachingDatabaseStatementParser.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/database/` | `Caffeine.newBuilder().maximumSize(1000).weakKeys().build()` |
+| CachingDatabaseStatementParser.java | `/newrelic-agent/src/main/java/com/newrelic/agent/database/` | `Caffeine.newBuilder().maximumSize(1000).weakKeys().build()` |
 
 #### **Use `createWeakKeyedCacheWithInitialCapacity(int)`** (1 file)
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **ExtensionHolderFactoryImpl.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/instrumentation/weaver/extension/` | `Caffeine.newBuilder().initialCapacity(32).weakKeys().build()` |
+| ExtensionHolderFactoryImpl.java | `/newrelic-agent/src/main/java/com/newrelic/agent/instrumentation/weaver/extension/` | `Caffeine.newBuilder().initialCapacity(32).weakKeys().build()` |
 
 #### **Use `createCacheWithWeakKeysInitialCapacityAndSize(int, int)`** (1 file)
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **WeavePackageManager.java** | `/newrelic-weaver/src/main/java/com/newrelic/weave/weavepackage/` | `Caffeine.newBuilder().weakKeys().initialCapacity().maximumSize().build()` (3 caches) |
+| WeavePackageManager.java | `/newrelic-weaver/src/main/java/com/newrelic/weave/weavepackage/` | `Caffeine.newBuilder().weakKeys().initialCapacity().maximumSize().build()` (3 caches) |
 
 #### **Use `createWeakKeyedLoadingCacheWithInitialCapacity(int, Function)`** (1 file)
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **CloudAccountInfoCache.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/cloud/` | `Caffeine.newBuilder().initialCapacity(4).weakKeys().build(loader)` |
+| CloudAccountInfoCache.java | `/newrelic-agent/src/main/java/com/newrelic/agent/cloud/` | `Caffeine.newBuilder().initialCapacity(4).weakKeys().build(loader)` |
 
 #### **Use `createCacheWithInitialCapacity(int)`** (1 file)
 
 | File | Location | Current Pattern |
 |------|----------|-----------------|
-| **BoundedConcurrentCache.java** | `/newrelic-agent/src/main/java/com/newrelic/agent/sql/` | `Caffeine.newBuilder().initialCapacity(16).build()` |
+| BoundedConcurrentCache.java | `/newrelic-agent/src/main/java/com/newrelic/agent/sql/` | `Caffeine.newBuilder().initialCapacity(16).build()` |
 
 #### **Requires Additional Work** (3 files - need RemovalListener support)
 

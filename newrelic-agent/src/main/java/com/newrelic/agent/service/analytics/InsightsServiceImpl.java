@@ -8,8 +8,6 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.Harvestable;
@@ -19,6 +17,7 @@ import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeSender;
 import com.newrelic.agent.attributes.CustomEventAttributeValidator;
 import com.newrelic.agent.attributes.LlmEventAttributeValidator;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -45,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 public class InsightsServiceImpl extends AbstractService implements InsightsService {
@@ -61,8 +61,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
     // Key is app name, value is collection of per-transaction analytic events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<CustomInsightsEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
-    private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
-            .expireAfterAccess(70, TimeUnit.SECONDS).executor(Runnable::run).build(key -> key);
+    private static final Function<String, String> stringCache = AgentBridge.collectionFactory.createAccessTimeBasedCacheWithMaxSize(70, 1000, key -> key);
 
     protected final ExtendedTransactionListener transactionListener = new ExtendedTransactionListener() {
 
@@ -82,7 +81,6 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
             TransactionInsights data = (TransactionInsights) transaction.getInsightsData();
             storeEvents(transaction.getApplicationName(), transaction.getPriority(), data.events);
         }
-
     };
 
     protected final AgentConfigListener configListener = new AgentConfigListener() {
@@ -122,7 +120,6 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         ServiceFactory.getConfigService().removeIAgentConfigListener(configListener);
         reservoirForApp.clear();
         isEnabledForApp.clear();
-        stringCache.invalidateAll();
     }
 
     private void removeHarvestables() {
@@ -364,7 +361,7 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
         // Note that the interning occurs on the *input* to the validation code. If the validation code truncates or
         // otherwise replaces the "interned" string, the new string will not be "interned" by this cache. See the
         // comment below for more information.
-        return stringCache.get(value);
+        return stringCache.apply(value);
     }
 
     private static CustomInsightsEvent createValidatedEvent(String eventType, Map<String, ?> attributes) {

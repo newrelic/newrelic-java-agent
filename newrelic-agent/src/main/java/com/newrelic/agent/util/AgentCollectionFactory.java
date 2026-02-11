@@ -33,6 +33,11 @@ public class AgentCollectionFactory implements CollectionFactory {
     }
 
     @Override
+    public <K, V> Map<K, V> createConcurrentAccessTimeBasedEvictionMap(long ageInSeconds, int initialCapacity) {
+        return DELEGATE.createConcurrentAccessTimeBasedEvictionMap(ageInSeconds, initialCapacity);
+    }
+
+    @Override
     public <K, V> Function<K, V> memorize(Function<K, V> loader, int maxSize) {
         return DELEGATE.memorize(loader, maxSize);
     }
@@ -40,6 +45,11 @@ public class AgentCollectionFactory implements CollectionFactory {
     @Override
     public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
         return DELEGATE.createAccessTimeBasedCache(ageInSeconds, initialCapacity, loader);
+    }
+
+    @Override
+    public <K, V> Function<K, V> createAccessTimeBasedCacheWithMaxSize(long ageInSeconds, int maxSize, Function<K, V> loader) {
+        return DELEGATE.createAccessTimeBasedCacheWithMaxSize(ageInSeconds, maxSize, loader);
     }
 
     @Override

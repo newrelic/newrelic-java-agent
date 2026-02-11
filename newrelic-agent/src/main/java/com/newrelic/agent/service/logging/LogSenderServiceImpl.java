@@ -7,8 +7,6 @@
 
 package com.newrelic.agent.service.logging;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentLinkingMetadata;
@@ -23,6 +21,7 @@ import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.attributes.LogAttributeValidator;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
@@ -54,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
@@ -77,8 +77,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
-    private static final LoadingCache<String, String> stringCache = Caffeine.newBuilder().maximumSize(1000)
-            .expireAfterAccess(70, TimeUnit.SECONDS).executor(Runnable::run).build(key -> key);
+    private static final Function<String, String> stringCache = AgentBridge.collectionFactory.createAccessTimeBasedCacheWithMaxSize(70, 1000, key -> key);
 
     public static final String METHOD = "add log event attribute";
     public static final String LOG_SENDER_SERVICE = "Log Sender Service";
@@ -216,7 +215,6 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         ServiceFactory.getConfigService().removeIAgentConfigListener(configListener);
         reservoirForApp.clear();
         isEnabledForApp.clear();
-        stringCache.invalidateAll();
     }
 
     private void removeHarvestables() {
@@ -516,7 +514,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // Note that the interning occurs on the *input* to the validation code. If the validation code truncates or
         // otherwise replaces the "interned" string, the new string will not be "interned" by this cache. See the
         // comment below for more information.
-        return stringCache.get(value);
+        return stringCache.apply(value);
     }
 
     /**

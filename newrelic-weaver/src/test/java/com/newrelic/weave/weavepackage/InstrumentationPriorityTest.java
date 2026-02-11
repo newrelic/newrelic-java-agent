@@ -40,7 +40,7 @@ public class InstrumentationPriorityTest {
         compositeBytes = wpm.weave(Thread.currentThread().getContextClassLoader(), internalName, compositeBytes,
                 Collections.emptyMap());
         for (PackageValidationResult res :
-                wpm.validPackages.getIfPresent(Thread.currentThread().getContextClassLoader()).values()) {
+                wpm.validPackages.get(Thread.currentThread().getContextClassLoader()).values()) {
             WeaveTestUtils.expectViolations(res);
         }
 
@@ -76,7 +76,7 @@ public class InstrumentationPriorityTest {
         compositeBytes = wpm.weave(Thread.currentThread().getContextClassLoader(), internalName, compositeBytes,
                 Collections.emptyMap());
         for (PackageValidationResult res :
-                wpm.validPackages.getIfPresent(Thread.currentThread().getContextClassLoader()).values()) {
+                wpm.validPackages.get(Thread.currentThread().getContextClassLoader()).values()) {
             WeaveTestUtils.expectViolations(res);
         }
 

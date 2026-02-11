@@ -41,6 +41,19 @@ public interface CollectionFactory {
     <K, V> Map<K, V> createConcurrentTimeBasedEvictionMap(long ageInSeconds);
 
     /**
+     * Create a time based eviction cache in which an entry's age is determined on a last-access basis.
+     * Entries expire after the specified time has passed since the last read or write.
+     *
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last access
+     * @param initialCapacity initial capacity to pre-allocate
+     * @return a time based concurrent cache with access-based expiration
+     *
+     * @param <K> key type
+     * @param <V> value type
+     */
+    <K, V> Map<K, V> createConcurrentAccessTimeBasedEvictionMap(long ageInSeconds, int initialCapacity);
+
+    /**
      * Wraps the provided function into one that will cache the results for future calls.
      * @param loader the function that calculates the value.
      * @param maxSize the max number of items to be cached.
@@ -61,6 +74,19 @@ public interface CollectionFactory {
      * @return a time based concurrent cache
      */
     <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader);
+
+    /**
+     * Create a time based eviction cache with maximum size and access-based expiration.
+     * Combines size-bounded eviction with time-based expiration for optimal memory management.
+     *
+     * @param <K>          key type
+     * @param <V>          cached type
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last access
+     * @param maxSize      maximum number of entries before size-based eviction
+     * @param loader       the function to calculate the value for a key, used if the key is not cached
+     * @return a function that caches results with both size and time limits
+     */
+    <K, V> Function<K, V> createAccessTimeBasedCacheWithMaxSize(long ageInSeconds, int maxSize, Function<K, V> loader);
 
     /**
      * Create a loading cache that computes values on demand using the provided loader function.

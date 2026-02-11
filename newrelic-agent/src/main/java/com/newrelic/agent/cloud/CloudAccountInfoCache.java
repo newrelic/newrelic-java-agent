@@ -7,9 +7,8 @@
 
 package com.newrelic.agent.cloud;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.api.agent.CloudAccountInfo;
@@ -24,16 +23,12 @@ import java.util.logging.Level;
  * This class implements the account info methods from the Cloud API.
  */
 public class CloudAccountInfoCache {
-    private final LoadingCache<Object, Map<CloudAccountInfo, String>> cache;
+    private final Map<Object, Map<CloudAccountInfo, String>> cache;
     // this object is used to store data that is not related to a specific sdk client
     private static final Object NULL_CLIENT = new Object();
 
     CloudAccountInfoCache() {
-        cache = Caffeine.newBuilder()
-                .initialCapacity(4)
-                .weakKeys()
-                .executor(Runnable::run)
-                .build((key) -> Collections.synchronizedMap(new EnumMap<>(CloudAccountInfo.class)));
+        cache = AgentBridge.collectionFactory.createWeakKeyedCacheWithInitialCapacity(4);
     }
 
     public void setAccountInfo(CloudAccountInfo cloudAccountInfo, String value) {
@@ -45,20 +40,21 @@ public class CloudAccountInfoCache {
             return;
         }
         if (value == null) {
-            Map<CloudAccountInfo, String> accountInfo = cache.getIfPresent(sdkClient);
+            Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
             if (accountInfo != null) {
                 accountInfo.remove(cloudAccountInfo);
             }
             return;
         }
         if (CloudAccountInfoValidator.validate(cloudAccountInfo, value)) {
-            Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
-            accountInfo.put(cloudAccountInfo, value);
+            cache.computeIfAbsent(sdkClient,
+                    k -> Collections.synchronizedMap(new EnumMap<>(CloudAccountInfo.class)))
+                    .put(cloudAccountInfo, value);
         }
     }
 
     public String getAccountInfo(CloudAccountInfo cloudAccountInfo) {
-        Map<CloudAccountInfo, String> accountInfo = cache.getIfPresent(NULL_CLIENT);
+        Map<CloudAccountInfo, String> accountInfo = cache.get(NULL_CLIENT);
         if (accountInfo == null) {
             return null;
         }
@@ -69,7 +65,7 @@ public class CloudAccountInfoCache {
         if (sdkClient == null) {
             return getAccountInfo(cloudAccountInfo);
         }
-        Map<CloudAccountInfo, String> accountInfo = cache.getIfPresent(sdkClient);
+        Map<CloudAccountInfo, String> accountInfo = cache.get(sdkClient);
         if (accountInfo == null) {
             return getAccountInfo(cloudAccountInfo);
         }

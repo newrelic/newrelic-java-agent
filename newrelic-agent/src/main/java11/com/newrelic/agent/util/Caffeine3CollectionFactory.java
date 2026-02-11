@@ -46,6 +46,24 @@ public class Caffeine3CollectionFactory implements CollectionFactory {
         return cache.asMap();
     }
 
+    /**
+     * Create a time based eviction cache in which an entry's age is determined on a last-access basis.
+     *
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last access
+     * @param initialCapacity initial capacity to pre-allocate
+     * @return a time based concurrent cache with access-based expiration
+     */
+    @Override
+    public <K, V> Map<K, V> createConcurrentAccessTimeBasedEvictionMap(long ageInSeconds, int initialCapacity) {
+        // Note: Caffeine 3.x uses Duration instead of TimeUnit
+        Cache<K, V> cache = Caffeine.newBuilder()
+                .initialCapacity(initialCapacity)
+                .expireAfterAccess(Duration.ofSeconds(ageInSeconds))
+                .executor(Runnable::run)
+                .build();
+        return cache.asMap();
+    }
+
     @Override
     public <K, V> Function<K, V> memorize(Function<K, V> loader, int maxSize) {
         LoadingCache<K, V> cache = Caffeine.newBuilder()
@@ -60,6 +78,17 @@ public class Caffeine3CollectionFactory implements CollectionFactory {
         // Note: Caffeine 3.x uses Duration instead of TimeUnit
         LoadingCache<K, V> cache = Caffeine.newBuilder()
                 .initialCapacity(initialCapacity)
+                .expireAfterAccess(Duration.ofSeconds(ageInSeconds))
+                .executor(Runnable::run)
+                .build(loader::apply);
+        return cache::get;
+    }
+
+    @Override
+    public <K, V> Function<K, V> createAccessTimeBasedCacheWithMaxSize(long ageInSeconds, int maxSize, Function<K, V> loader) {
+        // Note: Caffeine 3.x uses Duration instead of TimeUnit
+        LoadingCache<K, V> cache = Caffeine.newBuilder()
+                .maximumSize(maxSize)
                 .expireAfterAccess(Duration.ofSeconds(ageInSeconds))
                 .executor(Runnable::run)
                 .build(loader::apply);

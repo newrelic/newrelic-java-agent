@@ -40,6 +40,20 @@ public class DefaultCollectionFactory implements CollectionFactory {
         return Collections.synchronizedMap(new HashMap<>());
     }
 
+    /**
+     * Note: In this implementation, this method will return a simple synchronized map since an access-based
+     * eviction cache can't be easily created with just vanilla JDK Map SDKs.
+     * Both ageInSeconds and initialCapacity parameters are ignored.
+     *
+     * @param ageInSeconds how old, in seconds, a cache entry must be to be evicted after last access
+     * @param initialCapacity initial capacity to pre-allocate
+     * @return a time based concurrent cache
+     */
+    @Override
+    public <K, V> Map<K, V> createConcurrentAccessTimeBasedEvictionMap(long ageInSeconds, int initialCapacity) {
+        return Collections.synchronizedMap(new HashMap<>());
+    }
+
     @Override
     public <K, V> Function<K, V> memorize(Function<K, V> loader, int maxSize) {
         Map<K, V> map = new ConcurrentHashMap<>();
@@ -58,6 +72,15 @@ public class DefaultCollectionFactory implements CollectionFactory {
      */
     @Override
     public <K, V> Function<K, V> createAccessTimeBasedCache(long ageInSeconds, int initialCapacity, Function<K, V> loader) {
+        return loader;
+    }
+
+    /**
+     * Note: In this implementation, this method will return the loader function as is.
+     * Both ageInSeconds and maxSize parameters are ignored.
+     */
+    @Override
+    public <K, V> Function<K, V> createAccessTimeBasedCacheWithMaxSize(long ageInSeconds, int maxSize, Function<K, V> loader) {
         return loader;
     }
 
