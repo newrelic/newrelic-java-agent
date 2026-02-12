@@ -63,8 +63,8 @@ on:
         required: false
         default: false
         type: boolean
-      publish-metrics-summary:
-        description: "Publish metrics summary to wiki"
+      publish-ait-performance:
+        description: "Publish AIT performance metrics to wiki"
         required: false
         default: false
         type: boolean
@@ -426,11 +426,11 @@ jobs:
           path: ${{ github.workspace }}/ingest-*.txt
           if-no-files-found: ignore
 
-      - name: Upload metrics summary files
-        if: ${{ success() && inputs.wiki-report-desc != '' && inputs.publish-metrics-summary }}
+      - name: Upload AIT performance files
+        if: ${{ success() && inputs.wiki-report-desc != '' && inputs.publish-ait-performance }}
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
-          name: metrics-summary-${{ env.MATRIX }}
+          name: ait-performance-${{ env.MATRIX }}
           path: ${{ github.workspace }}/*-metrics-summary.json
           if-no-files-found: ignore
 
@@ -537,48 +537,48 @@ jobs:
           git commit -m "Update ingest metrics report for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
           git push
 
-  process-metric-summary:
-    name: Process Metrics Summary
+  process-ait-performance:
+    name: Process AIT Performance Metrics
     needs: [ tests ]
-    if: ${{ always() && inputs.wiki-report-desc != '' && inputs.publish-metrics-summary }}
+    if: ${{ always() && inputs.wiki-report-desc != '' && inputs.publish-ait-performance }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
 
     steps:
-      - name: Download all metrics summary files
+      - name: Download all AIT performance files
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
-          pattern: metrics-summary-*
+          pattern: ait-performance-*
           merge-multiple: true
-          path: all-metrics-summaries
+          path: all-ait-performance
 
-      - name: Create metrics summary markdown report
+      - name: Create AIT performance markdown report
         run: |
-          echo "# Metrics Summary Report - Run ${{ inputs.wiki-report-desc }}" > metrics-report.md
-          echo "" >> metrics-report.md
-          echo "Generated: $(date)" >> metrics-report.md
-          echo "" >> metrics-report.md
+          echo "# AIT Performance Metrics - ${{ inputs.wiki-report-desc }}" > ait-performance-report.md
+          echo "" >> ait-performance-report.md
+          echo "Generated: $(date)" >> ait-performance-report.md
+          echo "" >> ait-performance-report.md
 
           # Process each JSON file
-          for file in all-metrics-summaries/*-metrics-summary.json; do
+          for file in all-ait-performance/*-metrics-summary.json; do
             if [ -f "$file" ]; then
-              echo "## Test: $(jq -r '.metadata.test_name' "$file")" >> metrics-report.md
-              echo "" >> metrics-report.md
-              echo "| Metric | Value |" >> metrics-report.md
-              echo "|--------|-------|" >> metrics-report.md
-              echo "| CPU Time (s) | $(jq -r '.metrics.cpu_time' "$file") |" >> metrics-report.md
-              echo "| Response Time Total (s) | $(jq -r '.metrics.response_time_total' "$file") |" >> metrics-report.md
-              echo "| Response Count | $(jq -r '.metrics.response_count' "$file") |" >> metrics-report.md
-              echo "| Throughput | $(jq -r '.metrics.throughput' "$file") |" >> metrics-report.md
-              echo "| Error Count | $(jq -r '.metrics.error_count' "$file") |" >> metrics-report.md
+              echo "## Test: $(jq -r '.metadata.test_name' "$file")" >> ait-performance-report.md
+              echo "" >> ait-performance-report.md
+              echo "| Metric | Value |" >> ait-performance-report.md
+              echo "|--------|-------|" >> ait-performance-report.md
+              echo "| CPU Time (s) | $(jq -r '.metrics.cpu_time' "$file") |" >> ait-performance-report.md
+              echo "| Response Time Total (s) | $(jq -r '.metrics.response_time_total' "$file") |" >> ait-performance-report.md
+              echo "| Response Count | $(jq -r '.metrics.response_count' "$file") |" >> ait-performance-report.md
+              echo "| Throughput | $(jq -r '.metrics.throughput' "$file") |" >> ait-performance-report.md
+              echo "| Error Count | $(jq -r '.metrics.error_count' "$file") |" >> ait-performance-report.md
 
               HEAP_PRESENT=$(jq -r '.metrics.heap_metrics_present' "$file")
               if [ "$HEAP_PRESENT" = "true" ]; then
-                echo "| Heap Utilization Max (%) | $(jq -r '.metrics.heap_utilization_max' "$file") |" >> metrics-report.md
-                echo "| Heap Used Bytes Max | $(jq -r '.metrics.heap_used_bytes_max' "$file") |" >> metrics-report.md
+                echo "| Heap Utilization Max (%) | $(jq -r '.metrics.heap_utilization_max' "$file") |" >> ait-performance-report.md
+                echo "| Heap Used Bytes Max | $(jq -r '.metrics.heap_used_bytes_max' "$file") |" >> ait-performance-report.md
               fi
-              echo "" >> metrics-report.md
+              echo "" >> ait-performance-report.md
             fi
           done
 
@@ -590,38 +590,38 @@ jobs:
 
       - name: Commit and push to wiki
         run: |
-          mkdir -p wiki/metrics-summaries
+          mkdir -p wiki/ait-performance
 
-          FILENAME="metrics-summary-${{ inputs.wiki-report-desc }}.md"
-          cp metrics-report.md "wiki/metrics-summaries/${FILENAME}"
+          FILENAME="ait-performance-${{ inputs.wiki-report-desc }}.md"
+          cp ait-performance-report.md "wiki/ait-performance/${FILENAME}"
 
           cd wiki
 
           # Add link to index page
-          LINK_TEXT="- [Metrics Summary ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/metrics-summary-${{ inputs.wiki-report-desc }})"
-          if ! grep -q "metrics-summary-${{ inputs.wiki-report-desc }})" Metrics-Summaries.md 2>/dev/null; then
-            echo "" >> Metrics-Summaries.md
-            echo "${LINK_TEXT}" >> Metrics-Summaries.md
+          LINK_TEXT="- [AIT Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})"
+          if ! grep -q "ait-performance-${{ inputs.wiki-report-desc }})" AIT-Performance.md 2>/dev/null; then
+            echo "" >> AIT-Performance.md
+            echo "${LINK_TEXT}" >> AIT-Performance.md
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "metrics-summaries/${FILENAME}" Metrics-Summaries.md
-          git commit -m "Add metrics summary for run ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
+          git add "ait-performance/${FILENAME}" AIT-Performance.md
+          git commit -m "Add AIT performance metrics for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
           git push
 
       - name: Add summary link to workflow
         run: |
-          if [ ! -d "all-metrics-summaries" ] || [ -z "$(ls -A all-metrics-summaries 2>/dev/null)" ]; then
-            echo "## Metrics Summary" >> $GITHUB_STEP_SUMMARY
-            echo "No metrics summary files found" >> $GITHUB_STEP_SUMMARY
+          if [ ! -d "all-ait-performance" ] || [ -z "$(ls -A all-ait-performance 2>/dev/null)" ]; then
+            echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "No AIT performance files found" >> $GITHUB_STEP_SUMMARY
           else
-            TEST_COUNT=$(ls -1 all-metrics-summaries/*-metrics-summary.json 2>/dev/null | wc -l | xargs)
-            echo "## Metrics Summary" >> $GITHUB_STEP_SUMMARY
+            TEST_COUNT=$(ls -1 all-ait-performance/*-metrics-summary.json 2>/dev/null | wc -l | xargs)
+            echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "View detailed metrics in [Wiki - Metrics Summary ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/metrics-summary-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
+            echo "View detailed metrics in [Wiki - AIT Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
           fi
 
   notify-if-negative-values:
