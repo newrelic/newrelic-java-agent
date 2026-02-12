@@ -690,7 +690,7 @@ public class SqlTraceServiceTest {
 
         Assert.assertEquals(decodedParams, sqlTraceParams);
 
-        Assert.assertEquals(decodedPriority, sqlTracePriority, 0.0000001f);
+        Assert.assertEquals(decodedPriority, sqlTracePriority, 0.000001f);
     }
 
     @Test

@@ -44,6 +44,12 @@ final class OpenTelemetryTransaction implements Transaction {
     }
 
     @Override
+    public String getTransactionName() {
+        OpenTelemetryNewRelic.logUnsupportedMethod("Transaction", "getTransactionName");
+        return "";
+    }
+
+    @Override
     public TracedMethod getLastTracer() {
         return OpenTelemetryTracedMethod.getInstance();
     }

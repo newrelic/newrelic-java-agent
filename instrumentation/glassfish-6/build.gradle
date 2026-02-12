@@ -11,12 +11,10 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.glassfish.main.web:web-core:[6.0.0-RC1,8.0.0-M2)'
-    exclude 'org.glassfish.main.web:web-core:7.0.0-M3'
-    exclude 'org.glassfish.main.web:web-core:7.0.0-M4'
-    exclude 'org.glassfish.main.web:web-core:7.0.0-M10'
-    exclude 'org.glassfish.main.web:web-core:8.0.0-M[0-9]*$'
+    passesOnly 'org.glassfish.main.web:web-core:[6.0.0-RC1,)'
+    exclude 'org.glassfish.main.web:web-core:8.0.0-DONTPUBLISH'
     excludeRegex 'org.glassfish.main.web:web-core:8.0.0-JDK17-M[0-9]*$'
+    excludeRegex 'org.glassfish.main.web:web-core:[0-9]*.0.0-M[0-9]*$'
 }
 
 site {

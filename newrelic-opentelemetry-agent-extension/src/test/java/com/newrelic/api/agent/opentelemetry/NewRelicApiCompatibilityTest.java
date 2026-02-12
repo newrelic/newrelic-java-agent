@@ -155,8 +155,6 @@ class NewRelicApiCompatibilityTest {
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.setRequestAndResponse(DUMMY_REQUEST, DUMMY_RESPONSE)),
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.getBrowserTimingHeader()),
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.getBrowserTimingHeader("nonce")),
-                Arguments.of((Runnable) () -> OpenTelemetryNewRelic.getBrowserTimingFooter()),
-                Arguments.of((Runnable) () -> OpenTelemetryNewRelic.getBrowserTimingFooter("nonce")),
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.setUserName("name")),
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.setAccountName("name")),
                 Arguments.of((Runnable) () -> OpenTelemetryNewRelic.setProductName("name")),

@@ -8,9 +8,12 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.database.SqlObfuscator;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.CollectorMethods;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -31,6 +34,11 @@ public class AgentConfigFactoryTest {
 
     public static Map<String, Object> createMap() {
         return new HashMap<>();
+    }
+
+    @BeforeClass
+    public static void setupServiceManager(){
+        ServiceFactory.setServiceManager(new MockServiceManager());
     }
 
     @Test

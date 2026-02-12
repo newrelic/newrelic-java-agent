@@ -13,11 +13,15 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
+import com.newrelic.agent.bridge.datastore.UnknownDatabaseVendor;
 import com.newrelic.agent.bridge.external.ExternalMetrics;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.DatastoreConfig;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.DatastoreMetrics;
+import com.newrelic.agent.database.ParsedDatabaseStatement;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
@@ -32,7 +36,6 @@ import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.ExternalParameters;
-import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.InboundHeaders;
@@ -46,6 +49,8 @@ import org.objectweb.asm.Opcodes;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -53,6 +58,8 @@ import java.util.logging.Level;
  * The default tracer implementation.
  */
 public class DefaultTracer extends AbstractTracer {
+    private final List<SpanLink> spanLinks = new ArrayList<>();
+    private final List<SpanEvent> spanEvents = new ArrayList<>();
 
     // Tracers MUST NOT store references to the Transaction. Why: tracers are stored in the TransactionActivity,
     // and Activities can be reparented from one Transaction to another by the public APIs that support async.
@@ -105,7 +112,7 @@ public class DefaultTracer extends AbstractTracer {
      * of the thread local; the mapping from transactions to activities is one-to-many, so there's no other way to do
      * it.)
      *
-     * @param transaction transaction, must not be null.
+     * @param transaction         transaction, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
@@ -124,7 +131,7 @@ public class DefaultTracer extends AbstractTracer {
     /**
      * Primary constructor for tracers created from weaved code or XML instrumentation.
      *
-     * @param txa activity, must not be null.
+     * @param txa                 activity, must not be null.
      * @param sig
      * @param object
      * @param metricNameFormatter
@@ -170,15 +177,15 @@ public class DefaultTracer extends AbstractTracer {
      * This API method allows leaves to be excluded outside the constructor.
      * Their data will still be collected (ie, they'll still be on the Txa tracer stack and produce metrics),
      * but they will not be added to Transaction Traces or turned into Spans.
-     *
+     * <p>
      * This is useful for instrumentation in which large numbers of tracers are created that can't
      * be marked as excluded at the time of creation, for example, HttpUrlConnection.
-     *
+     * <p>
      * Excluding root tracers is (for now) prohibited and this method is overridden in roots.
      */
     @Override
     public void excludeLeaf() {
-        if (isLeaf()){
+        if (isLeaf()) {
             tracerFlags = (byte) TracerFlags.clearSegment(tracerFlags);
         }
     }
@@ -611,6 +618,26 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     @Override
+    public void addSpanLink(SpanLink link) {
+        spanLinks.add(link);
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return spanLinks;
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+        spanEvents.add(event);
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
+        return spanEvents;
+    }
+
+    @Override
     public void setMetricNameFormatInfo(String metricName, String transactionSegmentName, String transactionSegmentUri) {
         MetricNameFormat format = new SimpleMetricNameFormat(metricName, transactionSegmentName, transactionSegmentUri);
         setMetricNameFormat(format);
@@ -746,8 +773,9 @@ public class DefaultTracer extends AbstractTracer {
     private void recordExternalMetricsDatastore(DatastoreParameters datastoreParameters) {
         Transaction tx = getTransactionActivity().getTransaction();
         if (tx != null && datastoreParameters != null) {
+            final String collection = getCollection(datastoreParameters);
             DatastoreMetrics.collectDatastoreMetrics(datastoreParameters.getProduct(), tx, this,
-                    datastoreParameters.getCollection(), datastoreParameters.getOperation(),
+                    collection, datastoreParameters.getOperation(),
                     datastoreParameters.getHost(), datastoreParameters.getPort(), datastoreParameters.getPathOrId(),
                     datastoreParameters.getDatabaseName());
 
@@ -773,6 +801,23 @@ public class DefaultTracer extends AbstractTracer {
             Agent.LOG.log(Level.FINE,
                     "Datastore metrics will not be applied because the tracer is not in a transaction.");
         }
+    }
+
+    private String getCollection(DatastoreParameters datastoreParameters) {
+        final String collection = datastoreParameters.getCollection();
+        if (collection == null && datastoreParameters instanceof SlowQueryDatastoreParameters) {
+            final Object rawQuery = ((SlowQueryDatastoreParameters) datastoreParameters).getRawQuery();
+            if (rawQuery != null) {
+                ParsedDatabaseStatement databaseStatement = ServiceFactory.getDatabaseService().
+                        getDatabaseStatementParser().getParsedDatabaseStatement(
+                                UnknownDatabaseVendor.INSTANCE, rawQuery.toString(), null);
+                if (databaseStatement.recordMetric()) {
+                    return databaseStatement.getModel();
+                }
+            }
+            return "unknown";
+        }
+        return collection;
     }
 
     private void catForMessaging(MessageProduceParameters produceParameters) {
