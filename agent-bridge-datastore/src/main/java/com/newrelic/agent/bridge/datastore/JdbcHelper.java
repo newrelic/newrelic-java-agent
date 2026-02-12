@@ -341,13 +341,11 @@ public class JdbcHelper {
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded0: " + (sql == null ? "[null]" : sql));
         if (sql == null || sql.isEmpty()) {
             return sql;
         }
 
         Set<String> config = getMetadataCommentConfig();
-        AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded1: " + config);
         if (!config.isEmpty()) {
             // Check if comment already exists
             if (sql.startsWith("/*nr_")) {
@@ -355,7 +353,6 @@ public class JdbcHelper {
             }
 
             String comment = generateSqlMetadataComment(config);
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded2: " + comment);
             if (comment.isEmpty()) {
                 return sql;
             } else {
