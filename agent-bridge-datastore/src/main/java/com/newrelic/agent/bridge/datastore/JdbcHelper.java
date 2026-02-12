@@ -341,11 +341,13 @@ public class JdbcHelper {
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded0: " + (sql == null ? "[null]" : sql));
         if (sql == null || sql.isEmpty()) {
             return sql;
         }
 
         Set<String> config = getMetadataCommentConfig();
+        AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded1: " + config);
         if (!config.isEmpty()) {
             // Check if comment already exists
             if (sql.startsWith("/*nr_")) {
@@ -353,6 +355,7 @@ public class JdbcHelper {
             }
 
             String comment = generateSqlMetadataComment(config);
+            AgentBridge.getAgent().getLogger().log(Level.INFO, "MSSQL: in addSqlMetadataCommentIfNeeded2: " + comment);
             if (comment.isEmpty()) {
                 return sql;
             } else {
@@ -485,16 +488,29 @@ public class JdbcHelper {
 
     /**
      * Retrieves the cached entity GUID value and initialize the value on first access.
+     * If the entity GUID is not yet set (empty string), this method will retry on subsequent
+     * calls until a valid value is obtained.
      */
-    private static String getEntityGuid() {
-        if (cachedEntityGuid == null) {
+    static String getEntityGuid() {
+        // Check for both null and empty string - empty string indicates the RPM service
+        // hasn't connected yet and we should retry on the next call
+        if (cachedEntityGuid == null || cachedEntityGuid.isEmpty()) {
             synchronized (JdbcHelper.class) {
-                if (cachedEntityGuid == null) {
+                if (cachedEntityGuid == null || cachedEntityGuid.isEmpty()) {
                     cachedEntityGuid = AgentBridge.getAgent().getEntityGuid(false);
                 }
             }
         }
 
         return cachedEntityGuid;
+    }
+
+    /**
+     * Resets the cached entity GUID. Only for testing purposes.
+     */
+    static void resetEntityGuidCache() {
+        synchronized (JdbcHelper.class) {
+            cachedEntityGuid = null;
+        }
     }
 }
