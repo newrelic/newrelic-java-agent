@@ -7,7 +7,11 @@
 
 package com.newrelic.agent.bridge.datastore;
 
+import com.newrelic.agent.bridge.Agent;
+import com.newrelic.agent.bridge.AgentBridge;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -198,5 +202,115 @@ public class JdbcHelperTest {
 
         // Empty SQL - empty String
         assertEquals("", JdbcHelper.addSqlMetadataCommentIfNeeded(""));
+    }
+
+    @Test
+    public void testEntityGuidCaching_retriesOnEmptyString() {
+        // Save the original agent to restore it later
+        Agent originalAgent = AgentBridge.agent;
+        Agent mockAgent = Mockito.mock(Agent.class);
+
+        try {
+            JdbcHelper.resetEntityGuidCache();
+
+            // Empty string on first call
+            Mockito.when(mockAgent.getEntityGuid(false)).thenReturn("");
+            AgentBridge.agent = mockAgent;
+            String result1 = JdbcHelper.getEntityGuid();
+            assertEquals("", result1);
+            Mockito.verify(mockAgent, Mockito.times(1)).getEntityGuid(false);
+
+            // Should retry the fetch on the second call
+            String result2 = JdbcHelper.getEntityGuid();
+            assertEquals("", result2);
+            Mockito.verify(mockAgent, Mockito.times(2)).getEntityGuid(false);
+
+            // 3rd time - return a valid value and cache it
+            Mockito.when(mockAgent.getEntityGuid(false)).thenReturn("12345");
+            String result3 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result3);
+            Mockito.verify(mockAgent, Mockito.times(3)).getEntityGuid(false);
+
+            // 4th time - return cached value (getEntityGuid should not be called again)
+            String result4 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result4);
+            Mockito.verify(mockAgent, Mockito.times(3)).getEntityGuid(false);
+
+        } finally {
+            // Restore original agent and reset cache
+            AgentBridge.agent = originalAgent;
+            JdbcHelper.resetEntityGuidCache();
+        }
+    }
+
+    @Test
+    public void testEntityGuidCaching_cachesNonEmptyValue() {
+        Agent originalAgent = AgentBridge.agent;
+        Agent mockAgent = Mockito.mock(Agent.class);
+
+        try {
+            JdbcHelper.resetEntityGuidCache();
+
+            // Agent immediately returns a valid GUID (already connected)
+            Mockito.when(mockAgent.getEntityGuid(false))
+                   .thenReturn("12345")
+                   .thenThrow(new RuntimeException("yo, this should only be called one time"));
+            AgentBridge.agent = mockAgent;
+
+            // Call 3 times, the getEntityGuid method should only be executed once
+            String result1 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result1);
+
+            String result2 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result2);
+
+            String result3 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result3);
+
+            Mockito.verify(mockAgent, Mockito.times(1)).getEntityGuid(false);
+
+        } finally {
+            AgentBridge.agent = originalAgent;
+            JdbcHelper.resetEntityGuidCache();
+        }
+    }
+
+    @Test
+    public void testEntityGuidCaching_handlesNull() {
+        Agent originalAgent = AgentBridge.agent;
+        Agent mockAgent = Mockito.mock(Agent.class);
+
+        try {
+            JdbcHelper.resetEntityGuidCache();
+
+            // Same type of test as when an empty string is returned
+            Mockito.when(mockAgent.getEntityGuid(false)).thenReturn(null);
+            AgentBridge.agent = mockAgent;
+
+            // null on first call
+            String result1 = JdbcHelper.getEntityGuid();
+            assertNull(result1);
+            Mockito.verify(mockAgent, Mockito.times(1)).getEntityGuid(false);
+
+            // retry on second call
+            String result2 = JdbcHelper.getEntityGuid();
+            assertNull(result2);
+            Mockito.verify(mockAgent, Mockito.times(2)).getEntityGuid(false);
+
+            // Valid value on call 3
+            Mockito.when(mockAgent.getEntityGuid(false)).thenReturn("12345");
+            String result3 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result3);
+            Mockito.verify(mockAgent, Mockito.times(3)).getEntityGuid(false);
+
+            // Return cached value on 4th call, getEntityGuid should not be called again
+            String result4 = JdbcHelper.getEntityGuid();
+            assertEquals("12345", result3);
+            Mockito.verify(mockAgent, Mockito.times(3)).getEntityGuid(false);
+
+        } finally {
+            AgentBridge.agent = originalAgent;
+            JdbcHelper.resetEntityGuidCache();
+        }
     }
 }
