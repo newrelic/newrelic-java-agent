@@ -560,11 +560,14 @@ jobs:
           echo "Generated: $(date)" >> ait-performance-report.md
           echo "" >> ait-performance-report.md
 
-          # Process each JSON file
+          # Process each JSON file (JSONL format - one JSON object per line)
           for file in all-ait-performance/*-metrics-summary.json; do
             if [ -f "$file" ]; then
-              # Process each test result in the array
-              jq -c '.[]' "$file" | while read -r test_result; do
+              # Process each line as a separate JSON object
+              while IFS= read -r test_result; do
+                # Skip empty lines
+                [ -z "$test_result" ] && continue
+
                 TEST_NAME=$(echo "$test_result" | jq -r '.metadata.test_name')
                 JAVA_VERSION=$(echo "$test_result" | jq -r '.metadata.java_version')
                 CPU_TIME=$(echo "$test_result" | jq -r '.metrics.cpu_time')
@@ -595,7 +598,7 @@ jobs:
                 echo "" >> ait-performance-report.md
                 echo "</details>" >> ait-performance-report.md
                 echo "" >> ait-performance-report.md
-              done
+              done < "$file"
             fi
           done
 
@@ -633,11 +636,12 @@ jobs:
             echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "No AIT performance files found" >> $GITHUB_STEP_SUMMARY
           else
-            # Count total test results across all JSON files
+            # Count total test results across all JSONL files (one test per line)
             TEST_COUNT=0
             for file in all-ait-performance/*-metrics-summary.json; do
               if [ -f "$file" ]; then
-                COUNT=$(jq 'length' "$file")
+                # Count non-empty lines
+                COUNT=$(grep -c . "$file" 2>/dev/null || echo 0)
                 TEST_COUNT=$((TEST_COUNT + COUNT))
               fi
             done
