@@ -563,22 +563,39 @@ jobs:
           # Process each JSON file
           for file in all-ait-performance/*-metrics-summary.json; do
             if [ -f "$file" ]; then
-              echo "## Test: $(jq -r '.metadata.test_name' "$file")" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
-              echo "| Metric | Value |" >> ait-performance-report.md
-              echo "|--------|-------|" >> ait-performance-report.md
-              echo "| CPU Time (s) | $(jq -r '.metrics.cpu_time' "$file") |" >> ait-performance-report.md
-              echo "| Response Time Total (s) | $(jq -r '.metrics.response_time_total' "$file") |" >> ait-performance-report.md
-              echo "| Response Count | $(jq -r '.metrics.response_count' "$file") |" >> ait-performance-report.md
-              echo "| Throughput | $(jq -r '.metrics.throughput' "$file") |" >> ait-performance-report.md
-              echo "| Error Count | $(jq -r '.metrics.error_count' "$file") |" >> ait-performance-report.md
+              # Process each test result in the array
+              jq -c '.[]' "$file" | while read -r test_result; do
+                TEST_NAME=$(echo "$test_result" | jq -r '.metadata.test_name')
+                JAVA_VERSION=$(echo "$test_result" | jq -r '.metadata.java_version')
+                CPU_TIME=$(echo "$test_result" | jq -r '.metrics.cpu_time')
+                RESP_TIME=$(echo "$test_result" | jq -r '.metrics.response_time_total')
+                RESP_COUNT=$(echo "$test_result" | jq -r '.metrics.response_count')
+                THROUGHPUT=$(echo "$test_result" | jq -r '.metrics.throughput')
+                ERROR_COUNT=$(echo "$test_result" | jq -r '.metrics.error_count')
+                HEAP_PRESENT=$(echo "$test_result" | jq -r '.metrics.heap_metrics_present')
 
-              HEAP_PRESENT=$(jq -r '.metrics.heap_metrics_present' "$file")
-              if [ "$HEAP_PRESENT" = "true" ]; then
-                echo "| Heap Utilization Max (%) | $(jq -r '.metrics.heap_utilization_max' "$file") |" >> ait-performance-report.md
-                echo "| Heap Used Bytes Max | $(jq -r '.metrics.heap_used_bytes_max' "$file") |" >> ait-performance-report.md
-              fi
-              echo "" >> ait-performance-report.md
+                echo "<details>" >> ait-performance-report.md
+                echo "<summary><strong>Test: ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
+                echo "" >> ait-performance-report.md
+                echo "| Metric | Value |" >> ait-performance-report.md
+                echo "|--------|-------|" >> ait-performance-report.md
+                echo "| Java Version | ${JAVA_VERSION} |" >> ait-performance-report.md
+                echo "| CPU Time (s) | ${CPU_TIME} |" >> ait-performance-report.md
+                echo "| Response Time Total (s) | ${RESP_TIME} |" >> ait-performance-report.md
+                echo "| Response Count | ${RESP_COUNT} |" >> ait-performance-report.md
+                echo "| Throughput | ${THROUGHPUT} |" >> ait-performance-report.md
+                echo "| Error Count | ${ERROR_COUNT} |" >> ait-performance-report.md
+
+                if [ "$HEAP_PRESENT" = "true" ]; then
+                  HEAP_UTIL=$(echo "$test_result" | jq -r '.metrics.heap_utilization_max')
+                  HEAP_USED=$(echo "$test_result" | jq -r '.metrics.heap_used_bytes_max')
+                  echo "| Heap Utilization Max (%) | ${HEAP_UTIL} |" >> ait-performance-report.md
+                  echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> ait-performance-report.md
+                fi
+                echo "" >> ait-performance-report.md
+                echo "</details>" >> ait-performance-report.md
+                echo "" >> ait-performance-report.md
+              done
             fi
           done
 
@@ -616,7 +633,15 @@ jobs:
             echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "No AIT performance files found" >> $GITHUB_STEP_SUMMARY
           else
-            TEST_COUNT=$(ls -1 all-ait-performance/*-metrics-summary.json 2>/dev/null | wc -l | xargs)
+            # Count total test results across all JSON files
+            TEST_COUNT=0
+            for file in all-ait-performance/*-metrics-summary.json; do
+              if [ -f "$file" ]; then
+                COUNT=$(jq 'length' "$file")
+                TEST_COUNT=$((TEST_COUNT + COUNT))
+              fi
+            done
+
             echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
