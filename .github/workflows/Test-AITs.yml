@@ -563,44 +563,94 @@ jobs:
           # Process each JSON file (JSONL format - one JSON object per line)
           for file in all-ait-performance/*-metrics-summary.json; do
             if [ -f "$file" ]; then
-              # Process each line as a separate JSON object
               while IFS= read -r test_result; do
-                # Skip empty lines
                 [ -z "$test_result" ] && continue
 
                 TEST_NAME=$(echo "$test_result" | jq -r '.metadata.test_name')
                 JAVA_VERSION=$(echo "$test_result" | jq -r '.metadata.java_version')
-                CPU_TIME=$(echo "$test_result" | jq -r '.metrics.cpu_time')
-                RESP_TIME=$(echo "$test_result" | jq -r '.metrics.response_time_total')
-                RESP_COUNT=$(echo "$test_result" | jq -r '.metrics.response_count')
-                THROUGHPUT=$(echo "$test_result" | jq -r '.metrics.throughput')
-                ERROR_COUNT=$(echo "$test_result" | jq -r '.metrics.error_count')
-                HEAP_PRESENT=$(echo "$test_result" | jq -r '.metrics.heap_metrics_present')
 
-                echo "<details>" >> ait-performance-report.md
-                echo "<summary><strong>Test: ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
-                echo "" >> ait-performance-report.md
-                echo "| Metric | Value |" >> ait-performance-report.md
-                echo "|--------|-------|" >> ait-performance-report.md
-                echo "| Java Version | ${JAVA_VERSION} |" >> ait-performance-report.md
-                echo "| CPU Time (s) | ${CPU_TIME} |" >> ait-performance-report.md
-                echo "| Response Time Total (s) | ${RESP_TIME} |" >> ait-performance-report.md
-                echo "| Response Count | ${RESP_COUNT} |" >> ait-performance-report.md
-                echo "| Throughput | ${THROUGHPUT} |" >> ait-performance-report.md
-                echo "| Error Count | ${ERROR_COUNT} |" >> ait-performance-report.md
+                # Parse test name: <dir>-<test_file>.<test_name>
+                DIR=$(echo "$TEST_NAME" | cut -d'-' -f1)
+                REST=$(echo "$TEST_NAME" | cut -d'-' -f2-)
+                TEST_FILE=$(echo "$REST" | cut -d'.' -f1)
+                TEST_CASE=$(echo "$REST" | cut -d'.' -f2-)
 
-                if [ "$HEAP_PRESENT" = "true" ]; then
-                  HEAP_UTIL=$(echo "$test_result" | jq -r '.metrics.heap_utilization_max')
-                  HEAP_USED=$(echo "$test_result" | jq -r '.metrics.heap_used_bytes_max')
-                  echo "| Heap Utilization Max (%) | ${HEAP_UTIL} |" >> ait-performance-report.md
-                  echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> ait-performance-report.md
-                fi
-                echo "" >> ait-performance-report.md
-                echo "</details>" >> ait-performance-report.md
-                echo "" >> ait-performance-report.md
+                # Store: dir|test_file|test_case|java_version|json_data
+                echo "${DIR}|${TEST_FILE}|${TEST_CASE}|${JAVA_VERSION}|${test_result}" >> "$TEMP_FILE"
               done < "$file"
             fi
           done
+
+          # Sort by dir, test_file, test_case, java_version
+          sort "$TEMP_FILE" -o "$TEMP_FILE"
+
+          # Track current context for nested dropdowns
+          CURRENT_DIR=""
+          CURRENT_TEST_FILE=""
+
+          while IFS='|' read -r DIR TEST_FILE TEST_CASE JAVA_VERSION JSON_DATA; do
+            # Open new directory dropdown if changed
+            if [ "$DIR" != "$CURRENT_DIR" ]; then
+              # Close previous test file and directory if open
+              [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_DIR" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+
+              # Open new directory
+              echo "<details>" >> ait-performance-report.md
+              echo "<summary><strong>📁 ${DIR}</strong></summary>" >> ait-performance-report.md
+              echo "" >> ait-performance-report.md
+              CURRENT_DIR="$DIR"
+              CURRENT_TEST_FILE=""
+            fi
+
+            # Open new test file dropdown if changed
+            if [ "$TEST_FILE" != "$CURRENT_TEST_FILE" ]; then
+              # Close previous test file if open
+              [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+
+              # Open new test file
+              echo "<details>" >> ait-performance-report.md
+              echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> ait-performance-report.md
+              echo "" >> ait-performance-report.md
+              CURRENT_TEST_FILE="$TEST_FILE"
+            fi
+
+            # Add test case dropdown
+            CPU_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.cpu_time')
+            RESP_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.response_time_total')
+            RESP_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.response_count')
+            THROUGHPUT=$(echo "$JSON_DATA" | jq -r '.metrics.throughput')
+            ERROR_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.error_count')
+            HEAP_PRESENT=$(echo "$JSON_DATA" | jq -r '.metrics.heap_metrics_present')
+
+            echo "<details>" >> ait-performance-report.md
+            echo "<summary>${TEST_CASE} (Java ${JAVA_VERSION})</summary>" >> ait-performance-report.md
+            echo "" >> ait-performance-report.md
+            echo "| Metric | Value |" >> ait-performance-report.md
+            echo "|--------|-------|" >> ait-performance-report.md
+            echo "| Java Version | ${JAVA_VERSION} |" >> ait-performance-report.md
+            echo "| CPU Time (s) | ${CPU_TIME} |" >> ait-performance-report.md
+            echo "| Response Time Total (s) | ${RESP_TIME} |" >> ait-performance-report.md
+            echo "| Response Count | ${RESP_COUNT} |" >> ait-performance-report.md
+            echo "| Throughput | ${THROUGHPUT} |" >> ait-performance-report.md
+            echo "| Error Count | ${ERROR_COUNT} |" >> ait-performance-report.md
+
+            if [ "$HEAP_PRESENT" = "true" ]; then
+              HEAP_UTIL=$(echo "$JSON_DATA" | jq -r '.metrics.heap_utilization_max')
+              HEAP_USED=$(echo "$JSON_DATA" | jq -r '.metrics.heap_used_bytes_max')
+              echo "| Heap Utilization Max (%) | ${HEAP_UTIL} |" >> ait-performance-report.md
+              echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> ait-performance-report.md
+            fi
+            echo "" >> ait-performance-report.md
+            echo "</details>" >> ait-performance-report.md
+            echo "" >> ait-performance-report.md
+          done < "$TEMP_FILE"
+
+          # Close final test file and directory
+          [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_DIR" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+
+          rm -f "$TEMP_FILE"
 
       - name: Checkout wiki repository
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
