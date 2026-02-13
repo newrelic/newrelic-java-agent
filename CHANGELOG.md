@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Hybrid Agent OpenTelemetry API Support by @jasonjkeller in [2711](https://github.com/newrelic/newrelic-java-agent/pull/2711)
     - OTel Bridge API support by @sdaubin in [1886](https://github.com/newrelic/newrelic-java-agent/pull/1886)
 
-- Added support for prepending a comment to executed SQL that contains the entity GUID of the current application. This is used by the Query Performance Monitoring product for entity linking by @jtduffy in [2715](https://github.com/newrelic/newrelic-java-agent/pull/2715)
 - Enhancements to coroutine ignores by @dhilpipre in [2726](https://github.com/newrelic/newrelic-java-agent/pull/2726)
 - Add agent metadata action - @mvicknr in [2732](https://github.com/newrelic/newrelic-java-agent/pull/2732), [2745](https://github.com/newrelic/newrelic-java-agent/pull/2745)
 
