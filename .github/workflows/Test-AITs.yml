@@ -560,6 +560,9 @@ jobs:
           echo "Generated: $(date)" >> ait-performance-report.md
           echo "" >> ait-performance-report.md
 
+          # Create temporary file for storing parsed data
+          TEMP_FILE=$(mktemp)
+
           # Process each JSON file (JSONL format - one JSON object per line)
           for file in all-ait-performance/*-metrics-summary.json; do
             if [ -f "$file" ]; then
