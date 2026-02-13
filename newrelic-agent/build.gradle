@@ -90,7 +90,7 @@ dependencies {
     // for command line parsing
     shadowIntoJar 'commons-cli:commons-cli:1.2'
 
-    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.17.1'
+    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.25.3'
     shadowIntoJar 'org.slf4j:slf4j-api:1.7.25'
 
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
@@ -178,7 +178,7 @@ task relocatedShadowJar(type: ShadowJar) {
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
-            "org.checkerframework", "org.dom4j", "org.zeromq", "org.apache.kafka",
+            "org.checkerframework", "org.jspecify", "aQute", "org.dom4j", "org.zeromq", "org.apache.kafka",
             "com.lmax", "com.conversantmedia", "org.jctools",
             "com.fasterxml", "org.osgi", "org.codehaus", "org.fusesource", "kotlin", "org.jetbrains", "org.intellij",
             "okhttp3", "org.bouncycastle", "org.conscrypt", "org.openjsse"
@@ -201,7 +201,6 @@ task relocatedShadowJar(type: ShadowJar) {
             "LICENSE",
             // log4j2
             "META-INF/versions/9/module-info.class",
-            "META-INF/services/org.apache.logging*",
             // asm
             "module-info.class",
             // httpclient
