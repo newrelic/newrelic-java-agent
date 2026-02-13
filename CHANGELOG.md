@@ -4,6 +4,24 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.1.0
+## New features and improvements
+- **_The Java Hybrid Agent_**: offering a "best-of-both-worlds" experience by combining New Relic’s deep visibility with OpenTelemetry API compatibility. This release includes comprehensive support for the OpenTelemetry Tracing, Metrics, and Logs APIs, as well as standalone library and native framework instrumentation. Key enhancements like Span Links and Events on Spans are now available, ensuring seamless interoperability in mixed-mode environments.
+
+    - Update hybrid agent config based on spec changes by @jasonjkeller in [2738](https://github.com/newrelic/newrelic-java-agent/pull/2738)
+
+    - Hybrid Agent OpenTelemetry API Support by @jasonjkeller in [2711](https://github.com/newrelic/newrelic-java-agent/pull/2711)
+    - OTel Bridge API support by @sdaubin in [1886](https://github.com/newrelic/newrelic-java-agent/pull/1886)
+
+- Enhancements to coroutine ignores by @dhilpipre in [2726](https://github.com/newrelic/newrelic-java-agent/pull/2726)
+- Add agent metadata action - @mvicknr in [2732](https://github.com/newrelic/newrelic-java-agent/pull/2732), [2745](https://github.com/newrelic/newrelic-java-agent/pull/2745)
+
+## Fixes
+
+- Fix broken trace propagation with w3c headers by @jasonjkeller in [2299](https://github.com/newrelic/newrelic-java-agent/pull/2299)
+- Fix multihost preference config @jtduffy in [2720](https://github.com/newrelic/newrelic-java-agent/pull/2720 )
+- Fixed problem where suspend ignores was not being read by @dhilpipre in [2663](https://github.com/newrelic/newrelic-java-agent/pull/2663)
+
 ## Version 9.0.0
 ## New features and improvements
 
