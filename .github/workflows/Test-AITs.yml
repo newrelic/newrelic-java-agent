@@ -572,53 +572,34 @@ jobs:
                 TEST_NAME=$(echo "$test_result" | jq -r '.metadata.test_name')
                 JAVA_VERSION=$(echo "$test_result" | jq -r '.metadata.java_version')
 
-                # Parse test name: <dir>-<test_file>.<test_name>
-                DIR=$(echo "$TEST_NAME" | cut -d'-' -f1)
-                REST=$(echo "$TEST_NAME" | cut -d'-' -f2-)
-                TEST_FILE=$(echo "$REST" | cut -d'.' -f1)
-                TEST_CASE=$(echo "$REST" | cut -d'.' -f2-)
-
-                # Store: dir|test_file|test_case|java_version|json_data
-                echo "${DIR}|${TEST_FILE}|${TEST_CASE}|${JAVA_VERSION}|${test_result}" >> "$TEMP_FILE"
+                # Store: test_name|java_version|json_data
+                echo "${TEST_NAME}|${JAVA_VERSION}|${test_result}" >> "$TEMP_FILE"
               done < "$file"
             fi
           done
 
-          # Sort by dir, test_file, test_case, java_version
+          # Sort by test_name and java_version
           sort "$TEMP_FILE" -o "$TEMP_FILE"
 
           # Track current context for nested dropdowns
-          CURRENT_DIR=""
-          CURRENT_TEST_FILE=""
+          CURRENT_TEST_NAME=""
 
-          while IFS='|' read -r DIR TEST_FILE TEST_CASE JAVA_VERSION JSON_DATA; do
-            # Open new directory dropdown if changed
-            if [ "$DIR" != "$CURRENT_DIR" ]; then
-              # Close previous test file and directory if open
-              [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_DIR" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          while IFS='|' read -r TEST_NAME JAVA_VERSION JSON_DATA; do
+            # Open new test name dropdown if changed
+            if [ "$TEST_NAME" != "$CURRENT_TEST_NAME" ]; then
+              # Close previous test if open
+              [ -n "$CURRENT_TEST_NAME" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
-              # Open new directory
+              # Open new test
               echo "<details>" >> ait-performance-report.md
-              echo "<summary><strong>📁 ${DIR}</strong></summary>" >> ait-performance-report.md
+              echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
               echo "" >> ait-performance-report.md
-              CURRENT_DIR="$DIR"
-              CURRENT_TEST_FILE=""
+              echo '<div style="margin-left: 20px;">' >> ait-performance-report.md
+              echo "" >> ait-performance-report.md
+              CURRENT_TEST_NAME="$TEST_NAME"
             fi
 
-            # Open new test file dropdown if changed
-            if [ "$TEST_FILE" != "$CURRENT_TEST_FILE" ]; then
-              # Close previous test file if open
-              [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-
-              # Open new test file
-              echo "<details>" >> ait-performance-report.md
-              echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
-              CURRENT_TEST_FILE="$TEST_FILE"
-            fi
-
-            # Add test case dropdown
+            # Add Java version dropdown
             CPU_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.cpu_time')
             RESP_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.response_time_total')
             RESP_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.response_count')
@@ -627,7 +608,7 @@ jobs:
             HEAP_PRESENT=$(echo "$JSON_DATA" | jq -r '.metrics.heap_metrics_present')
 
             echo "<details>" >> ait-performance-report.md
-            echo "<summary>${TEST_CASE} (Java ${JAVA_VERSION})</summary>" >> ait-performance-report.md
+            echo "<summary>Java ${JAVA_VERSION}</summary>" >> ait-performance-report.md
             echo "" >> ait-performance-report.md
             echo "| Metric | Value |" >> ait-performance-report.md
             echo "|--------|-------|" >> ait-performance-report.md
@@ -649,9 +630,8 @@ jobs:
             echo "" >> ait-performance-report.md
           done < "$TEMP_FILE"
 
-          # Close final test file and directory
-          [ -n "$CURRENT_TEST_FILE" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-          [ -n "$CURRENT_DIR" ] && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          # Close final test
+          [ -n "$CURRENT_TEST_NAME" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
           rm -f "$TEMP_FILE"
 
