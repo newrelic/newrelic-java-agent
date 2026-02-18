@@ -7,6 +7,8 @@
 
 package com.newrelic.weave.weavepackage;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,6 +42,9 @@ public class WeavePackageManagerTest {
 
     @BeforeClass
     public static void init() throws IOException {
+        // Initialize AgentBridge with real Caffeine-backed collection factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
+
         List<byte[]> weaveBytes = new ArrayList<>();
         weaveBytes.add(WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.ShadowedWeaveClass"));
         weaveBytes.add(WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.ShadowedBaseClass"));
@@ -451,8 +457,8 @@ public class WeavePackageManagerTest {
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
     }
 
-    private static int getCacheSize(java.util.Map<?, ?> map) {
-        // WeakHashMap automatically cleans up entries when keys are garbage collected
+    private static int getCacheSize(Map<?, ?> map) {
+        // For Caffeine-backed maps, cleanup happens automatically via weak references and size eviction
         return map.size();
     }
 
@@ -590,130 +596,5 @@ public class WeavePackageManagerTest {
             registerAsParallelCapable();
         }
 
-    }
-
-    /**
-     * Performance test to see the impact of changing out the caffeine caches for
-     * simple Java maps. The weaver-project isn't able to use the AgentBridge so
-     * the CollectionFactory isn't available.
-     *
-     * AI assisted in creation of this test method
-     */
-    @Test
-    public void testCachePerformance() throws Exception {
-        // WeavePackageManager with test packages...
-        Instrumentation mockInstrumentation = Mockito.mock(Instrumentation.class);
-        WeavePackageManager manager = new WeavePackageManager(null, mockInstrumentation, 100, true, true);
-        manager.register(testPackage1);
-
-        // mock ClassCache that always returns true
-        ClassCache mockCache = Mockito.mock(ClassCache.class);
-        Mockito.when(mockCache.hasClassResource(Mockito.anyString())).thenReturn(true);
-
-        int numClassLoaders = 100;
-        int numThreads = 10;
-        int operationsPerThread = 100;
-
-        System.out.println("Cold Cache Performance (first access to each class loader)...");
-        List<ClassLoader> coldClassLoaders = new ArrayList<>();
-        for (int i = 0; i < numClassLoaders; i++) {
-            coldClassLoaders.add(new ParallelClassLoader(getClass().getClassLoader()));
-        }
-
-        long coldStartTime = System.nanoTime();
-        for (ClassLoader cl : coldClassLoaders) {
-            manager.match(cl, "java.lang.Object", mockCache);
-        }
-        long coldDuration = System.nanoTime() - coldStartTime;
-        System.out.printf("Cold cache: %d classloaders in %.2f ms n", numClassLoaders, coldDuration / 1_000_000.0);
-
-        System.out.println("\nCache hit performance...");
-        int warmIterations = 1000;
-        long warmStartTime = System.nanoTime();
-        for (int i = 0; i < warmIterations; i++) {
-            ClassLoader cl = coldClassLoaders.get(i % numClassLoaders);
-            manager.match(cl, "java.lang.Object", mockCache);
-        }
-        long warmDuration = System.nanoTime() - warmStartTime;
-        System.out.printf("Warm cache: %d lookups in %.2f ms\n", warmIterations, warmDuration / 1_000_000.0);
-
-        System.out.println("\nConcurrent access performance...");
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        List<Future<Long>> futures = new ArrayList<>();
-
-        // Create unique classloaders for each thread to simulate concurrent cold cache access
-        List<List<ClassLoader>> threadClassLoaders = new ArrayList<>();
-        for (int t = 0; t < numThreads; t++) {
-            List<ClassLoader> classLoaders = new ArrayList<>();
-            for (int i = 0; i < operationsPerThread; i++) {
-                classLoaders.add(new ParallelClassLoader(getClass().getClassLoader()));
-            }
-            threadClassLoaders.add(classLoaders);
-        }
-
-        long concurrentStartTime = System.nanoTime();
-        for (int t = 0; t < numThreads; t++) {
-            final int threadId = t;
-            futures.add(executor.submit(new Callable<Long>() {
-                @Override
-                public Long call() throws IOException {
-                    long threadStart = System.nanoTime();
-                    List<ClassLoader> classLoaders = threadClassLoaders.get(threadId);
-                    for (ClassLoader cl : classLoaders) {
-                        manager.match(cl, "java.lang.Object", mockCache);
-                    }
-                    return System.nanoTime() - threadStart;
-                }
-            }));
-        }
-
-        long maxThreadTime = 0;
-        long totalThreadTime = 0;
-        for (Future<Long> future : futures) {
-            long threadTime = future.get();
-            totalThreadTime += threadTime;
-            maxThreadTime = Math.max(maxThreadTime, threadTime);
-        }
-        long concurrentDuration = System.nanoTime() - concurrentStartTime;
-
-        System.out.printf("Concurrent: %d threads × %d ops = %d total operations\n",
-                numThreads, operationsPerThread, numThreads * operationsPerThread);
-        System.out.printf("  Wall time: %.2f ms\n", concurrentDuration / 1_000_000.0);
-        System.out.printf("  Avg thread time: %.2f ms\n", (totalThreadTime / numThreads) / 1_000_000.0);
-        System.out.printf("  Max thread time: %.2f ms\n", maxThreadTime / 1_000_000.0);
-        System.out.printf("  Throughput: %.0f ops/sec\n",
-                (numThreads * operationsPerThread * 1_000_000_000.0) / concurrentDuration);
-
-        executor.shutdown();
-
-        System.out.println("\nMixed Read/Write performance...");
-        List<ClassLoader> mixedClassLoaders = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            mixedClassLoaders.add(new ParallelClassLoader(getClass().getClassLoader()));
-        }
-
-        int mixedIterations = 500;
-        long mixedStartTime = System.nanoTime();
-        for (int i = 0; i < mixedIterations; i++) {
-            // 80% reads from existing classloaders, 20% new classloaders
-            if (i % 5 == 0) {
-                ClassLoader newCl = new ParallelClassLoader(getClass().getClassLoader());
-                manager.match(newCl, "java.lang.Object", mockCache);
-                mixedClassLoaders.add(newCl);
-            } else {
-                ClassLoader existingCl = mixedClassLoaders.get(i % 50);
-                manager.match(existingCl, "java.lang.Object", mockCache);
-            }
-        }
-        long mixedDuration = System.nanoTime() - mixedStartTime;
-        System.out.printf("Mixed (80%% read / 20%% write): %d operations in %.2f ms (%.2f μs per op)\n",
-                mixedIterations, mixedDuration / 1_000_000.0, mixedDuration / 1_000.0 / mixedIterations);
-
-        // Summary
-        System.out.println("\n--- Summary");
-        System.out.printf("Cold cache latency: %.2f μs per lookup\n", coldDuration / 1_000.0 / numClassLoaders);
-        System.out.printf("Warm cache latency: %.2f μs per lookup\n", warmDuration / 1_000.0 / warmIterations);
-        System.out.printf("Concurrent throughput: %.0f ops/sec\n",
-                (numThreads * operationsPerThread * 1_000_000_000.0) / concurrentDuration);
     }
 }

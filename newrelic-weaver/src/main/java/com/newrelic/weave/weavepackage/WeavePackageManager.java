@@ -8,6 +8,7 @@
 package com.newrelic.weave.weavepackage;
 
 import com.google.common.collect.Sets;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
 import com.newrelic.weave.utils.ClassInformation;
@@ -30,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,13 +63,8 @@ public class WeavePackageManager {
 
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
-     * Uses WeakHashMap for automatic cleanup when ClassLoaders are garbage collected.
-     * Synchronized for thread-safety during concurrent class loading.
-     * This is not using the AgentBridge ConnectionFactory since the weaver project doesn't
-     * have access to the bridge. Caffeine specific classes were swapped out for
-     * built-in Java Maps. The performance impact was minimal with this switch.
      */
-    private final Map<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -92,16 +87,14 @@ public class WeavePackageManager {
 
     /**
      * classloader -> (weave package -> result of successful weaving)
-     * Uses WeakHashMap with weak keys for automatic cleanup when ClassLoaders are GC'd.
-     * Note: Previous max size limit of 100 is removed, relying on weak keys to limit growth.
      */
-    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = Collections.synchronizedMap(new WeakHashMap<>());
+    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = AgentBridge.collectionFactory.createCacheWithWeakKeysInitialCapacityAndSize(
+            8, MAX_VALID_PACKAGE_CACHE);
     /**
-     * classloader -> (weave package -> result of unsuccessful weaving)
-     * Uses WeakHashMap with weak keys for automatic cleanup when ClassLoaders are GC'd.
-     * Note: Previous max size limit of 100 is removed, relying on weak keys to limit growth.
+     * classloader -> (weave package -> result of successful weaving)
      */
-    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = Collections.synchronizedMap(new WeakHashMap<>());
+    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = AgentBridge.collectionFactory.createCacheWithWeakKeysInitialCapacityAndSize(
+            8, MAX_INVALID_PACKAGE_CACHE);
 
     WeavePackageManager() {
         this(null);

@@ -7,14 +7,13 @@
 
 package com.newrelic.agent.service.async;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.github.benmanes.caffeine.cache.RemovalListener;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.CacheRemovalListener;
+import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -40,44 +39,36 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
 
     public AsyncTransactionService() {
         super(AsyncTransactionService.class.getSimpleName());
-        PENDING_ACTIVITIES.invalidateAll(); // Clean up pending activities for tests
+        PENDING_ACTIVITIES.clear(); // Clean up pending activities for tests
     }
-
-    private static final RemovalListener<Object, Token> removalListener = new RemovalListener<Object, Token>() {
-        @Override
-        public void onRemoval(Object key, Token transaction, RemovalCause cause) {
-            if (cause == RemovalCause.EXPLICIT) {
-                Agent.LOG.log(Level.FINEST, "{2}: Key {0} with transaction {1} removed from cache.",
-                        key, transaction, cause);
-            } else {
-                // timeout, size
-                Agent.LOG.log(Level.FINE,
-                        "{2}: The registered async activity with async context {0} has timed out for transaction {1} and been removed from the cache.",
-                        key, transaction, cause);
-            }
-        }
-    };
 
     /*
      * Async registrations JVM-wide are recorded here. References to this object must be locked by locking the object
      * itself. This lock is "inner" to the instance lock, i.e. caller should always hold the instance lock before
      * locking this collection.
      */
-    private static final Cache<Object, Token> PENDING_ACTIVITIES = makeCache(removalListener);
+    private static final CleanableMap<Object, Token> PENDING_ACTIVITIES = makeCache();
 
-    // Return a Cache that maps asynchronous context keys to their transactions.
+    // Return a CleanableMap that maps asynchronous context keys to their transactions.
     // The implementation class is threadsafe.
-    private static final Cache<Object, Token> makeCache(RemovalListener<Object, Token> removalListener) {
-        // default set to 3 minutes (180), must match the behavior in TimedTokenSet: expireAfterAccess with same timeout
+    private static CleanableMap<Object, Token> makeCache() {
+        // default set to 3 minutes (180), must match the behavior in TimedTokenSet: expireAfterWrite with same timeout
         long timeoutSec = ServiceFactory.getConfigService().getDefaultAgentConfig().getTokenTimeoutInSec();
         long timeOutMilli = TimeConversion.convertToMilliWithLowerBound(timeoutSec, TimeUnit.SECONDS, 250L);
 
-        return Caffeine.newBuilder()
-                .expireAfterWrite(timeOutMilli, TimeUnit.MILLISECONDS)
-                .removalListener(removalListener)
-                .initialCapacity(8)
-                .executor(Runnable::run)
-                .build();
+        return AgentBridge.collectionFactory.createCacheWithWriteExpirationAndRemovalListener(
+                timeOutMilli, TimeUnit.MILLISECONDS, 8,
+                (Object key, Token transaction, CacheRemovalListener.RemovalReason cause) -> {
+                    if (cause == CacheRemovalListener.RemovalReason.EXPLICIT) {
+                        Agent.LOG.log(Level.FINEST, "{2}: Key {0} with transaction {1} removed from cache.",
+                                key, transaction, cause);
+                    } else {
+                        // timeout, size
+                        Agent.LOG.log(Level.FINE,
+                                "{2}: The registered async activity with async context {0} has timed out for transaction {1} and been removed from the cache.",
+                                key, transaction, cause);
+                    }
+                });
     }
 
     protected void cleanUpPendingTransactions() {
@@ -100,7 +91,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
      * @param tx The transaction associated with the key.
      */
     public boolean putIfAbsent(Object key, Token tx) {
-        return PENDING_ACTIVITIES.asMap().putIfAbsent(key, tx) == null;
+        return PENDING_ACTIVITIES.putIfAbsent(key, tx) == null;
     }
 
     /*
@@ -117,7 +108,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
      * @return The transaction associated with the key.
      */
     public Token extractIfPresent(Object key) {
-        return PENDING_ACTIVITIES.asMap().remove(key);
+        return PENDING_ACTIVITIES.remove(key);
     }
 
     /*
@@ -181,7 +172,7 @@ public class AsyncTransactionService extends AbstractService implements HarvestL
 
     // only call in tests - size of the PENDING_ACTIVITIES cache
     protected int cacheSizeForTesting() {
-        return PENDING_ACTIVITIES.asMap().size();
+        return PENDING_ACTIVITIES.size();
     }
 
     @Override

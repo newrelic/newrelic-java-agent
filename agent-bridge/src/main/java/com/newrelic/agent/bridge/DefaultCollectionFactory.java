@@ -136,4 +136,64 @@ public class DefaultCollectionFactory implements CollectionFactory {
     public <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader) {
         return loader;
     }
+
+    /**
+     * Note: In this implementation, this method will return a simple synchronized map since time-based
+     * eviction and removal listeners can't be easily created with just vanilla JDK Map SDKs.
+     * All parameters (age, unit, initialCapacity, listener) are ignored.
+     * The cleanUp() method is a no-op since there's no deferred maintenance.
+     */
+    @Override
+    public <K, V> CleanableMap<K, V> createCacheWithWriteExpirationAndRemovalListener(
+            long age,
+            java.util.concurrent.TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener) {
+        return new DefaultCleanableMap<>(Collections.synchronizedMap(new HashMap<>()));
+    }
+
+    /**
+     * Note: In this implementation, this method will return a simple synchronized map since time-based
+     * eviction and removal listeners can't be easily created with just vanilla JDK Map SDKs.
+     * All parameters (age, unit, initialCapacity, listener) are ignored.
+     * The cleanUp() method is a no-op since there's no deferred maintenance.
+     */
+    @Override
+    public <K, V> CleanableMap<K, V> createCacheWithAccessExpirationAndRemovalListener(
+            long age,
+            java.util.concurrent.TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener) {
+        return new DefaultCleanableMap<>(Collections.synchronizedMap(new HashMap<>()));
+    }
+
+    /**
+     * Simple wrapper that delegates all Map operations and provides a no-op cleanUp().
+     */
+    private static class DefaultCleanableMap<K, V> implements CleanableMap<K, V> {
+        private final Map<K, V> delegate;
+
+        DefaultCleanableMap(Map<K, V> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void cleanUp() {
+            // No-op for default implementation
+        }
+
+        // Delegate all Map methods
+        @Override public int size() { return delegate.size(); }
+        @Override public boolean isEmpty() { return delegate.isEmpty(); }
+        @Override public boolean containsKey(Object key) { return delegate.containsKey(key); }
+        @Override public boolean containsValue(Object value) { return delegate.containsValue(value); }
+        @Override public V get(Object key) { return delegate.get(key); }
+        @Override public V put(K key, V value) { return delegate.put(key, value); }
+        @Override public V remove(Object key) { return delegate.remove(key); }
+        @Override public void putAll(Map<? extends K, ? extends V> m) { delegate.putAll(m); }
+        @Override public void clear() { delegate.clear(); }
+        @Override public java.util.Set<K> keySet() { return delegate.keySet(); }
+        @Override public java.util.Collection<V> values() { return delegate.values(); }
+        @Override public java.util.Set<Entry<K, V>> entrySet() { return delegate.entrySet(); }
+    }
 }

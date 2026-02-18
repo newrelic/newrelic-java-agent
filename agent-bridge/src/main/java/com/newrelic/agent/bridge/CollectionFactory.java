@@ -154,4 +154,42 @@ public interface CollectionFactory {
      * @return a function that caches results with weak keys
      */
     <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader);
+
+    /**
+     * Create a cache with time-based eviction (write) and removal listener.
+     * Entries expire after the specified time has passed since the last write.
+     * The listener is invoked when entries are removed for any reason (expiration, explicit removal, etc).
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param age             how old a cache entry must be to be evicted after last write
+     * @param unit            time unit for the age parameter
+     * @param initialCapacity initial capacity to pre-allocate
+     * @param listener        callback invoked when entries are removed
+     * @return a cleanable map with expiration and removal tracking
+     */
+    <K, V> CleanableMap<K, V> createCacheWithWriteExpirationAndRemovalListener(
+            long age,
+            java.util.concurrent.TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener);
+
+    /**
+     * Create a cache with time-based eviction (access) and removal listener.
+     * Entries expire after the specified time has passed since the last read or write.
+     * The listener is invoked when entries are removed for any reason (expiration, explicit removal, etc).
+     *
+     * @param <K>             key type
+     * @param <V>             cached type
+     * @param age             how old a cache entry must be to be evicted after last access
+     * @param unit            time unit for the age parameter
+     * @param initialCapacity initial capacity to pre-allocate
+     * @param listener        callback invoked when entries are removed
+     * @return a cleanable map with expiration and removal tracking
+     */
+    <K, V> CleanableMap<K, V> createCacheWithAccessExpirationAndRemovalListener(
+            long age,
+            java.util.concurrent.TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener);
 }

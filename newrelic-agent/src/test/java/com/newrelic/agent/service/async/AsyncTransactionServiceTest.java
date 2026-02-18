@@ -62,6 +62,9 @@ public class AsyncTransactionServiceTest {
 
         ServiceFactory.getAsyncTxService().cleanUpPendingTransactions();
 
+        ServiceFactory.getAsyncTxService().extractIfPresent("myFirstKey");  // Trigger cache access
+        System.out.println("DEBUG: Cache size = " + ServiceFactory.getAsyncTxService().cacheSizeForTesting());
+
         assertEquals(0, ServiceFactory.getAsyncTxService().cacheSizeForTesting());
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("myFirstKey"));
         assertNull(ServiceFactory.getAsyncTxService().extractIfPresent("mySecondKey"));

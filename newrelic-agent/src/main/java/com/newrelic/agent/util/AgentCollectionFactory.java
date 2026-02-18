@@ -8,10 +8,12 @@
 package com.newrelic.agent.util;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.newrelic.agent.bridge.CacheRemovalListener;
+import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.bridge.CollectionFactory;
-import com.newrelic.agent.config.JavaVersionUtils;
 
 /**
  * This is the main instrumentation of CollectionFactory which is used when the agent is loaded.
@@ -80,5 +82,23 @@ public class AgentCollectionFactory implements CollectionFactory {
     @Override
     public <K, V> Function<K, V> createWeakKeyedLoadingCacheWithInitialCapacity(int initialCapacity, Function<K, V> loader) {
         return DELEGATE.createWeakKeyedLoadingCacheWithInitialCapacity(initialCapacity, loader);
+    }
+
+    @Override
+    public <K, V> CleanableMap<K, V> createCacheWithWriteExpirationAndRemovalListener(
+            long age,
+            TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener) {
+        return DELEGATE.createCacheWithWriteExpirationAndRemovalListener(age, unit, initialCapacity, listener);
+    }
+
+    @Override
+    public <K, V> CleanableMap<K, V> createCacheWithAccessExpirationAndRemovalListener(
+            long age,
+            TimeUnit unit,
+            int initialCapacity,
+            CacheRemovalListener<K, V> listener) {
+        return DELEGATE.createCacheWithAccessExpirationAndRemovalListener(age, unit, initialCapacity, listener);
     }
 }
