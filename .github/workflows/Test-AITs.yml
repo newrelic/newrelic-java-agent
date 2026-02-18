@@ -596,15 +596,13 @@ jobs:
             # Open new directory dropdown if changed
             if [ "$DIR" != "$CURRENT_DIR" ]; then
               # Close previous test case, test file, and directory if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_TEST_FILE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_DIR" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_DIR" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
               # Open new directory
               echo "<details>" >> ait-performance-report.md
               echo "<summary><strong>📁 ${DIR}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
-              echo '<div style="margin-left: 20px;">' >> ait-performance-report.md
               echo "" >> ait-performance-report.md
               CURRENT_DIR="$DIR"
               CURRENT_TEST_FILE=""
@@ -614,14 +612,12 @@ jobs:
             # Open new test file dropdown if changed
             if [ "$TEST_FILE" != "$CURRENT_TEST_FILE" ]; then
               # Close previous test case and test file if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_TEST_FILE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
-              # Open new test file
-              echo "<details>" >> ait-performance-report.md
+              # Open new test file with indentation
+              echo "<details style=\"margin-left: 20px;\">" >> ait-performance-report.md
               echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
-              echo '<div style="margin-left: 20px;">' >> ait-performance-report.md
               echo "" >> ait-performance-report.md
               CURRENT_TEST_FILE="$TEST_FILE"
               CURRENT_TEST_CASE=""
@@ -630,18 +626,16 @@ jobs:
             # Open new test case dropdown if changed
             if [ "$TEST_CASE" != "$CURRENT_TEST_CASE" ]; then
               # Close previous test case if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
-              # Open new test case - display FULL TEST NAME
-              echo "<details>" >> ait-performance-report.md
+              # Open new test case - display FULL TEST NAME with indentation
+              echo "<details style=\"margin-left: 40px;\">" >> ait-performance-report.md
               echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
-              echo '<div style="margin-left: 20px;">' >> ait-performance-report.md
               echo "" >> ait-performance-report.md
               CURRENT_TEST_CASE="$TEST_CASE"
             fi
 
-            # Add Java version dropdown
+            # Add metrics table directly (no Java version dropdown)
             CPU_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.cpu_time')
             RESP_TIME=$(echo "$JSON_DATA" | jq -r '.metrics.response_time_total')
             RESP_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.response_count')
@@ -649,8 +643,7 @@ jobs:
             ERROR_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.error_count')
             HEAP_PRESENT=$(echo "$JSON_DATA" | jq -r '.metrics.heap_metrics_present')
 
-            echo "<details>" >> ait-performance-report.md
-            echo "<summary>Java ${JAVA_VERSION}</summary>" >> ait-performance-report.md
+            echo "#### Java ${JAVA_VERSION}" >> ait-performance-report.md
             echo "" >> ait-performance-report.md
             echo "| Metric | Value |" >> ait-performance-report.md
             echo "|--------|-------|" >> ait-performance-report.md
@@ -668,14 +661,12 @@ jobs:
               echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> ait-performance-report.md
             fi
             echo "" >> ait-performance-report.md
-            echo "</details>" >> ait-performance-report.md
-            echo "" >> ait-performance-report.md
           done < "$TEMP_FILE"
 
           # Close final test case, test file, and directory
-          [ -n "$CURRENT_TEST_CASE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-          [ -n "$CURRENT_TEST_FILE" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-          [ -n "$CURRENT_DIR" ] && echo "</div>" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_DIR" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
           rm -f "$TEMP_FILE"
 
