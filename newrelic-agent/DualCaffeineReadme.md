@@ -5,7 +5,7 @@
 This document explains the implementation of dual Caffeine support in the agent. This change
 was required because of the complete removal of the "Unsafe" class in Java 26. Caffeine v3+
 eliminated any calls to the Unsafe class, however Caffeine v2 will not receive a similar
-update. Caffeine v3 only supports Java 11+, so Caffeine v2 was still required to support
+update. Caffeine v3 only supports Java 11+, so Caffeine v2 is still required to support
 Java 8 - 12.
 
 - **Caffeine 2.9.3** - For Java 8-10 (uses `sun.misc.Unsafe`)
@@ -19,6 +19,13 @@ A couple of somewhat gross implementation details:
 - Both versions of Caffeine are shaded into the Agent jar
 - A multi-release jar is utilized in order to support loading the proper Caffeine versions at runtime
 - The shaded package name for Caffeine is used in the `import` statements in the CollectionFactory
+- The `newrelic-weaver` project now has a dependency on `agent-bridge`
+
+#### Why not transition to a new cache provider??
+- cache2k, ehcache - No support for weak keyed caches
+- guava - suffers from the same `Unsafe` usage that Caffeine v2 does 
+- "Roll your own" caches in vanilla Java - Extremely difficult and brittle to implement weak key caches
+and max size caches
 
 ### Multi-Release JAR Structure
 
@@ -50,8 +57,8 @@ AgentBridge (agent-bridge module)
   Caffeine2Collection    Caffeine3Collection    DefaultCollection
   Factory                Factory                Factory
   (Java 8-10)            (Java 11+)             (Fallback - not used in normal Agent operation)
-    - Shaded               - Shaded               - JDK Collections
-      Caffeine 2.9.3         Caffeine 3.2.3         only
+    - Shaded               - Shaded               - JDK Collections only
+      Caffeine 2.9.3         Caffeine 3.2.3
     - sun.misc.Unsafe      - VarHandle
        │                      │
        └──────────────────────┘
@@ -81,7 +88,6 @@ AgentBridge (agent-bridge module)
             // Caches with Removal Listeners (CleanableMap Map wrapper)
             <K, V> CleanableMap<K, V> createCacheWithWriteExpirationAndRemovalListener(
                 long age, TimeUnit unit, int initialCapacity, CacheRemovalListener<K, V> listener)
-
             <K, V> CleanableMap<K, V> createCacheWithAccessExpirationAndRemovalListener(
                 long age, TimeUnit unit, int initialCapacity, CacheRemovalListener<K, V> listener)
                 │
@@ -95,7 +101,7 @@ AgentBridge (agent-bridge module)
 ### CollectionFactory Interface (`agent-bridge`)
 
 Abstract factory interface that defines all cache creation methods. This interface is implemented by:
-- `DefaultCollectionFactory` - No-op fallback using standard JDK collections(not used during normal agent operation)
+- `DefaultCollectionFactory` - No-op fallback using standard JDK collections (not used during normal agent operation)
 - `AgentCollectionFactory` - Runtime factory that delegates to version-specific implementations
 
 ### CleanableMap Interface (`agent-bridge`)
@@ -150,12 +156,6 @@ The JVM automatically selects the correct version based on the runtime Java vers
 Two Gradle tasks create shaded JARs with relocated Caffeine packages:
 
 ```bash
-# Build only the Caffeine 2.9.3 shaded JAR (Java 8-10)
-gradle :newrelic-agent:shadeCaffeine2Jar
-
-# Build only the Caffeine 3.2.3 shaded JAR (Java 11+)
-gradle :newrelic-agent:shadeCaffeine3Jar
-
 # Build both shaded JARs
 gradle :newrelic-agent:shadeCaffeine2Jar :newrelic-agent:shadeCaffeine3Jar
 ```
@@ -213,126 +213,10 @@ The following classes now use `AgentBridge.collectionFactory` instead of direct 
 - com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
 - com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
 
-The following classes do **NOT** use the CollectionFactory pattern:
+A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project:
+- Added a dependency on agent-bridge to allow access to the AgentBridge.collectionFactory instance
+- Added a test dependency on newrelic-agent to allow proper bootstrapping of the AgentCollectionFactory for tests
 
-- com.newrelic.bootstrap.EmbeddedJarFilesImpl - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is not available until agent-bridge.jar is extracted and loaded
-- newrelic-weaver/WeavePackageManager - Uses built-in Java `WeakHashMap` and `ConcurrentHashMap` because the weaver module doesn't have access to agent-bridge
-
-Both of these will result in zero performance impact since these caches will not grow after initial cache population.   
-
-## Design Decisions
-
-### Why Two Versions?
-
-1. **Java 8 Compatibility**: Caffeine 2.9.3 is the last version supporting Java 8, which is still widely used
-2. **Performance**: Caffeine 3.x uses modern Java features (VarHandle) for better performance on Java 11+
-3. **Maintenance**: Using newer Caffeine versions ensures access to bug fixes and improvements
-
-### Why Shading?
-
-1. **Conflict Avoidance**: Prevents classpath conflicts if user applications use different Caffeine versions
-2. **Version Control**: Agent can use specific, tested Caffeine versions regardless of user dependencies
-3. **Isolation**: Changes to Caffeine don't affect agent's internal caching behavior
-
-### Why Factory Pattern?
-
-1. **Abstraction**: Agent code doesn't depend on specific Caffeine versions
-2. **Testability**: Tests can use real implementations or mocks as needed
-3. **Flexibility**: Easy to add new cache types or switch implementations
-4. **Bridge Module**: Factory interface lives in `agent-bridge` which has no dependencies
-
-## Troubleshooting
-
-### NoClassDefFoundError for Shaded Caffeine Classes
-
-**Problem**: Tests fail with `NoClassDefFoundError: com/newrelic/agent/deps/caffeine2/...`
-
-**Solution**: Ensure shaded JARs are on test runtime classpath in `build.gradle`:
-```gradle
-testRuntimeOnly files(shadeCaffeine2Jar.outputs.files)
-testRuntimeOnly files(shadeCaffeine3Jar.outputs.files)
-```
-
-### Cache Not Expiring in Tests
-
-**Problem**: Time-based eviction doesn't work, cache size doesn't decrease
-
-**Solution**: Initialize `AgentBridge.collectionFactory` in test setup:
-```java
-AgentBridge.collectionFactory = new AgentCollectionFactory();
-```
-
-Without this initialization, tests use `DefaultCollectionFactory` which provides no-op implementations.
-
-### Removal Listener Not Called
-
-**Problem**: `CacheRemovalListener.onRemoval()` never executes
-
-**Solution**:
-1. Call `cleanUp()` explicitly to trigger expired entry removal:
-   ```java
-   ((CleanableMap<K, V>) cache).cleanUp();
-   ```
-2. Caffeine's removal listeners are asynchronous - use `executor(Runnable::run)` for synchronous testing
-
-## References
-
-- **Caffeine Cache**: https://github.com/ben-manes/caffeine
-- **Multi-Release JARs**: https://openjdk.org/jeps/238
-- **Gradle Shadow Plugin**: https://github.com/johnrengelman/shadow (used for shading)
-
-## Files Modified
-
-### Core Implementation
-- `agent-bridge/src/main/java/com/newrelic/agent/bridge/CollectionFactory.java`
-- `agent-bridge/src/main/java/com/newrelic/agent/bridge/CleanableMap.java`
-- `agent-bridge/src/main/java/com/newrelic/agent/bridge/CacheRemovalListener.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/util/Caffeine2CollectionFactory.java`
-- `newrelic-agent/src/main/java11/com/newrelic/agent/util/Caffeine3CollectionFactory.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/util/AgentCollectionFactory.java`
-- `newrelic-agent/src/main/java11/com/newrelic/agent/util/AgentCollectionFactory.java`
-
-### Refactored Classes (All using CollectionFactory)
-
-**Core Agent:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/TimedTokenSet.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/ThreadService.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/PrivateApiImpl.java` (initialization)
-- `newrelic-agent/src/main/java/com/newrelic/agent/transaction/TransactionCache.java`
-
-**Services:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/service/async/AsyncTransactionService.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/InsightsServiceImpl.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/service/analytics/TransactionEventsService.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/service/logging/LogSenderServiceImpl.java`
-
-**Database & SQL:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/database/CachingDatabaseStatementParser.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/sql/BoundedConcurrentCache.java`
-
-**Profiling:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/DiscoveryProfile.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/Profile.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/TransactionProfile.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/profile/v2/TransactionProfileSessionImpl.java`
-
-**Attributes & Metrics:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/attributes/DefaultDestinationPredicate.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/tracers/metricname/MetricNameFormats.java`
-
-**Cloud & Infrastructure:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/cloud/AwsAccountDecoderImpl.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/cloud/CloudAccountInfoCache.java`
-
-**Instrumentation:**
-- `newrelic-agent/src/main/java/com/newrelic/agent/instrumentation/weaver/extension/ExtensionHolderFactoryImpl.java`
-- `newrelic-agent/src/main/java/com/newrelic/agent/threads/ThreadStateSampler.java`
-
-### Test Infrastructure
-- `newrelic-agent/src/test/java/com/newrelic/agent/TransactionAsyncUtility.java`
-- `newrelic-agent/src/test/java/com/newrelic/agent/tracing/BaseDistributedTraceTest.java`
-- `newrelic-agent/src/test/java/com/newrelic/agent/transaction/AbstractPriorityTransactionNamingPolicyTest.java`
-- `newrelic-agent/src/test/java/com/newrelic/agent/TransactionTest.java`
-
-### Build Configuration
-- `newrelic-agent/build.gradle` - Shading tasks, dependency configuration, Multi-Release JAR setup
+The following class doesn't use the CollectionFactory pattern:
+- com.newrelic.bootstrap.EmbeddedJarFilesImpl - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 
+not available until agent-bridge.jar is extracted and loaded
