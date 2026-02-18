@@ -32,12 +32,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.List;
 import java.util.Set;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -262,17 +261,17 @@ public class LogSenderServiceImplTest {
 
         logSenderService.harvestHarvestables();
 
-        Set<String> expectedLogEventLevels = new HashSet<>();
-        expectedLogEventLevels.add("info");
-        expectedLogEventLevels.add("ERROR");
+        Set<String> expectedLogLevels = new HashSet<>();
+        expectedLogLevels.add("info");
+        expectedLogLevels.add("ERROR");
 
-        //assert that the two levels that are left are the expected info and ERROR levels. Their levels should be unaltered.
-        Collection<AnalyticsEvent> actualRecordedEvents = analyticsData.getEvents();
-        assertEquals(2, actualRecordedEvents.size());
-        for (AnalyticsEvent event : actualRecordedEvents) {
-            String actualLevel = (String) event.getUserAttributesCopy().get("level");
-            assertTrue(expectedLogEventLevels.contains(actualLevel));
-        }
+        assertEquals(2, analyticsData.getEvents().size());
+        Collection<String> actualLogLevels = analyticsData.getEvents()
+                .stream()
+                .map(logEvent -> logEvent.getUserAttributesCopy().get("level").toString())
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedLogLevels, actualLogLevels);
     }
 
     @Test
@@ -313,13 +312,45 @@ public class LogSenderServiceImplTest {
         expectedLogEventLevels.add("ERROR");
         expectedLogEventLevels.add("finer");
 
-        //assert that the two levels that are left are the expected info and ERROR levels. Their levels should be unaltered.
-        List<LogEvent> actualRecordedEvents = logs.getEventsForTesting();
-        assertEquals(4, actualRecordedEvents.size());
-        for (LogEvent event : actualRecordedEvents) {
-            String actualLevel = (String) event.getUserAttributesCopy().get("level");
-            assertTrue(expectedLogEventLevels.contains(actualLevel));
-        }
+        assertEquals(4, logs.getEventsForTesting().size());
+        Set<String> actualLogLevels = logs.getEventsForTesting()
+                .stream()
+                .map(logEvent -> logEvent.getUserAttributesCopy().get("level").toString())
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedLogEventLevels, actualLogLevels);
+    }
+
+    @Test
+    public void shouldPermitMissingOrEmptyLogLevels() throws Exception{
+        //let's check nothing explodes when the level is empty, null, or absent
+        String levelsToBlock = "warn";
+
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, null, null, levelsToBlock));
+        logSenderService.addHarvestableToService(appName);
+
+        Map<LogAttributeKey, Object> attrsNullLevel = new HashMap<>();
+        attrsNullLevel.put(AppLoggingUtils.MESSAGE, "too foo for you");
+        attrsNullLevel.put(AppLoggingUtils.LEVEL, null);
+
+        Map<LogAttributeKey, Object> attrsEmptyLevel = new HashMap<>();
+        attrsEmptyLevel.put(AppLoggingUtils.LEVEL, "");
+        attrsEmptyLevel.put(AppLoggingUtils.MESSAGE, "bar humbug");
+
+        Map<LogAttributeKey, Object> attrsNoLevel = new HashMap<>();
+        attrsNoLevel.put(AppLoggingUtils.MESSAGE, "baz-ing bee");
+
+        logSenderService.recordLogEvent(attrsNullLevel);
+        logSenderService.recordLogEvent(attrsEmptyLevel);
+        logSenderService.recordLogEvent(attrsNoLevel);
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(3, analyticsData.getEvents().size());
     }
 
 

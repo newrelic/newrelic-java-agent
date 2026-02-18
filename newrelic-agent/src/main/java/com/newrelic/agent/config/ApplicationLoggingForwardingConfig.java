@@ -24,6 +24,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     public static final boolean DEFAULT_ENABLED = true;
     public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
+    public static final String DEFAULT_LOG_LEVEL_DENYLIST = "";
 
     private final boolean enabled;
     private final int maxSamplesStored;
@@ -63,12 +64,11 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     private Set<String> createLogLevelDenylist() {
         Set<String> denyList = new HashSet<>();
-
-        String[] configuredLevels = getProperty(LOG_LEVEL_DENYLIST, "").split(",");
-        for (String level : configuredLevels) {
-            String normalizedLevel = level.trim().toUpperCase();
-            if (!normalizedLevel.isEmpty()) {
-                denyList.add(normalizedLevel);
+        String[] levels = getProperty(LOG_LEVEL_DENYLIST, DEFAULT_LOG_LEVEL_DENYLIST).split(",");
+        for (String level : levels) {
+            String levelUppercase = level.trim().toUpperCase();
+            if (!levelUppercase.isEmpty()) {
+                denyList.add(levelUppercase);
             }
         }
         return Collections.unmodifiableSet(denyList);

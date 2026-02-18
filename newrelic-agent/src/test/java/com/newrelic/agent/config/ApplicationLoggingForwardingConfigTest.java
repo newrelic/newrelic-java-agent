@@ -129,8 +129,6 @@ public class ApplicationLoggingForwardingConfigTest {
         Properties properties = new Properties();
         properties.put("newrelic.config.application_logging.forwarding.log_level_denylist", "    ");
 
-        Set<String> emptyDenylist = new HashSet<>();
-
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(properties),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
@@ -138,7 +136,7 @@ public class ApplicationLoggingForwardingConfigTest {
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
-        assertEquals(emptyDenylist, config.getLogLevelDenylist());
+        assertEquals(Collections.emptySet(), config.getLogLevelDenylist());
     }
 
 }

@@ -240,7 +240,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
-        if (logEventsDisabled() || attributes == null || attributes.isEmpty() || !isLogLevelReportable(attributes)) {
+        if (logEventsDisabled() || attributes == null || attributes.isEmpty() || shouldDenyLogLevel(attributes)) {
             return;
         }
 
@@ -391,19 +391,16 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
     /**
      * Check the attribute map to see if the "level" attribute matches any level in the denylist.
-     * Attributes map must NOT be null.
      *
-     * @return false if the "level" attribute in this map has a value that should not be reported to New Relic, true otherwise.
+     * @return true if the "level" attribute in this map has a value that appears in the configured denylist, false otherwise.
      */
-    private boolean isLogLevelReportable(Map<LogAttributeKey, ?> attributes) {
-        if (!logLevelDenylist.isEmpty() && attributes.containsKey(AppLoggingUtils.LEVEL)) {
-            Object level = attributes.get(AppLoggingUtils.LEVEL);
-            if (level instanceof String) {
-                String caseInsensitiveLevelName = ((String) level).toUpperCase();
-                return !logLevelDenylist.contains(caseInsensitiveLevelName);
-            }
+    private boolean shouldDenyLogLevel(Map<LogAttributeKey, ?> attributes) {
+        Object level = attributes.get(AppLoggingUtils.LEVEL);
+        if (level != null && !logLevelDenylist.isEmpty()) {
+            String levelStr = level.toString().toUpperCase();
+            return logLevelDenylist.contains(levelStr);
         }
-        return true;
+        return false;
     }
 
     /**
