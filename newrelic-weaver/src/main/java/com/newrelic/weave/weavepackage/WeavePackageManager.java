@@ -8,8 +8,8 @@
 package com.newrelic.weave.weavepackage;
 
 import com.google.common.collect.Sets;
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.weave.utils.BootstrapLoader;
+import com.newrelic.weave.utils.WeakKeyLruCache;
 import com.newrelic.weave.utils.ClassCache;
 import com.newrelic.weave.utils.ClassInformation;
 import com.newrelic.weave.utils.ClassLoaderFinder;
@@ -63,8 +63,10 @@ public class WeavePackageManager {
 
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
+     * Uses weak keys to allow ClassLoaders to be garbage collected.
+     * No size limit needed - this cache is only populated during class loading.
      */
-    private final Map<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+    private final WeakKeyLruCache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = new WeakKeyLruCache<>(Integer.MAX_VALUE);
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -87,14 +89,14 @@ public class WeavePackageManager {
 
     /**
      * classloader -> (weave package -> result of successful weaving)
+     * Uses weak keys with size limit to prevent memory leaks while bounding cache size.
      */
-    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = AgentBridge.collectionFactory.createCacheWithWeakKeysInitialCapacityAndSize(
-            8, MAX_VALID_PACKAGE_CACHE);
+    WeakKeyLruCache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = new WeakKeyLruCache<>(MAX_VALID_PACKAGE_CACHE);
     /**
-     * classloader -> (weave package -> result of successful weaving)
+     * classloader -> (weave package -> result of failed weaving)
+     * Uses weak keys with size limit to prevent memory leaks while bounding cache size.
      */
-    Map<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = AgentBridge.collectionFactory.createCacheWithWeakKeysInitialCapacityAndSize(
-            8, MAX_INVALID_PACKAGE_CACHE);
+    WeakKeyLruCache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = new WeakKeyLruCache<>(MAX_INVALID_PACKAGE_CACHE);
 
     WeavePackageManager() {
         this(null);

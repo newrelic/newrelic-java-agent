@@ -336,6 +336,7 @@ jobs:
       - name: Create virtualenv and run ${{ matrix.tests }}
         if: ${{ failure() || success() }}
         run: |
+          echo "api.version=1.44" > $HOME/.docker-java.properties
           cd agent-integration-tests
           echo "conf/testenv complains of the path below - creating symlink for now"
           ln -s ${GITHUB_WORKSPACE}/apps /home/runner/apps

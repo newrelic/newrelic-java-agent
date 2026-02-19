@@ -7,8 +7,6 @@
 
 package com.newrelic.weave.weavepackage;
 
-import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -17,6 +15,7 @@ import com.newrelic.weave.utils.BootstrapLoader;
 import com.newrelic.weave.utils.ClassCache;
 import com.newrelic.weave.utils.ClassInformation;
 import com.newrelic.weave.utils.ClassLoaderFinder;
+import com.newrelic.weave.utils.WeakKeyLruCache;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -42,9 +41,6 @@ public class WeavePackageManagerTest {
 
     @BeforeClass
     public static void init() throws IOException {
-        // Initialize AgentBridge with real Caffeine-backed collection factory for tests
-        AgentBridge.collectionFactory = new AgentCollectionFactory();
-
         List<byte[]> weaveBytes = new ArrayList<>();
         weaveBytes.add(WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.ShadowedWeaveClass"));
         weaveBytes.add(WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.ShadowedBaseClass"));
@@ -457,7 +453,7 @@ public class WeavePackageManagerTest {
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
     }
 
-    private static int getCacheSize(Map<?, ?> map) {
+    private static int getCacheSize(WeakKeyLruCache<?, ?> map) {
         // For Caffeine-backed maps, cleanup happens automatically via weak references and size eviction
         return map.size();
     }

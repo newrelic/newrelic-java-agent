@@ -1,14 +1,10 @@
 package com.newrelic.weave.weavepackage;
 
-import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.weave.WeaveTestUtils;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,12 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class InstrumentationPriorityTest {
-
-    @BeforeClass
-    public static void init() {
-        // Initialize AgentBridge with real Caffeine-backed collection factory for tests
-        AgentBridge.collectionFactory = new AgentCollectionFactory();
-    }
 
     /**
      * Tests three modules applying to the same method, but with different priorities.
