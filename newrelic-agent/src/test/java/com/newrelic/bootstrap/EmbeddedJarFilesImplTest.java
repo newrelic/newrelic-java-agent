@@ -11,6 +11,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -61,7 +62,7 @@ public class EmbeddedJarFilesImplTest {
         Assert.assertNotNull(embeddedJarFiles.getJarFileInAgent(BootstrapLoader.API_JAR_NAME));
     }
 
-    @Test(expected = java.util.concurrent.CompletionException.class)
+    @Test(expected =  FileNotFoundException.class)
     public void getJarFileInAgent_withInvalidFilename_throwsException() throws IOException {
         EmbeddedJarFiles embeddedJarFiles = new EmbeddedJarFilesImpl();
         Assert.assertNotNull(embeddedJarFiles.getJarFileInAgent("foo"));

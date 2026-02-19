@@ -25,7 +25,7 @@ A couple of somewhat gross implementation details:
 - cache2k, ehcache - No support for weak keyed caches
 - guava - suffers from the same `Unsafe` usage that Caffeine v2 does 
 - "Roll your own" caches in vanilla Java - Extremely difficult and brittle to implement weak key caches
-and max size caches
+and max size caches with acceptable performance (although one was created for the weaver project)
 
 ### Multi-Release JAR Structure
 
