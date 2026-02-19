@@ -596,8 +596,8 @@ jobs:
             # Open new directory dropdown if changed
             if [ "$DIR" != "$CURRENT_DIR" ]; then
               # Close previous test case, test file, and directory if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
               [ -n "$CURRENT_DIR" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
               # Open new directory
@@ -612,11 +612,12 @@ jobs:
             # Open new test file dropdown if changed
             if [ "$TEST_FILE" != "$CURRENT_TEST_FILE" ]; then
               # Close previous test case and test file if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
-              # Open new test file with indentation
-              echo "<details style=\"margin-left: 20px;\">" >> ait-performance-report.md
+              # Open new test file with blockquote indentation
+              echo "<blockquote>" >> ait-performance-report.md
+              echo "<details>" >> ait-performance-report.md
               echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> ait-performance-report.md
               echo "" >> ait-performance-report.md
               CURRENT_TEST_FILE="$TEST_FILE"
@@ -626,10 +627,12 @@ jobs:
             # Open new test case dropdown if changed
             if [ "$TEST_CASE" != "$CURRENT_TEST_CASE" ]; then
               # Close previous test case if open
-              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+              [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
-              # Open new test case - display FULL TEST NAME with indentation
-              echo "<details style=\"margin-left: 40px;\">" >> ait-performance-report.md
+              # Open new test case - display FULL TEST NAME with double blockquote indentation
+              echo "<blockquote>" >> ait-performance-report.md
+              echo "<blockquote>" >> ait-performance-report.md
+              echo "<details>" >> ait-performance-report.md
               echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
               echo "" >> ait-performance-report.md
               CURRENT_TEST_CASE="$TEST_CASE"
@@ -643,7 +646,6 @@ jobs:
             ERROR_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.error_count')
             HEAP_PRESENT=$(echo "$JSON_DATA" | jq -r '.metrics.heap_metrics_present')
 
-            echo "#### Java ${JAVA_VERSION}" >> ait-performance-report.md
             echo "" >> ait-performance-report.md
             echo "| Metric | Value |" >> ait-performance-report.md
             echo "|--------|-------|" >> ait-performance-report.md
@@ -664,8 +666,8 @@ jobs:
           done < "$TEMP_FILE"
 
           # Close final test case, test file, and directory
-          [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
-          [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_TEST_CASE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
+          [ -n "$CURRENT_TEST_FILE" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "</blockquote>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
           [ -n "$CURRENT_DIR" ] && echo "" >> ait-performance-report.md && echo "</details>" >> ait-performance-report.md && echo "" >> ait-performance-report.md
 
           rm -f "$TEMP_FILE"
