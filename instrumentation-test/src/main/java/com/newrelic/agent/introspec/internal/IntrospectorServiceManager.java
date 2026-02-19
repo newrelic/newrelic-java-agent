@@ -149,6 +149,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         dbService = new DatabaseService();
         jarCollectorService = new IgnoringJarCollectorService();
         distributedTraceService = new DistributedTraceServiceImpl();
+        kotlinCoroutinesService = new KotlinCoroutinesService(configService.getDefaultAgentConfig().getKotlinCoroutinesConfig());
 
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
         transactionEventsService = new TransactionEventsService(transactionDataToDistributedTraceIntrinsics);
