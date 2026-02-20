@@ -35,10 +35,16 @@ public class AgentConfigHelper {
 
     public static final String NEWRELIC_ENVIRONMENT_SYSTEM_PROP = "newrelic.environment";
     public static final String NEWRELIC_ENVIRONMENT_ENV_VAR = "NEW_RELIC_ENVIRONMENT";
+    public static final String AWS_LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
     private static final String JAVA_ENVIRONMENT = "JAVA_ENV";
     private static final String PRODUCTION_ENVIRONMENT = "production";
 
     private static final AtomicBoolean loggedDeprecationWarning = new AtomicBoolean(false);
+
+    public static boolean LambdaFunctionNameExists() {
+        String val = System.getenv(AWS_LAMBDA_FUNCTION_NAME);
+        return val != null && !val.isEmpty();
+    }
 
     public static Map<String, Object> getConfigurationFileSettings(File configFile) throws Exception {
         try (InputStream is = new FileInputStream(configFile)) {

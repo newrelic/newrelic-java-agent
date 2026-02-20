@@ -34,7 +34,7 @@ public abstract class RequestHandler_Instrumentation<I, O> {
         O result = Weaver.callOriginal();
 
         try {
-            LambdaInstrumentationHelper.finishTransaction();
+            LambdaInstrumentationHelper.finishTransaction(result);
         } catch (Throwable t) {
 
         }

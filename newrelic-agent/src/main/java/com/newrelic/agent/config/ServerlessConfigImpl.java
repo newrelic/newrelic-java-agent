@@ -28,19 +28,26 @@ public class ServerlessConfigImpl extends BaseConfig implements ServerlessConfig
     private final String arn;
     private final String functionVersion;
 
-    public ServerlessConfigImpl(Map<String, Object> props) {
-        super(props, SYSTEM_PROPERTY_ROOT);
-        isEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
-        filePath = getProperty(FILE_PATH, DEFAULT_FILE_PATH);
-        arn = getProperty(ARN);
-        functionVersion = getProperty(FUNCTION_VERSION);
-    }
-
     static ServerlessConfigImpl createServerlessConfig(Map<String, Object> settings) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
         return new ServerlessConfigImpl(settings);
+    }
+
+    public ServerlessConfigImpl(Map<String, Object> props) {
+        super(props, SYSTEM_PROPERTY_ROOT);
+        isEnabled = createIsEnabled();
+        filePath = getProperty(FILE_PATH, DEFAULT_FILE_PATH);
+        arn = getProperty(ARN);
+        functionVersion = getProperty(FUNCTION_VERSION);
+    }
+
+    private boolean createIsEnabled() {
+        if (AgentConfigHelper.LambdaFunctionNameExists()) {
+            return true;
+        }
+        return getProperty(ENABLED, DEFAULT_ENABLED);
     }
 
     @Override

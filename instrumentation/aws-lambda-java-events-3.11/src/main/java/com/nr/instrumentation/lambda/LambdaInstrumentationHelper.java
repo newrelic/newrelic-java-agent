@@ -9,8 +9,11 @@ package com.nr.instrumentation.lambda;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.amazonaws.services.lambda.runtime.events.ApplicationLoadBalancerRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.ApplicationLoadBalancerResponseEvent;
 import com.amazonaws.services.lambda.runtime.events.CloudFrontEvent;
 import com.amazonaws.services.lambda.runtime.events.CodeCommitEvent;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
@@ -23,6 +26,12 @@ import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
+import com.nr.instrumentation.lambda.requests.NrAPIGatewayProxyRequest;
+import com.nr.instrumentation.lambda.requests.NrAPIGatewayProxyResponse;
+import com.nr.instrumentation.lambda.requests.NrAPIGatewayV2HttpRequest;
+import com.nr.instrumentation.lambda.requests.NrAPIGatewayV2HttpResponse;
+import com.nr.instrumentation.lambda.requests.NrApplicationLoadBalancerRequest;
+import com.nr.instrumentation.lambda.requests.NrApplicationLoadBalancerResponse;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -84,6 +93,8 @@ public class LambdaInstrumentationHelper {
                 return false;
             }
 
+            captureWebRequest(event, context, transaction);
+
             captureLambdaMetadata(context, transaction);
 
             handleColdStart(transaction);
@@ -96,6 +107,27 @@ public class LambdaInstrumentationHelper {
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
             return false;
+        }
+    }
+
+    private static void captureWebRequest(Object event, Context context, Transaction txn) {
+        if (event instanceof APIGatewayV2HTTPEvent) {
+            txn.setWebRequest(new NrAPIGatewayV2HttpRequest((APIGatewayV2HTTPEvent)event));
+        } else if (event instanceof APIGatewayProxyRequestEvent) {
+            txn.setWebRequest(new NrAPIGatewayProxyRequest((APIGatewayProxyRequestEvent)event));
+        } else if (event instanceof ApplicationLoadBalancerRequestEvent) {
+            txn.setWebRequest(new NrApplicationLoadBalancerRequest((ApplicationLoadBalancerRequestEvent)event));
+        }
+    }
+
+    private static void captureWebResponse(Object response) {
+        Transaction txn = AgentBridge.getAgent().getTransaction(false);
+        if (response instanceof APIGatewayV2HTTPResponse) {
+            txn.setWebResponse(new NrAPIGatewayV2HttpResponse((APIGatewayV2HTTPResponse) response));
+        } else if (response instanceof APIGatewayProxyResponseEvent) {
+            txn.setWebResponse(new NrAPIGatewayProxyResponse((APIGatewayProxyResponseEvent) response));
+        } else if (response instanceof ApplicationLoadBalancerResponseEvent) {
+            txn.setWebResponse(new NrApplicationLoadBalancerResponse((ApplicationLoadBalancerResponseEvent) response));
         }
     }
 
@@ -337,6 +369,16 @@ public class LambdaInstrumentationHelper {
                 NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error adding event source event type attribute");
             }
         }
+    }
+
+    /**
+     * Finishes the Lambda transaction with the result.
+     * The transaction will naturally end when the handler method returns.
+     * This method is here for explicit cleanup if needed in the future.
+     */
+    public static void finishTransaction(Object response) {
+        // This method is a placeholder for any future cleanup logic
+        captureWebResponse(response);
     }
 
     /**
