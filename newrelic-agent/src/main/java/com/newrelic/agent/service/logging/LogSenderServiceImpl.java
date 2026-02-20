@@ -131,17 +131,22 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
             boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
             boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
-            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled);
+            boolean hasDenylist = logLevelDenylist != null && !logLevelDenylist.isEmpty();
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled, hasDenylist);
         }
     };
 
-    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled) {
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled, boolean hasDenylist) {
         StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
 
         if (forwardingEnabled) {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED);
         } else {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED);
+        }
+
+        if (forwardingEnabled && hasDenylist) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST);
         }
 
         if (metricsEnabled) {
@@ -396,7 +401,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     private boolean shouldDenyLogLevel(Map<LogAttributeKey, ?> attributes) {
         Object level = attributes.get(AppLoggingUtils.LEVEL);
-        if (level != null && !logLevelDenylist.isEmpty()) {
+        if (level != null && logLevelDenylist != null && !logLevelDenylist.isEmpty()) {
             String levelStr = level.toString().toUpperCase();
             return logLevelDenylist.contains(levelStr);
         }
