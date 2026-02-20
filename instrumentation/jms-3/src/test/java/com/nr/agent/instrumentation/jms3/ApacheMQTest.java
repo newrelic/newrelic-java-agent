@@ -10,6 +10,7 @@ package com.nr.agent.instrumentation.jms3;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.test.marker.Java25IncompatibleTest;
+import com.newrelic.test.marker.Java26IncompatibleTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsProviderTest;
 import com.nr.agent.instrumentation.jms3.integration.JmsTestFixture;
 import jakarta.jms.ConnectionFactory;
@@ -32,7 +33,7 @@ import org.junit.runner.RunWith;
  * (once the agent project is migrated off Java 8).
  */
 @RunWith(InstrumentationTestRunner.class)
-@Category({ Java25IncompatibleTest.class })
+@Category({ Java25IncompatibleTest.class, Java26IncompatibleTest.class })
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.jms3" })
 public class ApacheMQTest implements JmsProviderTest {
     private static final String MESSAGE_BROKER_URL = "vm://localhost?create=false";
