@@ -48,7 +48,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * GraphQL Java 21.0 to latest
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
-  * JAX-RS 1.0 to 4.0 (exclusive)
+  * JAX-RS 1.0 to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
