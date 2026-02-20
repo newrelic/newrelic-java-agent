@@ -10,6 +10,7 @@ import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
@@ -27,7 +28,11 @@ import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -233,19 +238,135 @@ public class LogSenderServiceImplTest {
         assertEquals(3, analyticsData.getEvents().size());
     }
 
+    @Test
+    public void shouldNotSendEventsFromLevelDenylistNoTxn() throws Exception {
+        String levelsToBlock = "WARN,fiNe,  Bubbles";
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, null, null, levelsToBlock));
+
+        logSenderService.addHarvestableToService(appName);
+
+        //pretend we're sending a series of log messages, some of which should be kept
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "FINE"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "warn"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "info"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "warn"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "ERROR"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "bubbles"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        Set<String> expectedLogLevels = new HashSet<>();
+        expectedLogLevels.add("info");
+        expectedLogLevels.add("ERROR");
+
+        assertEquals(2, analyticsData.getEvents().size());
+        Collection<String> actualLogLevels = analyticsData.getEvents()
+                .stream()
+                .map(logEvent -> logEvent.getUserAttributesCopy().get("level").toString())
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedLogLevels, actualLogLevels);
+    }
+
+    @Test
+    public void shouldNotSendEventsFromLevelDenylistWithTxn() throws Exception {
+        String levelsToBlock = "WARN,fiNe, Bubbles, FINEST";
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, null, null, levelsToBlock));
+
+        logSenderService.addHarvestableToService(appName);
+
+        Transaction transaction = Mockito.mock(Transaction.class);
+        when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
+
+        LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+        when(transaction.getLogEventData()).thenReturn(logs);
+        when(transaction.getApplicationName()).thenReturn(appName);
+        when(transaction.isInProgress()).thenReturn(true);
+
+        //pretend we're sending a series of log messages, some of which should be kept
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "FINE"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "warn"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "info"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "warn"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "ERROR"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "bubbles"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "finer"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "info"));
+        logSenderService.recordLogEvent(ImmutableMap.of(AppLoggingUtils.LEVEL, "FINEST"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        Set<String> expectedLogEventLevels = new HashSet<>();
+        expectedLogEventLevels.add("info");
+        expectedLogEventLevels.add("ERROR");
+        expectedLogEventLevels.add("finer");
+
+        assertEquals(4, logs.getEventsForTesting().size());
+        Set<String> actualLogLevels = logs.getEventsForTesting()
+                .stream()
+                .map(logEvent -> logEvent.getUserAttributesCopy().get("level").toString())
+                .collect(Collectors.toSet());
+
+        assertEquals(expectedLogEventLevels, actualLogLevels);
+    }
+
+    @Test
+    public void shouldPermitMissingOrEmptyLogLevels() throws Exception{
+        //let's check nothing explodes when the level is empty, null, or absent
+        String levelsToBlock = "warn";
+
+        LogSenderServiceImpl logSenderService = createService(createConfig(null, null, null, levelsToBlock));
+        logSenderService.addHarvestableToService(appName);
+
+        Map<LogAttributeKey, Object> attrsNullLevel = new HashMap<>();
+        attrsNullLevel.put(AppLoggingUtils.MESSAGE, "too foo for you");
+        attrsNullLevel.put(AppLoggingUtils.LEVEL, null);
+
+        Map<LogAttributeKey, Object> attrsEmptyLevel = new HashMap<>();
+        attrsEmptyLevel.put(AppLoggingUtils.LEVEL, "");
+        attrsEmptyLevel.put(AppLoggingUtils.MESSAGE, "bar humbug");
+
+        Map<LogAttributeKey, Object> attrsNoLevel = new HashMap<>();
+        attrsNoLevel.put(AppLoggingUtils.MESSAGE, "baz-ing bee");
+
+        logSenderService.recordLogEvent(attrsNullLevel);
+        logSenderService.recordLogEvent(attrsEmptyLevel);
+        logSenderService.recordLogEvent(attrsNoLevel);
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(3, analyticsData.getEvents().size());
+    }
+
 
     private static Map<String, Object> createConfig() {
-        return createConfig(null, null, null);
+        return createConfig(null, null, null, null);
     }
 
     private static Map<String, Object> createConfig(Boolean highSecurity, Integer asyncTimeout) {
-        return createConfig(highSecurity, asyncTimeout, null);
+        return createConfig(highSecurity, asyncTimeout, null, null);
     }
 
-    private static Map<String, Object> createConfig(Boolean highSecurity, Integer asyncTimeout, Long maxSamplesStored) {
+    private static Map<String, Object> createConfig(Boolean highSecurity, Integer asyncTimeout, Long maxSamplesStored, String denylist) {
         Map<String, Object> subForwardingMap = new HashMap<>();
         subForwardingMap.put(ApplicationLoggingForwardingConfig.ENABLED, true);
         subForwardingMap.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, maxSamplesStored);
+        if (denylist != null) {
+            subForwardingMap.put(ApplicationLoggingForwardingConfig.LOG_LEVEL_DENYLIST, denylist);
+        }
 
         Map<String, Object> subMetricMap = new HashMap<>();
         subMetricMap.put(ApplicationLoggingMetricsConfig.ENABLED, true);

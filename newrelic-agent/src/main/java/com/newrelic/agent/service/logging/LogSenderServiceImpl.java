@@ -23,6 +23,7 @@ import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.attributes.LogAttributeValidator;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
@@ -50,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -65,6 +67,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private static boolean logLabelsEnabled;
     // Labels to be added to log events
     private static Map<String, String> labels;
+    // Denylist of log levels that should be blocked from being stored
+    private volatile Set<String> logLevelDenylist;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
@@ -123,20 +127,26 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
             forwardingEnabled = appLoggingConfig.isForwardingEnabled();
             contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+            logLevelDenylist = appLoggingConfig.getLogLevelDenylist();
 
             boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
             boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
-            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled);
+            boolean hasDenylist = logLevelDenylist != null && !logLevelDenylist.isEmpty();
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled, hasDenylist);
         }
     };
 
-    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled) {
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled, boolean hasDenylist) {
         StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
 
         if (forwardingEnabled) {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED);
         } else {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED);
+        }
+
+        if (forwardingEnabled && hasDenylist) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST);
         }
 
         if (metricsEnabled) {
@@ -170,6 +180,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
         logLabelsEnabled = appLoggingConfig.isLogLabelsEnabled();
         labels = appLoggingConfig.removeExcludedLogLabels(config.getLabelsConfig().getLabels());
+        logLevelDenylist = appLoggingConfig.getLogLevelDenylist();
 
         isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
     }
@@ -234,7 +245,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
-        if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
+        if (logEventsDisabled() || attributes == null || attributes.isEmpty() || shouldDenyLogLevel(attributes)) {
             return;
         }
 
@@ -381,6 +392,20 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             return true; // LogEvents are disabled
         }
         return false; // LogEvents are enabled
+    }
+
+    /**
+     * Check the attribute map to see if the "level" attribute matches any level in the denylist.
+     *
+     * @return true if the "level" attribute in this map has a value that appears in the configured denylist, false otherwise.
+     */
+    private boolean shouldDenyLogLevel(Map<LogAttributeKey, ?> attributes) {
+        Object level = attributes.get(AppLoggingUtils.LEVEL);
+        if (level != null && logLevelDenylist != null && !logLevelDenylist.isEmpty()) {
+            String levelStr = level.toString().toUpperCase();
+            return logLevelDenylist.contains(levelStr);
+        }
+        return false;
     }
 
     /**
