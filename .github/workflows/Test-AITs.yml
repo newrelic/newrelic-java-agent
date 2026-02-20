@@ -337,6 +337,7 @@ jobs:
         if: ${{ failure() || success() }}
         run: |
           cd agent-integration-tests
+          echo "api.version=1.44" > $HOME/.docker-java.properties
           echo "conf/testenv complains of the path below - creating symlink for now"
           ln -s ${GITHUB_WORKSPACE}/apps /home/runner/apps
           ln -s ${GITHUB_WORKSPACE}/newrelic-agent/build/newrelicJar/newrelic.jar ${GITHUB_WORKSPACE}/newrelic.jar
