@@ -20,8 +20,6 @@ import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.config.ApplicationLoggingLocalDecoratingConfig;
 import com.newrelic.agent.config.ApplicationLoggingMetricsConfig;
 import com.newrelic.agent.config.ConfigService;
-import com.newrelic.agent.model.AnalyticsEvent;
-import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.stats.StatsService;
@@ -366,7 +364,7 @@ public class LogSenderServiceImplTest {
         Map<String, Object> subForwardingMap = new HashMap<>();
         subForwardingMap.put(ApplicationLoggingForwardingConfig.ENABLED, true);
         subForwardingMap.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, maxSamplesStored);
-        if (denylist != null && !denylist.isEmpty()) {
+        if (denylist != null) {
             subForwardingMap.put(ApplicationLoggingForwardingConfig.LOG_LEVEL_DENYLIST, denylist);
         }
 
