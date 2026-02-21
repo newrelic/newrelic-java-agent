@@ -707,14 +707,14 @@ jobs:
 
           # Add link to index page
           LINK_TEXT="- [AIT Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})"
-          if ! grep -q "ait-performance-${{ inputs.wiki-report-desc }})" AIT-Performance.md 2>/dev/null; then
-            echo "" >> AIT-Performance.md
-            echo "${LINK_TEXT}" >> AIT-Performance.md
+          if ! grep -q "ait-performance-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
+            echo "" >> Performance-Metrics.md
+            echo "${LINK_TEXT}" >> Performance-Metrics.md
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "ait-performance/${FILENAME}" AIT-Performance.md
+          git add "ait-performance/${FILENAME}" Performance-Metrics.md
           git commit -m "Add AIT performance metrics for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
           git push
 
