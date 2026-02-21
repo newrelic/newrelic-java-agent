@@ -27,7 +27,7 @@ on:
         required: false
         default: false
         type: boolean
-      publish-ait-performance:
+      publish-performance-metrics:
         description: "Publish AIT performance metrics to wiki"
         required: false
         default: false
@@ -63,7 +63,7 @@ on:
         required: false
         default: false
         type: boolean
-      publish-ait-performance:
+      publish-performance-metrics:
         description: "Publish performance metrics to wiki"
         required: false
         default: false
@@ -426,10 +426,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload AIT performance files
-        if: ${{ success() && inputs.wiki-report-desc != '' && inputs.publish-ait-performance }}
+        if: ${{ success() && inputs.wiki-report-desc != '' && inputs.publish-performance-metrics }}
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
         with:
-          name: ait-performance-${{ env.MATRIX }}
+          name: performance-metrics-${{ env.MATRIX }}
           path: ${{ github.workspace }}/*-metrics-summary.json
           if-no-files-found: ignore
 
@@ -536,10 +536,10 @@ jobs:
           git commit -m "Update ingest metrics report for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
           git push
 
-  process-ait-performance:
+  process-performance-metrics:
     name: Process AIT Performance Metrics
     needs: [ tests ]
-    if: ${{ always() && inputs.wiki-report-desc != '' && inputs.publish-ait-performance }}
+    if: ${{ always() && inputs.wiki-report-desc != '' && inputs.publish-performance-metrics }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -551,22 +551,22 @@ jobs:
       - name: Download all AIT performance files
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
-          pattern: ait-performance-*
+          pattern: performance-metrics-*
           merge-multiple: true
-          path: all-ait-performance
+          path: all-performance-metrics
 
       - name: Create AIT performance markdown report
         run: |
-          echo "# Performance Metrics - ${{ inputs.wiki-report-desc }}" > ait-performance-report.md
-          echo "" >> ait-performance-report.md
-          echo "Generated: $(date)" >> ait-performance-report.md
-          echo "" >> ait-performance-report.md
+          echo "# Performance Metrics - ${{ inputs.wiki-report-desc }}" > performance-metrics-report.md
+          echo "" >> performance-metrics-report.md
+          echo "Generated: $(date)" >> performance-metrics-report.md
+          echo "" >> performance-metrics-report.md
 
           # Create temporary file for storing parsed data
           TEMP_FILE=$(mktemp)
 
           # Process each JSON file (JSONL format - one JSON object per line)
-          for file in all-ait-performance/*-metrics-summary.json; do
+          for file in all-performance-metrics/*-metrics-summary.json; do
             if [ -f "$file" ]; then
               while IFS= read -r test_result; do
                 [ -z "$test_result" ] && continue
@@ -592,28 +592,28 @@ jobs:
           # Helper functions for closing nested dropdowns
           close_test_case() {
             if [ -n "$CURRENT_TEST_CASE" ]; then
-              echo "" >> ait-performance-report.md
-              echo "</details>" >> ait-performance-report.md
-              echo "</blockquote>" >> ait-performance-report.md
-              echo "</blockquote>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "" >> performance-metrics-report.md
+              echo "</details>" >> performance-metrics-report.md
+              echo "</blockquote>" >> performance-metrics-report.md
+              echo "</blockquote>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
             fi
           }
 
           close_test_file() {
             if [ -n "$CURRENT_TEST_FILE" ]; then
-              echo "" >> ait-performance-report.md
-              echo "</details>" >> ait-performance-report.md
-              echo "</blockquote>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "" >> performance-metrics-report.md
+              echo "</details>" >> performance-metrics-report.md
+              echo "</blockquote>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
             fi
           }
 
           close_directory() {
             if [ -n "$CURRENT_DIR" ]; then
-              echo "" >> ait-performance-report.md
-              echo "</details>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "" >> performance-metrics-report.md
+              echo "</details>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
             fi
           }
 
@@ -629,9 +629,9 @@ jobs:
               close_test_file
               close_directory
 
-              echo "<details>" >> ait-performance-report.md
-              echo "<summary><strong>📁 ${DIR}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "<details>" >> performance-metrics-report.md
+              echo "<summary><strong>📁 ${DIR}</strong></summary>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
               CURRENT_DIR="$DIR"
               CURRENT_TEST_FILE=""
               CURRENT_TEST_CASE=""
@@ -642,10 +642,10 @@ jobs:
               close_test_case
               close_test_file
 
-              echo "<blockquote>" >> ait-performance-report.md
-              echo "<details>" >> ait-performance-report.md
-              echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "<blockquote>" >> performance-metrics-report.md
+              echo "<details>" >> performance-metrics-report.md
+              echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
               CURRENT_TEST_FILE="$TEST_FILE"
               CURRENT_TEST_CASE=""
             fi
@@ -654,10 +654,10 @@ jobs:
             if [ "$TEST_CASE" != "$CURRENT_TEST_CASE" ]; then
               close_test_case
 
-              echo "<blockquote>" >> ait-performance-report.md
-              echo "<details>" >> ait-performance-report.md
-              echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> ait-performance-report.md
-              echo "" >> ait-performance-report.md
+              echo "<blockquote>" >> performance-metrics-report.md
+              echo "<details>" >> performance-metrics-report.md
+              echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
               CURRENT_TEST_CASE="$TEST_CASE"
             fi
           
@@ -669,21 +669,21 @@ jobs:
             ERROR_COUNT=$(echo "$JSON_DATA" | jq -r '.metrics.error_count')
             HEAP_PRESENT=$(echo "$JSON_DATA" | jq -r '.metrics.heap_metrics_present')
 
-            echo "" >> ait-performance-report.md
-            echo "| Metric | Value |" >> ait-performance-report.md
-            echo "|--------|-------|" >> ait-performance-report.md
-            echo "| Java Version | ${JAVA_VERSION} |" >> ait-performance-report.md
-            echo "| CPU Time (s) | ${CPU_TIME} |" >> ait-performance-report.md
-            echo "| Response Time Total (s) | ${RESP_TIME} |" >> ait-performance-report.md
-            echo "| Response Count | ${RESP_COUNT} |" >> ait-performance-report.md
-            echo "| Throughput | ${THROUGHPUT} |" >> ait-performance-report.md
-            echo "| Error Count | ${ERROR_COUNT} |" >> ait-performance-report.md
+            echo "" >> performance-metrics-report.md
+            echo "| Metric | Value |" >> performance-metrics-report.md
+            echo "|--------|-------|" >> performance-metrics-report.md
+            echo "| Java Version | ${JAVA_VERSION} |" >> performance-metrics-report.md
+            echo "| CPU Time (s) | ${CPU_TIME} |" >> performance-metrics-report.md
+            echo "| Response Time Total (s) | ${RESP_TIME} |" >> performance-metrics-report.md
+            echo "| Response Count | ${RESP_COUNT} |" >> performance-metrics-report.md
+            echo "| Throughput | ${THROUGHPUT} |" >> performance-metrics-report.md
+            echo "| Error Count | ${ERROR_COUNT} |" >> performance-metrics-report.md
 
             if [ "$HEAP_PRESENT" = "true" ]; then
-              echo "| Heap Utilization Max (%) | ${HEAP_UTIL} |" >> ait-performance-report.md
-              echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> ait-performance-report.md
+              echo "| Heap Utilization Max (%) | ${HEAP_UTIL} |" >> performance-metrics-report.md
+              echo "| Heap Used Bytes Max | ${HEAP_USED} |" >> performance-metrics-report.md
             fi
-            echo "" >> ait-performance-report.md
+            echo "" >> performance-metrics-report.md
           done < "$TEMP_FILE"
 
           # Close final nested dropdowns
@@ -701,35 +701,35 @@ jobs:
 
       - name: Commit and push to wiki
         run: |
-          mkdir -p wiki/ait-performance
+          mkdir -p wiki/performance-metrics
 
-          FILENAME="ait-performance-${{ inputs.wiki-report-desc }}.md"
-          cp ait-performance-report.md "wiki/ait-performance/${FILENAME}"
+          FILENAME="performance-metrics-${{ inputs.wiki-report-desc }}.md"
+          cp performance-metrics-report.md "wiki/performance-metrics/${FILENAME}"
 
           cd wiki
 
           # Add link to index page
-          LINK_TEXT="- [Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})"
-          if ! grep -q "ait-performance-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
+          LINK_TEXT="- [Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})"
+          if ! grep -q "performance-metrics-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
             echo "" >> Performance-Metrics.md
             echo "${LINK_TEXT}" >> Performance-Metrics.md
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "ait-performance/${FILENAME}" Performance-Metrics.md
+          git add "performance-metrics/${FILENAME}" Performance-Metrics.md
           git commit -m "Add AIT performance metrics for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
           git push
 
       - name: Add summary link to workflow
         run: |
-          if [ ! -d "all-ait-performance" ] || [ -z "$(ls -A all-ait-performance 2>/dev/null)" ]; then
+          if [ ! -d "all-performance-metrics" ] || [ -z "$(ls -A all-performance-metrics 2>/dev/null)" ]; then
             echo "## Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "No AIT performance files found" >> $GITHUB_STEP_SUMMARY
           else
             # Count total test results across all JSONL files (one test per line)
             TEST_COUNT=0
-            for file in all-ait-performance/*-metrics-summary.json; do
+            for file in all-performance-metrics/*-metrics-summary.json; do
               if [ -f "$file" ]; then
                 # Count non-empty lines
                 COUNT=$(grep -c . "$file" 2>/dev/null || echo 0)
@@ -741,7 +741,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "View detailed metrics in [Wiki - Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
+            echo "View detailed metrics in [Wiki - Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
           fi
 
   notify-if-negative-values:
