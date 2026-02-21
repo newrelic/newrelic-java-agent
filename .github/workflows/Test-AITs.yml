@@ -64,7 +64,7 @@ on:
         default: false
         type: boolean
       publish-ait-performance:
-        description: "Publish AIT performance metrics to wiki"
+        description: "Publish performance metrics to wiki"
         required: false
         default: false
         type: boolean
@@ -545,6 +545,9 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout repository for scripts
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+
       - name: Download all AIT performance files
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
         with:
@@ -554,7 +557,7 @@ jobs:
 
       - name: Create AIT performance markdown report
         run: |
-          echo "# AIT Performance Metrics - ${{ inputs.wiki-report-desc }}" > ait-performance-report.md
+          echo "# Performance Metrics - ${{ inputs.wiki-report-desc }}" > ait-performance-report.md
           echo "" >> ait-performance-report.md
           echo "Generated: $(date)" >> ait-performance-report.md
           echo "" >> ait-performance-report.md
@@ -706,7 +709,7 @@ jobs:
           cd wiki
 
           # Add link to index page
-          LINK_TEXT="- [AIT Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})"
+          LINK_TEXT="- [Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})"
           if ! grep -q "ait-performance-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
             echo "" >> Performance-Metrics.md
             echo "${LINK_TEXT}" >> Performance-Metrics.md
@@ -721,7 +724,7 @@ jobs:
       - name: Add summary link to workflow
         run: |
           if [ ! -d "all-ait-performance" ] || [ -z "$(ls -A all-ait-performance 2>/dev/null)" ]; then
-            echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "## Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "No AIT performance files found" >> $GITHUB_STEP_SUMMARY
           else
             # Count total test results across all JSONL files (one test per line)
@@ -734,11 +737,11 @@ jobs:
               fi
             done
 
-            echo "## AIT Performance Metrics" >> $GITHUB_STEP_SUMMARY
+            echo "## Performance Metrics" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "View detailed metrics in [Wiki - AIT Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
+            echo "View detailed metrics in [Wiki - Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ait-performance-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
           fi
 
   notify-if-negative-values:
