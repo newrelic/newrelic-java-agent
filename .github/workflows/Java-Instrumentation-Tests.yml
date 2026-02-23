@@ -51,7 +51,9 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Remove parallel from GRADLE_OPTIONS
-        run: echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
+        run: |
+          echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
+          echo "api.version=1.44" > $HOME/.docker-java.properties
 
       # GHA run instrumentation tests
 
