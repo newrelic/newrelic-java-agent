@@ -213,9 +213,12 @@ The following classes now use `AgentBridge.collectionFactory` instead of direct 
 - com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
 - com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
 
-A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project:
-- Added a dependency on agent-bridge to allow access to the AgentBridge.collectionFactory instance
-- Added a test dependency on newrelic-agent to allow proper bootstrapping of the AgentCollectionFactory for tests
+##### A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project
+This class doesn't use the wrapped caffeine library for its weak-keyed cache. Rather it uses a custom-built
+weak key LRU cache (`WeakKeyLruCache`) using standard Java classes (`WeakHashMap` and `LinkedList`). This was
+done because the weaver doesn't have a dependency on the agent-bridge project, and adding this dependency would
+be fairly messy. The custom implementation provides reasonable performance (tested with 10,000 operations), and
+this cache isn't in a hot code path after initial weaving takes place.
 
 The following class doesn't use the CollectionFactory pattern:
 - com.newrelic.bootstrap.EmbeddedJarFilesImpl - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 

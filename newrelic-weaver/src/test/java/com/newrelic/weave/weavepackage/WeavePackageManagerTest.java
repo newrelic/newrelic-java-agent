@@ -453,6 +453,128 @@ public class WeavePackageManagerTest {
         Assert.assertTrue(expectedInvokeCount == listener.invokeCount);
     }
 
+    /**
+     * Test that accessing an entry updates its LRU position and prevents premature eviction.
+     */
+    @Test
+    public void testLruAccessOrderPreventsEviction() throws IOException {
+        WeavePackageManager wpm = new WeavePackageManager();
+        wpm.register(testPackage1);
+
+        ClassLoader context = Thread.currentThread().getContextClassLoader();
+        ClassLoader firstClassLoader = new ClassLoader(context) {};
+
+        // Add the first classloader
+        wpm.weave(firstClassLoader, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                Collections.emptyMap());
+
+        // Add MAX_VALID_PACKAGE_CACHE - 1 more classloaders
+        for (int i = 0; i < WeavePackageManager.MAX_VALID_PACKAGE_CACHE - 1; i++) {
+            ClassLoader cl = new ClassLoader(context) {};
+            wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                    Collections.emptyMap());
+        }
+
+        // Access the first classloader again to move it to most recently used
+        wpm.weave(firstClassLoader, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                Collections.emptyMap());
+
+        // Add one more classloader - should evict the second-oldest, not the first (which was just accessed)
+        ClassLoader newClassLoader = new ClassLoader(context) {};
+        wpm.weave(newClassLoader, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                Collections.emptyMap());
+
+        // Verify first classloader is still in cache (wasn't evicted due to recent access)
+        Assert.assertTrue("First classloader should remain in cache due to recent access",
+                wpm.validPackages.containsKey(firstClassLoader));
+        Assert.assertTrue("Cache should respect max size",
+                getCacheSize(wpm.validPackages) <= WeavePackageManager.MAX_VALID_PACKAGE_CACHE);
+    }
+
+    /**
+     * Test that weak keys are properly removed after garbage collection.
+     */
+    @Test
+    public void testWeakKeyRemovalAfterGC() throws IOException, InterruptedException {
+        WeavePackageManager wpm = new WeavePackageManager();
+        wpm.register(testPackage1);
+
+        ClassLoader context = Thread.currentThread().getContextClassLoader();
+
+        // Create classloaders without holding references
+        for (int i = 0; i < 10; i++) {
+            ClassLoader cl = new ClassLoader(context) {};
+            wpm.weave(cl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                    WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                    Collections.emptyMap());
+            // cl goes out of scope immediately
+        }
+
+        Assert.assertEquals(10, getCacheSize(wpm.validPackages));
+
+        // Force GC multiple times
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            Thread.sleep(100);
+        }
+
+        // Add a new entry to trigger WeakHashMap cleanup
+        ClassLoader persistentCl = new ClassLoader(context) {};
+        wpm.weave(persistentCl, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                Collections.emptyMap());
+
+        // Size should be significantly reduced (most entries were GC'd)
+        Assert.assertTrue("Cache should have cleaned up GC'd entries, but was: " + getCacheSize(wpm.validPackages),
+                getCacheSize(wpm.validPackages) < 5);
+    }
+
+    /**
+     * Test concurrent access to the same ClassLoader to verify thread safety.
+     */
+    @Test
+    public void testConcurrentAccessToSameClassLoader() throws Exception {
+        final WeavePackageManager wpm = new WeavePackageManager();
+        wpm.register(testPackage1);
+
+        final ClassLoader sharedClassLoader = new ClassLoader(Thread.currentThread().getContextClassLoader()) {};
+        final ExecutorService executor = Executors.newFixedThreadPool(10);
+        final int numOperations = 100;
+
+        List<Future<?>> futures = new ArrayList<>();
+        for (int i = 0; i < numOperations; i++) {
+            futures.add(executor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        wpm.weave(sharedClassLoader, "com/newrelic/weave/weavepackage/testclasses/MyOriginalBase",
+                                WeaveTestUtils.getClassBytes("com.newrelic.weave.weavepackage.testclasses.MyOriginalBase"),
+                                Collections.emptyMap());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }));
+        }
+
+        // Wait for all operations to complete
+        for (Future<?> future : futures) {
+            future.get();
+        }
+
+        // Should have exactly one entry for the shared classloader
+        Assert.assertEquals("Should have exactly one cache entry for shared classloader",
+                1, getCacheSize(wpm.validPackages));
+        Assert.assertTrue("Shared classloader should be in cache",
+                wpm.validPackages.containsKey(sharedClassLoader));
+
+        executor.shutdown();
+    }
+
     private static int getCacheSize(WeakKeyLruCache<?, ?> map) {
         // For Caffeine-backed maps, cleanup happens automatically via weak references and size eviction
         return map.size();
