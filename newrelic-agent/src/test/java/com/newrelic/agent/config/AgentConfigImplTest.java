@@ -70,9 +70,14 @@ public class AgentConfigImplTest {
     public void collectorRegionAwareHost() {
         Map<String, Object> localMap = new HashMap<>();
 
+        // proper 2 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "czxX6789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals("collector.cz.nr-data.net", config.getHost());
+
         // proper 4 character protocol 15 key
         localMap.put(AgentConfigImpl.LICENSE_KEY, "Us01xX6789abcdef0123456789abcdef01234567");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        config = AgentConfigImpl.createAgentConfig(localMap);
         assertEquals("collector.us01.nr-data.net", config.getHost());
 
         // proper 5 character protocol 15 key
@@ -127,9 +132,14 @@ public class AgentConfigImplTest {
     public void regionAwareMetricIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
+        // proper 2 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "czxX6789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals("https://metric-api.cz.newrelic.com/metric/v1", config.getMetricIngestUri());
+
         // proper 4 character protocol 15 key
         localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xX6789abcdef0123456789abcdef01234567");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        config = AgentConfigImpl.createAgentConfig(localMap);
         assertEquals("https://metric-api.eu01.newrelic.com/metric/v1", config.getMetricIngestUri());
 
         // proper 5 character protocol 15 key
@@ -200,9 +210,14 @@ public class AgentConfigImplTest {
     public void regionAwareEventIngestUri() {
         Map<String, Object> localMap = new HashMap<>();
 
+        // proper 2 character protocol 15 key
+        localMap.put(AgentConfigImpl.LICENSE_KEY, "czxX6789abcdef0123456789abcdef01234567");
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        assertEquals("https://insights-collector.cz.nr-data.net/v1/accounts/events", config.getEventIngestUri());
+
         // proper 4 character protocol 15 key
         localMap.put(AgentConfigImpl.LICENSE_KEY, "eu01xX6789abcdef0123456789abcdef01234567");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(localMap);
+        config = AgentConfigImpl.createAgentConfig(localMap);
         assertEquals("https://insights-collector.eu01.nr-data.net/v1/accounts/events", config.getEventIngestUri());
 
         // proper 5 character protocol 15 key
