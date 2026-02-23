@@ -19,7 +19,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 14.1.1
+  * WebLogic 12.1.2.1 to 14.1.x
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
