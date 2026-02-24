@@ -193,8 +193,8 @@ The correct `AgentCollectionFactory` is loaded by the VM based on the Java versi
 
 The following classes now use `AgentBridge.collectionFactory` instead of direct Caffeine dependencies:
 
-- com.newrelic.agent.TimedTokenSet - Token expiration tracking with access-based eviction and removal listener
-- com.newrelic.agent.service.async.AsyncTransactionService - Async transaction registry with write-based expiration and removal listener
+- *com.newrelic.agent.TimedTokenSet - Token expiration tracking with access-based eviction and removal listener
+- *com.newrelic.agent.service.async.AsyncTransactionService - Async transaction registry with write-based expiration and removal listener
 - com.newrelic.agent.ThreadService - Thread ID to name mapping with access-based eviction
 - com.newrelic.agent.transaction.TransactionCache - Weak-keyed map for caching input streams
 - com.newrelic.agent.database.CachingDatabaseStatementParser - Weak-keyed cache for parsed SQL statements (max size: 1000)
@@ -209,7 +209,7 @@ The following classes now use `AgentBridge.collectionFactory` instead of direct 
 - com.newrelic.agent.attributes.DefaultDestinationPredicate - Memoization cache for destination inclusion checks (max 200)
 - com.newrelic.agent.tracers.metricname.MetricNameFormats - Metric name format cache with initial capacity
 - com.newrelic.agent.cloud.AwsAccountDecoderImpl - Account ID decoder cache with access-based expiration (3600s)
-- com.newrelic.agent.cloud.CloudAccountInfoCache - Weak-keyed cloud account info cache
+- *com.newrelic.agent.cloud.CloudAccountInfoCache - Weak-keyed cloud account info cache
 - com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
 - com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
 
@@ -222,4 +222,4 @@ this cache isn't in a hot code path after initial weaving takes place.
 
 The following class doesn't use the CollectionFactory pattern:
 - com.newrelic.bootstrap.EmbeddedJarFilesImpl - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 
-not available until agent-bridge.jar is extracted and loaded
+not available until agent-bridge.jar is extracted and loaded by the EmbeddedJarFilesImpl service.
