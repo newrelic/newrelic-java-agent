@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version 9.1.0
 ## New features and improvements
-- **_The Java Hybrid Agent_**: offering a "best-of-both-worlds" experience by combining New Relic’s deep visibility with OpenTelemetry API compatibility. This release includes comprehensive support for the OpenTelemetry Tracing, Metrics, and Logs APIs, as well as standalone library and native framework instrumentation. Key enhancements like Span Links and Events on Spans are now available, ensuring seamless interoperability in mixed-mode environments.
+- **_The Java Hybrid Agent_**: offering a "best-of-both-worlds" experience by combining New Relic’s deep visibility with [OpenTelemetry API compatibility](https://github.com/newrelic/docs-website/pull/23178). This release includes comprehensive support for the OpenTelemetry Tracing, Metrics, and Logs APIs, as well as standalone library and native framework instrumentation. Key enhancements like Span Links and Events on Spans are now available, ensuring seamless interoperability in mixed-mode environments.
 
     - Update hybrid agent config based on spec changes by @jasonjkeller in [2738](https://github.com/newrelic/newrelic-java-agent/pull/2738)
 
