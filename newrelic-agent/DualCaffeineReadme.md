@@ -6,7 +6,7 @@ This document explains the implementation of dual Caffeine support in the agent.
 was required because of the complete removal of the "Unsafe" class in Java 26. Caffeine v3+
 eliminated any calls to the Unsafe class, however Caffeine v2 will not receive a similar
 update. Caffeine v3 only supports Java 11+, so Caffeine v2 is still required to support
-Java 8 - 12.
+Java 8 - 10.
 
 - **Caffeine 2.9.3** - For Java 8-10 (uses `sun.misc.Unsafe`)
 - **Caffeine 3.2.3** - For Java 11+ (uses `VarHandle`)
