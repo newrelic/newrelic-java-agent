@@ -19,7 +19,9 @@ A couple of somewhat gross implementation details:
 - Both versions of Caffeine are shaded into the Agent jar
 - A multi-release jar is utilized in order to support loading the proper Caffeine versions at runtime
 - The shaded package name for Caffeine is used in the `import` statements in the CollectionFactory
-- The `newrelic-weaver` project now has a dependency on `agent-bridge`
+- A roll-our-own weak-key LRU cache in the weaver project, since this project doesn't (and should not)
+have a dependency on the agent bridge
+- A custom implementation of a CleanableMap to be used with removal listener caches
 
 #### Why not transition to a new cache provider??
 - cache2k, ehcache - No support for weak keyed caches
@@ -29,7 +31,8 @@ and max size caches with acceptable performance (although one was created for th
 
 ### Multi-Release JAR Structure
 
-The agent uses Java's Multi-Release JAR feature to provide different implementations based on the runtime Java version:
+The agent uses Java's Multi-Release JAR feature to provide different implementations of the AgentCollectionClass 
+based on the runtime Java version:
 
 ```
 newrelic-agent.jar
@@ -160,6 +163,9 @@ Two Gradle tasks create shaded JARs with relocated Caffeine packages:
 gradle :newrelic-agent:shadeCaffeine2Jar :newrelic-agent:shadeCaffeine3Jar
 ```
 
+**Note:** This task (or a full agent build) will need to be run to make IntelliJ happy and eliminate
+errors and warnings in the project.
+
 ### Package Relocation
 
 Both versions are relocated to avoid classpath conflicts:
@@ -193,33 +199,34 @@ The correct `AgentCollectionFactory` is loaded by the VM based on the Java versi
 
 The following classes now use `AgentBridge.collectionFactory` instead of direct Caffeine dependencies:
 
-- *com.newrelic.agent.TimedTokenSet - Token expiration tracking with access-based eviction and removal listener
-- *com.newrelic.agent.service.async.AsyncTransactionService - Async transaction registry with write-based expiration and removal listener
-- *com.newrelic.agent.ThreadService - Thread ID to name mapping with access-based eviction
-- *com.newrelic.agent.transaction.TransactionCache - Weak-keyed map for caching input streams
-- *com.newrelic.agent.database.CachingDatabaseStatementParser - Weak-keyed cache for parsed SQL statements (max size: 1000)
-- *com.newrelic.agent.sql.BoundedConcurrentCache - Generic bounded cache with initial capacity
-- *com.newrelic.agent.service.analytics.InsightsServiceImpl - String cache with access-based expiration (70s, max 1000)
-- *com.newrelic.agent.service.analytics.TransactionEventsService - Access-based cache with max samples stored (300s timeout)
-- *com.newrelic.agent.service.logging.LogSenderServiceImpl - String cache with access-based expiration (70s, max 1000)
-- *com.newrelic.agent.profile.v2.DiscoveryProfile - Profile trees cache with initial capacity
-- *com.newrelic.agent.profile.v2.Profile - Thread CPU times cache with initial capacity
-- *com.newrelic.agent.profile.v2.TransactionProfile - Thread profiles cache with initial capacity
-- *com.newrelic.agent.profile.v2.TransactionProfileSessionImpl - Transaction profile trees cache with initial capacity
-- *com.newrelic.agent.attributes.DefaultDestinationPredicate - Memoization cache for destination inclusion checks (max 200)
-- *com.newrelic.agent.tracers.metricname.MetricNameFormats - Metric name format cache with initial capacity
-- *com.newrelic.agent.cloud.AwsAccountDecoderImpl - Account ID decoder cache with access-based expiration (3600s)
-- *com.newrelic.agent.cloud.CloudAccountInfoCache - Weak-keyed cloud account info cache
-- *com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
-- *com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
+- `com.newrelic.agent.TimedTokenSet` - Token expiration tracking with access-based eviction and removal listener
+- `com.newrelic.agent.service.async.AsyncTransactionService` - Async transaction registry with write-based expiration and removal listener
+- `com.newrelic.agent.ThreadService` - Thread ID to name mapping with access-based eviction
+- `com.newrelic.agent.transaction.TransactionCache` - Weak-keyed map for caching input streams
+- `com.newrelic.agent.database.CachingDatabaseStatementParser` - Weak-keyed cache for parsed SQL statements (max size: 1000)
+- `com.newrelic.agent.sql.BoundedConcurrentCache` - Generic bounded cache with initial capacity
+- `com.newrelic.agent.service.analytics.InsightsServiceImpl` - String cache with access-based expiration (70s, max 1000)
+- `com.newrelic.agent.service.analytics.TransactionEventsService` - Access-based cache with max samples stored (300s timeout)
+- `com.newrelic.agent.service.logging.LogSenderServiceImpl` - String cache with access-based expiration (70s, max 1000)
+- `com.newrelic.agent.profile.v2.DiscoveryProfile` - Profile trees cache with initial capacity
+- `com.newrelic.agent.profile.v2.Profile` - Thread CPU times cache with initial capacity
+- `com.newrelic.agent.profile.v2.TransactionProfile` - Thread profiles cache with initial capacity
+- `com.newrelic.agent.profile.v2.TransactionProfileSessionImpl` - Transaction profile trees cache with initial capacity
+- `com.newrelic.agent.attributes.DefaultDestinationPredicate` - Memoization cache for destination inclusion checks (max 200)
+- `com.newrelic.agent.tracers.metricname.MetricNameFormats` - Metric name format cache with initial capacity
+- `com.newrelic.agent.cloud.AwsAccountDecoderImpl` - Account ID decoder cache with access-based expiration (3600s)
+- `com.newrelic.agent.cloud.CloudAccountInfoCache` - Weak-keyed cloud account info cache
+- `com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl` - Weak-keyed instance cache for extension holders
+- `com.newrelic.agent.threads.ThreadStateSampler` - Thread tracker cache with access-based expiration (180s)
 
-##### A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project
+**A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project:**
+
 This class doesn't use the wrapped caffeine library for its weak-keyed cache. Rather it uses a custom-built
 weak key LRU cache (`WeakKeyLruCache`) using standard Java classes (`WeakHashMap` and `LinkedList`). This was
 done because the weaver doesn't have a dependency on the agent-bridge project, and adding this dependency would
 be fairly messy. The custom implementation provides reasonable performance (tested with 10,000 operations), and
 this cache isn't in a hot code path after initial weaving takes place.
 
-The following class doesn't use the CollectionFactory pattern:
-- com.newrelic.bootstrap.EmbeddedJarFilesImpl - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 
+The following class doesn't use the CollectionFactory pattern or custom `WeakeKeyLruCache` implementation:
+- `com.newrelic.bootstrap.EmbeddedJarFilesImpl` - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 
 not available until agent-bridge.jar is extracted and loaded by the EmbeddedJarFilesImpl service.
