@@ -195,23 +195,23 @@ The following classes now use `AgentBridge.collectionFactory` instead of direct 
 
 - *com.newrelic.agent.TimedTokenSet - Token expiration tracking with access-based eviction and removal listener
 - *com.newrelic.agent.service.async.AsyncTransactionService - Async transaction registry with write-based expiration and removal listener
-- com.newrelic.agent.ThreadService - Thread ID to name mapping with access-based eviction
-- com.newrelic.agent.transaction.TransactionCache - Weak-keyed map for caching input streams
-- com.newrelic.agent.database.CachingDatabaseStatementParser - Weak-keyed cache for parsed SQL statements (max size: 1000)
-- com.newrelic.agent.sql.BoundedConcurrentCache - Generic bounded cache with initial capacity
-- com.newrelic.agent.service.analytics.InsightsServiceImpl - String cache with access-based expiration (70s, max 1000)
-- com.newrelic.agent.service.analytics.TransactionEventsService - Access-based cache with max samples stored (300s timeout)
-- com.newrelic.agent.service.logging.LogSenderServiceImpl - String cache with access-based expiration (70s, max 1000)
-- com.newrelic.agent.profile.v2.DiscoveryProfile - Profile trees cache with initial capacity
-- com.newrelic.agent.profile.v2.Profile - Thread CPU times cache with initial capacity
-- com.newrelic.agent.profile.v2.TransactionProfile - Thread profiles cache with initial capacity
-- com.newrelic.agent.profile.v2.TransactionProfileSessionImpl - Transaction profile trees cache with initial capacity
-- com.newrelic.agent.attributes.DefaultDestinationPredicate - Memoization cache for destination inclusion checks (max 200)
-- com.newrelic.agent.tracers.metricname.MetricNameFormats - Metric name format cache with initial capacity
-- com.newrelic.agent.cloud.AwsAccountDecoderImpl - Account ID decoder cache with access-based expiration (3600s)
+- *com.newrelic.agent.ThreadService - Thread ID to name mapping with access-based eviction
+- *com.newrelic.agent.transaction.TransactionCache - Weak-keyed map for caching input streams
+- *com.newrelic.agent.database.CachingDatabaseStatementParser - Weak-keyed cache for parsed SQL statements (max size: 1000)
+- *com.newrelic.agent.sql.BoundedConcurrentCache - Generic bounded cache with initial capacity
+- *com.newrelic.agent.service.analytics.InsightsServiceImpl - String cache with access-based expiration (70s, max 1000)
+- *com.newrelic.agent.service.analytics.TransactionEventsService - Access-based cache with max samples stored (300s timeout)
+- *com.newrelic.agent.service.logging.LogSenderServiceImpl - String cache with access-based expiration (70s, max 1000)
+- *com.newrelic.agent.profile.v2.DiscoveryProfile - Profile trees cache with initial capacity
+- *com.newrelic.agent.profile.v2.Profile - Thread CPU times cache with initial capacity
+- *com.newrelic.agent.profile.v2.TransactionProfile - Thread profiles cache with initial capacity
+- *com.newrelic.agent.profile.v2.TransactionProfileSessionImpl - Transaction profile trees cache with initial capacity
+- *com.newrelic.agent.attributes.DefaultDestinationPredicate - Memoization cache for destination inclusion checks (max 200)
+- *com.newrelic.agent.tracers.metricname.MetricNameFormats - Metric name format cache with initial capacity
+- *com.newrelic.agent.cloud.AwsAccountDecoderImpl - Account ID decoder cache with access-based expiration (3600s)
 - *com.newrelic.agent.cloud.CloudAccountInfoCache - Weak-keyed cloud account info cache
-- com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
-- com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
+- *com.newrelic.agent.instrumentation.weaver.extension.ExtensionHolderFactoryImpl - Weak-keyed instance cache for extension holders
+- *com.newrelic.agent.threads.ThreadStateSampler - Thread tracker cache with access-based expiration (180s)
 
 ##### A special note about com.newrelic.weave.weavepackage.WeavePackageManager in the newrelic-weaver project
 This class doesn't use the wrapped caffeine library for its weak-keyed cache. Rather it uses a custom-built
