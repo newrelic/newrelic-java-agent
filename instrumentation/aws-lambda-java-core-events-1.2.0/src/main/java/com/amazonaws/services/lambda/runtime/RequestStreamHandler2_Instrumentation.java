@@ -5,9 +5,8 @@
  *
  */
 
-package com.amazonaws.services.lambda;
+package com.amazonaws.services.lambda.runtime;
 
-import com.amazonaws.services.lambda.runtime.Context;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -18,7 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 @Weave(type = MatchType.Interface, originalName = "com.amazonaws.services.lambda.runtime.RequestStreamHandler")
-public abstract class RequestStreamHandler_Events_Instrumentation {
+public abstract class RequestStreamHandler2_Instrumentation {
 
     /**
      * Intercepts the Lambda stream handler method to instrument it with New Relic monitoring.

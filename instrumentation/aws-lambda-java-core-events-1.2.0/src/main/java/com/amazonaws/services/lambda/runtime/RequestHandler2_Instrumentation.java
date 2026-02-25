@@ -5,16 +5,15 @@
  *
  */
 
-package com.amazonaws.services.lambda;
+package com.amazonaws.services.lambda.runtime;
 
-import com.amazonaws.services.lambda.runtime.Context;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
 
 @Weave(type = MatchType.Interface, originalName = "com.amazonaws.services.lambda.runtime.RequestHandler")
-public abstract class RequestHandler_Events_Instrumentation<I, O> {
+public abstract class RequestHandler2_Instrumentation<I, O> {
 
     /**
      * Intercepts the Lambda handler method to instrument it with New Relic monitoring.

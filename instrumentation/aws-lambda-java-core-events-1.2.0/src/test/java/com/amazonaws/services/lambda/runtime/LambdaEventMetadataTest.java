@@ -20,7 +20,6 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.api.agent.Trace;
 import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
 import org.junit.Before;
 import org.junit.Test;
