@@ -24,7 +24,19 @@ public class NrAPIGatewayV2HttpRequest extends ExtendedRequest {
 
     @Override
     public String getRequestURI() {
-        return event.getRawPath();
+        if (event.getRawPath() != null) {
+            return event.getRawPath();
+        }
+        if (event.getRequestContext() != null) {
+            APIGatewayV2HTTPEvent.RequestContext requestContext = event.getRequestContext();
+            if (requestContext.getHttp() != null) {
+                APIGatewayV2HTTPEvent.RequestContext.Http http = requestContext.getHttp();
+                if (http != null) {
+                    return http.getPath();
+                }
+            }
+        }
+        return null;
     }
 
     @Override

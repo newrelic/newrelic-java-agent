@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
  * Verifies that event-specific attributes are captured correctly per the Lambda spec.
  */
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda.runtime"})
+@InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda"})
 public class LambdaEventMetadataTest {
 
     @Before
@@ -341,10 +341,13 @@ public class LambdaEventMetadataTest {
         handler.handleRequest(apiGatewayEvent, mockContext);
 
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
+
+        Collection<String> txNames = introspector.getTransactionNames();
+        assertEquals(1, txNames.size());
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestAPIGatewayHandler/handleRequest");
+                "WebTransaction/Uri/users/{id}");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -378,6 +381,7 @@ public class LambdaEventMetadataTest {
 
         APIGatewayV2HTTPEvent apiGatewayV2Event = new APIGatewayV2HTTPEvent();
         apiGatewayV2Event.setRequestContext(requestContext);
+        apiGatewayV2Event.setRawPath("users/fssfdsg");
 
         TestAPIGatewayV2HTTPHandler handler = new TestAPIGatewayV2HTTPHandler();
         handler.handleRequest(apiGatewayV2Event, mockContext);
@@ -385,8 +389,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestAPIGatewayV2HTTPHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();

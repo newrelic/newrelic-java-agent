@@ -24,7 +24,20 @@ public class NrAPIGatewayProxyRequest extends ExtendedRequest {
 
     @Override
     public String getRequestURI() {
-        return event.getPath();
+        if (event.getResource() != null) {
+            return event.getResource();
+        }
+        if (event.getPath() != null) {
+            return event.getPath();
+        }
+        if (event.getRequestContext() != null) {
+            APIGatewayProxyRequestEvent.ProxyRequestContext requestContext = event.getRequestContext();
+            if (requestContext.getResourcePath() != null) {
+                return requestContext.getResourcePath();
+            }
+            return requestContext.getPath();
+        }
+        return null;
     }
 
     @Override

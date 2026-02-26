@@ -7,6 +7,7 @@
 
 package com.amazonaws.services.lambda.runtime;
 
+import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -27,6 +28,7 @@ public abstract class RequestStreamHandler2_Instrumentation {
      * @param context The Lambda execution context containing function metadata
      * @throws IOException If an I/O error occurs
      */
+    @Trace(dispatcher = true)
     public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
         try {
             LambdaInstrumentationHelper.startTransaction(context);

@@ -25,7 +25,6 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
 import org.junit.Before;
@@ -52,7 +51,7 @@ import static org.mockito.Mockito.when;
  * Instrumentation test for RequestHandler weaving.
  */
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda.runtime"})
+@InstrumentationTestConfig(includePrefixes = {"com.amazonaws.services.lambda"})
 public class RequestHandlerInstrumentationTest {
 
     @Before
@@ -452,6 +451,7 @@ public class RequestHandlerInstrumentationTest {
         requestContext.setElb(elb);
 
         ApplicationLoadBalancerRequestEvent albEvent = new ApplicationLoadBalancerRequestEvent();
+        albEvent.setPath("users/fssfdsg");
         albEvent.setRequestContext(requestContext);
 
         TestALBHandler handler = new TestALBHandler();
@@ -460,7 +460,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestALBHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -477,6 +477,7 @@ public class RequestHandlerInstrumentationTest {
         Context mockContext = createMockContext();
 
         APIGatewayProxyRequestEvent apiGatewayEvent = new APIGatewayProxyRequestEvent();
+        apiGatewayEvent.setPath("/users/1");
 
         TestAPIGatewayHandler handler = new TestAPIGatewayHandler();
         handler.handleRequest(apiGatewayEvent, mockContext);
@@ -484,7 +485,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Uri/users/1");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -500,6 +501,7 @@ public class RequestHandlerInstrumentationTest {
         Context mockContext = createMockContext();
 
         APIGatewayV2HTTPEvent apiGatewayV2Event = new APIGatewayV2HTTPEvent();
+        apiGatewayV2Event.setRawPath("/users/1");
 
         TestAPIGatewayV2HTTPHandler handler = new TestAPIGatewayV2HTTPHandler();
         handler.handleRequest(apiGatewayV2Event, mockContext);
@@ -507,7 +509,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayV2HTTPHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Uri/users/1");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();

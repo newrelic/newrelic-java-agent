@@ -7,6 +7,7 @@
 
 package com.amazonaws.services.lambda.runtime;
 
+import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -22,6 +23,7 @@ public abstract class RequestHandler2_Instrumentation<I, O> {
      * @param context The Lambda execution context containing function metadata
      * @return The handler's return value
      */
+    @Trace(dispatcher = true)
     public O handleRequest(I input, Context context) {
         try {
             LambdaInstrumentationHelper.startTransaction(context, input);
