@@ -28,6 +28,13 @@ public class AdaptiveSampler implements Sampler {
     private int sampledCountLast;
     private boolean firstPeriod;
 
+    /**
+     * When true, the sampling period start time is deferred until the first calculatePriority() call
+     * rather than being set at construction. Used in serverless mode to anchor the period to the
+     * first transaction rather than sampler creation time.
+     */
+    private boolean lazyStart;
+
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
     /**
@@ -46,17 +53,24 @@ public class AdaptiveSampler implements Sampler {
     }
 
     private AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance) {
+        this(target, reportPeriodSeconds, isSharedInstance, false);
+    }
+
+    AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance, boolean lazyStart) {
         this.target = target;
         this.reportPeriodMillis = reportPeriodSeconds * 1000L;
-        this.startTimeMillis = System.currentTimeMillis();
         this.isSharedInstance = isSharedInstance;
+        this.lazyStart = lazyStart;
+        // In lazy-start mode, startTimeMillis=0 is a sentinel indicating the period has not yet started.
+        // It will be set to the current time on the first calculatePriority() call.
+        this.startTimeMillis = lazyStart ? 0L : System.currentTimeMillis();
         this.seen = 0;
         this.seenLast = 0;
         this.sampledCount = 0;
         this.sampledCountLast = 0;
         this.firstPeriod = true;
         NewRelic.getAgent().getLogger().log(Level.INFO, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
-                reportPeriodSeconds + " seconds.");
+                reportPeriodSeconds + " seconds" + (lazyStart ? " (lazy-start mode)" : "") + ".");
     }
 
     /**
@@ -74,7 +88,8 @@ public class AdaptiveSampler implements Sampler {
     public static synchronized AdaptiveSampler getSharedInstance() {
         if (SAMPLER_SHARED_INSTANCE == null) {
             AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true);
+            boolean serverlessMode = config.getServerlessConfig().isEnabled();
+            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true, serverlessMode);
         }
         return SAMPLER_SHARED_INSTANCE;
     }
@@ -143,6 +158,12 @@ public class AdaptiveSampler implements Sampler {
 
     private void resetPeriodIfElapsed() {
         long now = System.currentTimeMillis();
+        if (startTimeMillis == 0L) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Adaptive Sampler lazy-start: anchoring period to first transaction.");
+            startTimeMillis = now;
+            lazyStart = false;
+            return;
+        }
         if (now - startTimeMillis >= reportPeriodMillis) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting sampler period. Seen: " + seen + ", Sampled: " + sampledCount);
             //Calculate elapsed periods so that the start time is consistently incremented
@@ -191,6 +212,16 @@ public class AdaptiveSampler implements Sampler {
     @VisibleForTesting
     public int getTarget() {
         return target;
+    }
+
+    @VisibleForTesting
+    boolean isLazyStart() {
+        return lazyStart;
+    }
+
+    @VisibleForTesting
+    long getStartTimeMillis() {
+        return startTimeMillis;
     }
 
     //DO NOT USE this method outside of test.
