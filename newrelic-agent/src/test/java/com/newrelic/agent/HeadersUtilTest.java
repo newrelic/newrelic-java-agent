@@ -112,6 +112,25 @@ public class HeadersUtilTest {
     }
 
     @Test
+    public void shouldHandleImproperlyFormedNRPayload() {
+        Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_ON, SamplerConfig.DEFAULT);
+
+        //These are bad headers, because they are missing an account id key ("ac").
+        InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(
+                "newrelic", "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+        ), HeaderType.HTTP);
+
+        float originalPriority = tx.getPriority();
+
+        //Should not freak out when accepting the headers.
+        HeadersUtil.parseAndAcceptDistributedTraceHeaders(tx, inboundHeaders);
+        //Should not have triggered any interactions with the transaction's priority.
+        assertEquals(originalPriority, tx.getPriority(), 0.0f);
+
+        Transaction.clearTransaction();
+    }
+
+    @Test
     public void testInboundParentSampledTrueConfigAlwaysOn() {
         Transaction tx = setupAndCreateTx(SamplerConfig.ALWAYS_ON, SamplerConfig.DEFAULT);
         InboundHeaders inboundHeaders = createInboundHeaders(ImmutableMap.of(

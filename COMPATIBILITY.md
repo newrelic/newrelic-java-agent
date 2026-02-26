@@ -19,7 +19,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 14.1.1
+  * WebLogic 12.1.2.1 to 14.1.x
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
@@ -48,7 +48,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * GraphQL Java 21.0 to latest
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
-  * JAX-RS 1.0 to 4.0 (exclusive)
+  * JAX-RS 1.0 to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
