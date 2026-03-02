@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -32,21 +31,19 @@ import static org.junit.Assert.assertTrue;
 @InstrumentationTestConfig(includePrefixes = {"org.apache.kafka.streams"})
 public class KafkaStreams2SpansTest {
     @Rule
-    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"))
-            .withEnv("KAFKA_HEAP_OPTS", "-Xmx512m -Xms512m")
-            .withStartupTimeout(Duration.ofMinutes(3)).withLogConsumer(new org.testcontainers.containers.output.ToStringConsumer());
+    public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 
     private final String TOPIC = "life-universe-everything";
     private final String OUTPUT_TOPIC = "vogon-poetry";
 
     @Before
     public void before() {
-        //kafkaContainer.start();
+        kafkaContainer.start();
     }
 
     @After
     public void after() {
-        //kafkaContainer.stop();
+        kafkaContainer.stop();
     }
 
     @Test

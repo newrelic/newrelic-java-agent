@@ -24,12 +24,10 @@ jobs:
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     # needs: install-all-java
-    # runs-on: ubuntu-24.04
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
-      GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m'"
     steps:
       - name: Checkout Java agent
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
