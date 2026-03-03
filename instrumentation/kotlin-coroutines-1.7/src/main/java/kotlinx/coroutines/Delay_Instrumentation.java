@@ -1,14 +1,10 @@
 package kotlinx.coroutines;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.kotlin.coroutines_17.NRDelayCancellableContinuation;
 import com.newrelic.instrumentation.kotlin.coroutines_17.NRDelayContinuation;
-import com.newrelic.instrumentation.kotlin.coroutines_17.NRRunnable;
 import com.newrelic.instrumentation.kotlin.coroutines_17.Utils;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
@@ -27,9 +23,6 @@ public class Delay_Instrumentation {
 
     @Trace
     public void scheduleResumeAfterDelay(long timeMills, CancellableContinuation<? super Unit> continuation) {
-        if(Utils.DELAYED_ENABLED && !(continuation instanceof NRDelayContinuation)) {
-            continuation = new NRDelayCancellableContinuation<>(continuation,"scheduleResumeAfterDelay");
-        }
         Weaver.callOriginal();
     }
 

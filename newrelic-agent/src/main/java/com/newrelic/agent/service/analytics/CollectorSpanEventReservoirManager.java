@@ -9,12 +9,15 @@ package com.newrelic.agent.service.analytics;
 
 import com.google.common.collect.ComparisonChain;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
+import com.newrelic.agent.config.coretracing.PartialGranularityConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -73,6 +76,14 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
 
         if (toSend == null || toSend.size() <= 0) {
             return null;
+        }
+
+        DistributedTracingConfig dtConfig = configService.getAgentConfig(appName).getDistributedTracingConfig();
+        if (dtConfig != null) {
+            PartialGranularityConfig pgConfig = dtConfig.getPartialGranularityConfig();
+            if (pgConfig != null && pgConfig.isEnabled()) {
+                NewRelic.recordMetric("Supportability/Java/PartialGranularity/" + pgConfig.getType().toString(), 1.0f);
+            }
         }
 
         try {

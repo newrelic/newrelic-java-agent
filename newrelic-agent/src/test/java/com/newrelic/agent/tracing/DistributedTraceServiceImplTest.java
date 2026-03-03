@@ -11,6 +11,8 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.CrossProcessTransactionState;
 import com.newrelic.agent.DistributedTracePayloadBuilder;
+import com.newrelic.agent.DistributedTracingTestUtil;
+import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.MetricNames;
@@ -19,10 +21,9 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionService;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
-import com.newrelic.agent.tracing.samplers.Sampler;
-import com.newrelic.agent.tracing.samplers.SamplerFactory;
+import com.newrelic.agent.tracing.samplers.SamplerType;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -62,9 +63,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.ROOT;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class DistributedTraceServiceImplTest {
@@ -236,7 +239,9 @@ public class DistributedTraceServiceImplTest {
 
         for (int i = 0; i < 3000; i++) {
             TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRoot(Mockito.mock(Transaction.class));
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, ROOT);
             minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
             maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
             when(transactionEvent.getPriority()).thenReturn(priority);
@@ -245,7 +250,11 @@ public class DistributedTraceServiceImplTest {
 
         for (int i = 0; i < 1000; i++) {
             TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
-            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f);
+            Transaction txn = Mockito.mock(Transaction.class);
+            when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(2.5f);
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(txn, REMOTE_PARENT_SAMPLED);
+            minPriority = Math.min(priority, minPriority); // Store the smallest priority we've seen
+            maxPriority = Math.max(priority, maxPriority); // Store the largest priority we've seen
             when(transactionEvent.getPriority()).thenReturn(priority);
             reservoir.add(transactionEvent);
         }
@@ -285,23 +294,14 @@ public class DistributedTraceServiceImplTest {
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
-        assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getRootSampler().getType());
-        //overwrite the configured sampler to ask Mockito how many times the sampler is called
-        Sampler mockAdaptiveSampler = Mockito.mock(AdaptiveSampler.class);
-        distributedTraceService.setRootSampler(mockAdaptiveSampler);
-        distributedTraceService.calculatePriorityRoot(Mockito.mock(Transaction.class));
-        Mockito.verify(mockAdaptiveSampler, times(1)).calculatePriority(isA(Transaction.class));
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
     }
 
     @Test
     public void calculatePriorityRemoteParentSampledUsesSampler(){
-        Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
-        Map<String, Object> dtSettings = new HashMap<>();
-        dtSettings.put("sampler",  samplerSettings);
-        Map<String, Object> config = new HashMap<>();
-        config.put("distributed_tracing", dtSettings);
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
@@ -311,21 +311,20 @@ public class DistributedTraceServiceImplTest {
 
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
-        assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(SamplerType.ALWAYS_ON, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
 
-        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f), 0.0f);
-        assertEquals(2.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, null), 0.0f);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Mockito.when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(2.5f);
+        assertEquals(3.0f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_SAMPLED), 0.0f);
+        Mockito.when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+        assertEquals(3.0f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_SAMPLED), 0.0f);
     }
 
     @Test
     public void calculatePriorityRemoteParentNotSampledUsesSampler(){
-        Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
-        Map<String, Object> dtSettings = new HashMap<>();
-        dtSettings.put("sampler",  samplerSettings);
-        Map<String, Object> config = new HashMap<>();
-        config.put("distributed_tracing", dtSettings);
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
@@ -335,10 +334,13 @@ public class DistributedTraceServiceImplTest {
 
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
-        assertEquals(SamplerFactory.ALWAYS_ON, distributedTraceService.getRemoteParentSampledSampler().getType());
+        assertEquals(SamplerType.ALWAYS_OFF, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
 
-        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, 1.5f), 0.0f);
-        assertEquals(0.0f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, null), 0.0f);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Mockito.when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(2.5f);
+        assertEquals(0.0f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_NOT_SAMPLED), 0.0f);
+        Mockito.when(txn.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+        assertEquals(0.0f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_NOT_SAMPLED), 0.0f);
     }
 
     @Test
@@ -346,11 +348,13 @@ public class DistributedTraceServiceImplTest {
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig("Test");
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
-        assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getRemoteParentSampledSampler().getType());
-        assertEquals(SamplerFactory.ADAPTIVE, distributedTraceService.getRemoteParentNotSampledSampler().getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
 
-        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), true, 1.5f), 0.0f);
-        assertEquals(1.5f, distributedTraceService.calculatePriorityRemoteParent(Mockito.mock(Transaction.class), false, 1.5f), 0.0f);
+        Transaction txn = Mockito.mock(Transaction.class);
+        Mockito.when(txn.getPriorityFromInboundSamplingDecision(Granularity.FULL)).thenReturn(2.5f);
+        assertEquals(2.5f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_SAMPLED), 0.0f);
+        assertEquals(2.5f, distributedTraceService.calculatePriority(txn, REMOTE_PARENT_NOT_SAMPLED), 0.0f);
     }
 
     @Test
@@ -376,29 +380,60 @@ public class DistributedTraceServiceImplTest {
 
     @Test
     public void testDTServiceSetsUpDefaultSamplers() {
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
 
-        //the samplers should all be the same instance
-        Sampler baseSampler = AdaptiveSampler.getSharedInstance();
-        assertEquals(baseSampler, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler());
-        assertEquals(baseSampler,  DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler());
-        assertEquals(baseSampler,   DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(ROOT).getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
+
+        //the samplers should all be the shared instance
+        assertTrue(((AdaptiveSampler) distributedTraceService.getFullGranularitySamplers().get(ROOT)).isShared());
+        assertTrue(((AdaptiveSampler) distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED)).isShared());
+        assertTrue(((AdaptiveSampler) distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED)).isShared());
+        assertTrue(((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(ROOT)).isShared());
+        assertTrue(((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED)).isShared());
+        assertTrue(((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED)).isShared());
 
         //the sampling target should be the default, 120
-        assertEquals(120, ((AdaptiveSampler) DistributedTraceServiceImplTest.distributedTraceService.getRootSampler()).getTarget());
+        assertEquals(120, ((AdaptiveSampler) distributedTraceService.getFullGranularitySamplers().get(ROOT)).getTarget());
+
+        //the default partial granularity type should be ESSENTIAL
+        assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTraceService.getPartialSampleType());
     }
 
     @Test
     public void testDTServiceSetsUpConfiguredSamplers() {
-        Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
-        Map<String, Object> dtSettings = new HashMap<>();
-        dtSettings.put("sampler",  samplerSettings);
-        Map<String, Object> config = new HashMap<>();
-        config.put("distributed_tracing", dtSettings);
+        /*
+        distributed_tracing:
+          sampler:
+            remote_parent_not_sampled: always_off
+            root:
+              trace_id_ratio_based:
+                ratio: 0.6
+            remote_parent_sampled: always_on
+            partial_granularity:
+              enabled: true
+              type: reduced
+              root:
+                adaptive:
+                  sampling_target: 15
+              remote_parent_sampled: (adaptive)
+              remote_parent_not_sampled:
+                trace_id_ratio_based:
+                  ratio: 0.1
+         */
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.6)
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("type", "reduced")
+                .withPartialGranularitySetting("root", "adaptive", "sampling_target", 15)
+                .withPartialGranularitySetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.1)
+                .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
@@ -406,20 +441,24 @@ public class DistributedTraceServiceImplTest {
         distributedTraceService = new DistributedTraceServiceImpl();
         serviceManager.setDistributedTraceService(distributedTraceService);
 
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
-        assertEquals(SamplerFactory.ALWAYS_ON, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
-        assertEquals(SamplerFactory.ALWAYS_OFF, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
+        assertEquals(SamplerType.TRACE_ID_RATIO_BASED, distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
+        assertEquals(SamplerType.ALWAYS_ON, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ALWAYS_OFF, distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
+
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(ROOT).getType());
+        assertEquals(15, ((AdaptiveSampler) distributedTraceService.getPartialGranularitySamplers().get(ROOT)).getTarget());
+        assertEquals(SamplerType.ADAPTIVE, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.TRACE_ID_RATIO_BASED, distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
+
+        assertEquals(Transaction.PartialSampleType.REDUCED, distributedTraceService.getPartialSampleType());
     }
 
     @Test
     public void testConnectResetsDefaultAdaptiveSamplingTarget() {
-        Map<String, Object> samplerSettings = new HashMap<>();
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_SAMPLED, "always_on");
-        samplerSettings.put(SamplerConfig.REMOTE_PARENT_NOT_SAMPLED, "always_off");
-        Map<String, Object> dtSettings = new HashMap<>();
-        dtSettings.put("sampler",  samplerSettings);
-        Map<String, Object> config = new HashMap<>();
-        config.put("distributed_tracing", dtSettings);
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .buildMainConfig();
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
@@ -427,8 +466,8 @@ public class DistributedTraceServiceImplTest {
         distributedTraceService = new DistributedTraceServiceImpl();
         serviceManager.setDistributedTraceService(distributedTraceService);
 
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
-        assertEquals(120, ((AdaptiveSampler) DistributedTraceServiceImplTest.distributedTraceService.getRootSampler()).getTarget());
+        assertEquals(SamplerType.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
+        assertEquals(120, ((AdaptiveSampler) DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(ROOT)).getTarget());
 
         IRPMService rpmService = rpmServiceManager.getOrCreateRPMService("Test");
         Map<String, Object> connectInfo = new HashMap<>();
@@ -436,10 +475,195 @@ public class DistributedTraceServiceImplTest {
         agentConfig = AgentHelper.createAgentConfig(true, Collections.<String, Object>emptyMap(), connectInfo);
         DistributedTraceServiceImplTest.distributedTraceService.connected(rpmService, agentConfig);
 
-        assertEquals(SamplerFactory.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getRootSampler().getType());
-        assertEquals(10, ((AdaptiveSampler) DistributedTraceServiceImplTest.distributedTraceService.getRootSampler()).getTarget());
-        assertEquals(SamplerFactory.ALWAYS_ON, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentSampledSampler().getType());
-        assertEquals(SamplerFactory.ALWAYS_OFF, DistributedTraceServiceImplTest.distributedTraceService.getRemoteParentNotSampledSampler().getType());
+        assertEquals(SamplerType.ADAPTIVE, DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
+        assertEquals(10, ((AdaptiveSampler) DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(ROOT)).getTarget());
+        assertEquals(SamplerType.ALWAYS_ON, DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType());
+        assertEquals(SamplerType.ALWAYS_OFF, DistributedTraceServiceImplTest.distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType());
+    }
+
+    @Test
+    public void nothingSampledWhenFullAndPartialDisabled(){
+        /*
+          distributed_tracing:
+            sampler:
+              root: always_on
+              remote_parent_sampled: always_on
+              remote_parent_not_sampled: always_on
+              full_granularity:
+                enabled: false
+              partial_granularity:
+                enabled: false (default)
+         */
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withFullGranularitySetting("enabled", "false")
+                .withSamplerSetting("root", "always_on")
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        for (int i = 0; i < 50; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+
+            float priority = distributedTraceService.calculatePriority(tx, ROOT);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_NOT_SAMPLED);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+        }
+    }
+
+    @Test
+    public void partialSamplersRunWhenFullGranularityDisabled(){
+        //This test should sample every transaction as a partial granularity transaction.
+        //To verify this, check that the transaction's partial sample type has been set every time the priority is calculated.
+        //(Every transaction should be sampled, since all samplers are set to always_on)
+        /*
+          distributed_tracing:
+            sampler:
+              full_granularity:
+                enabled: false
+              partial_granularity:
+                enabled: true
+                root: always_on
+                remote_parent_sampled: always_on
+                remote_parent_not_sampled: always_on
+                //type: essential (default)
+         */
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withFullGranularitySetting("enabled", "false")
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "always_on")
+                .withPartialGranularitySetting("remote_parent_sampled",  "always_on")
+                .withPartialGranularitySetting("remote_parent_not_sampled",  "always_on")
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        for (int i = 0; i < 10; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = distributedTraceService.calculatePriority(tx, ROOT);
+            assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL));
+            Mockito.verify(tx, Mockito.times(1)).setPartialSampleType(Transaction.PartialSampleType.ESSENTIAL);
+
+            tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+            assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL));
+            Mockito.verify(tx, Mockito.times(1)).setPartialSampleType(Transaction.PartialSampleType.ESSENTIAL);
+
+            tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_NOT_SAMPLED);
+            assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL));
+            Mockito.verify(tx, Mockito.times(1)).setPartialSampleType(Transaction.PartialSampleType.ESSENTIAL);
+        }
+    }
+
+    @Test
+    public void testFullAndPartialGranularityWorkTogether(){
+
+        float fullRatio = 0.4f;
+        float partialRatio = 0.2f;
+        int numberOfTraces = 10000;
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", fullRatio)
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", partialRatio)
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        int sampledCount = 0;
+        for (int i = 0; i < numberOfTraces; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            Mockito.when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() + TransactionGuidFactory.generate16CharGuid());
+            float priority = distributedTraceService.calculatePriority(tx, ROOT);
+            if (DistributedTraceUtil.isSampledPriority(priority)){
+                sampledCount++;
+            }
+        }
+        float variance = 0.05f;
+        int expectedSampledCount = 6000;
+        int maxError = (int)( variance * expectedSampledCount );
+        assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
+    }
+
+    @Test
+    public void testPartialGranularityAlwaysEvictedFirst(){
+        //in this test, we overload the reservoir and check to see that partial granularity is evicted over full granularity.
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.6)
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.4)
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        serviceManager.setConfigService(ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap()));
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        // Create reservoir
+        ServiceFactory.getTransactionEventsService().harvestEvents("Test");
+
+        DistributedSamplingPriorityQueue<TransactionEvent> reservoir =
+                ServiceFactory.getTransactionEventsService().getOrCreateDistributedSamplingReservoir("Test");
+
+        assertEquals(SamplerType.TRACE_ID_RATIO_BASED, distributedTraceService.getFullGranularitySamplers().get(ROOT).getType());
+
+        int fullGranularityCount = 0;
+        int partialGranularityCount = 0;
+
+        for (int i = 0; i < 4000; i++) {
+            TransactionEvent transactionEvent = Mockito.mock(TransactionEvent.class);
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+            Float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, ROOT);
+            when(transactionEvent.getPriority()).thenReturn(priority).thenReturn(priority);
+            if (DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.FULL)) {
+                fullGranularityCount++;
+            } else if (DistributedTracingTestUtil.isSampledPriorityForGranularity(priority, Granularity.PARTIAL)) {
+                partialGranularityCount++;
+            }
+            reservoir.add(transactionEvent);
+        }
+
+        assertEquals(4000, reservoir.getNumberOfTries());
+        //The reservoir is full...
+        assertEquals(2000, reservoir.size());
+        //...it saw more sampled-level elements than it could hold,
+        assertTrue(reservoir.getTotalSampledPriorityEvents() > 2000);
+        //... and the minimum priority element is of FULL priority level.
+        assertTrue(DistributedTracingTestUtil.isSampledPriorityForGranularity(reservoir.getMinPriority(), Granularity.FULL));
+
+        int expectedFullGranularity = 2400;
+        int expectedPartialGranularity = 1600;
+        float variance = 0.05f;
+        assertTrue(Math.abs(fullGranularityCount - expectedFullGranularity) <= (int) (variance *  expectedFullGranularity));
+        assertTrue(Math.abs(partialGranularityCount - expectedPartialGranularity) <= (int) (variance *  expectedPartialGranularity));
     }
 
     @Test

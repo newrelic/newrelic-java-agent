@@ -39,4 +39,6 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Running verifyInstrumentation on (${{ env.MODULE }})
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: ./gradlew $GRADLE_OPTIONS :instrumentation:${{ env.MODULE }}:verifyInstrumentation

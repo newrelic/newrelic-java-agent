@@ -1,9 +1,6 @@
 package com.newrelic.agent.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoroutinesConfig {
 
@@ -15,6 +12,7 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
     public static final String IGNORE_REGEX = "ignoreRegex";
     public static final String DELAYED_ROOT = "delayed";
     public static final String ENABLED = "enabled";
+    public static final String SUSPENDS_ROOT = "suspends";
     private static final boolean DELAY_DEFAULT = true;
     private String[] ignoredContinuations = null;
     private String[] ignoredScopes = null;
@@ -75,6 +73,17 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         } else {
             delayedEnabled = DELAY_DEFAULT;
         }
+
+        Map<String, String> suspended_root = getProperty(SUSPENDS_ROOT);
+        if (suspended_root != null) {
+            String suspendsToIgnore = suspended_root.get(IGNORE);
+            ignoredSuspends = splitString(suspendsToIgnore);
+            String suspendsToIgnoreRegex = suspended_root.get(IGNORE_REGEX);
+            ignoredRegexSuspends = splitString(suspendsToIgnoreRegex);
+        } else {
+            ignoredSuspends = new String[0];
+            ignoredRegexSuspends = new String[0];
+        }
     }
 
     static KotlinCoroutinesConfigImpl create(Map<String, Object> settings) {
@@ -125,15 +134,20 @@ public class KotlinCoroutinesConfigImpl extends BaseConfig implements KotlinCoro
         return delayedEnabled;
     }
 
-    private String[] splitString(String input) {
+
+    private static String[] splitString(String input) {
         if (input == null) {
             return new String[0];
         }
         String[] firstSplit = input.split("\"");
         List<String> result = new ArrayList<>();
         for (String s : firstSplit) {
-            if(!s.trim().equals(",")) {
-                result.add(s.trim());
+            String[] secondSplit = s.split(",");
+            for(String split : secondSplit) {
+
+                if(!split.trim().equals(",")) {
+                    result.add(split.trim());
+                }
             }
         }
         String[] returnValue = new String[result.size()];

@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
 import com.newrelic.agent.util.Strings;
@@ -124,6 +125,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String JAR_COLLECTOR = "jar_collector";
     public static final String JMX = "jmx";
     public static final String JFR = "jfr";
+    public static final String OTEL = "opentelemetry";
     public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
     public static final String SLOW_SQL = "slow_sql";
@@ -141,7 +143,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
-    public static final DatastoreInstanceDetection.MultiHostConfig DEFAULT_DATASTORE_MULTIHOST_PREFERNCE = DatastoreInstanceDetection.MultiHostConfig.NONE;
+    public static final String DEFAULT_DATASTORE_MULTIHOST_PREFERENCE = DatastoreInstanceDetection.MultiHostConfig.NONE.name();
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
@@ -168,8 +170,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
     public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
     public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
-    public static final String EU_METRIC_INGEST_URI = "https://metric-api.eu.newrelic.com/metric/v1";
-    public static final String EU_EVENT_INGEST_URI = "https://insights-collector.eu01.nr-data.net/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
@@ -209,7 +209,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
     private final boolean customParameters;
-    private final DatastoreInstanceDetection.MultiHostConfig datastoreMultihostPreference;
+    private final String datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
     private final boolean enabled;
@@ -309,7 +309,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
         isApdexTSet = getProperty(APDEX_T) != null;
         apdexTInMillis = (long) (getDoubleProperty(APDEX_T, DEFAULT_APDEX_T) * 1000L);
-        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERNCE);
+        datastoreMultihostPreference = getProperty(DATASTORE_MULTIHOST_PREFERENCE, DEFAULT_DATASTORE_MULTIHOST_PREFERENCE);
         debug = DebugFlag.DEBUG;
         metricDebug = initMetricDebugConfig();
         enabled = getProperty(ENABLED, DEFAULT_ENABLED) && getProperty(AGENT_ENABLED, DEFAULT_ENABLED);
@@ -483,15 +483,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return DEFAULT_METRIC_INGEST_URI;
         }
 
-        if (region.toLowerCase().contains("eu")) {
-            Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", EU_METRIC_INGEST_URI);
-            return EU_METRIC_INGEST_URI;
-        }
+        metricIngestUri = "https://metric-api." + region + ".newrelic.com/metric/v1";
+        Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", metricIngestUri);
 
-        Agent.LOG.log(Level.INFO,
-                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default metric ingest URI: {1}",
-                METRIC_INGEST_URI, DEFAULT_METRIC_INGEST_URI);
-        return DEFAULT_METRIC_INGEST_URI;
+        return metricIngestUri;
     }
 
     /**
@@ -514,15 +509,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return DEFAULT_EVENT_INGEST_URI;
         }
 
-        if (region.toLowerCase().contains("eu")) {
-            Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", EU_EVENT_INGEST_URI);
-            return EU_EVENT_INGEST_URI;
-        }
+        eventIngestUri = "https://insights-collector." + region + ".nr-data.net/v1/accounts/events";
+        Agent.LOG.log(Level.INFO, "Using region aware event ingest URI: {0}", eventIngestUri);
 
-        Agent.LOG.log(Level.INFO,
-                "Unrecognized region parsed from license_key, please explicitly set the {0} property. Currently using default event ingest URI: {1}",
-                EVENT_INGEST_URI, DEFAULT_EVENT_INGEST_URI);
-        return DEFAULT_EVENT_INGEST_URI;
+        return eventIngestUri;
     }
 
     private DistributedTracingConfig initDistributedTracing() {
@@ -1154,6 +1144,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         clearDeprecatedProperties();
         addDeprecatedProperties = false;
         return messages;
+    }
+
+    @Override
+    public DatastoreInstanceDetection.MultiHostConfig getDatastoreMultihostPreference() {
+        return DatastoreInstanceDetection.MultiHostConfig.getAndValidateFrom(datastoreMultihostPreference);
     }
 
     @Override

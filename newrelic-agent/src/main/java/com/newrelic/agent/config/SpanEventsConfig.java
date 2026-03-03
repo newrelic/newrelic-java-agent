@@ -13,7 +13,6 @@ public class SpanEventsConfig extends BaseConfig {
 
     public static final int DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST = 2000;
     public static final int DEFAULT_TARGET_SAMPLES_STORED = 10;
-    public static final boolean DEFAULT_CROSS_PROCESS_ONLY = false;
 
     public static final String COLLECT_SPAN_EVENTS = "collect_span_events";
     public static final String ENABLED = "enabled";
@@ -24,14 +23,12 @@ public class SpanEventsConfig extends BaseConfig {
     private static final String SPAN_EVENTS = "span_events.";
     public static final String SYSTEM_PROPERTY_ROOT = ROOT + SPAN_EVENTS;
     private static final String TARGET_SAMPLES_STORED = "target_samples_stored";
-    private static final String CROSS_PROCESS_ONLY = "cross_process_only";
     private static final boolean DEFAULT_COLLECT_SPANS = false;
 
     private final boolean dtEnabled;
     private int maxSamplesStored;
     private final boolean enabled;
     private final int targetSamplesStored;
-    private final boolean crossProcessOnly;
 
     public SpanEventsConfig(Map<String, Object> props, boolean dtEnabled) {
         super(props, SYSTEM_PROPERTY_ROOT);
@@ -39,7 +36,6 @@ public class SpanEventsConfig extends BaseConfig {
         this.maxSamplesStored = getProperty(MAX_SPAN_EVENTS_PER_HARVEST, DEFAULT_MAX_SPAN_EVENTS_PER_HARVEST);
         this.enabled = initEnabled(maxSamplesStored);
         this.targetSamplesStored = getProperty(TARGET_SAMPLES_STORED, DEFAULT_TARGET_SAMPLES_STORED);
-        this.crossProcessOnly = getProperty(CROSS_PROCESS_ONLY, DEFAULT_CROSS_PROCESS_ONLY);
     }
 
     private boolean initEnabled(int maxSamplesStored) {
@@ -62,10 +58,6 @@ public class SpanEventsConfig extends BaseConfig {
 
     public int getTargetSamplesStored() {
         return targetSamplesStored;
-    }
-
-    public boolean isCrossProcessOnly() {
-        return crossProcessOnly;
     }
 
 }

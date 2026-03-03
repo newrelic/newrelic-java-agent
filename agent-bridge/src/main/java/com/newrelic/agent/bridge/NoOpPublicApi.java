@@ -83,18 +83,6 @@ class NoOpPublicApi implements PublicApi {
     }
 
     @Override
-    public String getBrowserTimingFooter() {
-
-        return "";
-    }
-
-    @Override
-    public String getBrowserTimingFooter(String nonce) {
-
-        return "";
-    }
-
-    @Override
     public void setUserName(String name) {
 
     }

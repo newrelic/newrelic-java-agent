@@ -217,9 +217,6 @@ public class MetricNames {
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SENT = "Supportability/Events/TransactionEvent/Sent";
     public static final String SUPPORTABILITY_TRANSACTION_EVENT_SERVICE_TRANSACTION_EVENT_SEEN = "Supportability/Events/TransactionEvent/Seen";
 
-    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE = "Supportability/Trace/SamplingTarget/Server/Value";
-    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE = "Supportability/Trace/SamplingTarget/Applied/Value";
-
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SENT = "Supportability/Events/Customer/Sent";
     public static final String SUPPORTABILITY_INSIGHTS_SERVICE_CUSTOMER_SEEN = "Supportability/Events/Customer/Seen";
 
@@ -231,6 +228,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST = "Supportability/Logging/Forwarding/Denylist";
     public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED = "Supportability/Logging/Labels/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED = "Supportability/Logging/Labels/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
@@ -446,6 +444,12 @@ public class MetricNames {
     public static final String SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException";
     public static final String SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS = "Supportability/DistributedTrace/CreatePayload/Success";
     public static final String SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception";
+    public static final String SUPPORTABILITY_PARTIAL_GRANULARITY_TYPE = "Supportability/Java/PartialGranularity/{0}";
+
+    //Sampler stats - to be used as Supportability/Java/{granularity}/{case}/{type}
+    public static final String SUPPORTABILITY_SAMPLER = "Supportability/Java/{0}/{1}/{2}";
+    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE = "Supportability/Trace/SamplingTarget/Server/Value";
+    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE = "Supportability/Trace/SamplingTarget/Applied/Value";
 
     // W3C trace context generic
     public static final String SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_SUCCESS = "Supportability/TraceContext/Accept/Success";

@@ -7,7 +7,7 @@
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.SamplerConfig;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -27,25 +27,25 @@ public class SamplerFactoryTest {
         SamplerConfig mockSamplerConfig = mock(SamplerConfig.class);
         when(mockSamplerConfig.getSamplerRatio()).thenReturn(.5f);
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ALWAYS_ON);
-        assertEquals("always_on", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerConfig.ALWAYS_ON);
+        assertEquals(SamplerType.ALWAYS_ON, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ALWAYS_OFF);
-        assertEquals("always_off", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerConfig.ALWAYS_OFF);
+        assertEquals(SamplerType.ALWAYS_OFF, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.PROBABILITY);
-        assertEquals("probability", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn("probability"); //this one is not supported in config yet
+        assertEquals(SamplerType.PROBABILITY, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.TRACE_RATIO_ID_BASED);
-        assertEquals("trace_id_ratio_based", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerConfig.TRACE_ID_RATIO_BASED);
+        assertEquals(SamplerType.TRACE_ID_RATIO_BASED, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.ADAPTIVE);
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerConfig.ADAPTIVE);
+        assertEquals(SamplerType.ADAPTIVE, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
-        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerFactory.DEFAULT);
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        when(mockSamplerConfig.getSamplerType()).thenReturn(SamplerConfig.DEFAULT);
+        assertEquals(SamplerType.ADAPTIVE, SamplerFactory.createSampler(mockSamplerConfig).getType());
 
         when(mockSamplerConfig.getSamplerType()).thenReturn("foo");
-        assertEquals("adaptive", SamplerFactory.createSampler(mockSamplerConfig).getType());
+        assertEquals(SamplerType.ADAPTIVE, SamplerFactory.createSampler(mockSamplerConfig).getType());
     }
 }

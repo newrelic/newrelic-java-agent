@@ -100,4 +100,12 @@ public interface ApplicationLoggingConfig {
      * @return true if auto_app_naming_association is enabled
      */
     boolean isAutoAppNamingAssociationEnabled();
+
+    /**
+     * Get the set of log levels that should be blocked from being sent during Log Forwarding.
+     * These are supplied in UPPERCASE format for case-insensitive comparison.
+     *
+     * @return A Set of uppercase Strings of log levels that should not be sent to New Relic. May be empty.
+     */
+    Set<String> getLogLevelDenylist();
 }

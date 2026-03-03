@@ -97,12 +97,7 @@ public class BaseDistributedTraceTest {
             }
 
             @Override
-            public float calculatePriorityRemoteParent(Transaction tx, boolean remoteParentSampled, Float inboundPriority) {
-                return 0.0f;
-            }
-
-            @Override
-            public float calculatePriorityRoot(Transaction tx){
+            public float calculatePriority(Transaction tx, DistributedTraceServiceImpl.SamplerCase samplerCase) {
                 return 0.0f;
             }
         };

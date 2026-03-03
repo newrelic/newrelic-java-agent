@@ -145,5 +145,9 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public boolean isAutoAppNamingAssociationEnabled() {
         return applicationLoggingForwardingConfig.isAutoAppNamingAssociationEnabled();
     }
+
+    public Set<String> getLogLevelDenylist(){
+        return applicationLoggingForwardingConfig.getLogLevelDenylist();
+    }
 }
 

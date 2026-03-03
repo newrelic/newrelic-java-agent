@@ -36,10 +36,20 @@ public final class DatastoreInstanceDetection {
         }
     };
 
-    public static enum MultiHostConfig {
-        NONE, FIRST, LAST
+    public enum MultiHostConfig {
+        NONE, FIRST, LAST;
+
+        public static MultiHostConfig getAndValidateFrom(String value) {
+            if (value == null) {
+                return NONE;
+            }
+            try {
+                return MultiHostConfig.valueOf(value.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return NONE;
+            }
+        }
     }
-    public static MultiHostConfig multihostConfig = MultiHostConfig.NONE;
 
     private static final ThreadLocal<InetSocketAddress> address = new ThreadLocal<>();
     private static final Map<Object, InetSocketAddress> connectionToAddress = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
@@ -106,7 +116,8 @@ public final class DatastoreInstanceDetection {
             // and the 2nd/last address was always the worker
             AgentBridge.getAgent().getLogger().log(Level.FINEST,
                     "Two different addresses detected: previous: {0} and new: {1}", previousAddress, addressToStore);
-            MultiHostConfig multihostPreference = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE);
+            String multihostPreferenceAsString = NewRelic.getAgent().getConfig().getValue("datastore_multihost_preference", MultiHostConfig.NONE.name());
+            MultiHostConfig multihostPreference = MultiHostConfig.getAndValidateFrom(multihostPreferenceAsString);
             if (MultiHostConfig.FIRST.equals(multihostPreference)) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
                 return;

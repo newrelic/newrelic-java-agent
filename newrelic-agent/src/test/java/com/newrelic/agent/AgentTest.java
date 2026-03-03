@@ -14,13 +14,16 @@ import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.instrument.Instrumentation;
+@Category(RequiresFork.class)
 public class AgentTest {
 
     static IAgentLogger logger;

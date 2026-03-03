@@ -326,11 +326,13 @@ test {
     forkEvery = 1
     maxParallelForks = Runtime.runtime.availableProcessors()
     useJUnit {
-        if (project.hasProperty("forkedTests")) {
+        if (project.hasProperty("flaky")) {
+            includeCategories("com.newrelic.test.marker.Flaky")
+        } else if (project.hasProperty("forkedTests")) {
             includeCategories("com.newrelic.test.marker.RequiresFork")
         } else if (project.hasProperty("nonForkedTests")) {
             forkEvery = 10
-            excludeCategories("com.newrelic.test.marker.RequiresFork")
+            excludeCategories("com.newrelic.test.marker.RequiresFork", "com.newrelic.test.marker.Flaky")
         }
     }
 

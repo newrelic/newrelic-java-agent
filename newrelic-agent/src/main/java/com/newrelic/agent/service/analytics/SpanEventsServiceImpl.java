@@ -10,6 +10,7 @@ package com.newrelic.agent.service.analytics;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionListener;
 import com.newrelic.agent.config.AgentConfig;
@@ -25,12 +26,16 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.util.SpanEventMerger;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -69,48 +74,152 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         // If this transaction is sampled and span events are enabled we should generate all of the transaction segment events
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
-            Tracer rootTracer = transactionData.getRootTracer();
-            storeSafely(transactionData, rootTracer, true, transactionStats);
+            Transaction.PartialSampleType partialSampleType = transactionData.getPartialSampleType();
 
-            Collection<Tracer> tracers = transactionData.getTracers();
-            for (Tracer tracer : tracers) {
-                if (tracer.isTransactionSegment()) {
-                    storeSafely(transactionData, tracer, false, transactionStats);
-                }
+            List<SpanEvent> spans = partialSampleType != null ?
+                    createPartialGranularitySpanEvents(transactionData, transactionStats, partialSampleType) :
+                    createFullGranularitySpanEvents(transactionData, transactionStats);
+            for (SpanEvent span : spans) {
+                storeEvent(span);
             }
         }
     }
 
-    private void storeSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats) {
-        try {
-            createAndStoreSpanEvent(rootTracer, transactionData, isRoot, transactionStats);
-        } catch (Throwable t) {
-            Agent.LOG.log(Level.FINER, t, "An error occurred creating span event for tracer: {0} in tx: {1}", rootTracer, transactionData);
+    private List<SpanEvent> createPartialGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats, Transaction.PartialSampleType partialSampleType) {
+        boolean removeNonEssentialAttrs = Transaction.PartialSampleType.COMPACT.equals(partialSampleType) || Transaction.PartialSampleType.ESSENTIAL.equals(partialSampleType);
+        boolean groupExternals = Transaction.PartialSampleType.COMPACT.equals(partialSampleType);
+        boolean ignoreErrorPriority = transactionData.isIgnoreErrorPriority(); // if ignore, then report the last exception, otherwise the first
+        if (Agent.isDebugEnabled()) {
+            NewRelic.getAgent().getLogger().log(Level.FINEST, "Creating partial granularity spans for tx {0} using partialSampleType {1}",
+                    transactionData.getTraceId(), partialSampleType);
+        }
+        List<SpanEvent> spans = new ArrayList<>();
+
+        Tracer rootTracer = transactionData.getRootTracer();
+        SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, removeNonEssentialAttrs);
+        // no need to add rootSpan to the list yet, we don't need to consider it during merging, add it later
+
+        if (rootSpan == null) {
+            Agent.LOG.log(Level.FINER, "Root span partial granularity failed to be created for trace id: {0}, either the reservoir is full, or there was an error.  No other spans will be created",
+                    transactionData.getTraceId());
+            return spans;
+        }
+
+        rootSpan.getIntrinsics().put("nr.pg", true);
+
+        int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
+
+        Collection<Tracer> tracers = transactionData.getTracers();
+        Map<String, String> droppedSpanToParent = groupExternals ? null : new HashMap<>(); // we only need this map if we are not grouping externals
+        for (Tracer tracer : tracers) {
+            if (tracer.isTransactionSegment()) {
+                spanCountIfThisHadBeenFullGranularity++;
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, removeNonEssentialAttrs);
+                if (span == null || !span.shouldBeKeptForPartialGranularity()) {
+                    if (span != null && !groupExternals) {
+                        droppedSpanToParent.put(span.getGuid(), span.getParentId());
+                    }
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Dropping span {0} named {1} for trace id {2}",
+                                span.getGuid(), span.getName(), transactionData.getTraceId());
+                    }
+                    continue; // don't add it to the list
+                }
+                // we have a valid span for partial granularity
+
+                if (groupExternals) {
+                    // mode is COMPACT, everything will be re-parented to the root span
+                    if (Agent.isDebugEnabled()) {
+                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
+                                span.getGuid(), span.getParentId(), rootSpan.getGuid());
+                    }
+                    span.updateParentSpanId(rootSpan.getGuid());
+                }
+                spans.add(span);
+            }
+        }
+
+        if (groupExternals) {
+            spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
+        } else {
+            reparentSpans(spans, droppedSpanToParent);
+        }
+
+        // don't forget the root span!
+        spans.add(rootSpan);
+
+        NewRelic.recordMetric(
+                "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Instrumented",
+                spanCountIfThisHadBeenFullGranularity);
+        NewRelic.recordMetric(
+                "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Kept",
+                spans.size());
+
+        return spans;
+    }
+
+    private void reparentSpans(List<SpanEvent> spans, Map<String, String> droppedSpanToParent) {
+        if (droppedSpanToParent == null) return;
+        for (SpanEvent span : spans) {
+            // if this span's parent was dropped, we need to re-parent it
+            if (droppedSpanToParent.containsKey(span.getParentId())) {
+                String parentId = span.getParentId();
+                // should never really need this counter if the tracer/span tree was constructed
+                // correctly, but just in case, let's not go into an infinite loop
+                int count = 0;
+                while (droppedSpanToParent.containsKey(parentId) && count < droppedSpanToParent.size()) {
+                    parentId = droppedSpanToParent.get(parentId);
+                    count++;
+                }
+                if (Agent.isDebugEnabled()) {
+                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
+                            span.getGuid(), span.getParentId(), parentId);
+                }
+                span.updateParentSpanId(parentId);
+            }
         }
     }
 
-    private void createAndStoreSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
-            TransactionStats transactionStats) {
-        boolean crossProcessOnly = spanEventsConfig.isCrossProcessOnly();
-        if (crossProcessOnly && !isCrossProcessTracer(tracer)) {
-            // We are in "cross_process_only" mode and we have a non datastore/external tracer. Return before we create anything.
-            return;
+    private List<SpanEvent> createFullGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats) {
+        Collection<Tracer> tracers = transactionData.getTracers();
+        List<SpanEvent> spans = new ArrayList<>(tracers.size()+1);
+        Tracer rootTracer = transactionData.getRootTracer();
+        SpanEvent rootSpan = createSafely(transactionData, rootTracer, true, transactionStats, false);
+        if (rootSpan != null) {
+            spans.add(rootSpan);
         }
+
+        for (Tracer tracer : tracers) {
+            if (tracer.isTransactionSegment()) {
+                SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, false);
+                if (span != null) spans.add(span);
+            }
+        }
+
+        return spans;
+    }
+
+    private SpanEvent createSafely(TransactionData transactionData, Tracer rootTracer, boolean isRoot, TransactionStats transactionStats, boolean removeNonEssentialAttrs) {
+        try {
+            return createSpanEvent(rootTracer, transactionData, isRoot, transactionStats, removeNonEssentialAttrs);
+        } catch (Throwable t) {
+            Agent.LOG.log(Level.FINER, t, "An error occurred creating span event for tracer: {0} in tx: {1}", rootTracer, transactionData);
+        }
+        return null;
+    }
+
+    private SpanEvent createSpanEvent(Tracer tracer, TransactionData transactionData, boolean isRoot,
+            TransactionStats transactionStats, boolean removeNonEssentialAttrs) {
 
         String appName = transactionData.getApplicationName();
         SamplingPriorityQueue<SpanEvent> reservoir = getOrCreateDistributedSamplingReservoir(appName);
         if (reservoir.isFull() && reservoir.getMinPriority() >= transactionData.getPriority()) {
             // The reservoir is full and this event wouldn't make it in, so lets prevent some object allocations
             reservoir.incrementNumberOfTries();
-            return;
+            return null;
         }
 
-        SpanEvent spanEvent = tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, crossProcessOnly);
-        storeEvent(spanEvent);
-    }
-
-    private boolean isCrossProcessTracer(Tracer tracer) {
-        return tracer.getExternalParameters() instanceof HttpParameters || tracer.getExternalParameters() instanceof DatastoreParameters;
+        return tracerToSpanEvent.createSpanEvent(tracer, transactionData, transactionStats, isRoot, removeNonEssentialAttrs);
     }
 
     @Override

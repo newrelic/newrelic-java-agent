@@ -108,51 +108,6 @@ public class SpanParentTest {
     }
 
     @Test
-    public void testCrossProcessOnly() throws Exception {
-        EnvironmentHolder holder = setupEnvironemntHolder("cross_process_only_test");
-        executeCrossProcessOnlyTest();
-
-        try {
-            TransactionDataList transactionList = holder.getTransactionList();
-            assertEquals(2, transactionList.size());
-            TransactionData tx1 = transactionList.get(0);
-            TransactionData tx2 = transactionList.get(1);
-            Collection<Tracer> tracers1 = tx1.getTracers();
-            assertEquals(0, tracers1.size()); // Only a "rootTracer" on this transaction (root tracer is not in this list)
-            Collection<Tracer> tracers2 = tx2.getTracers();
-            assertEquals(4, tracers2.size()); // 1 "rootTracer" (not in this list) + 2 non-external/datastore tracers + 2 external datastore tracers
-
-            SpanEventsService spanEventsService = ServiceFactory.getServiceManager().getSpanEventsService();
-            String appName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
-            SamplingPriorityQueue<SpanEvent> spanEventsPool = spanEventsService.getOrCreateDistributedSamplingReservoir(appName);
-            assertNotNull(spanEventsPool);
-            List<SpanEvent> spanEvents = spanEventsPool.asList();
-            spanEventsPool.clear();
-            assertNotNull(spanEvents);
-            assertEquals(2, spanEvents.size());
-
-            SpanEvent externalSpanEvent = null;
-            SpanEvent datastoreSpanEvent = null;
-            for (SpanEvent spanEvent : spanEvents) {
-                if (spanEvent.getCategory() == SpanCategory.http) {
-                    externalSpanEvent = spanEvent;
-                } else if (spanEvent.getCategory() == SpanCategory.datastore) {
-                    datastoreSpanEvent = spanEvent;
-                }
-            }
-
-            assertNotNull(externalSpanEvent);
-            assertNotNull(datastoreSpanEvent);
-
-            // For right now, we are putting cross-process only mode on ice. Poor orphan spans :(
-            assertNull(externalSpanEvent.getParentId());
-            assertNull(datastoreSpanEvent.getParentId());
-        } finally {
-            holder.close();
-        }
-    }
-
-    @Test
     public void testSpanAndTransactionParenting() throws Exception {
         EnvironmentHolder holder = setupEnvironemntHolder("all_enabled_test");
         executeSpanAndTransactionParentingTest();
@@ -275,18 +230,6 @@ public class SpanParentTest {
             Assert.fail();
         }
         return null;
-    }
-
-    @Trace(dispatcher = true)
-    private void executeCrossProcessOnlyTest() throws IOException, URISyntaxException {
-        Transaction txn = ServiceFactory.getServiceManager().getTransactionService().getTransaction(false);
-        DistributedTracePayloadImpl payload = DistributedTracePayloadImpl.createDistributedTracePayload(null, txn.getGuid(), txn.getGuid(), 1.0f);
-        txn.acceptDistributedTracePayload(payload.httpSafe());
-        try (HttpTestServer server = HttpServerLocator.createAndStart()) {
-            nonExternalOrDatastore();
-            executeHttpRequest(false, server.getEndPoint().getPort());
-            executeFakeDatastoreRequest();
-        }
     }
 
     @Trace(dispatcher = true)

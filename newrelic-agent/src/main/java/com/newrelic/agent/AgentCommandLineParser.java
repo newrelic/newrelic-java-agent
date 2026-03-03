@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 class AgentCommandLineParser {
-    private static final String DEPLOYMENT_COMMAND = "deployment";
     private static final String VERIFY_INSTRUMENTATION = "verifyInstrumentation";
     /**
      * Used to create the custom instrumentation file.
@@ -39,13 +38,10 @@ class AgentCommandLineParser {
 
     static {
         commandOptionsMap = new HashMap<>();
-        commandOptionsMap.put(DEPLOYMENT_COMMAND, getDeploymentOptions());
         commandOptionsMap.put(INSTRUMENT_COMMAND, getInstrumentOptions());
         commandOptionsMap.put(VERIFY_INSTRUMENTATION, getVerifyInstrumentationOptions());
 
         commandDescriptions = new HashMap<>();
-        commandDescriptions.put(DEPLOYMENT_COMMAND, "[OPTIONS] [description]  Records a deployment. Note: This command is deprecated and will be removed " +
-                "in the next major release.");
         commandDescriptions.put(INSTRUMENT_COMMAND, "[OPTIONS]                Validates a custom instrumentation xml configuration file.");
     }
 
@@ -72,9 +68,7 @@ class AgentCommandLineParser {
                 cmd = parser.parse(commandOptions, args);
             }
 
-            if (DEPLOYMENT_COMMAND.equals(command)) {
-                deploymentCommand(cmd);
-            } else if (INSTRUMENT_COMMAND.equals(command)) {
+            if (INSTRUMENT_COMMAND.equals(command)) {
                 instrumentCommand(cmd);
             } else if (VERIFY_INSTRUMENTATION.equals(command)) {
                 verifyInstrumentation(cmd);
@@ -173,16 +167,6 @@ class AgentCommandLineParser {
         options.addOption("v", false, "Prints the agent version");
         options.addOption("version", false, "Prints the agent version");
         options.addOption("h", false, "Prints help");
-        return options;
-    }
-
-    private static Options getDeploymentOptions() {
-        Options options = new Options();
-        options.addOption(Deployments.APP_NAME_OPTION, true, "Set the application name. Default is app_name setting in newrelic.yml");
-        options.addOption(Deployments.ENVIRONMENT_OPTION, true, "Set the environment (staging, production, test, development)");
-        options.addOption(Deployments.USER_OPTION, true, "Specify the user deploying");
-        options.addOption(Deployments.REVISION_OPTION, true, "Specify the revision being deployed");
-        options.addOption(Deployments.CHANGE_LOG_OPTION, false, "Reads the change log for a deployment from standard input");
         return options;
     }
 

@@ -12,13 +12,18 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class SpanEventTest {
 
@@ -67,7 +72,65 @@ public class SpanEventTest {
     }
 
     @Test
-    public void testBuilderMethods(){
+    public void testLinkOnSpanEvents() {
+        long now = System.currentTimeMillis();
+        SpanEvent spanNoLinks = baseBuilderLinkOnSpan(now, Collections.emptyList()).build();
+
+        List<LinkOnSpan> linkOnSpans = new ArrayList<>();
+        linkOnSpans.add(LinkOnSpan.builder()
+                .appName("foo")
+                .timestamp(now)
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build());
+
+        SpanEvent spanWithLinks = baseBuilderLinkOnSpan(now, linkOnSpans).build();
+
+        assertNotEquals(spanNoLinks.getLinkOnSpanEvents().size(), spanWithLinks.getLinkOnSpanEvents().size());
+        assertTrue(spanNoLinks.getLinkOnSpanEvents().isEmpty());
+        assertFalse(spanWithLinks.getLinkOnSpanEvents().isEmpty());
+
+        List<LinkOnSpan> linkOnSpanEvents = spanWithLinks.getLinkOnSpanEvents();
+        LinkOnSpan linkOnSpan = linkOnSpanEvents.get(0);
+        assertEquals("foo", linkOnSpan.getAppName());
+        assertEquals("id", linkOnSpan.getId());
+        assertEquals("traceId", linkOnSpan.getTraceId());
+        assertEquals("linkedSpanId", linkOnSpan.getLinkedSpanId());
+        assertEquals("linkedTraceId", linkOnSpan.getLinkedTraceId());
+    }
+
+    @Test
+    public void testEventOnSpanEvents() {
+        long now = System.currentTimeMillis();
+        SpanEvent spanNoEvents = baseBuilderEventOnSpan(now, Collections.emptyList()).build();
+
+        List<EventOnSpan> eventOnSpans = new ArrayList<>();
+        eventOnSpans.add(EventOnSpan.builder()
+                .appName("foo")
+                .timestamp(now)
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build());
+
+        SpanEvent spanWithEvents = baseBuilderEventOnSpan(now, eventOnSpans).build();
+
+        assertNotEquals(spanNoEvents.getEventOnSpanEvents().size(), spanWithEvents.getEventOnSpanEvents().size());
+        assertTrue(spanNoEvents.getEventOnSpanEvents().isEmpty());
+        assertFalse(spanWithEvents.getEventOnSpanEvents().isEmpty());
+
+        List<EventOnSpan> eventOnSpanEvents = spanWithEvents.getEventOnSpanEvents();
+        EventOnSpan eventOnSpan = eventOnSpanEvents.get(0);
+        assertEquals("foo", eventOnSpan.getAppName());
+        assertEquals("spanId", eventOnSpan.getSpanId());
+        assertEquals("traceId", eventOnSpan.getTraceId());
+        assertEquals("name", eventOnSpan.getName());
+    }
+
+    @Test
+    public void testBuilderMethods() {
         long now = System.currentTimeMillis();
 
         SpanEvent.Builder builder = baseBuilder(now);
@@ -126,6 +189,118 @@ public class SpanEventTest {
         assertEquals("wally", spanEvent.getAppName());
     }
 
+    @Test
+    public void spanEvent_updateParentId() {
+        SpanEvent span = SpanEvent.builder()
+                .putIntrinsic("parentId", "old")
+                .build();
+        assertEquals("old", span.getIntrinsics().get("parentId"));
+        span.updateParentSpanId("new");
+        assertEquals("new", span.getIntrinsics().get("parentId"));
+    }
+
+    @Test
+    public void spanEvent_matches_nonMatchingSpan() {
+        Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+        entitySynthesisAttrs1.put("http.url", "myurl1");
+        SpanEvent span1 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs1).build();
+
+        Map<String, String> entitySynthesisAttrs2 = new HashMap<>();
+        entitySynthesisAttrs2.put("http.url", "myurl2");
+        SpanEvent span2 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs2).build();
+
+        assertEquals(false, span1.matchesEntitySynthesisAttrs(span2));
+    }
+
+    @Test
+    public void spanEvent_matches_matchingSpan() {
+        Map<String, String> entitySynthesisAttrs = new HashMap<>();
+        for (String attrName : SpanEvent.ENTITY_SYNTHESIS_ATTRS) {
+            entitySynthesisAttrs.put(attrName, attrName+"-value");
+        }
+        SpanEvent span1 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs).build();
+        SpanEvent span2 = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs).build();
+
+        assertEquals(true, span1.matchesEntitySynthesisAttrs(span2));
+    }
+
+    @Test
+    public void spanEvent_hasEntitySynthAttrs_true() {
+        for (String attrName : SpanEvent.ENTITY_SYNTHESIS_ATTRS) {
+            Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+            entitySynthesisAttrs1.put(attrName, "value");
+            SpanEvent span = SpanEvent.builder()
+                    .putAllAgentAttributes(entitySynthesisAttrs1).build();
+            assertEquals(true, span.shouldBeKeptForPartialGranularity());
+        }
+    }
+
+    @Test
+    public void spanEvent_hasEntitySynthAttrs_false() {
+        Map<String, String> entitySynthesisAttrs1 = new HashMap<>();
+        entitySynthesisAttrs1.put("non-an-entity-synth-attr", "value");
+        SpanEvent span = SpanEvent.builder()
+                .putAllAgentAttributes(entitySynthesisAttrs1).build();
+        assertEquals(false, span.shouldBeKeptForPartialGranularity());
+    }
+
+    @Test
+    public void spanEvent_hasErrorAttrs_true() {
+        for (String attrName : SpanEvent.ERROR_ATTRS) {
+            Map<String, String> errorAttrs1 = new HashMap<>();
+            errorAttrs1.put(attrName, "value");
+            SpanEvent span = SpanEvent.builder()
+                    .putAllAgentAttributes(errorAttrs1).build();
+            assertEquals(true, span.hasAnyErrorAttrs());
+        }
+    }
+
+    @Test
+    public void spanEvent_hasErrorAttrs_false() {
+        Map<String, String> errorAttrs1 = new HashMap<>();
+        errorAttrs1.put("not-an-error-attr", "value");
+        SpanEvent span = SpanEvent.builder()
+                .putAllAgentAttributes(errorAttrs1).build();
+        assertEquals(false, span.hasAnyErrorAttrs());
+    }
+
+    @Test
+    public void spanEvent_removeNonEssentialAttrs_true() {
+        runRemoveNonEssentialAttrsTest(true);
+    }
+
+    @Test
+    public void spanEvent_removeNonEssentialAttrs_false() {
+        runRemoveNonEssentialAttrsTest(false);
+    }
+
+    private void runRemoveNonEssentialAttrsTest(boolean removeNonEssentialAttrs) {
+        Map<String, Object> allAttrs = new HashMap<>();
+        for (String attrName : SpanEvent.ESSENTIAL_ATTRIBUTES) {
+            allAttrs.put(attrName, attrName+"-value");
+        }
+        allAttrs.put("to-be-removed", "value");
+
+        SpanEvent span = SpanEvent.builder()
+                .timestamp(100)
+                .removeNonEssentialAttrs(removeNonEssentialAttrs)
+                .putAgentAttribute("also-remove","value")
+                .putAllAgentAttributes(allAttrs)
+                .build();
+
+        assertEquals(!removeNonEssentialAttrs, span.getAgentAttributes().containsKey("to-be-removed"));
+        assertEquals(!removeNonEssentialAttrs, span.getAgentAttributes().containsKey("also-remove"));
+
+        for (String attrName : SpanEvent.ESSENTIAL_ATTRIBUTES) {
+            assertEquals(true, span.getAgentAttributes().containsKey(attrName));
+            assertEquals(attrName+"-value", span.getAgentAttributes().get(attrName));
+        }
+    }
+
     private SpanEvent.Builder baseBuilderExtraUser(long now, String extraUserAttr, String value) {
         return baseBuilder(now).putAllUserAttributes(singletonMap(extraUserAttr, value));
     }
@@ -136,6 +311,14 @@ public class SpanEventTest {
 
     private SpanEvent.Builder baseBuilderExtraIntrinsic(long now, String extraIntrinsic, String value) {
         return baseBuilder(now).putAllAgentAttributes(singletonMap(extraIntrinsic, value));
+    }
+
+    private SpanEvent.Builder baseBuilderLinkOnSpan(long now, List<LinkOnSpan> linkOnSpanList) {
+        return baseBuilder(now).linkOnSpanEvents(linkOnSpanList);
+    }
+
+    private SpanEvent.Builder baseBuilderEventOnSpan(long now, List<EventOnSpan> eventOnSpanList) {
+        return baseBuilder(now).eventOnSpanEvents(eventOnSpanList);
     }
 
     private SpanEvent.Builder baseBuilder(long now) {

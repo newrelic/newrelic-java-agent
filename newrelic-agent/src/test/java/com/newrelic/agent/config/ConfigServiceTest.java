@@ -15,6 +15,7 @@ import com.newrelic.agent.MockHarvestService;
 import com.newrelic.agent.MockRPMService;
 import com.newrelic.agent.MockRPMServiceManager;
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
