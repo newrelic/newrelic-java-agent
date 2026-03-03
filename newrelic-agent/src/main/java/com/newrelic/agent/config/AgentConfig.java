@@ -65,6 +65,9 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     long getApdexTInMillis();
 
+    /**
+     * Returns true if NEW_RELIC_APM_LAMBDA_MODE is set to true
+     */
     boolean isApmLambdaModeEnabled();
 
     /**
