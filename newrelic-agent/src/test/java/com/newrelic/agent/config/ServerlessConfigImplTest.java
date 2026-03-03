@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,6 +73,58 @@ public class ServerlessConfigImplTest {
         ServerlessConfig config = ServerlessConfigImpl.createServerlessConfig(localMap);
 
         Assert.assertEquals("/tmp/some-file", config.filePath());
+    }
+
+    @Test
+    public void newRelicServerlessModeEnabledTrueWinsRegardlessOfLambdaEnvVar() {
+        Map<String, String> envVars = new HashMap<>();
+        envVars.put("newrelic.config.serverless_mode.enabled", "true");
+        Mocks.createSystemPropertyProvider(new HashMap<>(), envVars);
+        ServerlessConfigImpl config = new ServerlessConfigImpl(Collections.emptyMap(), false);
+
+        Assert.assertTrue(config.isEnabled());
+    }
+
+    @Test
+    public void newRelicServerlessModeEnabledFalseWinsRegardlessOfLambdaEnvVar() {
+        Map<String, String> envVars = new HashMap<>();
+        envVars.put("newrelic.config.serverless_mode.enabled", "false");
+        Mocks.createSystemPropertyProvider(new HashMap<>(), envVars);
+        ServerlessConfigImpl config = new ServerlessConfigImpl(Collections.emptyMap(), true);
+
+        Assert.assertFalse(config.isEnabled());
+    }
+
+    @Test
+    public void awsLambdaFunctionNameEnablesServerlessMode() {
+        ServerlessConfigImpl config = new ServerlessConfigImpl(Collections.emptyMap(), true);
+
+        Assert.assertTrue(config.isEnabled());
+    }
+
+    @Test
+    public void explicitFalseOverridesAwsLambdaFunctionName() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ServerlessConfigImpl.ENABLED, false);
+        ServerlessConfigImpl config = new ServerlessConfigImpl(props, true);
+
+        Assert.assertFalse(config.isEnabled());
+    }
+
+    @Test
+    public void explicitTrueWithNoLambdaEnvVar() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ServerlessConfigImpl.ENABLED, true);
+        ServerlessConfigImpl config = new ServerlessConfigImpl(props, false);
+
+        Assert.assertTrue(config.isEnabled());
+    }
+
+    @Test
+    public void noConfigAndNoLambdaEnvVarDefaultsToDisabled() {
+        ServerlessConfigImpl config = new ServerlessConfigImpl(Collections.emptyMap(), false);
+
+        Assert.assertFalse(config.isEnabled());
     }
 
     @Test
