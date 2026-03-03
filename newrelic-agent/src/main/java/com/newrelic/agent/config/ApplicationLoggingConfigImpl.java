@@ -51,12 +51,12 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
 
     private final boolean applicationLoggingEnabled;
 
-    public ApplicationLoggingConfigImpl(Map<String, Object> pProps, boolean highSecurity) {
+    public ApplicationLoggingConfigImpl(Map<String, Object> pProps, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         applicationLoggingEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
         applicationLoggingMetricsConfig = createApplicationLoggingMetricsConfig();
         applicationLoggingLocalDecoratingConfig = createApplicationLoggingLocalDecoratingConfig();
-        applicationLoggingForwardingConfig = createApplicationLoggingForwardingConfig(highSecurity);
+        applicationLoggingForwardingConfig = createApplicationLoggingForwardingConfig(highSecurity, isAutoAppNamingEnabled);
     }
 
     private ApplicationLoggingMetricsConfig createApplicationLoggingMetricsConfig() {
@@ -69,16 +69,16 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         return new ApplicationLoggingLocalDecoratingConfig(localDecoratingProps, SYSTEM_PROPERTY_ROOT);
     }
 
-    private ApplicationLoggingForwardingConfig createApplicationLoggingForwardingConfig(boolean highSecurity) {
+    private ApplicationLoggingForwardingConfig createApplicationLoggingForwardingConfig(boolean highSecurity, boolean isAutoAppNamingEnabled) {
         Map<String, Object> forwardingProps = getProperty(FORWARDING, Collections.emptyMap());
-        return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity);
+        return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity, isAutoAppNamingEnabled);
     }
 
-    static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity) {
+    static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
-        return new ApplicationLoggingConfigImpl(settings, highSecurity);
+        return new ApplicationLoggingConfigImpl(settings, highSecurity, isAutoAppNamingEnabled);
     }
 
     @Override

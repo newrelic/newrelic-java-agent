@@ -37,14 +37,14 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     private final ApplicationLoggingLabelsConfig loggingLabelsConfig;
     private final Set<String> logLevelDenylist;
 
-    public ApplicationLoggingForwardingConfig(Map<String, Object> props, String parentRoot, boolean highSecurity) {
+    public ApplicationLoggingForwardingConfig(Map<String, Object> props, String parentRoot, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         super(props, parentRoot + ROOT + ".");
         maxSamplesStored = initMaxSamplesStored();
         boolean storedMoreThan0 = maxSamplesStored > 0;
         enabled = storedMoreThan0 && !highSecurity && getProperty(ENABLED, DEFAULT_ENABLED);
         contextDataConfig = createContextDataConfig(highSecurity);
         loggingLabelsConfig = createLoggingLabelsConfig();
-        autoAppNamingAssociation = initAutoAppNamingAssociationEnabledFlag();
+        autoAppNamingAssociation = initAutoAppNamingAssociationEnabledFlag(isAutoAppNamingEnabled);
         logLevelDenylist = createLogLevelDenylist();
     }
 
@@ -68,9 +68,9 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
         return new ApplicationLoggingLabelsConfig(labelsProps, systemPropertyPrefix);
     }
 
-    private boolean initAutoAppNamingAssociationEnabledFlag() {
+    private boolean initAutoAppNamingAssociationEnabledFlag(boolean isAutoAppNamedEnabled) {
         // If enable_auto_app_naming is false, this association flag must also be false
-        if (!NewRelic.getAgent().getConfig().getValue(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, false)) {
+        if (!isAutoAppNamedEnabled) {
             return false;
         } else {
             return getProperty(AUTO_APP_NAMING_ASSOC, DEFAULT_AUTO_APP_NAMING_ASSOC);
