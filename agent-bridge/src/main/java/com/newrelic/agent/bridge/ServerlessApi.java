@@ -45,4 +45,9 @@ public interface ServerlessApi {
      * @return The stored function version, or null if not set
      */
     String getFunctionVersion();
+
+    /**
+     * @return True if APM mode is enabled for this lambda using the NEW_RELIC_APM_LAMBDA_MODE environment variable, otherwise false
+     */
+    boolean isApmLambdaModeEnabled();
 }

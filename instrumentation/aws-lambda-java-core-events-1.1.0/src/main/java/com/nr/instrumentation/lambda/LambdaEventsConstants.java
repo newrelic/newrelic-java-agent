@@ -9,6 +9,8 @@ package com.nr.instrumentation.lambda;
 
 // Constants for AWS Lambda instrumentation.
 public class LambdaEventsConstants {
+    public static final String NEW_RELIC_APM_LAMBDA_MODE = "NEW_RELIC_APM_LAMBDA_MODE";
+
     public static final String EVENT_SOURCE_ARN_ATTRIBUTE = "aws.lambda.eventSource.arn";
     public static final String EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE = "aws.lambda.eventSource.eventType";
 

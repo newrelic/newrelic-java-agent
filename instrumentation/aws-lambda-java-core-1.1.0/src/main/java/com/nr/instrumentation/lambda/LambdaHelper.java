@@ -11,6 +11,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.TransactionNamePriority;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -47,6 +48,7 @@ public class LambdaHelper {
      * @return true if metadata was captured successfully, false otherwise
      */
     public static boolean startTransaction(Context context, Object event) {
+        nameTransaction(context);
         if (context == null) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Lambda Context is null, cannot capture metadata");
             return false;
@@ -68,6 +70,10 @@ public class LambdaHelper {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
             return false;
         }
+    }
+
+    private static void nameTransaction(Context context) {
+        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, "Function", context.getFunctionName());
     }
 
     /**

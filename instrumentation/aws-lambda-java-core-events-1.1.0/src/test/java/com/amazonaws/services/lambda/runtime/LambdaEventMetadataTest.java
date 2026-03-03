@@ -102,7 +102,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestS3Handler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -167,7 +167,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestSNSHandler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -219,7 +219,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestSQSHandler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -252,7 +252,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestDynamodbHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -286,7 +286,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestKinesisHandler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -325,7 +325,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestKinesisFirehoseHandler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -360,7 +360,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestCodeCommitHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -390,7 +390,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestScheduledHandler/handleRequest");
+                "OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -438,7 +438,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -474,7 +474,7 @@ public class LambdaEventMetadataTest {
         assertEquals(1, introspector.getFinishedTransactionCount());
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents(
-                "WebTransaction/Uri/users/{id}");
+                "WebTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -520,7 +520,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();
@@ -558,7 +558,7 @@ public class LambdaEventMetadataTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestCloudFrontHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
 
         TransactionEvent event = events.iterator().next();

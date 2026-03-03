@@ -65,6 +65,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     long getApdexTInMillis();
 
+    boolean isApmLambdaModeEnabled();
+
     /**
      * If NewRelic sent an ApdexT for a key transaction, return that; otherwise, return the ApdextT value for the
      * application.

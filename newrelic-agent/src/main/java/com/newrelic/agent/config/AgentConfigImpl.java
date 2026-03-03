@@ -52,6 +52,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
     public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
     public static final String ENABLED = "enabled";
+    private static final String APM_LAMBDA_MODE = "apm_lambda_mode";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
@@ -203,6 +204,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private int adaptiveSamplingPeriodSeconds;
     private int adaptiveSamplingTarget;
     private final long apdexTInMillis;
+    private final boolean apmLambdaModeEnabled;
     private final String appName;
     private final List<String> appNames;
     private final boolean autoAppNamingEnabled;
@@ -320,6 +322,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         experimentalRuntime = allowExperimentalRuntimeVersions();
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
+        apmLambdaModeEnabled = getProperty(APM_LAMBDA_MODE, false);
         serverlessConfig = initServerlessConfig();
         host = parseHost(serverlessConfig, region);
         metricIngestUri = parseMetricIngestUri(serverlessConfig, region);
@@ -903,6 +906,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public long getApdexTInMillis() {
         return apdexTInMillis;
+    }
+
+    @Override
+    public boolean isApmLambdaModeEnabled() {
+        return apmLambdaModeEnabled;
     }
 
     @Override

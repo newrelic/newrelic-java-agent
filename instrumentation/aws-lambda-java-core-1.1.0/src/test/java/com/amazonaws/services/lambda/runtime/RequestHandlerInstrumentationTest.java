@@ -74,7 +74,7 @@ public class RequestHandlerInstrumentationTest {
         assertNotNull("Function version should be captured", AgentBridge.serverlessApi.getFunctionVersion());
         assertEquals("$LATEST", AgentBridge.serverlessApi.getFunctionVersion());
 
-        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
 
         TransactionEvent event = transactionEvents.iterator().next();
@@ -101,7 +101,7 @@ public class RequestHandlerInstrumentationTest {
         assertEquals("arn:aws:lambda:us-east-1:123456789012:function:test-function", AgentBridge.serverlessApi.getArn());
         assertEquals("$LATEST", AgentBridge.serverlessApi.getFunctionVersion());
 
-        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
 
         TransactionEvent event = transactionEvents.iterator().next();
@@ -156,7 +156,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals("Expected exactly one transaction", 1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        Collection<TransactionEvent> transactionEvents = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals("Expected exactly one transaction event", 1, transactionEvents.size());
 
         TransactionEvent event = transactionEvents.iterator().next();
@@ -181,7 +181,7 @@ public class RequestHandlerInstrumentationTest {
 
         assertEquals("Expected two transactions after second invocation", 2, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> allEvents = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestRequestHandler/handleRequest");
+        Collection<TransactionEvent> allEvents = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals("Expected exactly two transaction events", 2, allEvents.size());
 
         // Count how many events have the cold start attribute
@@ -235,7 +235,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestS3Handler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -255,7 +255,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestSNSHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -275,7 +275,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestSQSHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -295,7 +295,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestDynamodbHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -315,7 +315,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestKinesisHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -332,7 +332,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestKinesisFirehoseHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -352,7 +352,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestCodeCommitHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -369,7 +369,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestScheduledHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -393,7 +393,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestALBHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -410,7 +410,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -427,7 +427,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayV2HTTPHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 
@@ -443,7 +443,7 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestCloudFrontHandler/handleRequest");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Function/test-function");
         assertEquals(1, events.size());
     }
 

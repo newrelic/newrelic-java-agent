@@ -26,6 +26,7 @@ import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.TransactionNamePriority;
 import com.nr.instrumentation.lambda.requests.APIGatewayProxyRequestWrapper;
 import com.nr.instrumentation.lambda.requests.APIGatewayProxyResponseWrapper;
 import com.nr.instrumentation.lambda.requests.APIGatewayV2HttpRequestWrapper;
@@ -35,6 +36,7 @@ import com.nr.instrumentation.lambda.requests.ApplicationLoadBalancerResponseWra
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -73,6 +75,7 @@ import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_KIN
 import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_S3;
 import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_SNS;
 import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_SQS;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.NEW_RELIC_APM_LAMBDA_MODE;
 
 /**
  * Helper class for Lambda instrumentation.
@@ -130,7 +133,7 @@ public class LambdaEventsHelper {
             }
 
             if (event != null) {
-                extractEventSourceData(event, transaction);
+                extractEventSourceData(event, transaction, context);
             }
 
             return true;
@@ -143,20 +146,25 @@ public class LambdaEventsHelper {
     /**
      * Extracts event source metadata (ARN and event type) from various AWS Lambda event types.
      * Marks a transaction as a web request based on the event type.
+     * Names a transaction based on event type.
      * Uses a map-based dispatcher to delegate to specific extraction methods for each event type.
      *
      * @param event The Lambda event object (can be any supported event type)
      * @param transaction The current transaction
      */
-    public static void extractEventSourceData(Object event, Transaction transaction) {
+    public static void extractEventSourceData(Object event, Transaction transaction, Context context) {
         if (event == null) {
             return;
         }
 
         BiConsumer<Object, Transaction> extractor = EVENT_EXTRACTORS.get(event.getClass());
         if (extractor != null) {
+            // Sets transaction attributes and if it is a web request
             extractor.accept(event, transaction);
         }
+
+        // Transactions have to be named after event extraction to ensure the event source type is available
+        nameTransaction(transaction, context);
     }
 
     /**
@@ -462,6 +470,21 @@ public class LambdaEventsHelper {
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error extracting metadata from APIGatewayV2HTTPEvent");
         }
+    }
+
+    /*
+    * Names a transaction. Requires the events were extracted and agent attributes were set beforehand
+    *
+    */
+    private static void nameTransaction(Transaction txn, Context context) {
+        String functionNamePrefix = "";
+        Object eventSourceAttr = txn.getAgentAttributes().get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE);
+        if (AgentBridge.serverlessApi.isApmLambdaModeEnabled() && eventSourceAttr != null && !((String)eventSourceAttr).trim().isEmpty()) {
+            functionNamePrefix = ((String) eventSourceAttr).toUpperCase() + " ";
+        }
+
+        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "Function",
+                functionNamePrefix + context.getFunctionName());
     }
 
     /**
