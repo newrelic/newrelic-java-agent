@@ -757,7 +757,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     private ApplicationLoggingConfig initApplicationLoggingConfig() {
         Map<String, Object> props = nestedProps(APPLICATION_LOGGING);
-        return ApplicationLoggingConfigImpl.createApplicationLoggingConfig(props, highSecurity);
+        return ApplicationLoggingConfigImpl.createApplicationLoggingConfig(props, highSecurity, autoAppNamingEnabled);
     }
 
     private CodeLevelMetricsConfig initClmConfig() {

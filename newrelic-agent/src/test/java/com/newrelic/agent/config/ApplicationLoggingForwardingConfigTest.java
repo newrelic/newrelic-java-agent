@@ -32,15 +32,16 @@ public class ApplicationLoggingForwardingConfigTest {
     @Test
     public void defaultForwardingConfig() {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
-                false);
+                false, false);
         assertTrue(config.getEnabled());
+        assertFalse(config.isAutoAppNamingAssociationEnabled());
         assertTrue(config.getLogLevelDenylist().isEmpty());
     }
 
     @Test
     public void testMaxSamplesStoredDefaultValue() {
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
-                false);
+                false, false);
         assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
     }
 
@@ -51,7 +52,7 @@ public class ApplicationLoggingForwardingConfigTest {
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(maxSamplesStoreTooLarge,
                 ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
-                false);
+                false, false);
         assertEquals(ApplicationLoggingForwardingConfig.DEFAULT_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
     }
 
@@ -59,7 +60,7 @@ public class ApplicationLoggingForwardingConfigTest {
     public void testMaxSamplesStoredNotDefaultValue() {
         localProps.put(ApplicationLoggingForwardingConfig.MAX_SAMPLES_STORED, TEST_MAX_SAMPLES_STORED);
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT,
-                false);
+                false, false);
         assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
     }
 
@@ -73,7 +74,7 @@ public class ApplicationLoggingForwardingConfigTest {
         expectedDenylist.add("BOOOP");
 
         localProps.put(ApplicationLoggingForwardingConfig.LOG_LEVEL_DENYLIST, inputDenylist);
-        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps, ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
 
         assertEquals(expectedDenylist, config.getLogLevelDenylist());
     }
@@ -94,7 +95,7 @@ public class ApplicationLoggingForwardingConfigTest {
         ));
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
-                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
         assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
 
         assertEquals(expectedDenylist, config.getLogLevelDenylist());
@@ -119,7 +120,7 @@ public class ApplicationLoggingForwardingConfigTest {
         ));
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
-                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
         assertEquals(TEST_MAX_SAMPLES_STORED, config.getMaxSamplesStored());
         assertEquals(expectedDenylist, config.getLogLevelDenylist());
     }
@@ -135,7 +136,7 @@ public class ApplicationLoggingForwardingConfigTest {
         ));
 
         ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(),
-                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false);
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
         assertEquals(Collections.emptySet(), config.getLogLevelDenylist());
     }
 
