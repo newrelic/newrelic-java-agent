@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 @Weave(type = MatchType.Interface, originalName = "com.amazonaws.services.lambda.runtime.RequestStreamHandler")
-public abstract class RequestStreamHandler2_Instrumentation {
+public abstract class RequestStreamHandler_Instrumentation {
 
     /**
      * Intercepts the Lambda stream handler method to instrument it with New Relic monitoring.
