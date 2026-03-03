@@ -26,7 +26,7 @@ import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
 import com.newrelic.api.agent.Trace;
-import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
+import com.nr.instrumentation.lambda.LambdaHelper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,12 +36,9 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ARN_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE;
 import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_ARN_ATTRIBUTE;
 import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_COLD_START_ATTRIBUTE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -56,7 +53,7 @@ public class RequestHandlerInstrumentationTest {
 
     @Before
     public void setUp() {
-        LambdaInstrumentationHelper.resetColdStartForTesting();
+        LambdaHelper.resetColdStartForTesting();
     }
 
     @Test
@@ -240,14 +237,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestS3Handler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:s3:::my-bucket", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("s3", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -268,14 +257,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestSNSHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:sns:us-east-1:123456789012:my-topic", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("sns", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -296,14 +277,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestSQSHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:sqs:us-east-1:123456789012:my-queue", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("sqs", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -324,14 +297,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestDynamodbHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:dynamodb:us-east-1:123456789012:table/my-table/stream/2021-01-01T00:00:00.000", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("dynamo_streams", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -352,14 +317,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestKinesisHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:kinesis:us-east-1:123456789012:stream/my-stream", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("kinesis", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -377,14 +334,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestKinesisFirehoseHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:firehose:us-east-1:123456789012:deliverystream/my-stream", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("firehose", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -405,14 +354,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestCodeCommitHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:codecommit:us-east-1:123456789012:my-repo", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        // CodeCommit is not in the spec, so eventType should NOT be present
-        assertFalse("Event source event type should NOT be present for CodeCommit", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -430,14 +371,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestScheduledHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:events:us-east-1:123456789012:rule/my-rule", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("cloudWatch_scheduled", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -460,16 +393,8 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestALBHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertEquals("arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-targets/12345", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("alb", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -485,15 +410,8 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Uri/users/1");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        // API Gateway has no ARN, only eventType
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("apiGateway", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -509,15 +427,8 @@ public class RequestHandlerInstrumentationTest {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         assertEquals(1, introspector.getFinishedTransactionCount());
 
-        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/Uri/users/1");
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestAPIGatewayV2HTTPHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        // API Gateway V2 HTTP has no ARN, only eventType (same as V1)
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("apiGateway", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -534,13 +445,6 @@ public class RequestHandlerInstrumentationTest {
 
         Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.RequestHandlerInstrumentationTest$TestCloudFrontHandler/handleRequest");
         assertEquals(1, events.size());
-
-        TransactionEvent event = events.iterator().next();
-        Map<String, Object> attributes = event.getAttributes();
-
-        // CloudFront has no ARN, only eventType
-        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
-        assertEquals("cloudFront", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     /**

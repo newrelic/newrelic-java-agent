@@ -26,67 +26,60 @@ import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
-import com.nr.instrumentation.lambda.requests.NrAPIGatewayProxyRequest;
-import com.nr.instrumentation.lambda.requests.NrAPIGatewayProxyResponse;
-import com.nr.instrumentation.lambda.requests.NrAPIGatewayV2HttpRequest;
-import com.nr.instrumentation.lambda.requests.NrAPIGatewayV2HttpResponse;
-import com.nr.instrumentation.lambda.requests.NrApplicationLoadBalancerRequest;
-import com.nr.instrumentation.lambda.requests.NrApplicationLoadBalancerResponse;
+import com.nr.instrumentation.lambda.requests.APIGatewayProxyRequestWrapper;
+import com.nr.instrumentation.lambda.requests.APIGatewayProxyResponseWrapper;
+import com.nr.instrumentation.lambda.requests.APIGatewayV2HttpRequestWrapper;
+import com.nr.instrumentation.lambda.requests.APIGatewayV2HttpResponseWrapper;
+import com.nr.instrumentation.lambda.requests.ApplicationLoadBalancerRequestWrapper;
+import com.nr.instrumentation.lambda.requests.ApplicationLoadBalancerResponseWrapper;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-import static com.nr.instrumentation.lambda.LambdaConstants.AWS_REQUEST_ID_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ACCOUNT;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ACCOUNT_ID;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_API_ID;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ARN_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_BUCKET_NAME;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_NAME;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_TIME;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_ID;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_LENGTH;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_MESSAGE_ID;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_KEY;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_SEQUENCER;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_OBJECT_SIZE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_REGION;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE_ID;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_RESOURCE_PATH;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_STAGE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TIME;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TIMESTAMP;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TOPIC_ARN;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_TYPE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_SOURCE_X_AMZ_ID_2;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_ALB;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_API_GATEWAY;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_CLOUDFRONT;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_CLOUDWATCH_SCHEDULED;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_DYNAMO_STREAMS;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_FIREHOSE;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_KINESIS;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_S3;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_SNS;
-import static com.nr.instrumentation.lambda.LambdaConstants.EVENT_TYPE_SQS;
-import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_ARN_ATTRIBUTE;
-import static com.nr.instrumentation.lambda.LambdaConstants.LAMBDA_COLD_START_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_ACCOUNT;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_ACCOUNT_ID;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_API_ID;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_ARN_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_BUCKET_NAME;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_EVENT_NAME;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_EVENT_TIME;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_ID;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_LENGTH;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_MESSAGE_ID;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_OBJECT_KEY;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_OBJECT_SEQUENCER;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_OBJECT_SIZE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_REGION;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_RESOURCE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_RESOURCE_ID;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_RESOURCE_PATH;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_STAGE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_TIME;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_TIMESTAMP;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_TOPIC_ARN;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_TYPE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_SOURCE_X_AMZ_ID_2;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_ALB;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_API_GATEWAY;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_CLOUDFRONT;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_CLOUDWATCH_SCHEDULED;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_DYNAMO_STREAMS;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_FIREHOSE;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_KINESIS;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_S3;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_SNS;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.EVENT_TYPE_SQS;
 
 /**
  * Helper class for Lambda instrumentation.
  * Uses AgentBridge.serverlessApi to communicate metadata to the core agent
  * without creating circular dependencies.
  */
-public class LambdaInstrumentationHelper {
-
-    // Track whether this is the first invocation (cold start)
-    private static final AtomicBoolean COLD_START = new AtomicBoolean(true);
+public class LambdaEventsHelper {
 
     // Map of event types to their extraction handlers
     private static final Map<Class<?>, BiConsumer<Object, Transaction>> EVENT_EXTRACTORS = new HashMap<>();
@@ -117,7 +110,7 @@ public class LambdaInstrumentationHelper {
     }
 
     /**
-     * Captures Lambda metadata and event source information.
+     * Captures Lambda event source information.
      *
      * @param context The Lambda execution context
      * @param event The Lambda event object (can be null or any supported event type)
@@ -136,10 +129,6 @@ public class LambdaInstrumentationHelper {
                 return false;
             }
 
-            processLambdaEvents(context, transaction);
-
-            handleColdStart(transaction);
-
             if (event != null) {
                 extractEventSourceData(event, transaction);
             }
@@ -148,68 +137,6 @@ public class LambdaInstrumentationHelper {
         } catch (Throwable t) {
             NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error capturing Lambda metadata");
             return false;
-        }
-    }
-
-    /**
-     * Captures Lambda-specific metadata from the Context via AgentBridge.
-     * Stores ARN and function version for inclusion in serverless payload envelope.
-     * Also adds agent attributes for arn and requestId.
-     *
-     * Each attribute is extracted independently with its own error handling to ensure
-     * that a failure extracting one attribute doesn't impact the extraction of another.
-     *
-     * @param context The Lambda execution context
-     * @param transaction The current transaction
-     */
-    private static void processLambdaEvents(Context context, Transaction transaction) {
-        try {
-            String arn = context.getInvokedFunctionArn();
-            if (arn != null && !arn.isEmpty()) {
-                AgentBridge.serverlessApi.setArn(arn);
-                transaction.getAgentAttributes().put(LAMBDA_ARN_ATTRIBUTE, arn);
-            }
-        } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda ARN");
-        }
-
-        try {
-            String functionVersion = context.getFunctionVersion();
-            if (functionVersion != null && !functionVersion.isEmpty()) {
-                AgentBridge.serverlessApi.setFunctionVersion(functionVersion);
-            }
-        } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda function version");
-        }
-
-        try {
-            String requestId = context.getAwsRequestId();
-            if (requestId != null && !requestId.isEmpty()) {
-                transaction.getAgentAttributes().put(AWS_REQUEST_ID_ATTRIBUTE, requestId);
-            }
-        } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, t, "Error capturing Lambda request ID");
-        }
-    }
-
-    /**
-     * Tracks whether this is a cold start (first invocation).
-     * Adds the aws.lambda.coldStart agent attribute when it's a cold start.
-     * According to the Lambda spec, the attribute should only be added when true (omitted when false).
-     *
-     * @param transaction The current transaction
-     */
-    private static void handleColdStart(Transaction transaction) {
-        try {
-            // Check if this is a cold start (first invocation)
-            boolean isColdStart = COLD_START.compareAndSet(true, false);
-
-            if (isColdStart) {
-                transaction.getAgentAttributes().put(LAMBDA_COLD_START_ATTRIBUTE, true);
-                NewRelic.getAgent().getLogger().log(Level.FINE, "Cold start detected, added aws.lambda.coldStart attribute");
-            }
-        } catch (Throwable t) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, t, "Error handling cold start");
         }
     }
 
@@ -476,7 +403,7 @@ public class LambdaInstrumentationHelper {
     private static void extractALB(ApplicationLoadBalancerRequestEvent event, Transaction transaction) {
         try {
 
-            transaction.setWebRequest(new NrApplicationLoadBalancerRequest(event));
+            transaction.setWebRequest(new ApplicationLoadBalancerRequestWrapper(event));
 
             // ARN and event type
             if (event.getRequestContext() != null && event.getRequestContext().getElb() != null) {
@@ -498,7 +425,7 @@ public class LambdaInstrumentationHelper {
             // Event type
             addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_API_GATEWAY);
 
-            transaction.setWebRequest(new NrAPIGatewayProxyRequest(event));
+            transaction.setWebRequest(new APIGatewayProxyRequestWrapper(event));
 
             // API Gateway-specific attributes
             if (event.getRequestContext() != null) {
@@ -524,7 +451,7 @@ public class LambdaInstrumentationHelper {
             // Event type
             addAttribute(transaction, EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE, EVENT_TYPE_API_GATEWAY);
 
-            transaction.setWebRequest(new NrAPIGatewayV2HttpRequest(event));
+            transaction.setWebRequest(new APIGatewayV2HttpRequestWrapper(event));
 
             // API Gateway V2-specific attributes (no resourceId/resourcePath in V2)
             if (event.getRequestContext() != null) {
@@ -553,11 +480,11 @@ public class LambdaInstrumentationHelper {
     private static void captureWebResponse(Object response) {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         if (response instanceof APIGatewayV2HTTPResponse) {
-            txn.setWebResponse(new NrAPIGatewayV2HttpResponse((APIGatewayV2HTTPResponse) response));
+            txn.setWebResponse(new APIGatewayV2HttpResponseWrapper((APIGatewayV2HTTPResponse) response));
         } else if (response instanceof APIGatewayProxyResponseEvent) {
-            txn.setWebResponse(new NrAPIGatewayProxyResponse((APIGatewayProxyResponseEvent) response));
+            txn.setWebResponse(new APIGatewayProxyResponseWrapper((APIGatewayProxyResponseEvent) response));
         } else if (response instanceof ApplicationLoadBalancerResponseEvent) {
-            txn.setWebResponse(new NrApplicationLoadBalancerResponse((ApplicationLoadBalancerResponseEvent) response));
+            txn.setWebResponse(new ApplicationLoadBalancerResponseWrapper((ApplicationLoadBalancerResponseEvent) response));
         }
     }
 
@@ -584,6 +511,5 @@ public class LambdaInstrumentationHelper {
      * Resets the cold start state for testing purposes only.
      */
     public static void resetColdStartForTesting() {
-        COLD_START.set(true);
     }
 }

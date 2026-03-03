@@ -4,6 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package com.nr.instrumentation.lambda.requests;
 
 import com.amazonaws.services.lambda.runtime.events.ApplicationLoadBalancerRequestEvent;
@@ -14,10 +15,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-public class NrApplicationLoadBalancerRequest extends ExtendedRequest {
+public class ApplicationLoadBalancerRequestWrapper extends ExtendedRequest {
     private ApplicationLoadBalancerRequestEvent event;
 
-    public NrApplicationLoadBalancerRequest(ApplicationLoadBalancerRequestEvent event) {
+    public ApplicationLoadBalancerRequestWrapper(ApplicationLoadBalancerRequestEvent event) {
         super();
         this.event = event;
     }

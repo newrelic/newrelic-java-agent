@@ -4,19 +4,20 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package com.nr.instrumentation.lambda.requests;
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-public class NrAPIGatewayV2HttpResponse extends ExtendedResponse {
-    private final APIGatewayV2HTTPResponse response;
+public class APIGatewayProxyResponseWrapper extends ExtendedResponse {
+    private final APIGatewayProxyResponseEvent response;
 
-    public NrAPIGatewayV2HttpResponse(APIGatewayV2HTTPResponse msg) {
+    public APIGatewayProxyResponseWrapper(APIGatewayProxyResponseEvent msg) {
         this.response = msg;
     }
 

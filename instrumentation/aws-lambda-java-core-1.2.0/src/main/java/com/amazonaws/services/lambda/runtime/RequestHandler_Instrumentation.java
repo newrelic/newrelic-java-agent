@@ -11,6 +11,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.lambda.LambdaHelper;
 
 @Weave(type = MatchType.Interface, originalName = "com.amazonaws.services.lambda.runtime.RequestHandler")
 public abstract class RequestHandler_Instrumentation<I, O> {
@@ -24,6 +25,20 @@ public abstract class RequestHandler_Instrumentation<I, O> {
      */
     @Trace(dispatcher = true)
     public O handleRequest(I input, Context context) {
-        return Weaver.callOriginal();
+        try {
+            LambdaHelper.startTransaction(context, input);
+        } catch (Throwable t) {
+
+        }
+
+        O result = Weaver.callOriginal();
+
+        try {
+            LambdaHelper.finishTransaction(result);
+        } catch (Throwable t) {
+
+        }
+
+        return result;
     }
 }

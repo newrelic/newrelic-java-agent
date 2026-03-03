@@ -4,6 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package com.nr.instrumentation.lambda.requests;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
@@ -14,10 +15,10 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 
-public class NrAPIGatewayV2HttpRequest extends ExtendedRequest {
+public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
     private APIGatewayV2HTTPEvent event;
 
-    public NrAPIGatewayV2HttpRequest(APIGatewayV2HTTPEvent event) {
+    public APIGatewayV2HttpRequestWrapper(APIGatewayV2HTTPEvent event) {
         super();
         this.event = event;
     }

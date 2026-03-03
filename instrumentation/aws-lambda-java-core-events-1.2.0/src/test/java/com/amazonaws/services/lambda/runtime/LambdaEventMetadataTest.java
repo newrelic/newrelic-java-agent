@@ -9,6 +9,10 @@ package com.amazonaws.services.lambda.runtime;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
+import com.amazonaws.services.lambda.runtime.events.ApplicationLoadBalancerRequestEvent;
+import com.amazonaws.services.lambda.runtime.events.CloudFrontEvent;
+import com.amazonaws.services.lambda.runtime.events.CodeCommitEvent;
+import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.KinesisEvent;
 import com.amazonaws.services.lambda.runtime.events.KinesisFirehoseEvent;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
@@ -20,7 +24,8 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TransactionEvent;
-import com.nr.instrumentation.lambda.LambdaInstrumentationHelper;
+import com.newrelic.api.agent.Trace;
+import com.nr.instrumentation.lambda.LambdaEventsHelper;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,8 +35,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.nr.instrumentation.lambda.LambdaConstants.*;
+import static com.nr.instrumentation.lambda.LambdaEventsConstants.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,7 +52,7 @@ public class LambdaEventMetadataTest {
 
     @Before
     public void setUp() {
-        LambdaInstrumentationHelper.resetColdStartForTesting();
+        LambdaEventsHelper.resetColdStartForTesting();
     }
 
     @Test
@@ -103,6 +109,12 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify S3-specific metadata
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:s3:::my-test-bucket", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("s3", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Event source length should be present", attributes.containsKey(EVENT_SOURCE_LENGTH));
         assertEquals(1, attributes.get(EVENT_SOURCE_LENGTH));
 
@@ -162,6 +174,12 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify SNS-specific metadata
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:sns:us-east-1:123456789012:my-topic:subscription-id", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("sns", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Event source length should be present", attributes.containsKey(EVENT_SOURCE_LENGTH));
         assertEquals(1, attributes.get(EVENT_SOURCE_LENGTH));
 
@@ -207,9 +225,43 @@ public class LambdaEventMetadataTest {
         TransactionEvent event = events.iterator().next();
         Map<String, Object> attributes = event.getAttributes();
 
-        // Verify SQS-specific metadata (length only)
+        // Verify SQS-specific metadata
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:sqs:us-east-1:123456789012:my-queue", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("sqs", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Event source length should be present", attributes.containsKey(EVENT_SOURCE_LENGTH));
         assertEquals(3, attributes.get(EVENT_SOURCE_LENGTH));
+    }
+
+    @Test
+    public void testDynamodbEventSourceArn() {
+        Context mockContext = createMockContext();
+
+        DynamodbEvent.DynamodbStreamRecord record = new DynamodbEvent.DynamodbStreamRecord();
+        record.setEventSourceARN("arn:aws:dynamodb:us-east-1:123456789012:table/my-table/stream/2021-01-01T00:00:00.000");
+
+        DynamodbEvent dynamodbEvent = new DynamodbEvent();
+        dynamodbEvent.setRecords(Collections.singletonList(record));
+
+        TestDynamodbHandler handler = new TestDynamodbHandler();
+        handler.handleRequest(dynamodbEvent, mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestDynamodbHandler/handleRequest");
+        assertEquals(1, events.size());
+
+        TransactionEvent event = events.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:dynamodb:us-east-1:123456789012:table/my-table/stream/2021-01-01T00:00:00.000", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("dynamo_streams", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -241,6 +293,11 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify Kinesis-specific metadata
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:kinesis:us-west-2:123456789012:stream/my-stream", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("kinesis", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Event source length should be present", attributes.containsKey(EVENT_SOURCE_LENGTH));
         assertEquals(2, attributes.get(EVENT_SOURCE_LENGTH));
 
@@ -275,11 +332,44 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify Kinesis Firehose-specific metadata
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:firehose:eu-west-1:123456789012:deliverystream/my-stream", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("firehose", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Event source length should be present", attributes.containsKey(EVENT_SOURCE_LENGTH));
         assertEquals(3, attributes.get(EVENT_SOURCE_LENGTH));
 
         assertTrue("Event source region should be present", attributes.containsKey(EVENT_SOURCE_REGION));
         assertEquals("eu-west-1", attributes.get(EVENT_SOURCE_REGION));
+    }
+
+    @Test
+    public void testCodeCommitEventSourceArn() {
+        Context mockContext = createMockContext();
+
+        CodeCommitEvent.Record record = new CodeCommitEvent.Record();
+        record.setEventSourceArn("arn:aws:codecommit:us-east-1:123456789012:my-repo");
+
+        CodeCommitEvent codeCommitEvent = new CodeCommitEvent();
+        codeCommitEvent.setRecords(Collections.singletonList(record));
+
+        TestCodeCommitHandler handler = new TestCodeCommitHandler();
+        handler.handleRequest(codeCommitEvent, mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestCodeCommitHandler/handleRequest");
+        assertEquals(1, events.size());
+
+        TransactionEvent event = events.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:codecommit:us-east-1:123456789012:my-repo", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        // CodeCommit is not in the spec, so eventType should NOT be present
+        assertFalse("Event source event type should NOT be present for CodeCommit", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -307,6 +397,11 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify CloudWatch Scheduled-specific metadata
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:events:us-east-1:123456789012:rule/my-scheduled-rule", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("cloudWatch_scheduled", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Account should be present", attributes.containsKey(EVENT_SOURCE_ACCOUNT));
         assertEquals("123456789012", attributes.get(EVENT_SOURCE_ACCOUNT));
 
@@ -321,6 +416,38 @@ public class LambdaEventMetadataTest {
 
         assertTrue("Time should be present", attributes.containsKey(EVENT_SOURCE_TIME));
         assertEquals("2021-01-01T12:00:00.000Z", attributes.get(EVENT_SOURCE_TIME));
+    }
+
+    @Test
+    public void testALBEventSourceArn() {
+        Context mockContext = createMockContext();
+
+        ApplicationLoadBalancerRequestEvent.Elb elb = new ApplicationLoadBalancerRequestEvent.Elb();
+        elb.setTargetGroupArn("arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-targets/12345");
+
+        ApplicationLoadBalancerRequestEvent.RequestContext requestContext = new ApplicationLoadBalancerRequestEvent.RequestContext();
+        requestContext.setElb(elb);
+
+        ApplicationLoadBalancerRequestEvent albEvent = new ApplicationLoadBalancerRequestEvent();
+        albEvent.setPath("users/fssfdsg");
+        albEvent.setRequestContext(requestContext);
+
+        TestALBHandler handler = new TestALBHandler();
+        handler.handleRequest(albEvent, mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("WebTransaction/NormalizedUri/users/fssfdsg");
+        assertEquals(1, events.size());
+
+        TransactionEvent event = events.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertTrue("Event source ARN should be present", attributes.containsKey(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertEquals("arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-targets/12345", attributes.get(EVENT_SOURCE_ARN_ATTRIBUTE));
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("alb", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     @Test
@@ -354,6 +481,10 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify API Gateway V1-specific metadata
+
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("apiGateway", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Account ID should be present", attributes.containsKey(EVENT_SOURCE_ACCOUNT_ID));
         assertEquals("123456789012", attributes.get(EVENT_SOURCE_ACCOUNT_ID));
 
@@ -396,6 +527,9 @@ public class LambdaEventMetadataTest {
         Map<String, Object> attributes = event.getAttributes();
 
         // Verify API Gateway V2-specific metadata (no resourceId or resourcePath)
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("apiGateway", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+
         assertTrue("Account ID should be present", attributes.containsKey(EVENT_SOURCE_ACCOUNT_ID));
         assertEquals("987654321098", attributes.get(EVENT_SOURCE_ACCOUNT_ID));
 
@@ -410,6 +544,29 @@ public class LambdaEventMetadataTest {
                 !attributes.containsKey(EVENT_SOURCE_RESOURCE_ID) || attributes.get(EVENT_SOURCE_RESOURCE_ID) == null);
         assertTrue("Resource path should NOT be present for V2",
                 !attributes.containsKey(EVENT_SOURCE_RESOURCE_PATH) || attributes.get(EVENT_SOURCE_RESOURCE_PATH) == null);
+    }
+
+    @Test
+    public void testCloudFrontEventType() {
+        Context mockContext = createMockContext();
+
+        CloudFrontEvent cloudFrontEvent = new CloudFrontEvent();
+
+        TestCloudFrontHandler handler = new TestCloudFrontHandler();
+        handler.handleRequest(cloudFrontEvent, mockContext);
+
+        Introspector introspector = InstrumentationTestRunner.getIntrospector();
+        assertEquals(1, introspector.getFinishedTransactionCount());
+
+        Collection<TransactionEvent> events = introspector.getTransactionEvents("OtherTransaction/Java/com.amazonaws.services.lambda.runtime.LambdaEventMetadataTest$TestCloudFrontHandler/handleRequest");
+        assertEquals(1, events.size());
+
+        TransactionEvent event = events.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        // CloudFront has no ARN, only eventType
+        assertTrue("Event source event type should be present", attributes.containsKey(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
+        assertEquals("cloudFront", attributes.get(EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE));
     }
 
     /**
@@ -481,6 +638,34 @@ public class LambdaEventMetadataTest {
     public static class TestAPIGatewayV2HTTPHandler implements RequestHandler<APIGatewayV2HTTPEvent, String> {
         @Override
         public String handleRequest(APIGatewayV2HTTPEvent event, Context context) {
+            return "ok";
+        }
+    }
+
+    public static class TestDynamodbHandler implements RequestHandler<DynamodbEvent, Void> {
+        @Override
+        @Trace(dispatcher = true)
+        public Void handleRequest(DynamodbEvent event, Context context) {
+            return null;
+        }
+    }
+
+    public static class TestCodeCommitHandler implements RequestHandler<CodeCommitEvent, Void> {
+        @Override
+        public Void handleRequest(CodeCommitEvent event, Context context) {
+            return null;
+        }
+    }
+
+    public static class TestALBHandler implements RequestHandler<ApplicationLoadBalancerRequestEvent, String> {
+        @Override
+        public String handleRequest(ApplicationLoadBalancerRequestEvent event, Context context) {
+            return "ok";
+        }
+    }
+    public static class TestCloudFrontHandler implements RequestHandler<CloudFrontEvent, String> {
+        @Override
+        public String handleRequest(CloudFrontEvent event, Context context) {
             return "ok";
         }
     }

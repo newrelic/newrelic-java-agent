@@ -11,6 +11,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.lambda.LambdaHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +30,18 @@ public abstract class RequestStreamHandler_Instrumentation {
      */
     @Trace(dispatcher = true)
     public void handleRequest(InputStream input, OutputStream output, Context context) {
+        try {
+            LambdaHelper.startTransaction(context);
+        } catch (Throwable t) {
+
+        }
+
         Weaver.callOriginal();
+
+        try {
+            LambdaHelper.finishTransaction();
+        } catch (Throwable t) {
+
+        }
     }
 }

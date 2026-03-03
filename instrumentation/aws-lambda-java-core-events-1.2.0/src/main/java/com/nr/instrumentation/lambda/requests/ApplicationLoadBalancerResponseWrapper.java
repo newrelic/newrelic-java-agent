@@ -4,6 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package com.nr.instrumentation.lambda.requests;
 
 import com.amazonaws.services.lambda.runtime.events.ApplicationLoadBalancerResponseEvent;
@@ -13,10 +14,10 @@ import com.newrelic.api.agent.HeaderType;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
-public class NrApplicationLoadBalancerResponse extends ExtendedResponse {
+public class ApplicationLoadBalancerResponseWrapper extends ExtendedResponse {
     private final ApplicationLoadBalancerResponseEvent response;
 
-    public NrApplicationLoadBalancerResponse(ApplicationLoadBalancerResponseEvent msg) {
+    public ApplicationLoadBalancerResponseWrapper(ApplicationLoadBalancerResponseEvent msg) {
         this.response = msg;
     }
 

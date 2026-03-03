@@ -8,11 +8,7 @@
 package com.nr.instrumentation.lambda;
 
 // Constants for AWS Lambda instrumentation.
-public class LambdaConstants {
-    // Attribute key constants
-    public static final String LAMBDA_ARN_ATTRIBUTE = "aws.lambda.arn";
-    public static final String LAMBDA_COLD_START_ATTRIBUTE = "aws.lambda.coldStart";
-    public static final String AWS_REQUEST_ID_ATTRIBUTE = "aws.requestId";
+public class LambdaEventsConstants {
     public static final String EVENT_SOURCE_ARN_ATTRIBUTE = "aws.lambda.eventSource.arn";
     public static final String EVENT_SOURCE_EVENT_TYPE_ATTRIBUTE = "aws.lambda.eventSource.eventType";
 
@@ -52,7 +48,7 @@ public class LambdaConstants {
     public static final String EVENT_SOURCE_TYPE = "aws.lambda.eventSource.type";
     public static final String EVENT_SOURCE_X_AMZ_ID_2 = "aws.lambda.eventSource.xAmzId2";
 
-    private LambdaConstants() {
+    private LambdaEventsConstants() {
         // Prevent instantiation
     }
 }
