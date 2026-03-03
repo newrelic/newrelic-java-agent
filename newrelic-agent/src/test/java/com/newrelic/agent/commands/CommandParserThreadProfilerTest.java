@@ -48,18 +48,7 @@ public class CommandParserThreadProfilerTest {
     private ProfilerService profilerService;
 
     private MockServiceManager createServiceManager(Map<String, Object> config) throws Exception {
-        MockServiceManager serviceManager = null;
-        try {
-             serviceManager = new MockServiceManager();
-        } catch (Exception e) {
-            e.printStackTrace();
-            e.fillInStackTrace();
-            StackTraceElement [] t = e.getStackTrace();
-            for (StackTraceElement a : t) {
-                System.out.println(a.toString());
-            }
-            throw e;
-        }
+        MockServiceManager serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
 
         ThreadService threadService = new ThreadService();
