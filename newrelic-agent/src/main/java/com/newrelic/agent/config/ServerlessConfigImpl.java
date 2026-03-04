@@ -36,18 +36,20 @@ public class ServerlessConfigImpl extends BaseConfig implements ServerlessConfig
     }
 
     public ServerlessConfigImpl(Map<String, Object> props) {
+        this(props, AgentConfigHelper.lambdaFunctionNameExists());
+    }
+
+    public ServerlessConfigImpl(Map<String, Object> props, boolean isLambdaEnvironment) {
         super(props, SYSTEM_PROPERTY_ROOT);
-        isEnabled = createIsEnabled();
+        isEnabled = createIsEnabled(isLambdaEnvironment);
         filePath = getProperty(FILE_PATH, DEFAULT_FILE_PATH);
         arn = getProperty(ARN);
         functionVersion = getProperty(FUNCTION_VERSION);
     }
 
-    private boolean createIsEnabled() {
-        if (AgentConfigHelper.lambdaFunctionNameExists()) {
-            return true;
-        }
-        return getProperty(ENABLED, DEFAULT_ENABLED);
+    private boolean createIsEnabled(boolean isLambdaEnvironment) {
+        Boolean explicitEnabled = getProperty(ENABLED);
+        return explicitEnabled != null ? explicitEnabled : isLambdaEnvironment;
     }
 
     @Override
