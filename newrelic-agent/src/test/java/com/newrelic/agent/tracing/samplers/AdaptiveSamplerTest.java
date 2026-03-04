@@ -292,6 +292,91 @@ public class AdaptiveSamplerTest {
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
     }
 
+    @Test
+    public void testLazyStartSamplerPeriodAnchorsToFirstTransaction() {
+        AdaptiveSampler sampler = new AdaptiveSampler(10, 60, false, true);
+
+        assertEquals("startTimeMillis should be 0 (unstarted) before first transaction in lazy-start mode", 0L, sampler.getStartTimeMillis());
+
+        long beforeFirstTx = System.currentTimeMillis();
+        Transaction tx = Mockito.mock(Transaction.class);
+        when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+        sampler.calculatePriority(tx, Granularity.FULL);
+        long afterFirstTx = System.currentTimeMillis();
+
+        long startTime = sampler.getStartTimeMillis();
+        assertTrue("startTimeMillis should be set after first transaction", startTime >= beforeFirstTx);
+        assertTrue("startTimeMillis should be set after first transaction", startTime <= afterFirstTx);
+        assertTrue("startTimeMillis should be set (non-zero) after period is anchored", sampler.getStartTimeMillis() != 0L);
+    }
+
+    @Test
+    public void testLazyStartFirstPeriodSamplesExactlyTarget() {
+        int target = 10;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, 60, false, true);
+
+        int sampledCount = 0;
+        for (int i = 0; i < target + 5; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                sampledCount++;
+            }
+        }
+
+        assertEquals("First period in lazy-start mode should sample exactly target transactions", target, sampledCount);
+    }
+
+    @Test
+    public void testLazyStartSamplerTransactionsLapsingPastFirstPeriod() throws InterruptedException {
+        int target = 10;
+        int reportPeriodSeconds = 3;
+        int firstBurstCount = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriodSeconds, false, true);
+
+        int firstPeriodSampled = 0;
+        for (int i = 0; i < firstBurstCount; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                firstPeriodSampled++;
+            }
+        }
+        assertEquals("All partial-burst transactions should be sampled in the first period",
+                firstBurstCount, firstPeriodSampled);
+
+        // Delay past the period boundary, simulating an idle serverless function.
+        Thread.sleep(reportPeriodSeconds * 3000L);
+
+        int secondBurstSampled = 0;
+        for (int i = 0; i < target; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                secondBurstSampled++;
+            }
+        }
+
+        assertEquals("First period stats should roll over into sampledCountLast",
+                firstBurstCount, sampler.getSampledCountLastPeriod());
+        assertEquals("Second period should sample all transactions when seenLast is smaller than target",
+                target, secondBurstSampled);
+    }
+
+    @Test
+    public void testSamplerStartTimeSetAtConstruction() {
+        long beforeConstruction = System.currentTimeMillis();
+        AdaptiveSampler sampler = new AdaptiveSampler(10, 60);
+        long afterConstruction = System.currentTimeMillis();
+
+        long startTime = sampler.getStartTimeMillis();
+        assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime >= beforeConstruction);
+        assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime <= afterConstruction);
+    }
+
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
         //fastest we're going to go for this test is 1 request per ms.
         requestsPerSecond = Math.max(1000, requestsPerSecond);
