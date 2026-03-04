@@ -329,6 +329,44 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
+    public void testLazyStartSamplerTransactionsLapsingPastFirstPeriod() throws InterruptedException {
+        int target = 10;
+        int reportPeriodSeconds = 3;
+        int firstBurstCount = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriodSeconds, false, true);
+
+        int firstPeriodSampled = 0;
+        for (int i = 0; i < firstBurstCount; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                firstPeriodSampled++;
+            }
+        }
+        assertEquals("All partial-burst transactions should be sampled in the first period",
+                firstBurstCount, firstPeriodSampled);
+
+        // Delay past the period boundary, simulating an idle serverless function.
+        Thread.sleep(reportPeriodSeconds * 3000L);
+
+        int secondBurstSampled = 0;
+        for (int i = 0; i < target; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                secondBurstSampled++;
+            }
+        }
+
+        assertEquals("First period stats should roll over into sampledCountLast",
+                firstBurstCount, sampler.getSampledCountLastPeriod());
+        assertEquals("Second period should sample all transactions when seenLast is smaller than target",
+                target, secondBurstSampled);
+    }
+
+    @Test
     public void testSamplerStartTimeSetAtConstruction() {
         long beforeConstruction = System.currentTimeMillis();
         AdaptiveSampler sampler = new AdaptiveSampler(10, 60);
