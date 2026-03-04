@@ -41,7 +41,7 @@ public class AgentConfigHelper {
 
     private static final AtomicBoolean loggedDeprecationWarning = new AtomicBoolean(false);
 
-    public static boolean LambdaFunctionNameExists() {
+    public static boolean lambdaFunctionNameExists() {
         String val = System.getenv(AWS_LAMBDA_FUNCTION_NAME);
         return val != null && !val.isEmpty();
     }

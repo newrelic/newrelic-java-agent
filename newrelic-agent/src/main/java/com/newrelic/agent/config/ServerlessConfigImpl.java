@@ -44,7 +44,7 @@ public class ServerlessConfigImpl extends BaseConfig implements ServerlessConfig
     }
 
     private boolean createIsEnabled() {
-        if (AgentConfigHelper.LambdaFunctionNameExists()) {
+        if (AgentConfigHelper.lambdaFunctionNameExists()) {
             return true;
         }
         return getProperty(ENABLED, DEFAULT_ENABLED);
