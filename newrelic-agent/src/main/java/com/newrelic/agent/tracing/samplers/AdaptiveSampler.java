@@ -15,6 +15,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 public class AdaptiveSampler implements Sampler {
+    // Sentinel value for startTimeMillis indicating the sampling period has not yet started.
+    private static final long UNSTARTED_PERIOD_SENTINEL = 0L;
+
     //Configured values
     private final long reportPeriodMillis;
     private int target;
@@ -27,13 +30,6 @@ public class AdaptiveSampler implements Sampler {
     private int sampledCount;
     private int sampledCountLast;
     private boolean firstPeriod;
-
-    /**
-     * When true, the sampling period start time is deferred until the first calculatePriority() call
-     * rather than being set at construction. Used in serverless mode to anchor the period to the
-     * first transaction rather than sampler creation time.
-     */
-    private boolean lazyStart;
 
     private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
 
@@ -60,10 +56,9 @@ public class AdaptiveSampler implements Sampler {
         this.target = target;
         this.reportPeriodMillis = reportPeriodSeconds * 1000L;
         this.isSharedInstance = isSharedInstance;
-        this.lazyStart = lazyStart;
-        // In lazy-start mode, startTimeMillis=0 is a sentinel indicating the period has not yet started.
+        // In a deferred-start mode, startTimeMillis is set to UNSTARTED_PERIOD_SENTINEL.
         // It will be set to the current time on the first calculatePriority() call.
-        this.startTimeMillis = lazyStart ? 0L : System.currentTimeMillis();
+        this.startTimeMillis = lazyStart ? UNSTARTED_PERIOD_SENTINEL : System.currentTimeMillis();
         this.seen = 0;
         this.seenLast = 0;
         this.sampledCount = 0;
@@ -158,10 +153,9 @@ public class AdaptiveSampler implements Sampler {
 
     private void resetPeriodIfElapsed() {
         long now = System.currentTimeMillis();
-        if (startTimeMillis == 0L) {
+        if (startTimeMillis == UNSTARTED_PERIOD_SENTINEL) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Adaptive Sampler lazy-start: anchoring period to first transaction.");
             startTimeMillis = now;
-            lazyStart = false;
             return;
         }
         if (now - startTimeMillis >= reportPeriodMillis) {
@@ -212,11 +206,6 @@ public class AdaptiveSampler implements Sampler {
     @VisibleForTesting
     public int getTarget() {
         return target;
-    }
-
-    @VisibleForTesting
-    boolean isLazyStart() {
-        return lazyStart;
     }
 
     @VisibleForTesting

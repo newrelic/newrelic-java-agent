@@ -296,8 +296,7 @@ public class AdaptiveSamplerTest {
     public void testLazyStartSamplerPeriodAnchorsToFirstTransaction() {
         AdaptiveSampler sampler = new AdaptiveSampler(10, 60, false, true);
 
-        assertEquals("startTimeMillis should be 0 (unstarted) before first transaction", 0L, sampler.getStartTimeMillis());
-        assertTrue("isLazyStart should be true before first transaction", sampler.isLazyStart());
+        assertEquals("startTimeMillis should be 0 (unstarted) before first transaction in lazy-start mode", 0L, sampler.getStartTimeMillis());
 
         long beforeFirstTx = System.currentTimeMillis();
         Transaction tx = Mockito.mock(Transaction.class);
@@ -308,7 +307,7 @@ public class AdaptiveSamplerTest {
         long startTime = sampler.getStartTimeMillis();
         assertTrue("startTimeMillis should be set after first transaction", startTime >= beforeFirstTx);
         assertTrue("startTimeMillis should be set after first transaction", startTime <= afterFirstTx);
-        assertTrue("isLazyStart should be false after period is anchored", !sampler.isLazyStart());
+        assertTrue("startTimeMillis should be set (non-zero) after period is anchored", sampler.getStartTimeMillis() != 0L);
     }
 
     @Test
@@ -330,7 +329,7 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
-    public void testNonLazyStartSamplerStartTimeSetAtConstruction() {
+    public void testSamplerStartTimeSetAtConstruction() {
         long beforeConstruction = System.currentTimeMillis();
         AdaptiveSampler sampler = new AdaptiveSampler(10, 60);
         long afterConstruction = System.currentTimeMillis();
@@ -338,7 +337,6 @@ public class AdaptiveSamplerTest {
         long startTime = sampler.getStartTimeMillis();
         assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime >= beforeConstruction);
         assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime <= afterConstruction);
-        assertTrue("Non-lazy sampler should not be in lazy-start mode", !sampler.isLazyStart());
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
