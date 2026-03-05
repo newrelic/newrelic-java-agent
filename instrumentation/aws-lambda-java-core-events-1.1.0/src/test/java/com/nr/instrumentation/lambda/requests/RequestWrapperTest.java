@@ -88,10 +88,9 @@ public class RequestWrapperTest {
     @Test
     public void testAPIGatewayV2HTTPEvent() {
         APIGatewayV2HTTPEvent.RequestContext requestContext = new APIGatewayV2HTTPEvent.RequestContext();
-        requestContext.setHttp(APIGatewayV2HTTPEvent.RequestContext.Http.builder().withMethod("GET").build());
+        requestContext.setHttp(APIGatewayV2HTTPEvent.RequestContext.Http.builder().withMethod("GET").withPath("/example").build());
         APIGatewayV2HTTPEvent apiGatewayV2Event = new APIGatewayV2HTTPEvent();
         apiGatewayV2Event.setRequestContext(requestContext);
-        apiGatewayV2Event.setRawPath("/example");
         Map<String, String> headers = new HashMap<>();
         headers.put("K", "V");
         apiGatewayV2Event.setCookies(Collections.singletonList("csrftoken=u32t4o3tb3gg43"));
