@@ -11,10 +11,14 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
     private final APIGatewayV2HTTPEvent event;
@@ -43,11 +47,11 @@ public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
 
     @Override
     public String getHeader(String name) {
-        Map<String, String> headers = event.getHeaders();
-        if (headers == null) {
+        List<String> values = getHeaders(name);
+        if (values == null || values.isEmpty()) {
             return null;
         }
-        return event.getHeaders().get(name);
+        return values.get(0);
     }
 
     @Override
@@ -115,9 +119,17 @@ public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
     @Override
     public List<String> getHeaders(String name) {
         if (event.getHeaders() == null) {
-            return Collections.emptyList();
+            return null;
         }
 
-        return Collections.singletonList(event.getHeaders().get(name));
+        String value = event.getHeaders().get(name);
+        if (value != null) {
+            ArrayList<String> values = new ArrayList<>();
+            for (String v: value.split("[,;]")) {
+                values.add(v.trim());
+            }
+            return values;
+        }
+        return null;
     }
 }

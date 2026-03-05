@@ -11,10 +11,13 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.HeaderType;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
     private final APIGatewayProxyRequestEvent event;
@@ -44,10 +47,11 @@ public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
 
     @Override
     public String getHeader(String name) {
-        if (event.getHeaders() == null) {
+        List<String> values = getHeaders(name);
+        if (values == null || values.isEmpty()) {
             return null;
         }
-        return event.getHeaders().get(name);
+        return values.get(0);
     }
 
     @Override
@@ -60,15 +64,34 @@ public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
     public Enumeration getParameterNames() {
         Map<String, String> parameters = event.getQueryStringParameters();
         if (parameters == null) {
-            return Collections.emptyEnumeration();
+            parameters = Collections.emptyMap();
         }
-        return Collections.enumeration(event.getQueryStringParameters().keySet());
+        Map<String, List<String>> multiValueParams = event.getMultiValueQueryStringParameters();
+        if (multiValueParams == null) {
+            multiValueParams = Collections.emptyMap();
+        }
+        Set<String> keys = new HashSet<>();
+        keys.addAll(parameters.keySet());
+        keys.addAll(multiValueParams.keySet());
+        return Collections.enumeration(keys);
     }
 
     @Override
     public String[] getParameterValues(String name) {
         Map<String, String> parameters = event.getQueryStringParameters();
-        if (parameters != null && parameters.containsKey(name)) {
+        if (parameters == null) {
+            parameters = Collections.emptyMap();
+        }
+        Map<String, List<String>> multiValueParams = event.getMultiValueQueryStringParameters();
+        if (multiValueParams == null) {
+            multiValueParams = Collections.emptyMap();
+        }
+
+        if (multiValueParams.containsKey(name)) {
+            return multiValueParams.get(name).toArray(new String[0]);
+        }
+
+        if (parameters.containsKey(name)) {
             return new String[]{parameters.get(name)};
         }
         return new String[0];
@@ -115,10 +138,21 @@ public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
 
     @Override
     public List<String> getHeaders(String name) {
-        if (event.getHeaders() == null) {
-            return Collections.emptyList();
+        Map<String, String> headers = (event.getHeaders() == null) ? Collections.emptyMap() : event.getHeaders();
+        Map<String, List<String>> multiValueHeaders = (event.getMultiValueHeaders() == null) ? Collections.emptyMap() : event.getMultiValueHeaders();
+
+        if (multiValueHeaders.containsKey(name)) {
+            return multiValueHeaders.get(name);
         }
 
-        return Collections.singletonList(event.getHeaders().get(name));
+        String value = headers.get(name);
+        if (value != null) {
+            ArrayList<String> values = new ArrayList<>();
+            for (String v: value.split("[,;]")) {
+                values.add(v.trim());
+            }
+            return values;
+        }
+        return null;
     }
 }

@@ -14,6 +14,7 @@ import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -27,7 +28,9 @@ public class ResponseWrapperTest {
         APIGatewayProxyResponseEvent event = new APIGatewayProxyResponseEvent();
         event.setStatusCode(200);
         event.setBody("Hello World");
-        assertResponseWrapper(new APIGatewayProxyResponseWrapper(event), event::getHeaders);
+        APIGatewayProxyResponseWrapper wrapper = new APIGatewayProxyResponseWrapper(event);
+        assertResponseWrapper(wrapper, event::getHeaders, event::getMultiValueHeaders);
+        assertNull(wrapper.getStatusMessage());
     }
 
     @Test
@@ -35,7 +38,9 @@ public class ResponseWrapperTest {
         APIGatewayV2HTTPResponse event = new APIGatewayV2HTTPResponse();
         event.setStatusCode(200);
         event.setBody("Hello World");
-        assertResponseWrapper(new APIGatewayV2HttpResponseWrapper(event), event::getHeaders);
+        APIGatewayV2HttpResponseWrapper wrapper = new APIGatewayV2HttpResponseWrapper(event);
+        assertResponseWrapper(wrapper, event::getHeaders, event::getMultiValueHeaders);
+        assertNull(wrapper.getStatusMessage());
     }
 
     @Test
@@ -43,10 +48,14 @@ public class ResponseWrapperTest {
         ApplicationLoadBalancerResponseEvent event = new ApplicationLoadBalancerResponseEvent();
         event.setStatusCode(200);
         event.setBody("Hello World");
-        assertResponseWrapper(new ApplicationLoadBalancerResponseWrapper(event), event::getHeaders);
+        event.setStatusDescription("My Description");
+        ApplicationLoadBalancerResponseWrapper wrapper = new  ApplicationLoadBalancerResponseWrapper(event);
+        assertResponseWrapper(wrapper, event::getHeaders, event::getMultiValueHeaders);
+        assertEquals("My Description", wrapper.getStatusMessage());
     }
 
-    public void assertResponseWrapper(ExtendedResponse response, Supplier<Map<String, String>> headersSupplier) throws Exception {
+    public void assertResponseWrapper(ExtendedResponse response, Supplier<Map<String, String>> headersSupplier,
+            Supplier<Map<String, List<String>>> multiValueHeadersSupplier) throws Exception {
         assertEquals(HeaderType.HTTP, response.getHeaderType());
         assertEquals(200, response.getStatus());
         assertTrue(response.getContentLength() > 0);
@@ -63,6 +72,19 @@ public class ResponseWrapperTest {
         assertEquals("text/plain", response.getContentType());
         assertEquals(10, response.getContentLength());
         assertEquals("V", headersSupplier.get().get("K"));
+        assertEquals(0, multiValueHeadersSupplier.get().size());
 
+        response.setHeader("K", "V2");
+        assertEquals("V, V2", headersSupplier.get().get("K"));
+        assertEquals(2, multiValueHeadersSupplier.get().get("K").size());
+        assertEquals("V", multiValueHeadersSupplier.get().get("K").get(0));
+        assertEquals("V2", multiValueHeadersSupplier.get().get("K").get(1));
+
+        response.setHeader("K", "V3");
+        assertEquals("V, V2, V3", headersSupplier.get().get("K"));
+        assertEquals(3, multiValueHeadersSupplier.get().get("K").size());
+        assertEquals("V", multiValueHeadersSupplier.get().get("K").get(0));
+        assertEquals("V2", multiValueHeadersSupplier.get().get("K").get(1));
+        assertEquals("V3", multiValueHeadersSupplier.get().get("K").get(2));
     }
 }
