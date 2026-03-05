@@ -80,7 +80,7 @@ public class APIGatewayV2HttpResponseWrapper extends ExtendedResponse {
             String contentLengthHeader = response.getHeaders().get("Content-Length");
             return Long.parseLong(contentLengthHeader);
         } catch (NumberFormatException e) {
-            return response.getBody().getBytes(StandardCharsets.UTF_8).length;
+            return response.getBody() == null ? 0 : response.getBody().getBytes(StandardCharsets.UTF_8).length;
         }
     }
 }

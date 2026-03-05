@@ -75,12 +75,12 @@ public class ApplicationLoadBalancerResponseWrapper extends ExtendedResponse {
     public long getContentLength() {
         try {
             if (response.getHeaders() == null) {
-                return response.getBody() == null ? 0 : response.getBody().length();
+                return response.getBody() == null ? 0 : response.getBody().getBytes(StandardCharsets.UTF_8).length;
             }
             String contentLengthHeader = response.getHeaders().get("Content-Length");
             return Long.parseLong(contentLengthHeader);
         } catch (NumberFormatException e) {
-            return response.getBody().getBytes(StandardCharsets.UTF_8).length;
+            return response.getBody() == null ? 0 : response.getBody().getBytes(StandardCharsets.UTF_8).length;
         }
     }
 }
