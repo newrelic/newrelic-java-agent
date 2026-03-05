@@ -13,10 +13,11 @@ import com.newrelic.api.agent.HeaderType;
 
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
-    private APIGatewayProxyRequestEvent event;
+    private final APIGatewayProxyRequestEvent event;
 
     public APIGatewayProxyRequestWrapper(APIGatewayProxyRequestEvent event) {
         super();
@@ -68,7 +69,7 @@ public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
     public String[] getParameterValues(String name) {
         Map<String, String> parameters = event.getQueryStringParameters();
         if (parameters != null && parameters.containsKey(name)) {
-            return event.getMultiValueQueryStringParameters().get(name).toArray(new String[0]);
+            return new String[]{parameters.get(name)};
         }
         return new String[0];
     }
@@ -105,6 +106,19 @@ public class APIGatewayProxyRequestWrapper extends ExtendedRequest {
 
     @Override
     public String getMethod() {
-        return event.getHttpMethod();
+        String method = event.getHttpMethod();
+        if (method == null && event.getRequestContext() != null) {
+            return event.getRequestContext().getHttpMethod();
+        }
+        return method;
+    }
+
+    @Override
+    public List<String> getHeaders(String name) {
+        if (event.getHeaders() == null) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singletonList(event.getHeaders().get(name));
     }
 }

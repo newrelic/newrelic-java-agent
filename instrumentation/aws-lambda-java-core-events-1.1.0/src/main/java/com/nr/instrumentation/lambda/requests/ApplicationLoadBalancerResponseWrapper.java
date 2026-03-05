@@ -12,7 +12,8 @@ import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ApplicationLoadBalancerResponseWrapper extends ExtendedResponse {
     private final ApplicationLoadBalancerResponseEvent response;
@@ -28,7 +29,10 @@ public class ApplicationLoadBalancerResponseWrapper extends ExtendedResponse {
 
     @Override
     public void setHeader(String name, String value) {
-        response.setHeaders(Collections.singletonMap(name, value));
+        Map<String, String> headers = (response.getHeaders() == null) ? new HashMap<>() : new HashMap<>(response.getHeaders());
+        headers.put(name, value);
+
+        response.setHeaders(headers);
     }
 
     @Override
@@ -43,12 +47,18 @@ public class ApplicationLoadBalancerResponseWrapper extends ExtendedResponse {
 
     @Override
     public String getContentType() {
-        return response.getHeaders().get("Content-Type");
+        if (response.getHeaders() != null) {
+            return response.getHeaders().get("Content-Type");
+        }
+        return null;
     }
 
     @Override
     public long getContentLength() {
         try {
+            if (response.getHeaders() == null) {
+                return response.getBody() == null ? 0 : response.getBody().length();
+            }
             String contentLengthHeader = response.getHeaders().get("Content-Length");
             return Long.parseLong(contentLengthHeader);
         } catch (NumberFormatException e) {

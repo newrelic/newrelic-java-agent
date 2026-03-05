@@ -13,10 +13,11 @@ import com.newrelic.api.agent.HeaderType;
 
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 public class ApplicationLoadBalancerRequestWrapper extends ExtendedRequest {
-    private ApplicationLoadBalancerRequestEvent event;
+    private final ApplicationLoadBalancerRequestEvent event;
 
     public ApplicationLoadBalancerRequestWrapper(ApplicationLoadBalancerRequestEvent event) {
         super();
@@ -30,7 +31,10 @@ public class ApplicationLoadBalancerRequestWrapper extends ExtendedRequest {
 
     @Override
     public String getHeader(String name) {
-        return event.getHeaders().get(name);
+        if (event.getHeaders() != null) {
+            return event.getHeaders().get(name);
+        }
+        return null;
     }
 
     @Override
@@ -89,5 +93,14 @@ public class ApplicationLoadBalancerRequestWrapper extends ExtendedRequest {
     @Override
     public String getMethod() {
         return event.getHttpMethod();
+    }
+
+    @Override
+    public List<String> getHeaders(String name) {
+        if (event.getHeaders() == null) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singletonList(event.getHeaders().get(name));
     }
 }

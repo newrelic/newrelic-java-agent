@@ -13,10 +13,11 @@ import com.newrelic.api.agent.HeaderType;
 
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 
 public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
-    private APIGatewayV2HTTPEvent event;
+    private final APIGatewayV2HTTPEvent event;
 
     public APIGatewayV2HttpRequestWrapper(APIGatewayV2HTTPEvent event) {
         super();
@@ -66,11 +67,11 @@ public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
 
     @Override
     public String[] getParameterValues(String name) {
-        Map<String, String> headers = event.getQueryStringParameters();
-        if (headers == null) {
+        Map<String, String> parameters = event.getQueryStringParameters();
+        if (parameters == null) {
             return new String[0];
         }
-        return new String[]{headers.get(name)};
+        return new String[]{parameters.get(name)};
     }
 
     @Override
@@ -109,5 +110,14 @@ public class APIGatewayV2HttpRequestWrapper extends ExtendedRequest {
             }
         }
         return null;
+    }
+
+    @Override
+    public List<String> getHeaders(String name) {
+        if (event.getHeaders() == null) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singletonList(event.getHeaders().get(name));
     }
 }

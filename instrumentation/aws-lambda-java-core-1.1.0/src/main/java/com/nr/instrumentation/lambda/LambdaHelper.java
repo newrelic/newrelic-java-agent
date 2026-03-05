@@ -48,11 +48,11 @@ public class LambdaHelper {
      * @return true if metadata was captured successfully, false otherwise
      */
     public static boolean startTransaction(Context context, Object event) {
-        nameTransaction(context);
         if (context == null) {
             NewRelic.getAgent().getLogger().log(Level.FINE, "Lambda Context is null, cannot capture metadata");
             return false;
         }
+        nameTransaction(context);
 
         try {
             Transaction transaction = AgentBridge.getAgent().getTransaction(false);
