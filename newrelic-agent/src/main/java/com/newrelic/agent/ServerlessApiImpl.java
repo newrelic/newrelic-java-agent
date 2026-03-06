@@ -8,6 +8,7 @@
 package com.newrelic.agent;
 
 import com.newrelic.agent.bridge.ServerlessApi;
+import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,5 +44,10 @@ public class ServerlessApiImpl implements ServerlessApi {
     @Override
     public String getFunctionVersion() {
         return functionVersion.get();
+    }
+
+    @Override
+    public boolean isApmLambdaModeEnabled() {
+        return ServiceFactory.getConfigService().getDefaultAgentConfig().isApmLambdaModeEnabled();
     }
 }

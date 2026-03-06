@@ -28,4 +28,9 @@ public class NoOpServerlessApi implements ServerlessApi {
     public String getFunctionVersion() {
         return null;
     }
+
+    @Override
+    public boolean isApmLambdaModeEnabled() {
+        return false;
+    }
 }
