@@ -87,6 +87,7 @@ public class AgentLinkingMetadataTest {
         when(configServiceMock.getDefaultAgentConfig()).thenReturn(agentConfigMock);
         when(agentConfigMock.getApplicationName()).thenReturn(expectedEntityName);
         when(rpmServiceMock.getEntityGuid()).thenReturn(expectedEntityGuid);
+        when(rpmServiceMock.getApplicationName()).thenReturn(expectedEntityName);
 
         // Then
         Map<String, String> linkingMetadata = AgentLinkingMetadata.getLinkingMetadata(traceMetadataMock, ServiceFactory.getConfigService(),
@@ -133,6 +134,7 @@ public class AgentLinkingMetadataTest {
         when(configServiceMock.getDefaultAgentConfig()).thenReturn(agentConfigMock);
         when(agentConfigMock.getApplicationName()).thenReturn(expectedEntityName);
         when(rpmServiceMock.getEntityGuid()).thenReturn(expectedEntityGuid);
+        when(rpmServiceMock.getApplicationName()).thenReturn(expectedEntityName);
 
         // Then
         Map<String, String> linkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(traceMetadataMock, ServiceFactory.getConfigService(),
@@ -177,6 +179,7 @@ public class AgentLinkingMetadataTest {
         when(configServiceMock.getDefaultAgentConfig()).thenReturn(agentConfigMock);
         when(agentConfigMock.getApplicationName()).thenReturn(expectedEntityName);
         when(rpmServiceMock.getEntityGuid()).thenReturn(expectedEntityGuid);
+        when(rpmServiceMock.getApplicationName()).thenReturn(expectedEntityName);
 
         // Then
         Map<String, String> linkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(traceMetadataMock, ServiceFactory.getConfigService(),
