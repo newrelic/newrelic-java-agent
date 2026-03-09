@@ -8,7 +8,6 @@
 package com.newrelic.agent.tracing;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ConnectionListener;
 import com.newrelic.agent.ExtendedTransactionListener;
@@ -18,10 +17,9 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
-import com.newrelic.agent.config.coretracing.CoreTracingConfig;
 import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
 import com.newrelic.agent.tracing.samplers.Sampler;
-import com.newrelic.agent.tracing.samplers.SamplerFactory;
+import com.newrelic.agent.tracing.samplers.SamplerManager;
 import com.newrelic.agent.tracing.samplers.SamplerType;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
@@ -60,10 +58,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     private final AtomicBoolean firstHarvest = new AtomicBoolean(true);
 
     private DistributedTracingConfig distributedTraceConfig;
-
-    private ImmutableMap<SamplerCase, Sampler> fullGranularitySamplers;
-    private ImmutableMap<SamplerCase, Sampler> partialGranularitySamplers;
     private final Transaction.PartialSampleType partialSampleType;
+    private final SamplerManager samplerManager;
 
     public enum SamplerCase {
         ROOT("Root"),
@@ -102,12 +98,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
-
-        //Initially, set up the samplers based on local config.
-        //The adaptive sampler (SAMPLE_DEFAULT) will have its target overridden when we receive the connect response later.
-        fullGranularitySamplers = initSamplers(distributedTraceConfig.getFullGranularityConfig());
-        partialGranularitySamplers = initSamplers(distributedTraceConfig.getPartialGranularityConfig());
-        partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
+        this.samplerManager = new SamplerManager(distributedTraceConfig);
+        this.partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
     }
 
     @Override
@@ -216,14 +208,15 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         if (!isEnabled() || (!isFullGranularityEnabled() && !isPartialGranularityEnabled())){
             return priority;
         }
+        String appName = tx.getApplicationName();
         Sampler sampler;
         if (isFullGranularityEnabled()) {
-            sampler = fullGranularitySamplers.get(samplerCase);
+            sampler = samplerManager.getSampler(appName, Granularity.FULL, samplerCase);
             priority = sampler.calculatePriority(tx, Granularity.FULL);
             logSamplerDebug(tx, priority, samplerCase, sampler, Granularity.FULL);
         }
         if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
-            sampler = partialGranularitySamplers.get(samplerCase);
+            sampler = samplerManager.getSampler(appName, Granularity.PARTIAL, samplerCase);
             priority = sampler.calculatePriority(tx, Granularity.PARTIAL);
             if (DistributedTraceUtil.isSampledPriority(priority)) {
                 NewRelic.getAgent().getLogger().log(Level.FINEST, "Setting partial granularity sample type to {0} for transaction {1}", partialSampleType, tx);
@@ -403,7 +396,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     public void configChanged(String appName, AgentConfig agentConfig) {
         boolean wasEnabled = isEnabled();
         this.distributedTraceConfig = agentConfig.getDistributedTracingConfig();
-
         if (!wasEnabled && isEnabled()) {
             StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING);
@@ -414,14 +406,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     public Transaction.PartialSampleType getPartialSampleType() {
         return partialSampleType;
-    }
-
-    private ImmutableMap<SamplerCase, Sampler> initSamplers(CoreTracingConfig coreTracingConfig) {
-        return ImmutableMap.of(
-                SamplerCase.ROOT, SamplerFactory.createSampler(coreTracingConfig.getRootSampler()),
-                SamplerCase.REMOTE_PARENT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentSampledSampler()),
-                SamplerCase.REMOTE_PARENT_NOT_SAMPLED, SamplerFactory.createSampler(coreTracingConfig.getRemoteParentNotSampledSampler())
-        );
     }
 
     public boolean isFullGranularityEnabled(){
@@ -436,7 +420,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         if (isEnabled()) {
             if (isFullGranularityEnabled()) {
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    Sampler sampler = fullGranularitySamplers.get(samplerCase);
+                    Sampler sampler = samplerManager.getDefaultSampler(Granularity.FULL, samplerCase);
                     String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
                             sampler.getType().getDisplayName());
                     if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
@@ -447,7 +431,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
             }
             if (isPartialGranularityEnabled()) {
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    Sampler sampler = partialGranularitySamplers.get(samplerCase);
+                    Sampler sampler = samplerManager.getDefaultSampler(Granularity.PARTIAL, samplerCase);
                     String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
                             sampler.getType().getDisplayName());
                     if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
@@ -477,27 +461,18 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     //Testing-only utility methods. These are NOT thread-safe.
 
     @VisibleForTesting
-    ImmutableMap<SamplerCase, Sampler> getFullGranularitySamplers() {
-        return fullGranularitySamplers;
+    Sampler getSampler(Granularity granularity, SamplerCase samplerCase) {
+        return samplerManager.getDefaultSampler(granularity, samplerCase);
     }
 
     @VisibleForTesting
-    ImmutableMap<SamplerCase, Sampler> getPartialGranularitySamplers() {
-        return partialGranularitySamplers;
+    Sampler getSampler(String appName, Granularity granularity, SamplerCase samplerCase) {
+        return samplerManager.getSampler(appName, granularity, samplerCase);
     }
 
     @VisibleForTesting
     void setSampler(Granularity granularity, SamplerCase samplerCase, Sampler sampler) {
-        if (granularity == Granularity.FULL) {
-            Map<SamplerCase, Sampler> newSamplers = new HashMap<>(fullGranularitySamplers);
-            newSamplers.put(samplerCase, sampler);
-            fullGranularitySamplers = ImmutableMap.copyOf(newSamplers);
-        } else {
-            Map<SamplerCase, Sampler> newSamplers = new HashMap<>(partialGranularitySamplers);
-            newSamplers.put(samplerCase, sampler);
-            partialGranularitySamplers = ImmutableMap.copyOf(newSamplers);
-        }
-
+        samplerManager.setDefaultSampler(granularity, samplerCase, sampler);
     }
 
 }

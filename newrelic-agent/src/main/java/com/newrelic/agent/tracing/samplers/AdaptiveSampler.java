@@ -11,6 +11,8 @@ import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
@@ -28,19 +30,18 @@ public class AdaptiveSampler implements Sampler {
     private int sampledCountLast;
     private boolean firstPeriod;
 
-    private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
+    private static final ConcurrentMap<String, AdaptiveSampler> SHARED_SAMPLER_FOR_APP = new ConcurrentHashMap<>();
 
     /**
      * Package-protected constructor for creating non-shared AdaptiveSampler instances.
      * <p>
      * This constructor always creates non-shared instances (isSharedInstance=false).
-     * To obtain the shared singleton instance, use {@link #getSharedInstance()} instead.
-     * External callers should use {@link #getAdaptiveSampler(SamplerConfig)}.
+     * To obtain the shared singleton instance, use {@link #getSharedInstanceForApp(String)} instead.
+     * External callers should use {@link #getAdaptiveSampler(String, SamplerConfig)}.
      *
      * @param target the sampling target
      * @param reportPeriodSeconds the reporting period in seconds
      */
-
     protected AdaptiveSampler(int target, int reportPeriodSeconds) {
         this(target, reportPeriodSeconds, false);
     }
@@ -60,50 +61,48 @@ public class AdaptiveSampler implements Sampler {
     }
 
     /**
-     * Factory method for getting a shared instance of the adaptive sampler.
-     * This is the instance used when a top-level sampling target only is specified.
-     * Its state may be shared across multiple contexts using adaptive sampling, which is why
-     * it is a singleton.
-     * <p>
-     * Lazy-instantiated.
-     * Currently managed via synchronized as it should only be accessed a few times,
-     * when DistributedTraceImpl class is initialized.
+     * Factory method for getting an adaptive sampler instance. This is the preferred way of constructing or retrieving an AdaptiveSampler.
      *
-     * @return The AdaptiveSampler instance.
+     * @param appName The appName to get the Sampler for. Must not be null.
+     * @param config The sampler config to use when building the AdaptiveSampler.
+     * @return The AdaptiveSampler for the app and config.
      */
-    public static synchronized AdaptiveSampler getSharedInstance() {
-        if (SAMPLER_SHARED_INSTANCE == null) {
-            AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true);
-        }
-        return SAMPLER_SHARED_INSTANCE;
-    }
-
-    public static AdaptiveSampler getAdaptiveSampler(SamplerConfig config) {
+    public static AdaptiveSampler getAdaptiveSampler(String appName, SamplerConfig config) {
         Integer target = config.getSamplingTarget();
         if (target == null) {
-            return getSharedInstance();
+            return getSharedInstanceForApp(appName);
         } else {
             return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
         }
     }
 
+    @VisibleForTesting
+    protected static AdaptiveSampler getSharedInstanceForApp(String appName) {
+        return SHARED_SAMPLER_FOR_APP.computeIfAbsent(appName, k -> {
+            AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
+            return new AdaptiveSampler(
+                    config.getAdaptiveSamplingTarget(),
+                    config.getAdaptiveSamplingPeriodSeconds(),
+                    true
+            );
+        });
+    }
+
     /**
-     * Updates the SHARED_SAMPLER_INSTANCE to use a new target.
-     * If the SHARED_SAMPLER_INSTANCE isn't already running, this method is a no-op.
+     * Updates every sampler in SHARED_SAMPLER_INSTANCE_FOR_APP to use a new target.
+     * If the SHARED_SAMPLER_INSTANCE_FOR_APP is empty, this method is a no-op.
      *
-     * @param newTarget the new target value the shared sampler instance should use
+     * @param newTarget the new target value the shared sampler instances should use
      */
     public static synchronized void setSharedTarget(int newTarget) {
-        if (SAMPLER_SHARED_INSTANCE != null) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "Updating shared Adaptive Sampler sampling target to " + newTarget);
-            getSharedInstance().setTarget(newTarget);
-
-            ServiceFactory.getStatsService()
-                    .doStatsWork(
-                            StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
-                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
+        NewRelic.getAgent().getLogger().log(Level.INFO, "Updating shared Adaptive Sampler sampling target to " + newTarget);
+        for (AdaptiveSampler sharedSampler : SHARED_SAMPLER_FOR_APP.values()) {
+            sharedSampler.setTarget(newTarget);
         }
+        ServiceFactory.getStatsService()
+                .doStatsWork(
+                        StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
+                        MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
     }
 
     /**
@@ -141,22 +140,6 @@ public class AdaptiveSampler implements Sampler {
         return isSharedInstance;
     }
 
-    private void resetPeriodIfElapsed() {
-        long now = System.currentTimeMillis();
-        if (now - startTimeMillis >= reportPeriodMillis) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting sampler period. Seen: " + seen + ", Sampled: " + sampledCount);
-            //Calculate elapsed periods so that the start time is consistently incremented
-            //in multiples of the report period.
-            int elapsedPeriods = (int) ((now - startTimeMillis) / reportPeriodMillis);
-            startTimeMillis += elapsedPeriods * reportPeriodMillis;
-            seenLast = seen;
-            seen = 0;
-            sampledCountLast = sampledCount;
-            sampledCount = 0;
-            firstPeriod = false;
-        }
-    }
-
     @VisibleForTesting
     protected boolean computeSampled() {
         boolean sampled;
@@ -176,6 +159,22 @@ public class AdaptiveSampler implements Sampler {
             sampledCount++;
         }
         return sampled;
+    }
+
+    private void resetPeriodIfElapsed() {
+        long now = System.currentTimeMillis();
+        if (now - startTimeMillis >= reportPeriodMillis) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Resetting sampler period. Seen: " + seen + ", Sampled: " + sampledCount);
+            //Calculate elapsed periods so that the start time is consistently incremented
+            //in multiples of the report period.
+            int elapsedPeriods = (int) ((now - startTimeMillis) / reportPeriodMillis);
+            startTimeMillis += elapsedPeriods * reportPeriodMillis;
+            seenLast = seen;
+            seen = 0;
+            sampledCountLast = sampledCount;
+            sampledCount = 0;
+            firstPeriod = false;
+        }
     }
 
     private synchronized void setTarget(int newTarget) {
@@ -198,7 +197,7 @@ public class AdaptiveSampler implements Sampler {
     //This is required in some tests, but should not be done in the wild.
     @VisibleForTesting
     public static void resetForTesting(){
-        SAMPLER_SHARED_INSTANCE = null;
+        SHARED_SAMPLER_FOR_APP.clear();
     }
 
 }

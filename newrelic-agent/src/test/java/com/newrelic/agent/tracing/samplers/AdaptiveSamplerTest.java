@@ -61,12 +61,13 @@ public class AdaptiveSamplerTest {
 
     @Test
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
+        String appName = "test";
         int DEFAULT_TARGET = 120;
         int DEFAULT_REPORT_PERIOD = 60;
         int numPeriods = 5;
         long testLengthMillis = DEFAULT_REPORT_PERIOD * numPeriods * 1000;
 
-        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstance();
+        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstanceForApp(appName);
         int totalSampled = runSamplerAndGetSampled(defaultSampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
@@ -205,13 +206,16 @@ public class AdaptiveSamplerTest {
     public void testGetAdaptiveSamplerInstanceFulfillsSingleton() throws InterruptedException, ExecutionException {
         //The sampler is REQUIRED to be a singleton instance.
         //This test verifies that access to the sampler always returns the same instance.
+        String appName = "test";
         ExecutorService executor = Executors.newFixedThreadPool(5);
         List<Future<?>> samplerArray = new ArrayList<>();
         for (int i = 0; i < 30; i++) {
-            Future<?> fut = executor.submit(AdaptiveSampler::getSharedInstance);
+            Future<?> fut = executor.submit(() -> {
+                AdaptiveSampler.getSharedInstanceForApp(appName);
+            });
             samplerArray.add(fut);
         }
-        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
+        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstanceForApp(appName);
         Assert.assertNotNull(baseSampler);
         for (Future<?> f : samplerArray) {
             assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
@@ -220,6 +224,9 @@ public class AdaptiveSamplerTest {
 
     @Test
     public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
+        //TODO: FIX THIS METHOD TO BE APP-AWARE
+        String appName = "MAIN APP";
+
         //both of these should use shared sampler instance, since sampling target is not specified
         SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
         when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
@@ -234,15 +241,15 @@ public class AdaptiveSamplerTest {
         SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
         when(samplerConfig5.getSamplingTarget()).thenReturn(12);
 
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig1));
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig2));
+        assertSame(AdaptiveSampler.getSharedInstanceForApp(appName), AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig1));
+        assertSame(AdaptiveSampler.getSharedInstanceForApp(appName), AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig2));
 
-        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(samplerConfig3);
-        assertNotSame(AdaptiveSampler.getSharedInstance(), sampler3);
+        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig3);
+        assertNotSame(AdaptiveSampler.getSharedInstanceForApp(appName), sampler3);
         assertEquals(120, sampler3.getTarget());
 
-        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(samplerConfig4);
-        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(samplerConfig5);
+        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig4);
+        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig5);
         assertEquals(12, sampler4.getTarget());
         assertEquals(12, sampler5.getTarget());
         assertNotSame(sampler4, sampler5);
