@@ -168,7 +168,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_LOG_LEVEL = "info";
     public static final int DEFAULT_LOG_LIMIT = 0;
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
+    // The US prod metric ingest URI only supports the newrelic.com domain,
+    // while the region aware versions of the URIs also support the nr-data.net domain
     public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
+    // The US prod event ingest URI only supports the newrelic.com domain,
+    // while the region aware versions of the URIs also support the nr-data.net domain
     public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
@@ -464,12 +468,10 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     /**
-     * If metric ingest URI was set explicitly, then always use it and don't construct the metric ingest URI from the region parsed from the
-     * license key. If the license key doesn't conform to protocol 15+, then return the default metric ingest URI, otherwise construct the
-     * new metric ingest URI using the region section of the license key.
-     * <p>
-     * US Prod metric ingest URI: https://metric-api.newrelic.com/metric/v1
-     * EU Prod metric ingest URI: https://metric-api.eu.newrelic.com/metric/v1
+     * If the metric ingest URI is explicitly configured, then use it. If the ingest URI
+     * is not configured, then attempt to derive it from the region section of the license
+     * key using the form https://metric-api.{REGION}.nr-data.net/metric/v1.
+     * If the region doesn't conform to protocol 15+, then return the default metric ingest URI.
      */
     private String parseMetricIngestUri(String region) {
         String metricIngestUri = getProperty(METRIC_INGEST_URI);
@@ -483,19 +485,17 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
             return DEFAULT_METRIC_INGEST_URI;
         }
 
-        metricIngestUri = "https://metric-api." + region + ".newrelic.com/metric/v1";
+        metricIngestUri = "https://metric-api." + region + ".nr-data.net/metric/v1";
         Agent.LOG.log(Level.INFO, "Using region aware metric ingest URI: {0}", metricIngestUri);
 
         return metricIngestUri;
     }
 
     /**
-     * If event ingest URI was set explicitly, then always use it and don't construct the event ingest URI from the region parsed from the
-     * license key. If the license key doesn't conform to protocol 15+, then return the default event ingest URI, otherwise construct the
-     * new event ingest URI using the region section of the license key.
-     * <p>
-     * US Prod event ingest URI: https://insights-collector.newrelic.com/v1/accounts/events
-     * EU Prod event ingest URI: https://insights-collector.eu01.nr-data.net/v1/accounts/events
+     * If the event ingest URI is explicitly configured, then use it. If the ingest URI
+     * is not configured, then attempt to derive it from the region section of the license
+     * key using the form https://insights-collector.{REGION}.nr-data.net/v1/accounts/events.
+     * If the region doesn't conform to protocol 15+, then return the default event ingest URI.
      */
     private String parseEventIngestUri(String region) {
         String eventIngestUri = getProperty(EVENT_INGEST_URI);
