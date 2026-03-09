@@ -31,9 +31,9 @@ public class AwsFargateMetadataFetcher {
     public InputStream openStream() throws IOException {
         URLConnection connection;
 
-        Agent.LOG.debug("Cloud Metadata Proxy Bypass Enabled: " + cloudConfig.isCloudMetadataProxyBypassEnabled());
+        Agent.LOG.debug("Cloud Metadata Bypass Proxy enabled: " + cloudConfig.isCloudMetadataBypassProxyEnabled());
 
-        if (cloudConfig.isCloudMetadataProxyBypassEnabled()) {
+        if (cloudConfig.isCloudMetadataBypassProxyEnabled()) {
             connection = url.openConnection(Proxy.NO_PROXY);
         } else {
             connection = url.openConnection();
