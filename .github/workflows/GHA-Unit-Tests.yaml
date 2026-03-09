@@ -44,9 +44,6 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Check J26-ea is available
-        run: ./gradlew properties | grep "jdk26"
-
       - name: Run unit tests (attempt 1)
         id: run_tests_1
         continue-on-error: true
