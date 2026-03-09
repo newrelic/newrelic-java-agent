@@ -10,6 +10,7 @@ package com.newrelic.agent.database;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.TransactionTracerConfig;
@@ -139,6 +140,9 @@ public class DatabaseService extends AbstractService implements AgentConfigListe
         } else {
             sqlObfuscators.remove(appName);
         }
+
+        // Force a reload of the SQL comment config settings cached by the JdbcHelper
+        JdbcHelper.invalidateMetadataCommentConfig();
     }
 
     public void runExplainPlan(SqlTracer sqlTracer) {

@@ -14,6 +14,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.AgentLinkingMetadata;
 import com.newrelic.agent.ExtendedTransactionListener;
 import com.newrelic.agent.Harvestable;
+import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.TraceMetadataImpl;
 import com.newrelic.agent.Transaction;
@@ -23,6 +24,7 @@ import com.newrelic.agent.attributes.DisabledExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilter;
 import com.newrelic.agent.attributes.ExcludeIncludeFilterImpl;
 import com.newrelic.agent.attributes.LogAttributeValidator;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import com.newrelic.agent.config.AgentConfig;
@@ -50,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -65,6 +68,8 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     private static boolean logLabelsEnabled;
     // Labels to be added to log events
     private static Map<String, String> labels;
+    // Denylist of log levels that should be blocked from being stored
+    private volatile Set<String> logLevelDenylist;
     // Key is the app name, value is if it is enabled - should be a limited number of names
     private final ConcurrentMap<String, Boolean> isEnabledForApp = new ConcurrentHashMap<>();
     // Number of log events in the reservoir sampling buffer per-app. All apps get the same value.
@@ -74,6 +79,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     // to properly calculate the per harvest cycle maxSamplesStored
     // we'll default to 5000, unless overridden
     volatile long reportPeriodInMillis = 5000;
+    private volatile boolean autoAppNamingAssociationEnabled;
     // Key is app name, value is collection of per-transaction log events for next harvest for that app.
     private final ConcurrentHashMap<String, DistributedSamplingPriorityQueue<LogEvent>> reservoirForApp = new ConcurrentHashMap<>();
 
@@ -123,20 +129,27 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
             forwardingEnabled = appLoggingConfig.isForwardingEnabled();
             contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
+            autoAppNamingAssociationEnabled = appLoggingConfig.isAutoAppNamingAssociationEnabled();
+            logLevelDenylist = appLoggingConfig.getLogLevelDenylist();
 
             boolean metricsEnabled = appLoggingConfig.isMetricsEnabled();
             boolean localDecoratingEnabled = appLoggingConfig.isLocalDecoratingEnabled();
-            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled);
+            boolean hasDenylist = logLevelDenylist != null && !logLevelDenylist.isEmpty();
+            recordApplicationLoggingSupportabilityMetrics(forwardingEnabled, metricsEnabled, localDecoratingEnabled, logLabelsEnabled, hasDenylist);
         }
     };
 
-    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled) {
+    public void recordApplicationLoggingSupportabilityMetrics(boolean forwardingEnabled, boolean metricsEnabled, boolean localDecoratingEnabled, boolean logLabelsEnabled, boolean hasDenylist) {
         StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
 
         if (forwardingEnabled) {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED);
         } else {
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED);
+        }
+
+        if (forwardingEnabled && hasDenylist) {
+            statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST);
         }
 
         if (metricsEnabled) {
@@ -167,9 +180,11 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         maxSamplesStored = (int) (appLoggingConfig.getMaxSamplesStored()*(reportPeriodInMillis / 60000.0));
         forwardingEnabled = appLoggingConfig.isForwardingEnabled();
+        autoAppNamingAssociationEnabled = appLoggingConfig.isAutoAppNamingAssociationEnabled();
         contextDataKeyFilter = createContextDataKeyFilter(appLoggingConfig);
         logLabelsEnabled = appLoggingConfig.isLogLabelsEnabled();
         labels = appLoggingConfig.removeExcludedLogLabels(config.getLabelsConfig().getLabels());
+        logLevelDenylist = appLoggingConfig.getLogLevelDenylist();
 
         isEnabledForApp.put(config.getApplicationName(), forwardingEnabled);
     }
@@ -234,7 +249,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      */
     @Override
     public void recordLogEvent(Map<LogAttributeKey, ?> attributes) {
-        if (logEventsDisabled() || attributes == null || attributes.isEmpty()) {
+        if (logEventsDisabled() || attributes == null || attributes.isEmpty() || shouldDenyLogLevel(attributes)) {
             return;
         }
 
@@ -361,7 +376,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             return;
         }
         DistributedSamplingPriorityQueue<LogEvent> eventList = getReservoir(appName);
-        eventList.add(createValidatedEvent(attributes, contextDataKeyFilter));
+        eventList.add(createValidatedEvent(attributes, contextDataKeyFilter, autoAppNamingAssociationEnabled));
         Agent.LOG.finest(MessageFormat.format("Added event of type {0}", LOG_EVENT_TYPE));
     }
 
@@ -381,6 +396,20 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
             return true; // LogEvents are disabled
         }
         return false; // LogEvents are enabled
+    }
+
+    /**
+     * Check the attribute map to see if the "level" attribute matches any level in the denylist.
+     *
+     * @return true if the "level" attribute in this map has a value that appears in the configured denylist, false otherwise.
+     */
+    private boolean shouldDenyLogLevel(Map<LogAttributeKey, ?> attributes) {
+        Object level = attributes.get(AppLoggingUtils.LEVEL);
+        if (level != null && logLevelDenylist != null && !logLevelDenylist.isEmpty()) {
+            String levelStr = level.toString().toUpperCase();
+            return logLevelDenylist.contains(levelStr);
+        }
+        return false;
     }
 
     /**
@@ -524,11 +553,20 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
      *
      * @param attributes           Map of attributes to create a LogEvent from
      * @param contextDataKeyFilter
+     * @param autoAppNamingAssociationEnabled true if enabled_auto_app_naming and auto_app_naming_association
+     * is also true. If true, logs will be associated with their corresponding entity and not the roll up
+     * entity.
+     *
      * @return LogEvent instance
      */
-    private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter) {
+    private static LogEvent createValidatedEvent(Map<LogAttributeKey, ?> attributes, ExcludeIncludeFilter contextDataKeyFilter,
+            boolean autoAppNamingAssociationEnabled) {
+        // Insure we get the correct RPMService instance if auto app naming is enabled
+        Transaction txn = ServiceFactory.getTransactionService().getTransaction(false);
+        IRPMService rpmService = (txn == null || !autoAppNamingAssociationEnabled) ? ServiceFactory.getRPMService() : ServiceFactory.getRPMServiceManager().getOrCreateRPMService(txn.getApplicationName());
+
         Map<String, String> logEventLinkingMetadata = AgentLinkingMetadata.getLogEventLinkingMetadata(TraceMetadataImpl.INSTANCE,
-                ServiceFactory.getConfigService(), ServiceFactory.getRPMService());
+                ServiceFactory.getConfigService(), rpmService);
         // Initialize new logEventAttributes map with agent linking metadata
         Map<String, Object> logEventAttributes = new HashMap<>(logEventLinkingMetadata);
 
@@ -621,11 +659,13 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
     public static final class TransactionLogs implements Logs {
         private final Queue<LogEvent> events;
         private final ExcludeIncludeFilter contextDataKeyFilter;
+        private final boolean autoAppNamingAssociationEnabled;
 
         TransactionLogs(AgentConfig config, ExcludeIncludeFilter contextDataKeyFilter) {
             int maxSamplesStored = config.getApplicationLoggingConfig().getMaxSamplesStored();
             events = maxSamplesStored == 0 ? NoOpQueue.getInstance() : new LinkedBlockingQueue<>(maxSamplesStored);
             this.contextDataKeyFilter = contextDataKeyFilter;
+            autoAppNamingAssociationEnabled = config.getApplicationLoggingConfig().isAutoAppNamingAssociationEnabled();
         }
 
         @Override
@@ -635,7 +675,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 return;
             }
 
-            LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter);
+            LogEvent event = createValidatedEvent(attributes, contextDataKeyFilter, autoAppNamingAssociationEnabled);
             if (events.offer(event)) {
                 Agent.LOG.log(Level.FINEST, "Added event of type {0} in Transaction.", LOG_EVENT_TYPE);
             } else {

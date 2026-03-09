@@ -24,10 +24,11 @@ jobs:
     name: Java ${{ matrix.java-version }}
     timeout-minutes: 120
     # needs: install-all-java
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m'"
     steps:
       - name: Checkout Java agent
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
@@ -51,7 +52,9 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Remove parallel from GRADLE_OPTIONS
-        run: echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
+        run: |
+          echo "GRADLE_OPTIONS=$GRADLE_OPTIONS" | sed "s/--parallel//" >> $GITHUB_ENV
+          echo "api.version=1.44" > $HOME/.docker-java.properties
 
       # GHA run instrumentation tests
 

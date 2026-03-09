@@ -18,8 +18,11 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Resin 3.1.9 to latest
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
+    * Tomcat v7.0.0 - v7.0.69 are only supported by Java agents prior to v3.43.0
+    * Tomcat v7.0.70 - v7.0.75 and v8.0.0 - v8.0.41 are only supported by Java agents prior to v3.43.0
+    * Tomcat v8.5.0 - v8.5.11 are only supported by Java agents prior to v3.43.0; 
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 14.1.1
+  * WebLogic 12.1.2.1 to 14.1.x
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
@@ -48,7 +51,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * GraphQL Java 21.0 to latest
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
-  * JAX-RS 1.0 to 4.0 (exclusive)
+  * JAX-RS 1.0 to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
@@ -57,6 +60,7 @@ This version of the Java Agent supports Java versions 8 - 25.
     * Scala 2.12: 2.0.6 to latest
     * Scala 2.13: 3.0.0 to latest
     * Scala 3: 3.4.0 to latest
+  * OpenTelemetry 1.26.0-alpha to 1.59.0 (exclusive)
   * Pekko 1.0.0 to latest
   * Pekko Http 1.0.0 to latest
     * Scala 2.13: 1.0.0 to latest
