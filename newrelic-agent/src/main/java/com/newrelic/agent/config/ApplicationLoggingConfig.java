@@ -95,6 +95,13 @@ public interface ApplicationLoggingConfig {
     Set<String> getLogLabelsExcludeSet();
 
     /**
+     * Return the enabled flag for the auto_app_naming_association flag
+     *
+     * @return true if auto_app_naming_association is enabled
+     */
+    boolean isAutoAppNamingAssociationEnabled();
+
+    /**
      * Get the set of log levels that should be blocked from being sent during Log Forwarding.
      * These are supplied in UPPERCASE format for case-insensitive comparison.
      *

@@ -48,7 +48,7 @@ public class ApplicationLoggingLabelsConfigTest {
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
                         new SaveSystemPropertyProviderRule.TestEnvironmentFacade()));
 
-        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
 
         assertTrue(config.getLoggingLabelsExcludeSet().contains("test1"));
         assertTrue(config.getLoggingLabelsExcludeSet().contains("test2"));
@@ -62,7 +62,7 @@ public class ApplicationLoggingLabelsConfigTest {
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
 
-        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
 
         assertTrue(config.getLoggingLabelsExcludeSet().contains("test1"));
         assertTrue(config.getLoggingLabelsExcludeSet().contains("test2"));
@@ -83,7 +83,7 @@ public class ApplicationLoggingLabelsConfigTest {
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
                         new SaveSystemPropertyProviderRule.TestEnvironmentFacade()));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertTrue(forwardingConfig.isLogLabelsEnabled());
     }
 
@@ -95,7 +95,7 @@ public class ApplicationLoggingLabelsConfigTest {
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props), //only test the system property
                         new SaveSystemPropertyProviderRule.TestEnvironmentFacade()));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertFalse(forwardingConfig.isLogLabelsEnabled());
     }
 
@@ -108,7 +108,7 @@ public class ApplicationLoggingLabelsConfigTest {
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(), //only test the system property
                         new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertTrue(forwardingConfig.isLogLabelsEnabled());
     }
 
@@ -121,7 +121,7 @@ public class ApplicationLoggingLabelsConfigTest {
                 new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(), //only test the system property
                         new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertFalse(forwardingConfig.isLogLabelsEnabled());
     }
 
@@ -133,7 +133,7 @@ public class ApplicationLoggingLabelsConfigTest {
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertTrue(forwardingConfig.isLogLabelsEnabled());
     }
 
@@ -145,7 +145,7 @@ public class ApplicationLoggingLabelsConfigTest {
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new SaveSystemPropertyProviderRule.TestSystemProps(props),
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(envVars)));
 
-        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false);
+        ApplicationLoggingForwardingConfig forwardingConfig = new ApplicationLoggingForwardingConfig(Collections.emptyMap(), PARENT_ROOT, false, false);
         assertFalse(forwardingConfig.isLogLabelsEnabled());
     }
 
