@@ -37,6 +37,8 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getO
 final class OpenTelemetrySDKCustomizer {
     static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
 
+    private static final String DEFAULT_COLLECTOR_HOST = "collector.newrelic.com";
+
     static Map<String, String> applyProperties(ConfigProperties configProperties) {
         return applyProperties(configProperties, NewRelic.getAgent());
     }
@@ -48,7 +50,13 @@ final class OpenTelemetrySDKCustomizer {
         final String existingEndpoint = configProperties.getString("otel.exporter.otlp.endpoint");
         if (existingEndpoint == null) {
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
-            final String host = agent.getConfig().getValue("host");
+            String host = agent.getConfig().getValue("host");
+            if (host == null) {
+                host = DEFAULT_COLLECTOR_HOST;
+                agent.getLogger().log(Level.WARNING,
+                        "No host was configured for the OpenTelemetry metrics exporter endpoint. The exporter will use the default host for the New Relic US Production region: {0}",
+                        DEFAULT_COLLECTOR_HOST);
+            }
             final String endpoint = "https://" + host + ":443";
             final String licenseKey = agent.getConfig().getValue("license_key");
             final Map<String, String> properties = new HashMap<>();
