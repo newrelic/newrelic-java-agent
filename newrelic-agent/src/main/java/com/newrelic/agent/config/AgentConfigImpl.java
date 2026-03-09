@@ -168,8 +168,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_LOG_LEVEL = "info";
     public static final int DEFAULT_LOG_LIMIT = 0;
     public static final int DEFAULT_MAX_STACK_TRACE_LINES = 30;
-    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.nr-data.net/metric/v1";
-    public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.nr-data.net/v1/accounts/events";
+    // The US prod metric ingest URI only supports the newrelic.com domain,
+    // while the region aware versions of the URIs also support the nr-data.net domain
+    public static final String DEFAULT_METRIC_INGEST_URI = "https://metric-api.newrelic.com/metric/v1";
+    // The US prod event ingest URI only supports the newrelic.com domain,
+    // while the region aware versions of the URIs also support the nr-data.net domain
+    public static final String DEFAULT_EVENT_INGEST_URI = "https://insights-collector.newrelic.com/v1/accounts/events";
     public static final boolean DEFAULT_PLATFORM_INFORMATION_ENABLED = true;
     public static final int DEFAULT_PORT = 80;
     public static final String DEFAULT_PROXY_HOST = null;
