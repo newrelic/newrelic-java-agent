@@ -161,9 +161,10 @@ public class Caffeine3CollectionFactory implements CollectionFactory {
             java.util.concurrent.TimeUnit unit,
             int initialCapacity,
             CacheRemovalListener<K, V> listener) {
+        // Note: Caffeine 3.x uses Duration instead of TimeUnit
         Cache<K, V> cache = Caffeine.newBuilder()
                 .initialCapacity(initialCapacity)
-                .expireAfterWrite(age, unit)
+                .expireAfterWrite(Duration.ofMillis(unit.toMillis(age)))
                 .executor(Runnable::run)
                 .removalListener((K key, V value, com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine.cache.RemovalCause cause) -> {
                     listener.onRemoval(key, value, convertRemovalCause(cause));
@@ -178,9 +179,10 @@ public class Caffeine3CollectionFactory implements CollectionFactory {
             java.util.concurrent.TimeUnit unit,
             int initialCapacity,
             CacheRemovalListener<K, V> listener) {
+        // Note: Caffeine 3.x uses Duration instead of TimeUnit
         Cache<K, V> cache = Caffeine.newBuilder()
                 .initialCapacity(initialCapacity)
-                .expireAfterAccess(age, unit)
+                .expireAfterAccess(Duration.ofMillis(unit.toMillis(age)))
                 .executor(Runnable::run)
                 .removalListener((K key, V value, com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine.cache.RemovalCause cause) -> {
                     listener.onRemoval(key, value, convertRemovalCause(cause));
