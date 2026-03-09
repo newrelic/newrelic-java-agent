@@ -18,17 +18,18 @@ runs:
       with:
         distribution: 'temurin'
         java-version: |
+          26-ea
           25
           21
           17
           11
           8
 
-    - name: Set up Java 26 EA on Zulu
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '26-ea'
+#    - name: Set up Java 26 EA on Zulu
+#      uses: actions/setup-java@v4
+#      with:
+#        distribution: 'zulu'
+#        java-version: '26-ea'
 
     - name: set gradle.properties
       shell: bash
