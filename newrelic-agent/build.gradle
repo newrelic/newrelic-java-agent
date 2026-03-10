@@ -394,6 +394,11 @@ task newrelicVersionedAgentJar(type: Jar) {
         }
     }
 
+    // Add Java 11+ classes to META-INF/versions/11/ for multi-release JAR support
+    into('META-INF/versions/11') {
+        from sourceSets.java11.output.classesDirs
+    }
+
     manifest {
         attributes 'Implementation-Title': 'New Relic Java Agent',
                 'Implementation-Version': project.version,
