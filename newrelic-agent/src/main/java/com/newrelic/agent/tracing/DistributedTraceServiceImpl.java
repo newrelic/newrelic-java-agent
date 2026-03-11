@@ -420,7 +420,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         if (isEnabled()) {
             if (isFullGranularityEnabled()) {
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    Sampler sampler = samplerManager.getDefaultSampler(Granularity.FULL, samplerCase);
+                    Sampler sampler = samplerManager.getSampler(Granularity.FULL, samplerCase);
                     String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
                             sampler.getType().getDisplayName());
                     if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
@@ -431,7 +431,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
             }
             if (isPartialGranularityEnabled()) {
                 for (SamplerCase samplerCase : SamplerCase.values()) {
-                    Sampler sampler = samplerManager.getDefaultSampler(Granularity.PARTIAL, samplerCase);
+                    Sampler sampler = samplerManager.getSampler(Granularity.PARTIAL, samplerCase);
                     String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
                             sampler.getType().getDisplayName());
                     if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
@@ -462,12 +462,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
     @VisibleForTesting
     Sampler getSampler(Granularity granularity, SamplerCase samplerCase) {
-        return samplerManager.getDefaultSampler(granularity, samplerCase);
-    }
-
-    @VisibleForTesting
-    Sampler getSampler(String appName, Granularity granularity, SamplerCase samplerCase) {
-        return samplerManager.getSampler(appName, granularity, samplerCase);
+        return samplerManager.getSampler(granularity, samplerCase);
     }
 
     @VisibleForTesting

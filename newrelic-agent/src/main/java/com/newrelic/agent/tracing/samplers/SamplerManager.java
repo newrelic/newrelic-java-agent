@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * To support auto-app naming, more sophisticated management of the Samplers is now required.
  */
 public class SamplerManager {
+    private static final String UNKNOWN_APP_NAME = "UKNOWN";
 
     private final CoreTracingConfig fullGranularityConfig;
     private final CoreTracingConfig partialGranularityConfig;
@@ -29,13 +30,11 @@ public class SamplerManager {
     public SamplerManager(DistributedTracingConfig config) {
         this.fullGranularityConfig = config.getFullGranularityConfig();
         this.partialGranularityConfig = config.getPartialGranularityConfig();
-        this.defaultAppName = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
-        this.defaultSamplers = buildSamplersGranularityMap(defaultAppName);
         this.autoAppNamingEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().isAutoAppNamingEnabled();
-    }
 
-    public Sampler getDefaultSampler(Granularity granularity, SamplerCase samplerCase) {
-        return getSampler(defaultAppName, granularity, samplerCase);
+        String defaultApp = ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationName();
+        this.defaultAppName =  defaultApp == null ? UNKNOWN_APP_NAME : defaultApp;
+        this.defaultSamplers = buildSamplersGranularityMap(defaultAppName);
     }
 
     public Sampler getSampler(String appName, Granularity granularity, SamplerCase samplerCase) {
@@ -44,6 +43,10 @@ public class SamplerManager {
         }
         samplersForApp.computeIfAbsent(appName, k -> buildSamplersGranularityMap(appName));
         return samplersForApp.get(appName).get(granularity).getCase(samplerCase);
+    }
+
+    public Sampler getSampler(Granularity granularity, SamplerCase samplerCase) {
+        return getSampler(defaultAppName, granularity, samplerCase);
     }
 
     private Map<Granularity, SamplerMap> buildSamplersGranularityMap(String appName) {

@@ -13,9 +13,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -297,6 +299,21 @@ public class AdaptiveSamplerTest {
         when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(0.0234f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.FULL), 0.0001f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
+    }
+
+    @Test
+    public void sharedSamplersShouldBeAppAware(){
+        //in this test, we verify that calling getAdaptiveSampler returns different instances for each calling app.
+        String[] appNames = {"app_one", "app_two", "app_three", "app_four", "app_five", "app_six", "app_one", "app_three"};
+
+        Set<Sampler> uniqueSamplers = new HashSet<>();
+        for (String appName : appNames) {
+            AdaptiveSampler sampler = AdaptiveSampler.getSharedInstanceForApp(appName);
+            uniqueSamplers.add(sampler);
+        }
+
+        //check that the uniqueSamplers was populated with six things (not one; not eight)
+        assertEquals(6, uniqueSamplers.size());
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {

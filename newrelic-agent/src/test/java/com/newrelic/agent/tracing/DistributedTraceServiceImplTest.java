@@ -667,6 +667,59 @@ public class DistributedTraceServiceImplTest {
     }
 
     @Test
+    public void samplingIsAppAwareWhenAutoAppNamingEnabled(){
+        //This test validates that
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("adaptive_sampling_target", 25)
+                .withSamplerSetting("root", "adaptive", "sampling_target", 10)
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .buildMainConfig();
+
+        //turn auto-app naming on.
+        config.put("enable_auto_app_naming", true);
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        String[] appNames = {"first_app", "second_app", "third_app"};
+        for (String appName : appNames) {
+            //first, create ROOT-sampled transaction events. These should be using instance-level samplers (whose target is 10). Each app should sample 10.
+            int sampledCount = 0;
+            for (int i = 0; i < 100; i++){
+                Transaction tx = Mockito.mock(Transaction.class);
+                when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+                when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+                when(tx.getApplicationName()).thenReturn(appName);
+                float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, ROOT);
+                if (DistributedTraceUtil.isSampledPriority(priority)){
+                    sampledCount++;
+                }
+            }
+            //each app should sample 10 root transactions.
+            assertEquals("Expected configured sampling_target=" + 10 + " root transactions to be sampled for app=" + appName + ", but actually sampled " + sampledCount, 10, sampledCount);
+
+            //Now, repeat with REMOTE_PARENT_SAMPLED transactions. These use a global sampler with a target of 25. Each app should sample 25.
+            sampledCount = 0;
+            for (int i = 0; i < 100; i++){
+                Transaction tx = Mockito.mock(Transaction.class);
+                when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+                when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+                when(tx.getApplicationName()).thenReturn(appName);
+                float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+                if (DistributedTraceUtil.isSampledPriority(priority)){
+                    sampledCount++;
+                }
+            }
+
+            assertEquals("Expected global target=" + 25 + " remote_parent_sampled transactions to be sampled for app=" + appName +", but actually sampled", 25,  sampledCount);
+        }
+    }
+
+    @Test
     public void testSpanEventsDisabled() {
         DistributedTracePayload payloadInterface = configureAndCreatePayload(false, false);
         assertTrue(payloadInterface instanceof DistributedTracePayloadImpl);

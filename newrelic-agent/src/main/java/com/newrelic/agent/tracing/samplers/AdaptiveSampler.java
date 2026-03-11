@@ -31,6 +31,7 @@ public class AdaptiveSampler implements Sampler {
     private boolean firstPeriod;
 
     private static final ConcurrentMap<String, AdaptiveSampler> SHARED_SAMPLER_FOR_APP = new ConcurrentHashMap<>();
+    private static final String UNKNOWN_APP_NAME = "UNKNOWN";
 
     /**
      * Package-protected constructor for creating non-shared AdaptiveSampler instances.
@@ -63,14 +64,14 @@ public class AdaptiveSampler implements Sampler {
     /**
      * Factory method for getting an adaptive sampler instance. This is the preferred way of constructing or retrieving an AdaptiveSampler.
      *
-     * @param appName The appName to get the Sampler for. Must not be null.
+     * @param appName The appName to get the Sampler for. If null, the associated app name will be "UNKNOWN".
      * @param config The sampler config to use when building the AdaptiveSampler.
      * @return The AdaptiveSampler for the app and config.
      */
     public static AdaptiveSampler getAdaptiveSampler(String appName, SamplerConfig config) {
         Integer target = config.getSamplingTarget();
         if (target == null) {
-            return getSharedInstanceForApp(appName);
+            return appName == null ? getSharedInstanceForApp(UNKNOWN_APP_NAME) : getSharedInstanceForApp(appName);
         } else {
             return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
         }
