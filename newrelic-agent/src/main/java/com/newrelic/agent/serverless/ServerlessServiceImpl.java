@@ -1,26 +1,17 @@
-/*
- *
- *  * Copyright 2025 New Relic Corporation. All rights reserved.
- *  * SPDX-License-Identifier: Apache-2.0
- *
- */
+package com.newrelic.agent.serverless;
 
-package com.newrelic.agent;
-
-import com.newrelic.agent.bridge.ServerlessApi;
+import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Implementation of ServerlessApi that stores serverless metadata for serverless mode.
- * This class acts as a bridge between serverless instrumentation and the core agent,
- * storing metadata that will be included in the serverless payload envelope.
- */
-public class ServerlessApiImpl implements ServerlessApi {
-
+public class ServerlessServiceImpl extends AbstractService implements ServerlessService {
     private final AtomicReference<String> arn = new AtomicReference<>();
     private final AtomicReference<String> functionVersion = new AtomicReference<>();
+
+    public ServerlessServiceImpl() {
+        super(ServerlessService.class.getSimpleName());
+    }
 
     @Override
     public void setArn(String arnValue) {
@@ -49,5 +40,20 @@ public class ServerlessApiImpl implements ServerlessApi {
     @Override
     public boolean isApmLambdaModeEnabled() {
         return ServiceFactory.getConfigService().getDefaultAgentConfig().isApmLambdaModeEnabled();
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled();
     }
 }

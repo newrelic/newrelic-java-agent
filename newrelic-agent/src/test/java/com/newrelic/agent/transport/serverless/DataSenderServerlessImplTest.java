@@ -12,6 +12,7 @@ import com.newrelic.agent.MetricData;
 import com.newrelic.agent.MockDispatcher;
 import com.newrelic.agent.MockRPMServiceManager;
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionDataTestBuilder;
@@ -106,7 +107,12 @@ public class DataSenderServerlessImplTest {
         Mockito.when(serverlessConfig.getFunctionVersion()).thenReturn("15");
 
         DataSenderServerlessConfig config = new DataSenderServerlessConfig("9.0.0", serverlessConfig);
-        this.dataSender = new DataSenderServerlessImpl(config, logger, serverlessWriter);
+
+        ServerlessService serverlessService = Mockito.mock(ServerlessService.class);
+        Mockito.when(serverlessService.getArn()).thenReturn("TMP_ARN");
+        Mockito.when(serverlessService.getFunctionVersion()).thenReturn("15");
+
+        this.dataSender = new DataSenderServerlessImpl(config, logger, serverlessService, serverlessWriter);
     }
 
     @Test

@@ -10,6 +10,7 @@ package com.newrelic.agent.service;
 import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.TransactionService;
@@ -88,6 +89,8 @@ public interface ServiceManager extends Service {
     CommandParser getCommandParser();
 
     RPMServiceManager getRPMServiceManager();
+
+    ServerlessService getServerlessService();
 
     SamplerService getSamplerService();
 

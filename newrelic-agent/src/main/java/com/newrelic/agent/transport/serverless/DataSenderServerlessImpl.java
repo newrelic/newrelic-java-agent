@@ -8,7 +8,7 @@
 package com.newrelic.agent.transport.serverless;
 
 import com.newrelic.agent.MetricData;
-import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -46,13 +46,15 @@ public class DataSenderServerlessImpl implements DataSender {
     private final DataSenderServerlessConfig config;
     private final String awsExecutionEnv;
     private final TelemetryBuffer buffer;
+    private final ServerlessService serverlessService;
 
-    public DataSenderServerlessImpl(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessWriter serverlessWriter) {
+    public DataSenderServerlessImpl(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessService serverlessService, ServerlessWriter serverlessWriter) {
         this.config = config;
         this.logger = logger;
         this.serverlessWriter = serverlessWriter;
         this.awsExecutionEnv = System.getenv("AWS_EXECUTION_ENV");
         this.buffer = new TelemetryBuffer();
+        this.serverlessService = serverlessService;
     }
 
     @Override
@@ -195,7 +197,7 @@ public class DataSenderServerlessImpl implements DataSender {
      */
     private String getArn() {
         // Try to get from instrumentation via AgentBridge
-        String arn = AgentBridge.serverlessApi.getArn();
+        String arn = serverlessService.getArn();
         if (arn != null && !arn.isEmpty()) {
             return arn;
         }
@@ -220,7 +222,7 @@ public class DataSenderServerlessImpl implements DataSender {
      */
     private String getFunctionVersion() {
         // Try to get from instrumentation via AgentBridge
-        String version = AgentBridge.serverlessApi.getFunctionVersion();
+        String version = serverlessService.getFunctionVersion();
         if (version != null && !version.isEmpty()) {
             return version;
         }

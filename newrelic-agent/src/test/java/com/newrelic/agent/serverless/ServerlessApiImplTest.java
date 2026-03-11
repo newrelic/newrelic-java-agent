@@ -5,9 +5,10 @@
  *
  */
 
-package com.newrelic.agent;
+package com.newrelic.agent.serverless;
 
-import com.newrelic.agent.bridge.ServerlessApi;
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,10 +17,11 @@ import static org.junit.Assert.assertNull;
 
 public class ServerlessApiImplTest {
 
-    private ServerlessApi serverlessApi;
+    private ServerlessApiImpl serverlessApi;
 
     @Before
     public void setup() {
+        ServiceFactory.setServiceManager(new MockServiceManager());
         serverlessApi = new ServerlessApiImpl();
     }
 
