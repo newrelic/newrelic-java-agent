@@ -19,6 +19,8 @@ import com.newrelic.agent.ServerlessHarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.TransactionService;
@@ -120,6 +122,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<>();
     private final CoreService coreService;
     private final ConfigService configService;
+    private final ServerlessService serverlessService = new ServerlessServiceImpl();
     private final BlockingQueue<StatsWork> statsWork = new LinkedBlockingQueue<>();
     private volatile ExtensionService extensionService;
     private volatile ProfilerService profilerService;
@@ -572,6 +575,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public RPMServiceManager getRPMServiceManager() {
         return rpmServiceManager;
+    }
+
+    @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PrivateApi;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.jmx.JmxApiImpl;
+import com.newrelic.agent.serverless.ServerlessApiImpl;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.api.agent.Logger;

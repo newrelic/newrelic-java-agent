@@ -112,7 +112,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
         this.serverlessMode = config.getServerlessConfig().isEnabled();
         if (serverlessMode) {
-            dataSender = DataSenderFactory.createServerless(new DataSenderServerlessConfig(Agent.getVersion(), config.getServerlessConfig()), Agent.LOG, config.getServerlessConfig());
+            dataSender = DataSenderFactory.createServerless(new DataSenderServerlessConfig(Agent.getVersion(), config.getServerlessConfig()), Agent.LOG,
+                    ServiceFactory.getServiceManager().getServerlessService(),
+                    config.getServerlessConfig());
         } else {
             dataSender = DataSenderFactory.create(config, dataSenderListener);
         }

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.transport;
 
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.config.DataSenderConfig;
 import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.logging.IAgentLogger;
@@ -14,7 +15,7 @@ import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 
 public interface IDataSenderFactory {
 
-    DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig);
+    DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessService serverlessService, ServerlessConfig serverlessConfig);
 
     DataSender create(DataSenderConfig config);
 

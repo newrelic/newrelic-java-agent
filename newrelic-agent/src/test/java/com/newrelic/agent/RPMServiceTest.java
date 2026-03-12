@@ -38,6 +38,7 @@ import com.newrelic.agent.profile.ProfilerParameters;
 import com.newrelic.agent.profile.ProfilerService;
 import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.rpm.RPMConnectionServiceImpl;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
@@ -423,9 +424,9 @@ public class RPMServiceTest {
 
         IDataSenderFactory dataSenderFactory = new IDataSenderFactory() {
             @Override
-            public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessConfig serverlessConfig) {
+            public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessService serverlessService, ServerlessConfig serverlessConfig) {
                 ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
-                return new DataSenderServerlessImpl(config, logger, serverlessWriter);
+                return new DataSenderServerlessImpl(config, logger, serverlessService, serverlessWriter);
             }
 
             @Override
