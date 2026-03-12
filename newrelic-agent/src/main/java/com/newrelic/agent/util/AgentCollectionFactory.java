@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.CacheRemovalListener;
 import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.bridge.CollectionFactory;
@@ -23,6 +24,10 @@ import com.newrelic.agent.bridge.CollectionFactory;
 public class AgentCollectionFactory implements CollectionFactory {
 
     private static final CollectionFactory DELEGATE = new Caffeine2CollectionFactory();
+
+    static {
+        Agent.LOG.info("AgentCollectionFactory: Using Caffeine 2.x for Java 8-10");
+    }
 
     @Override
     public <K, V> Map<K, V> createConcurrentWeakKeyedMap() {
