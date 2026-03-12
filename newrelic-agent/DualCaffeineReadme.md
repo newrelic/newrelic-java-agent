@@ -15,6 +15,11 @@ Both versions are shaded with relocated package names to avoid conflicts with us
 and the agent automatically selects the appropriate version at runtime based on the Java version,
 utilizing the CollectionFactory on the AgentBridge.
 
+A couple of other Caffeine v2 and v3 differences:
+- v2 depends on `org.checkerfraemwork`, which is also relocated in the agent jar
+- v3 depends on `org.jspecify`, which is also relocated in the agent jar
+- v3 changed from `TimeUnit` to `java.time.Duration`. The Caffeine3CollectionFactory handles this automatically.
+
 A couple of somewhat gross implementation details:
 - Both versions of Caffeine are shaded into the Agent jar
 - A multi-release jar is utilized in order to support loading the proper Caffeine versions at runtime
@@ -146,6 +151,12 @@ Implementation using Caffeine 3.2.3 (Java 11+):
 - Uses shaded package: `com.newrelic.agent.deps.caffeine3.com.github.benmanes.caffeine.cache.*`
 - Identical API to Caffeine2CollectionFactory but uses newer Caffeine version
 
+##### A Note on CaffeineXCollectionFactory Tests
+
+The code includes a comprehensive test suite for Caffeine2CollectionFactory but not for Caffeine3CollectionFactory
+(intentionally). Both implementations provide identical behavior from the consumer's perspective, differing only in 
+the underlying Caffeine version. 
+
 ### AgentCollectionFactory (`newrelic-agent`)
 
 Runtime delegation layer with two implementations:
@@ -154,14 +165,114 @@ Runtime delegation layer with two implementations:
 
 The JVM automatically selects the correct version based on the runtime Java version.
 
+### Caffeine Adapters and Bridge Interfaces
+
+To maintain a clean separation between the agent-bridge API and the underlying Caffeine implementations, several 
+adapter patterns and bridge interfaces were added.
+
+## CleanableMap Interface (agent-bridge)
+
+The CleanableMap interface extends Map<K, V> to expose cache maintenance operations that may be deferred by the underlying cache implementation:
+
+```java
+public interface CleanableMap<K, V> extends Map<K, V> {                                                                                                                                                                                            
+    /**                                                                                                                                                                                                                                            
+     * Perform any pending maintenance operations, such as:                                                                                                                                                                                        
+     * - Evicting expired entries                                                                                                                                                                                                                  
+     * - Invoking removal listeners for pending removals                                                                                                                                                                                           
+     * - Performing size-based evictions                                                                                                                                                                                                           
+     */                                                                                                                                                                                                                                            
+    void cleanUp();                                                                                                                                                                                                                                
+}
+```
+
+Purpose: Caffeine defers maintenance operations for performance reasons. The cleanUp() method provides explicit control over when maintenance 
+occurs
+
+## CacheRemovalListener Interface (agent-bridge)
+
+Provides a unified callback interface for cache removal events, decoupled from the specific Caffeine version:
+
+```java
+public interface CacheRemovalListener<K, V> {                                                                                                                                                                                                      
+    enum RemovalReason {                                                                                                                                                                                                                           
+        EXPIRED,    // Entry expired due to time-based policy                                                                                                                                                                                      
+        EXPLICIT,   // Manually removed via remove() or clear()                                                                                                                                                                                    
+        SIZE,       // Evicted due to size constraints                                                                                                                                                                                             
+        REPLACED,   // Value replaced with put()                                                                                                                                                                                                   
+        COLLECTED   // Key or value was garbage collected                                                                                                                                                                                          
+    }
+
+    void onRemoval(K key, V value, RemovalReason reason);                                                                                                                                                                                          
+}
+
+```
+
+Purpose: This interface prevents the agent code from direct dependencies on Caffeine's RemovalCause enum.
+
+## CaffeineCleanableMap Adapter
+
+Both Caffeine2CollectionFactory and Caffeine3CollectionFactory contain an inner CaffeineCleanableMap class that 
+adapts Caffeine's Cache interface to the agent-bridge's CleanableMap interface:
+
+```java
+private static class CaffeineCleanableMap<K, V> implements CleanableMap<K, V> {                                                                                                                                                                    
+    private final Cache<K, V> cache;                                                                                                                                                                                                               
+    private final Map<K, V> map;
+
+      CaffeineCleanableMap(Cache<K, V> cache) {                                                                                                                                                                                                      
+          this.cache = cache;                                                                                                                                                                                                                        
+          this.map = cache.asMap();                                                                                                                                                                               
+      }                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                     
+      @Override                                                                                                                                                                                                                                      
+      public void cleanUp() {
+          // Delegate to Caffeine's cleanUp() method
+          cache.cleanUp();                                                                                                                                                                                      
+      }                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                     
+      // All Map methods delegate to cache.asMap()                                                                                                                                                                                                   
+      @Override public int size() { return map.size(); }                                                                                                                                                                                             
+
+      // ...remaining Map methods                                                                                                                                                                                                                 
+}
+```
+
+- Maintains both a Cache reference (for `cleanUp()`) and a Map reference (for standard Map operations)
+- All Map operations delegate to cache.asMap(), which is a standard `java.util.concurrent.ConcurrentMap` view
+- The `cleanUp()` method proxies to Caffeine's equivalent cleanup method
+
+## RemovalCause Conversion
+
+Each factory class contains a convertRemovalCause() method that maps Caffeine's version-specific RemovalCause
+enum to the agent-bridge's RemovalReason enum:
+
+Caffeine2CollectionFactory:
+``java
+    private CacheRemovalListener.RemovalReason convertRemovalCause(                                                                                                                                                                                    
+    com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.cache.RemovalCause cause) {                                                                                                                                                 
+        switch (cause) {                                                                                                                                                                                                                               
+        case EXPIRED:   return CacheRemovalListener.RemovalReason.EXPIRED;                                                                                                                                                                         
+        case SIZE:      return CacheRemovalListener.RemovalReason.SIZE;                                                                                                                                                                            
+        case REPLACED:  return CacheRemovalListener.RemovalReason.REPLACED;                                                                                                                                                                        
+        case COLLECTED: return CacheRemovalListener.RemovalReason.COLLECTED;                                                                                                                                                                       
+        default:        return CacheRemovalListener.RemovalReason.EXPLICIT;                                                                                                                                                                        
+    }                                                                                                                                                                                                                                              
+}
+``
+
+The Caffeine3CollectionFactory has identical logic but takes a v3 `RemovalCause` instance.
+
 ### Shading Tasks
 
-Two Gradle tasks create shaded JARs with relocated Caffeine packages:
+Two Gradle tasks create shaded JARs with relocated Caffeine packages (both are included in the final agent jar):
 
 ```bash
 # Build both shaded JARs
 gradle :newrelic-agent:shadeCaffeine2Jar :newrelic-agent:shadeCaffeine3Jar
 ```
+
+If a full agent build is performed, running the new `shadeCaffeineXJar` tasks is unnecessary.
 
 **Note:** This task (or a full agent build) will need to be run to make IntelliJ happy and eliminate
 errors and warnings in the project.
