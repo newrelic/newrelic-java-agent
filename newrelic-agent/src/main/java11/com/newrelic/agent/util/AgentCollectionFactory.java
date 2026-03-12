@@ -27,7 +27,7 @@ public class AgentCollectionFactory implements CollectionFactory {
     private static final CollectionFactory DELEGATE = new Caffeine3CollectionFactory();
 
     static {
-        Agent.LOG.info("AgentCollectionFactory: Using Caffeine 3.x for Java ");
+        Agent.LOG.info("AgentCollectionFactory: Using Caffeine 3.x for Java 11+");
     }
 
     @Override
