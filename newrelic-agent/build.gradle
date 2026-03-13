@@ -307,6 +307,8 @@ task relocatedShadowJar(type: ShadowJar) {
             "**/*.proto",
             // These are unnecessary files from our dependencies.
             "META-INF/maven/**",
+            // INDEX.LIST is incompatible with multi-release JARs
+            "META-INF/INDEX.LIST",
             // Multiple dependencies
             "LICENSE",
             // log4j2
@@ -354,6 +356,9 @@ task transformedShadowJar(type: ShadowJar) {
     // Log4j2PluginFileMover applies only to the Log4j2Plugins.dat resource file.
     transform(Log4j2PluginFileMover)
 
+    // Exclude INDEX.LIST as it's incompatible with multi-release JARs
+    exclude("META-INF/INDEX.LIST")
+
     archiveBaseName.set("transformedShadowJar")
 }
 
@@ -378,6 +383,9 @@ task newrelicVersionedAgentJar(type: Jar) {
 
     includeEmptyDirs = false
 
+    // Disable INDEX.LIST generation - incompatible with multi-release JARs
+    preserveFileTimestamps = false
+
     // This captures jars that are added to the bootstrap classpath.
     // All projects have the same version, so we can safely remove this version from the name.
     from(project.configurations.jarIntoJar) {
@@ -397,6 +405,11 @@ task newrelicVersionedAgentJar(type: Jar) {
     // Add Java 11+ classes to META-INF/versions/11/ for multi-release JAR support
     into('META-INF/versions/11') {
         from sourceSets.java11.output.classesDirs
+    }
+
+    // Exclude INDEX.LIST from META-INF as it's incompatible with multi-release JARs
+    metaInf {
+        exclude 'INDEX.LIST'
     }
 
     manifest {
