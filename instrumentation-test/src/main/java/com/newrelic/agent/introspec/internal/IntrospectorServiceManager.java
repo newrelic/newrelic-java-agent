@@ -34,6 +34,8 @@ import com.newrelic.agent.reinstrument.RemoteInstrumentationService;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
 import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.samplers.SamplerService;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.Service;
 import com.newrelic.agent.service.ServiceFactory;
@@ -86,6 +88,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile DistributedTraceServiceImpl distributedTraceService;
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
+    private volatile ServerlessService serverlessService;
     private ExpirationService expirationService;
     private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
@@ -184,6 +187,8 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         configService.addIAgentConfigListener((IntrospectorSpanEventService)spanEventsService);
         transactionService.addTransactionListener((IntrospectorSpanEventService)spanEventsService);
 
+        serverlessService = new ServerlessServiceImpl();
+
         try {
             transactionTraceService.start();
             transactionEventsService.start();
@@ -226,6 +231,11 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     @Override
     public RPMServiceManager getRPMServiceManager() {
         return rpmServiceManager;
+    }
+
+    @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
     }
 
     @Override

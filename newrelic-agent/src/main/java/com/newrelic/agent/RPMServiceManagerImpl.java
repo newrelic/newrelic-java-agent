@@ -72,9 +72,14 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
         };
 
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        String host = config.getHost();
-        String port = Integer.toString(config.getPort());
-        getLogger().config(MessageFormat.format("Configured to connect to New Relic at {0}:{1}", host, port));
+
+        if (config.getServerlessConfig().isEnabled()) {
+            getLogger().config("Configured to connect to New Relic via serverless layer");
+        } else {
+            String host = config.getHost();
+            String port = Integer.toString(config.getPort());
+            getLogger().config(MessageFormat.format("Configured to connect to New Relic at {0}:{1}", host, port));
+        }
         defaultRPMService = createRPMService(config.getApplicationNames(), connectionConfigListener, connectionListener);
         List<IRPMService> list = new ArrayList<>(1);
         list.add(defaultRPMService);

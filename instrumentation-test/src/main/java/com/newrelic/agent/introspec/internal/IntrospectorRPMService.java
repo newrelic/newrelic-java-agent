@@ -169,6 +169,11 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     }
 
     @Override
+    public void commitAndFlush() {
+
+    }
+
+    @Override
     public String getEntityGuid() {
         return "";
     }

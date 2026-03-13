@@ -66,6 +66,11 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     long getApdexTInMillis();
 
     /**
+     * Returns true if NEW_RELIC_APM_LAMBDA_MODE is set to true
+     */
+    boolean isApmLambdaModeEnabled();
+
+    /**
      * If NewRelic sent an ApdexT for a key transaction, return that; otherwise, return the ApdextT value for the
      * application.
      */
@@ -173,6 +178,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * @return Reinstrumentation configuration settings.
      */
     ReinstrumentConfig getReinstrumentConfig();
+
+    /**
+     * Gets the ServerlessConfig configuration settings.
+     *
+     * @return ServerlessConfig configuration settings.
+     */
+    ServerlessConfig getServerlessConfig();
 
     /**
      * Get the cross process application settings.
