@@ -3,6 +3,7 @@ package com.newrelic.instrumentation.kotlin.coroutines_14;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
+import com.newrelic.api.agent.Trace;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function2;
@@ -26,6 +27,7 @@ public class NRFunction2SuspendWrapper<S, T, R> implements Function2<S, T, R> {
 	}
 
 	@Override
+	@Trace
 	public R invoke(S s, T t) {
 
 		// set name
