@@ -39,7 +39,7 @@ public abstract class CancellableKt_Instrumentation {
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Receiver", receiver.getClass().getName());
 
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+            f = new NRFunction2SuspendWrapper<>(null, "StartCoroutineCancellable", f);
 		}
 		Weaver.callOriginal();
 	}

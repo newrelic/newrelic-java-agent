@@ -31,7 +31,7 @@ public class BuildersKt_Instrumentation {
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Block", block.toString());
 
 		if (!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name,"RunBlocking", block);
 		}
         return Weaver.callOriginal();
 	}
@@ -57,7 +57,7 @@ public class BuildersKt_Instrumentation {
 			}
 
 			if(!(block instanceof NRFunction2SuspendWrapper)) {
-                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "Async", block);
 			}
 		} else {
 			NewRelic.getAgent().getLogger().log(Level.FINE,"in call to BuildersKt_Instrumentation.async, did not continue with scope {0}", scope);
@@ -72,7 +72,7 @@ public class BuildersKt_Instrumentation {
 
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Continuation", cont.toString());
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(null, "Invoke", block);
 		}
 		if(Utils.continueWithContinuation(cont)) {
 			boolean isSuspend = cont instanceof SuspendFunction;
@@ -103,14 +103,8 @@ public class BuildersKt_Instrumentation {
 				NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineName", "Could not determine");
 			}
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("Block", block.toString());
-//			Token token = Utils.getToken(context);
-//			if(token != null) {
-//				token.link();
-//			} else {
-//				Utils.setToken(context);
-//			}
 			if (!(block instanceof NRFunction2SuspendWrapper)) {
-                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(block);
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(name, "Launch",block);
 			} 
 		} else {
 			NewRelic.getAgent().getTransaction().ignore();
@@ -132,7 +126,7 @@ public class BuildersKt_Instrumentation {
 		}
 
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "WithContext", block);
 		}
 		if(completion != null && Utils.continueWithContinuation(completion)) {
 			if(!(completion instanceof NRContinuationWrapper)) {

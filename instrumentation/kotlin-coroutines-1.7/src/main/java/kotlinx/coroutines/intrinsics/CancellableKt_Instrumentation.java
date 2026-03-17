@@ -44,7 +44,7 @@ public abstract class CancellableKt_Instrumentation {
 
 		}
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+            f = new NRFunction2SuspendWrapper<>(null,"CoroutineCancellable", f);
 		}
 		Weaver.callOriginal();
 	}
