@@ -106,7 +106,6 @@ public class Utils implements CoroutineConfigListener {
 		if(cont_string == null) { return false; }
 
 		if(ignoredContinuations.contains(cont_string)) {
-			NewRelic.getAgent().getLogger().log(Level.FINE, "Returning false for continuation {0}", cont_string);
 			return false;
 		}
 
@@ -116,7 +115,6 @@ public class Utils implements CoroutineConfigListener {
 			}
 		}
 
-		NewRelic.getAgent().getLogger().log(Level.FINE, "Returning true for continuation {0}", cont_string);
 		return true;
 	}
 

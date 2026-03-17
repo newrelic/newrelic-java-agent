@@ -39,9 +39,7 @@ public class BuildersKt_Instrumentation {
 	@Trace(dispatcher = true)
 	public static <T> Deferred<T> async(CoroutineScope scope, CoroutineContext context, CoroutineStart cStart,
             Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block) {
-		NewRelic.getAgent().getLogger().log(Level.FINE,"call to BuildersKt_Instrumentation.async, scope is {0}", scope);
 		if (Utils.continueWithScope(scope)) {
-			NewRelic.getAgent().getLogger().log(Level.FINE,"in call to BuildersKt_Instrumentation.async, continuing with scope {0}", scope);
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineStart", cStart.name());
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineScope-Class", scope.getClass().getName());
 			String name = Utils.getCoroutineName(context);
@@ -60,7 +58,6 @@ public class BuildersKt_Instrumentation {
                 block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "Async", block);
 			}
 		} else {
-			NewRelic.getAgent().getLogger().log(Level.FINE,"in call to BuildersKt_Instrumentation.async, did not continue with scope {0}", scope);
 			NewRelic.getAgent().getTransaction().ignore();
 		}
 		return Weaver.callOriginal();
