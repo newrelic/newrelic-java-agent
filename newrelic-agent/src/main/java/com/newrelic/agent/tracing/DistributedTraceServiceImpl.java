@@ -154,7 +154,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         applicationId.compareAndSet(null, "0");
 
         //The connect response includes a server-only config, sampling_target, that MUST be used to configure the adaptive sampler shared instance.
-        AdaptiveSampler.setSharedTarget(agentConfig.getAdaptiveSamplingTarget());
+        samplerManager.setSharedSamplingTargets(agentConfig.getAdaptiveSamplingTarget());
         recordCoreTracingSupportabilityMetrics();
     }
 

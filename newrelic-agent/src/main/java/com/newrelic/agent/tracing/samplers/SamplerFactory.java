@@ -16,12 +16,11 @@ public class SamplerFactory {
     /**
      * Factory method to create an instance of a Sampler
      *
-     * @param appName The appName this sampler should be registered to. If no app name is provided, the DEFAULT_APP_NAME will be used.
      * @param samplerConfig the agent's finalized sampler configuration
      *
      * @return the constructed Sampler instance
      */
-    public static Sampler createSampler(String appName, SamplerConfig samplerConfig) {
+    public static Sampler createSampler(SamplerConfig samplerConfig) {
         final String PROBABILITY = "probability"; //This setting is not yet enabled in config. Wired here for future use.
         switch (samplerConfig.getSamplerType()) {
             case SamplerConfig.ALWAYS_ON:
@@ -37,7 +36,9 @@ public class SamplerFactory {
                 return new ProbabilityBasedSampler(samplerConfig);
 
             default:
-                return AdaptiveSampler.getAdaptiveSampler(appName == null ? DEFAULT_APP_NAME : appName, samplerConfig);
+//                return AdaptiveSampler.getAdaptiveSampler(appName == null ? DEFAULT_APP_NAME : appName, samplerConfig);
+                //TODO FIX THIS UP
+                return new AdaptiveSampler(10, 60);
         }
     }
 }

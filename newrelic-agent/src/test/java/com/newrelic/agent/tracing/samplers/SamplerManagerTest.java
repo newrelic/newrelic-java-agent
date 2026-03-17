@@ -1,9 +1,7 @@
 package com.newrelic.agent.tracing.samplers;
 
-import com.newrelic.agent.DistributedTracingTestUtil;
 import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.Transaction;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
@@ -15,15 +13,17 @@ import com.newrelic.agent.tracing.Granularity;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
 import static org.junit.Assert.*;
 
 public class SamplerManagerTest {
-
     private static MockServiceManager serviceManager;
 
     @Before
@@ -39,12 +39,7 @@ public class SamplerManagerTest {
     }
 
     @Test
-    public void testGetSamplerObeysConfig(){
-
-    }
-
-    @Test
-    public void testDTServiceSetsUpDefaultSamplers() {
+    public void testSamplerManagerSetsUpDefaultSamplers() {
         DistributedTracingConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         SamplerManager manager = new SamplerManager(defaultConfig);
 
@@ -103,7 +98,7 @@ public class SamplerManagerTest {
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
-        SamplerManager manager = new SamplerManager(agentConfig.getDistributedTracingConfig());
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
 
         assertEquals(SamplerType.TRACE_ID_RATIO_BASED, manager.getSampler(Granularity.FULL, SamplerCase.ROOT).getType());
         assertEquals(SamplerType.ALWAYS_ON, manager.getSampler(Granularity.FULL, SamplerCase.REMOTE_PARENT_SAMPLED).getType());
@@ -147,13 +142,13 @@ public class SamplerManagerTest {
                 .withPartialGranularitySetting("remote_parent_not_sampled", "trace_id_ratio_based", "ratio", 0.1)
                 .buildMainConfig();
 
-        config.put("enable_auto_app_naming", true);
+        config.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
         config.put("app_name", "test");
 
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
-        SamplerManager manager = new SamplerManager(agentConfig.getDistributedTracingConfig());
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
 
 
         String app1 = "app_one";
@@ -184,12 +179,12 @@ public class SamplerManagerTest {
                 .withPartialGranularitySetting("enabled", "true")
                 .buildMainConfig();
 
-        config.put("enable_auto_app_naming", true);
+        config.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
 
-        SamplerManager manager = new SamplerManager(agentConfig.getDistributedTracingConfig());
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
 
         String app1 = "app_one";
         String app2 = "app_two";
@@ -214,10 +209,9 @@ public class SamplerManagerTest {
 
     @Test
     public void autoAppNamingDisabledDoesNotCreateAppAwareSamplers(){
-        //This test checks a behavior that should not happen in the wild.
+        //This test checks a behavior that should not happen in the wild: different app names coming in with auto app naming disabled.
         //If auto app naming is disabled, every transaction should have the same app name attached to it.
         //HOWEVER, it is still good to verify that this is guaranteed to work.
-
         Map<String, Object> config = new DTConfigMapBuilder()
                 .withSamplerSetting("root", "adaptive", "sampling_target", 15)
                 .withPartialGranularitySetting("enabled", "true")
@@ -228,7 +222,7 @@ public class SamplerManagerTest {
         ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
         serviceManager.setConfigService(configService);
 
-        SamplerManager manager = new SamplerManager(agentConfig.getDistributedTracingConfig());
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
 
         String app1 = "app_one";
         String app2 = "app_two";
@@ -246,5 +240,47 @@ public class SamplerManagerTest {
         assertSame("Different app names should have the same global adaptive sampler when auto app naming is disabled",
                 app1FullRemoteParentSampledSampler,
                 app2FullRemoteParentSampledSampler);
+    }
+
+    @Test
+    public void setSharedSamplingTargetsUpdatesAllSharedAdaptiveSamplers(){
+        int INITIAL_SAMPLING_TARGET = 70;
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("adaptive_sampling_target", 70)
+                .buildMainConfig();
+
+        config.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
+
+        Sampler defaultSharedSampler = manager.getSampler(Granularity.FULL, SamplerCase.ROOT);
+        List<String> apps = Arrays.asList("app_one", "app_two", "app_three", "app_four");
+        List<Sampler> sharedSamplers = apps.stream()
+                .map(appName -> manager.getSampler(appName, Granularity.FULL, SamplerCase.ROOT))
+                .collect(Collectors.toList());
+
+        //Check that the samplers all start out with the initially configured sampling target...
+        assertEquals(INITIAL_SAMPLING_TARGET, ((AdaptiveSampler) defaultSharedSampler).getTarget());
+        for (Sampler sampler : sharedSamplers) {
+            assertEquals(INITIAL_SAMPLING_TARGET, ((AdaptiveSampler) sampler).getTarget());
+        }
+
+        int UPDATED_SAMPLING_TARGET = 55;
+        manager.setSharedSamplingTargets(UPDATED_SAMPLING_TARGET);
+
+        //...are correctly updated with the new sampling target...
+        assertEquals(UPDATED_SAMPLING_TARGET, ((AdaptiveSampler) defaultSharedSampler).getTarget());
+        for (Sampler sampler : sharedSamplers) {
+            assertEquals(UPDATED_SAMPLING_TARGET, ((AdaptiveSampler) sampler).getTarget());
+        }
+
+        //...and are created thereafter with the new sampling target.
+        String newlyCreatedApp = "app_five";
+        Sampler newlyCreatedSampler = manager.getSampler(newlyCreatedApp, Granularity.FULL, SamplerCase.ROOT);
+        assertEquals(UPDATED_SAMPLING_TARGET, ((AdaptiveSampler) newlyCreatedSampler).getTarget());
+
     }
 }

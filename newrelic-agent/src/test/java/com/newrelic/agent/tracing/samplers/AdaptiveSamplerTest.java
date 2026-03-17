@@ -63,13 +63,13 @@ public class AdaptiveSamplerTest {
 
     @Test
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
-        String appName = "test";
         int DEFAULT_TARGET = 120;
         int DEFAULT_REPORT_PERIOD = 60;
+        boolean DEFAULT_IS_SHARED = true;
         int numPeriods = 5;
         long testLengthMillis = DEFAULT_REPORT_PERIOD * numPeriods * 1000;
 
-        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstanceForApp(appName);
+        AdaptiveSampler defaultSampler = new AdaptiveSampler(DEFAULT_TARGET, DEFAULT_REPORT_PERIOD, DEFAULT_IS_SHARED);
         int totalSampled = runSamplerAndGetSampled(defaultSampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
@@ -188,76 +188,6 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
-    @Category( Flaky.class )
-    // Flaky note: expectedSampled ends up being 15 and 16s and 17s are fairly common
-    public void testCalculatePriorityMultithreaded() throws InterruptedException {
-        int target = 10;
-        int reportPeriod = 5;
-        int totalPeriods = 10;
-        long totalTestTimeMillis = reportPeriod * totalPeriods * 1000;
-
-        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
-        int totalSampled = runSamplerConcurrentAndGetSampled(sampler, totalTestTimeMillis);
-
-        int expectedSampled = target * totalPeriods;
-        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
-        assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
-    }
-
-    @Test
-    public void testGetAdaptiveSamplerInstanceFulfillsSingleton() throws InterruptedException, ExecutionException {
-        //The sampler is REQUIRED to be a singleton instance.
-        //This test verifies that access to the sampler always returns the same instance.
-        String appName = "test";
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        List<Future<?>> samplerArray = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            Future<?> fut = executor.submit(() -> {
-                AdaptiveSampler.getSharedInstanceForApp(appName);
-            });
-            samplerArray.add(fut);
-        }
-        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstanceForApp(appName);
-        Assert.assertNotNull(baseSampler);
-        for (Future<?> f : samplerArray) {
-            assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
-        }
-    }
-
-    @Test
-    public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
-        //TODO: FIX THIS METHOD TO BE APP-AWARE
-        String appName = "MAIN APP";
-
-        //both of these should use shared sampler instance, since sampling target is not specified
-        SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
-        SamplerConfig samplerConfig2 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig2.getSamplingTarget()).thenReturn(null);
-        //should use its own instance, even though the sampling target is the default
-        SamplerConfig samplerConfig3 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        //should use their own instances, even though they have the same target
-        SamplerConfig samplerConfig4 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig4.getSamplingTarget()).thenReturn(12);
-        SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig5.getSamplingTarget()).thenReturn(12);
-
-        assertSame(AdaptiveSampler.getSharedInstanceForApp(appName), AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig1));
-        assertSame(AdaptiveSampler.getSharedInstanceForApp(appName), AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig2));
-
-        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig3);
-        assertNotSame(AdaptiveSampler.getSharedInstanceForApp(appName), sampler3);
-        assertEquals(120, sampler3.getTarget());
-
-        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig4);
-        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(appName, samplerConfig5);
-        assertEquals(12, sampler4.getTarget());
-        assertEquals(12, sampler5.getTarget());
-        assertNotSame(sampler4, sampler5);
-    }
-
-    @Test
     public void testExpectedPriorityGeneratedForGranularities(){
         AdaptiveSampler sampler = new AdaptiveSampler(100, 5);
 
@@ -299,21 +229,6 @@ public class AdaptiveSamplerTest {
         when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(0.0234f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.FULL), 0.0001f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
-    }
-
-    @Test
-    public void sharedSamplersShouldBeAppAware(){
-        //in this test, we verify that calling getAdaptiveSampler returns different instances for each calling app.
-        String[] appNames = {"app_one", "app_two", "app_three", "app_four", "app_five", "app_six", "app_one", "app_three"};
-
-        Set<Sampler> uniqueSamplers = new HashSet<>();
-        for (String appName : appNames) {
-            AdaptiveSampler sampler = AdaptiveSampler.getSharedInstanceForApp(appName);
-            uniqueSamplers.add(sampler);
-        }
-
-        //check that the uniqueSamplers was populated with six things (not one; not eight)
-        assertEquals(6, uniqueSamplers.size());
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {
