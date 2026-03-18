@@ -15,6 +15,13 @@ Both versions are shaded with relocated package names to avoid conflicts with us
 and the agent automatically selects the appropriate version at runtime based on the Java version,
 utilizing the CollectionFactory on the AgentBridge.
 
+A config exists, that if set to `true`, will force the use of Caffeine v2, even if the Java version is 11+:
+- System property: `newrelic.config.collectionfactory.forcev2`
+- Environment variable: `NEW_RELIC_COLLECTIONFACTORY_FORCEV2`
+
+(Not available as a yaml config since the AgentCollectionFactory is loaded prior to any services being
+spun up).
+
 A couple of other Caffeine v2 and v3 differences:
 - v2 depends on `org.checkerfraemwork`, which is also relocated in the agent jar
 - v3 depends on `org.jspecify`, which is also relocated in the agent jar
@@ -22,7 +29,6 @@ A couple of other Caffeine v2 and v3 differences:
 
 A couple of somewhat gross implementation details:
 - Both versions of Caffeine are shaded into the Agent jar
-- A multi-release jar is utilized in order to support loading the proper Caffeine versions at runtime
 - The shaded package name for Caffeine is used in the `import` statements in the CollectionFactory
 - A roll-our-own weak-key LRU cache in the weaver project, since this project doesn't (and should not)
 have a dependency on the agent bridge
@@ -33,20 +39,6 @@ have a dependency on the agent bridge
 - guava - suffers from the same `Unsafe` usage that Caffeine v2 does 
 - "Roll your own" caches in vanilla Java - Extremely difficult and brittle to implement weak key caches
 and max size caches with acceptable performance (although one was created for the weaver project)
-
-### Multi-Release JAR Structure
-
-The agent uses Java's Multi-Release JAR feature to provide different implementations of the AgentCollectionClass 
-based on the runtime Java version:
-
-```
-newrelic-agent.jar
-├── com/newrelic/agent/util/
-│   └── AgentCollectionFactory.class          # Java 8 version (delegates to Caffeine2)
-└── META-INF/versions/11/
-    └── com/newrelic/agent/util/
-        └── AgentCollectionFactory.class      # Java 11 version (delegates to Caffeine3)
-```
 
 ### Object Graph
 
@@ -306,7 +298,6 @@ dependencies {
 ## Refactored Classes
 
 The com.newrelic.agent.PrivateApiImpl class bootstraps the `AgentBridge.collectionFactory` with `AgentCollectionFactory` during agent startup.
-The correct `AgentCollectionFactory` is loaded by the VM based on the Java version runtime (via the multi-release jar).
 
 The following classes now use `AgentBridge.collectionFactory` instead of direct Caffeine dependencies:
 
