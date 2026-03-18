@@ -11,7 +11,7 @@ Java 8 - 10.
 - **Caffeine 2.9.3** - For Java 8-10 (uses `sun.misc.Unsafe`)
 - **Caffeine 3.2.3** - For Java 11+ (uses `VarHandle`)
 
-Both versions are shaded with relocated package names to avoid conflicts with user applications, 
+Both versions are shaded with relocated package names to avoid conflicts with user applications,
 and the agent automatically selects the appropriate version at runtime based on the Java version,
 utilizing the CollectionFactory on the AgentBridge.
 
@@ -23,7 +23,7 @@ A config exists, that if set to `true`, will force the use of Caffeine v2, even 
 spun up).
 
 A couple of other Caffeine v2 and v3 differences:
-- v2 depends on `org.checkerfraemwork`, which is also relocated in the agent jar
+- v2 depends on `org.checkerframework`, which is also relocated in the agent jar
 - v3 depends on `org.jspecify`, which is also relocated in the agent jar
 - v3 changed from `TimeUnit` to `java.time.Duration`. The Caffeine3CollectionFactory handles this automatically.
 
@@ -31,14 +31,14 @@ A couple of somewhat gross implementation details:
 - Both versions of Caffeine are shaded into the Agent jar
 - The shaded package name for Caffeine is used in the `import` statements in the CollectionFactory
 - A roll-our-own weak-key LRU cache in the weaver project, since this project doesn't (and should not)
-have a dependency on the agent bridge
+  have a dependency on the agent bridge
 - A custom implementation of a CleanableMap to be used with removal listener caches
 
 #### Why not transition to a new cache provider??
 - cache2k, ehcache - No support for weak keyed caches
-- guava - suffers from the same `Unsafe` usage that Caffeine v2 does 
+- guava - suffers from the same `Unsafe` usage that Caffeine v2 does
 - "Roll your own" caches in vanilla Java - Extremely difficult and brittle to implement weak key caches
-and max size caches with acceptable performance (although one was created for the weaver project)
+  and max size caches with acceptable performance (although one was created for the weaver project)
 
 ### Object Graph
 
@@ -146,20 +146,18 @@ Implementation using Caffeine 3.2.3 (Java 11+):
 ##### A Note on CaffeineXCollectionFactory Tests
 
 The code includes a comprehensive test suite for Caffeine2CollectionFactory but not for Caffeine3CollectionFactory
-(intentionally). Both implementations provide identical behavior from the consumer's perspective, differing only in 
-the underlying Caffeine version. 
+(intentionally). Both implementations provide identical behavior from the consumer's perspective, differing only in
+the underlying Caffeine version.
 
 ### AgentCollectionFactory (`newrelic-agent`)
 
-Runtime delegation layer with two implementations:
-- **Java 8 version** (`src/main/java/`) - Delegates to `Caffeine2CollectionFactory`
-- **Java 11 version** (`src/main/java11/`) - Delegates to `Caffeine3CollectionFactory`
-
-The JVM automatically selects the correct version based on the runtime Java version.
+Runtime delegation layer that uses reflection to dynamically load the appropriate Caffeine factory:
+- **For Java 8-10** - Delegates to `Caffeine2CollectionFactory`
+- **For Java 11+** - Delegates to `Caffeine3CollectionFactory`
 
 ### Caffeine Adapters and Bridge Interfaces
 
-To maintain a clean separation between the agent-bridge API and the underlying Caffeine implementations, several 
+To maintain a clean separation between the agent-bridge API and the underlying Caffeine implementations, several
 adapter patterns and bridge interfaces were added.
 
 ## CleanableMap Interface (agent-bridge)
@@ -178,7 +176,7 @@ public interface CleanableMap<K, V> extends Map<K, V> {
 }
 ```
 
-Purpose: Caffeine defers maintenance operations for performance reasons. The cleanUp() method provides explicit control over when maintenance 
+Purpose: Caffeine defers maintenance operations for performance reasons. The cleanUp() method provides explicit control over when maintenance
 occurs
 
 ## CacheRemovalListener Interface (agent-bridge)
@@ -204,7 +202,7 @@ Purpose: This interface prevents the agent code from direct dependencies on Caff
 
 ## CaffeineCleanableMap Adapter
 
-Both Caffeine2CollectionFactory and Caffeine3CollectionFactory contain an inner CaffeineCleanableMap class that 
+Both Caffeine2CollectionFactory and Caffeine3CollectionFactory contain an inner CaffeineCleanableMap class that
 adapts Caffeine's Cache interface to the agent-bridge's CleanableMap interface:
 
 ```java
@@ -330,5 +328,5 @@ be fairly messy. The custom implementation provides reasonable performance (test
 this cache isn't in a hot code path after initial weaving takes place.
 
 The following class doesn't use the CollectionFactory pattern or custom `WeakeKeyLruCache` implementation:
-- `com.newrelic.bootstrap.EmbeddedJarFilesImpl` - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is 
-not available until agent-bridge.jar is extracted and loaded by the EmbeddedJarFilesImpl service.
+- `com.newrelic.bootstrap.EmbeddedJarFilesImpl` - Uses `ConcurrentHashMap` directly due to chicken-and-egg problem: AgentBridge is
+  not available until agent-bridge.jar is extracted and loaded by the EmbeddedJarFilesImpl service.
