@@ -36,9 +36,9 @@ public class SamplerManager {
     private static final String UNKNOWN_APP_NAME = "UNKNOWN_APP_NAME";
 
     private final boolean autoAppNamingEnabled;
+    private final String defaultAppName;
     private final CoreTracingConfig fullGranularityConfig;
     private final CoreTracingConfig partialGranularityConfig;
-    private final String defaultAppName;
     private final int adaptiveSamplingPeriod;
 
     private volatile int sharedAdaptiveSamplingTarget;

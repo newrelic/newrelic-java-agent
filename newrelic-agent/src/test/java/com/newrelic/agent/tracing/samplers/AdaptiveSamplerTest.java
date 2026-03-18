@@ -1,33 +1,31 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.DistributedTracingTestUtil;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.tracing.Granularity;
 import org.mockito.Mockito;
-import com.newrelic.test.marker.Flaky;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.newrelic.agent.config.coretracing.SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
