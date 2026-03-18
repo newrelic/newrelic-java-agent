@@ -23,7 +23,7 @@ A config exists, that if set to `true`, will force the use of Caffeine v2, even 
 spun up).
 
 A couple of other Caffeine v2 and v3 differences:
-- v2 depends on `org.checkerfraemwork`, which is also relocated in the agent jar
+- v2 depends on `org.checkerframework`, which is also relocated in the agent jar
 - v3 depends on `org.jspecify`, which is also relocated in the agent jar
 - v3 changed from `TimeUnit` to `java.time.Duration`. The Caffeine3CollectionFactory handles this automatically.
 
@@ -151,11 +151,9 @@ the underlying Caffeine version.
 
 ### AgentCollectionFactory (`newrelic-agent`)
 
-Runtime delegation layer with two implementations:
-- **Java 8 version** (`src/main/java/`) - Delegates to `Caffeine2CollectionFactory`
-- **Java 11 version** (`src/main/java11/`) - Delegates to `Caffeine3CollectionFactory`
-
-The JVM automatically selects the correct version based on the runtime Java version.
+Runtime delegation layer that uses reflection to dynamically load the appropriate Caffeine factory:
+- **For Java 8-10** - Delegates to `Caffeine2CollectionFactory`
+- **For Java 11+** - Delegates to `Caffeine3CollectionFactory`
 
 ### Caffeine Adapters and Bridge Interfaces
 
