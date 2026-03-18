@@ -614,7 +614,6 @@ public class DistributedTraceServiceImplTest {
     @Test
     public void testPartialGranularityAlwaysEvictedFirst(){
         //in this test, we overload the reservoir and check to see that partial granularity is evicted over full granularity.
-
         Map<String, Object> config = new DTConfigMapBuilder()
                 .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.6)
                 .withPartialGranularitySetting("enabled", "true")
@@ -668,8 +667,8 @@ public class DistributedTraceServiceImplTest {
 
     @Test
     public void samplingIsAppAwareWhenAutoAppNamingEnabled(){
-        //This test validates that
-
+        //This test validates that adaptive samplers behave as expected in auto app naming scenarios, meaning that each named app samples its target
+        // (whether the global application target or instance target) independently of all other named apps.
         Map<String, Object> config = new DTConfigMapBuilder()
                 .withSamplerSetting("adaptive_sampling_target", 25)
                 .withSamplerSetting("root", "adaptive", "sampling_target", 10)
@@ -716,6 +715,82 @@ public class DistributedTraceServiceImplTest {
             }
 
             assertEquals("Expected global target=" + 25 + " remote_parent_sampled transactions to be sampled for app=" + appName +", but actually sampled", 25,  sampledCount);
+        }
+    }
+
+    @Test
+    public void nonAdaptiveSamplersAlsoWorkWithAutoAppNamingEnabled(){
+        //In the current implementation, non-adaptive samplers are shared across applications to conserve instances.
+        //This test validates that these samplers continue to sample their expected counts, even when auto app naming is turned on.
+        //Because this is identical behavior to the behavior when auto app naming is off, nothing should change (but, it's still good to check).
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "trace_id_ratio_based", "ratio", .25)
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "trace_id_ratio_based", "ratio", 0.6)
+                .withPartialGranularitySetting("remote_parent_sampled", "always_off")
+                .withPartialGranularitySetting("remote_parent_not_sampled", "always_on")
+                .buildMainConfig();
+
+        //turn auto-app naming on.
+        config.put("enable_auto_app_naming", true);
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        String[] appNames = {"first_app", "second_app"};
+        for (String appName : appNames) {
+            //first, create ROOT-sampled transaction events. These should sample approximately 85% of transactions (25% from FULL and 60% from partial)
+            int sampledCount = 0;
+            int TOTAL_ROOT_TXNS = 200;
+            for (int i = 0; i < TOTAL_ROOT_TXNS; i++){
+                Transaction tx = Mockito.mock(Transaction.class);
+                when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+                when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+                when(tx.getApplicationName()).thenReturn(appName);
+                float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, ROOT);
+                if (DistributedTraceUtil.isSampledPriority(priority)){
+                    sampledCount++;
+                }
+            }
+            //each app should sample ~85 root transactions.
+            int expectedSampledCount = (int) (TOTAL_ROOT_TXNS * 0.85);
+            int errorMargin = (int) (0.1 * expectedSampledCount);
+            assertTrue(Math.abs(expectedSampledCount - sampledCount) < errorMargin);
+
+            //Now, repeat with REMOTE_PARENT_SAMPLED transactions. These use an always_on sampler the first time through, so all of them should be sampled.
+            sampledCount = 0;
+            for (int i = 0; i < 100; i++){
+                Transaction tx = Mockito.mock(Transaction.class);
+                when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+                when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+                when(tx.getApplicationName()).thenReturn(appName);
+                float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+                if (DistributedTraceUtil.isSampledPriority(priority)){
+                    sampledCount++;
+                }
+            }
+            //each app should sample exactly 100 remote_parent_sampled transactions (all from full granularity).
+            assertEquals(100,  sampledCount);
+
+            //Finally, repeat with REMOTE_PARENT_NOT_SAMPLED transactions. These use an always_off sampler for full gran, but an always_on sampler for partial gran.
+            sampledCount = 0;
+            for (int i = 0; i < 100; i++){
+                Transaction tx = Mockito.mock(Transaction.class);
+                when(tx.getOrCreateTraceId()).thenReturn(TransactionGuidFactory.generate16CharGuid() +  TransactionGuidFactory.generate16CharGuid());
+                when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+                when(tx.getApplicationName()).thenReturn(appName);
+                float priority = DistributedTraceServiceImplTest.distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+                if (DistributedTraceUtil.isSampledPriority(priority)){
+                    sampledCount++;
+                }
+            }
+            //each app should sample exactly 100 remote_parent_not_sampled transactions (all from partial granularity).
+            assertEquals(100,  sampledCount);
         }
     }
 

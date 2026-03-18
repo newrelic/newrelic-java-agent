@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
@@ -36,6 +42,41 @@ public class SamplerManagerTest {
                 Collections.<String, Object>emptyMap());
 
         serviceManager = new MockServiceManager(configService);
+    }
+
+    @Test
+    public void testSamplerManagerBuildsSamplersOfAllTypes(){
+        //Create one of each sampler type and verify that the samplerManager picked it up.
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withSamplerSetting("root", "bleh") //invalid! This should revert to using the global adaptive sampler
+                .withSamplerSetting("remote_parent_sampled", "adaptive", "sampling_target",  20)
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
+                .withPartialGranularitySetting("root", "always_off")
+                .withPartialGranularitySetting("remote_parent_sampled", "trace_id_ratio_based", "ratio", .12)
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        SamplerManager manager = new SamplerManager(serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig());
+
+        Sampler fullRoot = manager.getSampler(Granularity.FULL, SamplerCase.ROOT);
+        assertEquals(SamplerType.ADAPTIVE, fullRoot.getType());
+        assertTrue(((AdaptiveSampler) fullRoot).isShared());
+
+        Sampler fullRemoteParentSampled = manager.getSampler(Granularity.FULL, SamplerCase.REMOTE_PARENT_SAMPLED);
+        assertEquals(SamplerType.ADAPTIVE, fullRemoteParentSampled.getType());
+        assertEquals(20, ((AdaptiveSampler) fullRemoteParentSampled).getTarget());
+        assertFalse(((AdaptiveSampler) fullRemoteParentSampled).isShared());
+
+        Sampler fullRemoteParentNotSampled = manager.getSampler(Granularity.FULL, SamplerCase.REMOTE_PARENT_NOT_SAMPLED);
+        assertEquals(SamplerType.ALWAYS_ON, fullRemoteParentNotSampled.getType());
+
+        Sampler partialRoot = manager.getSampler(Granularity.PARTIAL, SamplerCase.ROOT);
+        assertEquals(SamplerType.ALWAYS_OFF, partialRoot.getType());
+
+        Sampler partialRemoteParentSampled = manager.getSampler(Granularity.PARTIAL, SamplerCase.REMOTE_PARENT_SAMPLED);
+        assertEquals(SamplerType.TRACE_ID_RATIO_BASED, partialRemoteParentSampled.getType());
     }
 
     @Test
@@ -247,7 +288,7 @@ public class SamplerManagerTest {
         int INITIAL_SAMPLING_TARGET = 70;
 
         Map<String, Object> config = new DTConfigMapBuilder()
-                .withSamplerSetting("adaptive_sampling_target", 70)
+                .withSamplerSetting("adaptive_sampling_target", INITIAL_SAMPLING_TARGET)
                 .buildMainConfig();
 
         config.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
@@ -281,6 +322,5 @@ public class SamplerManagerTest {
         String newlyCreatedApp = "app_five";
         Sampler newlyCreatedSampler = manager.getSampler(newlyCreatedApp, Granularity.FULL, SamplerCase.ROOT);
         assertEquals(UPDATED_SAMPLING_TARGET, ((AdaptiveSampler) newlyCreatedSampler).getTarget());
-
     }
 }

@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -49,10 +55,14 @@ public class SamplerManager {
         this.sharedAdaptiveSamplingTarget = dtConfig.getAdaptiveSamplingTarget();
         this.fullGranularityConfig = dtConfig.getFullGranularityConfig();
         this.partialGranularityConfig = dtConfig.getPartialGranularityConfig();
-
+        //init the samplers for the primary app
         this.defaultSamplers = new SamplerCollection(true);
     }
 
+    /**
+     * Get the requested sampler for the given appName.
+     * If auto app naming is enabled and this app name hasn't been seen before, a new SamplerCollection will be constructed for it.
+     */
     public Sampler getSampler(String appName, Granularity granularity, SamplerCase samplerCase) {
         if (!autoAppNamingEnabled || appName == null || defaultAppName.equals(appName)) {
             return defaultSamplers.get(granularity, samplerCase);
@@ -61,6 +71,9 @@ public class SamplerManager {
         return samplers.get(granularity, samplerCase);
     }
 
+    /**
+     * Get the requested sampler from the default sampler collection.
+     */
     public Sampler getSampler(Granularity granularity, SamplerCase samplerCase) {
         return getSampler(defaultAppName, granularity, samplerCase);
     }
@@ -87,11 +100,9 @@ public class SamplerManager {
      * <p>
      * Default app: Creates the main set of Sampler instances.
      * Auto-named apps: Reuses references to the default app's Samplers, EXCEPT for AdaptiveSamplers, which must always be created per-app.
-     * The sharing strategy is an optimization, since all other Samplers (AlwaysOn, AlwaysOff, TraceIdRatioBased) do not need to be app-aware.
-     * It makes the implementation a little more confusing. The "sharing" logic is visible in reuseDefaultOrCreateAdaptiveSampler.
      * <p>
      * Every SamplerCollection also includes a sharedAdaptiveSampler instance, which represents the application's "global" adaptive sampler that may be
-     * shared across Full and Partial Granularity samplers of all cases.
+     * used across the application's Full and Partial Granularity samplers.
      */
     private class SamplerCollection {
         private ImmutableMap<SamplerCase, Sampler> fullGranularitySamplers;
@@ -131,6 +142,9 @@ public class SamplerManager {
             );
         }
 
+        /**
+         * Creates all-new samplers for the default app (isDefault = true).
+         */
         private Sampler createDefaultSampler(SamplerConfig samplerConfig){
             switch (samplerConfig.getSamplerType()) {
                 case SamplerConfig.ALWAYS_ON:
@@ -144,6 +158,10 @@ public class SamplerManager {
             }
         }
 
+        /**
+         * Creates a reference to the requested sampler for SamplerCollections that are not the default app (isDefault=false).
+         * This method creates new adaptive samplers, but gets all other samplers from the default SamplerCollection to conserve instances.
+         */
         private Sampler reuseDefaultOrCreateAdaptiveSampler(SamplerConfig config, Granularity granularity, SamplerCase samplerCase) {
             if (config.getSamplerType().equals(SamplerConfig.ADAPTIVE)){
                 return createAdaptiveSampler(config);
@@ -161,7 +179,6 @@ public class SamplerManager {
             }
         }
 
-        //Test-only method.
         @VisibleForTesting
         void replaceSampler(Granularity granularity, SamplerCase samplerCase, Sampler newSampler) {
             if (granularity == Granularity.FULL) {
@@ -182,10 +199,10 @@ public class SamplerManager {
 
     @VisibleForTesting
     public void setSampler(String appName, Granularity granularity, SamplerCase samplerCase, Sampler newSampler) {
-        if (samplersForApp.get(appName) == null) {
+        SamplerCollection samplers = samplersForApp.get(appName);
+        if (samplers == null) {
             return;
         }
-        SamplerCollection samplers = samplersForApp.get(appName);
         samplers.replaceSampler(granularity, samplerCase, newSampler);
     }
 
