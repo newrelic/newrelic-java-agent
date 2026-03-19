@@ -15,6 +15,7 @@ Both versions are shaded with relocated package names to avoid conflicts with us
 and the agent automatically selects the appropriate version at runtime based on the Java version,
 utilizing the CollectionFactory on the AgentBridge.
 
+### Forcing Caffeine v2
 A config exists, that if set to `true`, will force the use of Caffeine v2, even if the Java version is 11+:
 - System property: `newrelic.config.collectionfactory.forcev2`
 - Environment variable: `NEW_RELIC_COLLECTIONFACTORY_FORCEV2`
@@ -22,7 +23,7 @@ A config exists, that if set to `true`, will force the use of Caffeine v2, even 
 (Not available as a yaml config since the AgentCollectionFactory is loaded prior to any services being
 spun up).
 
-A couple of other Caffeine v2 and v3 differences:
+Caffeine v2 and v3 differences:
 - v2 depends on `org.checkerframework`, which is also relocated in the agent jar
 - v3 depends on `org.jspecify`, which is also relocated in the agent jar
 - v3 changed from `TimeUnit` to `java.time.Duration`. The Caffeine3CollectionFactory handles this automatically.
@@ -34,13 +35,45 @@ A couple of somewhat gross implementation details:
   have a dependency on the agent bridge
 - A custom implementation of a CleanableMap to be used with removal listener caches
 
-#### Why not transition to a new cache provider??
+### Why not transition to a new cache provider??
 - cache2k, ehcache - No support for weak keyed caches
 - guava - suffers from the same `Unsafe` usage that Caffeine v2 does
 - "Roll your own" caches in vanilla Java - Extremely difficult and brittle to implement weak key caches
   and max size caches with acceptable performance (although one was created for the weaver project)
 
-### Object Graph
+### Important - App Server Specific Config
+Because of the way Caffeine v3 initializes the JUL logging framework, some app servers might crash or
+behave differently. Specifically, the servers themselves assume they will be the ones initializing 
+JUL, and fail when that's not the case.
+
+In general, when running a problematic app server with Java 11+ (which causes Caffeine v3 to be pulled
+in), the easiest thing to do is force the use of Caffeine v2, using the config options listed [above](#forcing-caffeine-v2).
+Specific server config is explained below.
+
+##### JBoss/Wildfly
+The following environment variables and system properties must be set in order to use JBoss/Wildfly with Caffeine v3.
+These can be set in the `$JBOSS_HOME/bin/standalone.conf`, or in any other relevant startup script.
+
+Environment Variables:
+- `MODULE_OPTS="-javaagent:/path/to/newrelic.jar"`
+- `JAVA_OPTS="-Xbootclasspath/a:$JBOSS_HOME/modules/system/layers/base/org/jboss/logmanager/main/jboss-logmanager-<version>.jar:$JBOSS_HOME/modules/system/layers/base/org/wildfly/common/main/wildfly-common-<version>.jar"`
+
+**Note:** The `-Xbootclasspath/a` property MUST be the first thing present in the `JAVA_OPTS` variable, so in practice, the `JAVA_OPTS`
+property would look something like:
+```shell
+JAVA_OPTS=""-Xbootclasspath/a:<module-list> $JAVA_OPTS"
+```
+
+Java System Properties (passed to the Java startup command):
+- `-Djboss.modules.system.pkgs=org.jboss.logmanager,com.newrelic`
+- `-Djava.util.logging.manager=org.jboss.logmanager.LogManager`
+- `-Dsun.util.logging.disableCallerCheck=true`
+
+##### Glassfish
+Currently, when running Glassfish with the agent using Caffeine v3, there is no other workaround other than forcing
+Caffeine v2.
+
+## Object Graph
 
 ```
 AgentBridge (agent-bridge module)
@@ -160,7 +193,7 @@ Runtime delegation layer that uses reflection to dynamically load the appropriat
 To maintain a clean separation between the agent-bridge API and the underlying Caffeine implementations, several
 adapter patterns and bridge interfaces were added.
 
-## CleanableMap Interface (agent-bridge)
+### CleanableMap Interface (agent-bridge)
 
 The CleanableMap interface extends Map<K, V> to expose cache maintenance operations that may be deferred by the underlying cache implementation:
 
@@ -179,7 +212,7 @@ public interface CleanableMap<K, V> extends Map<K, V> {
 Purpose: Caffeine defers maintenance operations for performance reasons. The cleanUp() method provides explicit control over when maintenance
 occurs
 
-## CacheRemovalListener Interface (agent-bridge)
+### CacheRemovalListener Interface (agent-bridge)
 
 Provides a unified callback interface for cache removal events, decoupled from the specific Caffeine version:
 
@@ -200,7 +233,7 @@ public interface CacheRemovalListener<K, V> {
 
 Purpose: This interface prevents the agent code from direct dependencies on Caffeine's RemovalCause enum.
 
-## CaffeineCleanableMap Adapter
+### CaffeineCleanableMap Adapter
 
 Both Caffeine2CollectionFactory and Caffeine3CollectionFactory contain an inner CaffeineCleanableMap class that
 adapts Caffeine's Cache interface to the agent-bridge's CleanableMap interface:
@@ -232,7 +265,7 @@ private static class CaffeineCleanableMap<K, V> implements CleanableMap<K, V> {
 - All Map operations delegate to cache.asMap(), which is a standard `java.util.concurrent.ConcurrentMap` view
 - The `cleanUp()` method proxies to Caffeine's equivalent cleanup method
 
-## RemovalCause Conversion
+### RemovalCause Conversion
 
 Each factory class contains a convertRemovalCause() method that maps Caffeine's version-specific RemovalCause
 enum to the agent-bridge's RemovalReason enum:
@@ -253,7 +286,7 @@ Caffeine2CollectionFactory:
 
 The Caffeine3CollectionFactory has identical logic but takes a v3 `RemovalCause` instance.
 
-### Shading Tasks
+## Shading Tasks
 
 Two Gradle tasks create shaded JARs with relocated Caffeine packages (both are included in the final agent jar):
 
@@ -267,7 +300,7 @@ If a full agent build is performed, running the new `shadeCaffeineXJar` tasks is
 **Note:** This task (or a full agent build) will need to be run to make IntelliJ happy and eliminate
 errors and warnings in the project.
 
-### Package Relocation
+## Package Relocation
 
 Both versions are relocated to avoid classpath conflicts:
 
