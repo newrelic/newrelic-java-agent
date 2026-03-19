@@ -74,8 +74,6 @@ public class HarvestSamplingRatesCrossAgentTest {
         partialGranSampled = 0;
         totalSampled = 0;
 
-        AdaptiveSampler.resetForTesting();
-
         Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, "Test");
         ConfigService configService = ConfigServiceFactory.createConfigService(
