@@ -11,6 +11,8 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.tracing.Granularity;
+import com.newrelic.test.marker.Flaky;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 import org.junit.Assert;
 import org.junit.Before;
@@ -183,6 +185,23 @@ public class AdaptiveSamplerTest {
             assertTrue(String.format("Expected less than %s sampled for each period, but a period actually sampled %s", 2*target, sampledCount),
                     sampledCount <= 2*target);
         }
+    }
+
+    @Test
+    @Category( Flaky.class )
+    // Flaky note: expectedSampled ends up being 15 and 16s and 17s are fairly common
+    public void testCalculatePriorityMultithreaded() throws InterruptedException {
+        int target = 10;
+        int reportPeriod = 5;
+        int totalPeriods = 10;
+        long totalTestTimeMillis = reportPeriod * totalPeriods * 1000;
+
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriod);
+        int totalSampled = runSamplerConcurrentAndGetSampled(sampler, totalTestTimeMillis);
+
+        int expectedSampled = target * totalPeriods;
+        int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
+        assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
     }
 
     @Test
