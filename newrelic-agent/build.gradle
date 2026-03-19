@@ -200,6 +200,9 @@ dependencies {
     testRuntimeOnly files(shadeCaffeine2Jar.outputs.files)
     testRuntimeOnly files(shadeCaffeine3Jar.outputs.files)
 
+    // Add Java 11 compiled classes (Caffeine3CollectionFactory) to test classpath
+    testRuntimeOnly sourceSets.java11.output
+
     testImplementation("com.google.code.gson:gson:2.8.9")
     testImplementation("org.apache.struts:struts-core:1.3.10")
     testImplementation("javax.servlet:jsp-api:2.0")
