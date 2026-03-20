@@ -13,7 +13,6 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.channel.ChannelPipeline_Instrumentation;
 
@@ -46,17 +45,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
         @Trace
         void read(Object message) {
             NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "MessageInboundHandler", "read");
-            Weaver.callOriginal();
-        }
-
-    }
-
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$DecompressingInboundHandler")
-    private static class DecompressingInboundHandler_Instrumentation {
-
-        @Trace
-        void read(Object message) {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "DecompressingInboundHandler", "read");
             Weaver.callOriginal();
         }
 
@@ -129,11 +117,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
                     .setMetricName("Micronaut", "HTTP", "Netty", "OutboundHander", "StreamingOutboundHandler", "writeSome");
             Weaver.callOriginal();
         }
-    }
-
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$OutboundAccessImpl")
-    public static class OutboundAccessImpl_Instrumentation {
-
     }
 
 }

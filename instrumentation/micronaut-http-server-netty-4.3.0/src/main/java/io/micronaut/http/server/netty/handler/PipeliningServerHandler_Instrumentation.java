@@ -50,17 +50,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
 
     }
 
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$DecompressingInboundHandler")
-    private static class DecompressingInboundHandler_Instrumentation {
-
-        @Trace
-        void read(Object message) {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "DecompressingInboundHandler", "read");
-            Weaver.callOriginal();
-        }
-
-    }
-
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$OptimisticBufferingInboundHandler")
     private static class OptimisticBufferingInboundHandler_Instrumentation {
 
