@@ -1,0 +1,28 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-ai-client-chat-1.0.0', 'Implementation-Title-Alias': 'spring_ai' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+//    implementation 'org.springframework.ai:spring-ai-client-chat:1.0.0' // compile against this version in final implementation
+    implementation 'org.springframework.ai:spring-ai-client-chat:1.1.2'
+
+    testImplementation 'org.springframework.ai:spring-ai-client-chat:1.0.0'
+//    testImplementation 'org.mockito:mockito-inline:4.11.0'
+//    testImplementation 'org.json:json:20240303'
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework.ai:spring-ai-client-chat:[1.0.0,)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+site {
+    title 'Spring AI Client Chat'
+    type 'AI'
+}
