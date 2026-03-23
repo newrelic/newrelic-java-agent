@@ -11,6 +11,7 @@ import com.newrelic.agent.application.PriorityApplicationName;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.NewRelic;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -157,6 +158,8 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
             list.addAll(appNameToRPMService.values());
             list.add(defaultRPMService);
             rpmServices = Collections.unmodifiableList(list);
+            //Report app name to the default app so we can find all auto-named apps in the UI.
+            NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_AUTO_APP_NAMING_REPORTING_TO, appName));
             if (isStarted()) {
                 try {
                     rpmService.start();
