@@ -14,6 +14,8 @@ import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.WeaveAllConstructors;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.SubscriptionWrapper;
+import org.reactivestreams.Subscription;
 import reactor.util.context.Context;
 
 @Weave(originalName = "reactor.core.publisher.LambdaSubscriber")
@@ -53,6 +55,13 @@ abstract class LambdaSubscriber_Instrumentation {
         if (token != null) {
             token.expire();
             this.nrContext = null;
+        }
+        Weaver.callOriginal();
+    }
+
+    public final void onSubscribe(Subscription s) {
+        if (s != null) {
+            s = new SubscriptionWrapper(s, this.currentContext());
         }
         Weaver.callOriginal();
     }

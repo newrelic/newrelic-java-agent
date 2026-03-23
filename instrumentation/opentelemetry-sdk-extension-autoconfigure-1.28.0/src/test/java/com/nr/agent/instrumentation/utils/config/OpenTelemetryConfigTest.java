@@ -34,6 +34,10 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_TRACES_ENABLED_DEFAULT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_TRACES_EXCLUDE;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_TRACES_INCLUDE;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -77,6 +81,10 @@ public class OpenTelemetryConfigTest {
         assertFalse(OpenTelemetryConfig.isOpenTelemetryMetricsEnabled());
         assertFalse(OpenTelemetryConfig.isOpenTelemetryTracesEnabled());
         assertFalse(OpenTelemetryConfig.isOpenTelemetryLogsEnabled());
+
+        OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+        assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
+        assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
     }
 
     @Test
@@ -306,4 +314,103 @@ public class OpenTelemetryConfigTest {
         }
     }
 
+    @Test
+    public void testGetOpenTelemetryMetricsExportIntervalValid() {
+        int expectedInterval = 10_000; // export_interval needs to be >= to the export_timeout to be valid
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL, OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT))
+                .thenReturn(expectedInterval);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // configured export_interval should be respected
+            assertEquals(expectedInterval, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsExportIntervalInvalid() {
+        int expectedInterval = 9_999; // export_interval needs to be >= to the export_timeout to be valid
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL, OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT))
+                .thenReturn(expectedInterval);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // reverts to default export_interval
+            assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsExportIntervalValidExplicit() {
+        int expectedInterval = 9_999; // export_interval needs to be >= to the export_timeout to be valid
+        int expectedTimeout = 9_999; // explicitly configure export_timeout to a non-default value
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT, OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT))
+                .thenReturn(expectedTimeout);
+
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL, OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT))
+                .thenReturn(expectedInterval);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // configured values for both export_timeout and export_interval should be respected
+            assertEquals(expectedInterval, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
+            assertEquals(expectedTimeout, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsExportIntervalInvalidExplicit() {
+        int expectedInterval = 9_998; // export_interval needs to be >= to the export_timeout to be valid
+        int expectedTimeout = 9_999; // explicitly configure export_timeout to a non-default value
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT, OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT))
+                .thenReturn(expectedTimeout);
+
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL, OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT))
+                .thenReturn(expectedInterval);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // both export_timeout and export_interval should be reset to their defaults
+            assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
+            assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsExportTimeoutValid() {
+        int expectedTimeout = 10_999; // export_timeout needs to be a positive value
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT, OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT))
+                .thenReturn(expectedTimeout);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // configured export_timeout should be respected
+            assertEquals(expectedTimeout, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsExportTimeoutInvalid() {
+        int expectedTimeout = -1; // export_timeout needs to be a positive value
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT, OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT))
+                .thenReturn(expectedTimeout);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
+            // reverts to default export_timeout
+            assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
 }

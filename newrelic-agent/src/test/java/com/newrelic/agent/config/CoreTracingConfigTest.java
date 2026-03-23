@@ -370,6 +370,36 @@ public class CoreTracingConfigTest {
     }
 
     @Test
+    public void testSysPropsFullGranularityDisabled() {
+        Properties props = new Properties();
+        props.setProperty("newrelic.config.distributed_tracing.sampler.full_granularity.enabled", String.valueOf(false));
+
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(props),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
+        ));
+
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
+
+        assertFalse(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+    }
+
+    @Test
+    public void testEnvVariableFullGranularityDisabled() {
+        Map<String, String> environmentVars = ImmutableMap.<String, String>builder()
+                .put("NEW_RELIC_DISTRIBUTED_TRACING_SAMPLER_FULL_GRANULARITY_ENABLED", "false")
+                .build();
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(environmentVars)
+        ));
+
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
+
+        assertFalse(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+    }
+
+    @Test
     public void testEnvironmentVariables() {
         // Given: Environment variables with conflicting base sampler and full_granularity settings
         /*
