@@ -9,19 +9,16 @@ package com.newrelic.bootstrap;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.newrelic.agent.Agent;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 
@@ -41,31 +38,15 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
     private static final String JAVA_IO_TMP_DIR = "java.io.tmpdir";
 
     /**
-     * A map of jar names to the temp files containing those jars.
+     * A cache of jar names to the temp files containing those jars.
+     *
+     * We had a bit of a chicken-and-egg problem when trying to use the new
+     * collection factory in the bridge. The Agent bridge wasn't available
+     * until the agent-bridge.jar was extracted and loaded, but the collection
+     * factory exists through the AgentBridge class. Because of this we changed
+     * the jar cache to use a simple ConcurrentHashMap instance.
      */
-    private final LoadingCache<String, File> embeddedAgentJarFiles = Caffeine.newBuilder().executor(Runnable::run).build(
-            new CacheLoader<String, File>() {
-
-                @Override
-                public File load(String jarNameWithoutExtension) throws IOException {
-                    InputStream jarStream = EmbeddedJarFilesImpl.class.getClassLoader().getResourceAsStream(
-                            jarNameWithoutExtension + ".jar");
-                    if (jarStream == null) {
-                        throw new FileNotFoundException(jarNameWithoutExtension + ".jar");
-                    }
-
-                    File file = File.createTempFile(jarNameWithoutExtension, ".jar", BootstrapLoader.getTempDir());
-                    file.deleteOnExit(); // Doesn't need to be kept after shutdown.
-
-                    try (OutputStream out = new FileOutputStream(file)) {
-                        BootstrapLoader.copy(jarStream, out, 8096, true);
-
-                        return file;
-                    }
-
-                }
-
-            });
+    private final ConcurrentMap<String, File> embeddedAgentJarFiles = new ConcurrentHashMap<>();
 
     /**
      * Cleanup any stale temporary agent jar files in the defined temp folder if a threshold has
@@ -171,11 +152,48 @@ public class EmbeddedJarFilesImpl implements EmbeddedJarFiles {
 
     @Override
     public File getJarFileInAgent(String jarNameWithoutExtension) throws IOException {
-        return embeddedAgentJarFiles.get(jarNameWithoutExtension);
+        // This nested try/catch thing is gross, but required to adhere to the method
+        // contract to still throw an IOException.
+        try {
+            return embeddedAgentJarFiles.computeIfAbsent(jarNameWithoutExtension, key -> {
+                try {
+                    return loadJarFile(key);
+                } catch (IOException e) {
+                    // Wrap IOException in RuntimeException because a Function can't throw checked exceptions
+                    throw new RuntimeException("Failed to load JAR: " + key, e);
+                }
+            });
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
+            }
+            throw e;
+        }
     }
 
     @Override
     public String[] getEmbeddedAgentJarFileNames() {
         return jarFileNames;
+    }
+
+    /**
+     * Extracts an embedded JAR file to a temp file.
+     */
+    private File loadJarFile(String jarNameWithoutExtension) throws IOException {
+        InputStream jarStream = EmbeddedJarFilesImpl.class.getClassLoader()
+                .getResourceAsStream(jarNameWithoutExtension + ".jar");
+
+        if (jarStream == null) {
+            throw new FileNotFoundException(jarNameWithoutExtension + ".jar");
+        }
+
+        File file = File.createTempFile(jarNameWithoutExtension, ".jar",
+                BootstrapLoader.getTempDir());
+        file.deleteOnExit();
+
+        try (OutputStream out = Files.newOutputStream(file.toPath())) {
+            BootstrapLoader.copy(jarStream, out, 8096, true);
+            return file;
+        }
     }
 }
