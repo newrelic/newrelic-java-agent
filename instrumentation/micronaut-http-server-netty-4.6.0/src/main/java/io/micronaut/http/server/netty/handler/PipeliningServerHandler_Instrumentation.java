@@ -7,23 +7,26 @@
 
 package io.micronaut.http.server.netty.handler;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.agent.instrumentation.micronaut.netty_46.NettyExtendedRequest;
+import com.nr.agent.instrumentation.micronaut.netty_46.NettyHeaders;
 import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.channel.ChannelPipeline_Instrumentation;
+import io.netty.handler.codec.http.HttpRequest;
 
 @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler")
 public abstract class PipeliningServerHandler_Instrumentation {
 
-    @Trace(dispatcher = true)
+    @Trace(async = true)
     public void channelRead(ChannelHandlerContext_Instrumentation ctx, Object msg) {
-        ChannelPipeline_Instrumentation pipeline = ctx.pipeline();
+        ChannelPipeline_Instrumentation pipeline = ctx != null ? ctx.pipeline() : null;
         if(pipeline != null) {
-            if(pipeline.micronautToken == null) {
+            if(pipeline.micronautToken != null) {
+               pipeline.micronautToken.link();
+            } else {
                 Token token = NewRelic.getAgent().getTransaction().getToken();
                 if(token != null) {
                     if(token.isActive()) {
@@ -35,16 +38,36 @@ public abstract class PipeliningServerHandler_Instrumentation {
                 }
             }
         }
+        Weaver.callOriginal();
+    }
 
+    public void channelReadComplete(ChannelHandlerContext_Instrumentation ctx) {
+        ChannelPipeline_Instrumentation pipeline = ctx != null ? ctx.pipeline() : null;
+        if(pipeline != null) {
+            if(pipeline.micronautToken != null) {
+                pipeline.micronautToken.expire();
+                pipeline.micronautToken = null;
+            }
+        }
         Weaver.callOriginal();
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$MessageInboundHandler")
     private static class MessageInboundHandler_Instrumentation {
 
-        @Trace
+        @Trace(dispatcher = true)
         void read(Object message) {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "MessageInboundHandler", "read");
+            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHandler", "MessageInboundHandler", "read");
+            if(message instanceof HttpRequest) {
+                HttpRequest httpRequest = (HttpRequest) message;
+                NettyExtendedRequest  nettyExtendedRequest = new NettyExtendedRequest(httpRequest);
+                NettyHeaders nettyHeaders = new NettyHeaders(httpRequest);
+                Transaction transaction = NewRelic.getAgent().getTransaction();
+                transaction.acceptDistributedTraceHeaders(TransportType.HTTP, nettyHeaders);
+                transaction.setWebRequest(nettyExtendedRequest);
+                transaction.convertToWebTransaction();
+            }
+
             Weaver.callOriginal();
         }
 
