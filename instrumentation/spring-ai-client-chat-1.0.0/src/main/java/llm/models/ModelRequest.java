@@ -65,6 +65,13 @@ public interface ModelRequest {
     String getModelId();
 
     /**
+     * Indicates whether the message is from a user or AI assistant.
+     *
+     * @return boolean true if the message is from a user, else false
+     */
+    boolean isUser();
+
+    /**
      * Log when a parsing error occurs.
      *
      * @param e                Exception encountered when parsing the request

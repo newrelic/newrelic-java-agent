@@ -9,7 +9,6 @@ package org.springframework.ai.chat.client;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.NoOpTransaction;
-import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
@@ -21,12 +20,14 @@ import llm.models.ModelInvocation;
 import llm.models.springai.SpringAiModelInvocation;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
 import static llm.vendor.Vendor.VENDOR_VERSION;
 
-//@Weave(type = MatchType.ExactClass, originalName = "org.springframework.ai.chat.client.DefaultChatClient")
 public class DefaultChatClient_Instrumentation {
 
     @Weave(type = MatchType.ExactClass, originalName = "org.springframework.ai.chat.client.DefaultChatClient$DefaultCallResponseSpec")
@@ -37,13 +38,13 @@ public class DefaultChatClient_Instrumentation {
          */
         @Trace
         private ChatClientResponse doGetObservableChatClientResponse(ChatClientRequest chatClientRequest) {
-            long startTime = System.currentTimeMillis(); // FIXME start timing here? or in call/stream?
+            long startTime = System.currentTimeMillis();
 
             ChatClientResponse chatClientResponse = Weaver.callOriginal();
 
             if (isAiMonitoringEnabled()) {
                 Transaction txn = AgentBridge.getAgent().getTransaction();
-                ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION); // FIXME doesn't need to be called repeatedly
+                ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
                 if (!(txn instanceof NoOpTransaction)) {
                     // Set llm = true agent attribute, this is required on transaction events
@@ -72,12 +73,12 @@ public class DefaultChatClient_Instrumentation {
          */
         @Trace
         private Flux<ChatClientResponse> doGetObservableFluxChatResponse(ChatClientRequest chatClientRequest) {
-            long startTime = System.currentTimeMillis(); // FIXME start timing here? or in call/stream?
+            long startTime = System.currentTimeMillis();
             Flux<ChatClientResponse> chatClientResponseFlux = Weaver.callOriginal();
 
             if (isAiMonitoringEnabled()) {
                 Transaction txn = AgentBridge.getAgent().getTransaction();
-                ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION); // FIXME doesn't need to be called repeatedly?
+                ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
                 if (!(txn instanceof NoOpTransaction)) {
                     // Segment will be renamed later when the response is available
@@ -92,25 +93,54 @@ public class DefaultChatClient_Instrumentation {
                         Map<String, Object> userAttributes = txn.getUserAttributes();
                         Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
 
-                        Token token = txn.getToken();
+//                        Token token = txn.getToken();
+
                         try {
-                            // TODO debug and clean up
-                            chatClientResponseFlux.doOnEach(signal -> {
-                                if (signal.isOnError()) {
-                                    if (segment != null) {
-                                        segment.endAsync();
+                            // collect all chunks of the stream response into a list without blocking
+                            // must use anonymous classes instead of lambdas or else instrumentation won't apply
+                            chatClientResponseFlux.collectList().subscribe(
+                                    // onNext consumer
+                                    new Consumer<List<ChatClientResponse>>() {
+                                        @Override
+                                        public void accept(List<ChatClientResponse> chatClientResponseList) {
+//                                            System.out.println("Received complete list: " + chatClientResponseList);
+                                            List<ChatClientResponse> list = chatClientResponseList != null ? chatClientResponseList : new ArrayList<>();
+
+                                            // Create Spring AI model invocation
+                                            ModelInvocation springAiInvocation = new SpringAiModelInvocation(
+                                                    linkingMetadata, userAttributes, chatClientRequest, list);
+                                            springAiInvocation.setSegmentName(segment, "stream");
+                                            springAiInvocation.recordLlmEventsAsync(startTime, null); // FIXME token not needed?
+                                        }
+                                    },
+                                    // onError consumer
+                                    new Consumer<Throwable>() {
+                                        @Override
+                                        public void accept(Throwable error) {
+//                                            System.err.println("Error: " + error);
+                                            if (segment != null) {
+                                                segment.endAsync();
+                                            }
+//                                            if (token != null) {
+//                                                token.expire();
+//                                            }
+                                        }
+                                    },
+                                    // onComplete consumer
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            // TODO do final cleanup
+//                                            System.out.println("Stream completed");
+                                            if (segment != null) {
+                                                segment.endAsync();
+                                            }
+//                                            if (token != null) {
+//                                                token.expire();
+//                                            }
+                                        }
                                     }
-                                    if (token != null) {
-                                        token.expire();
-                                    }
-                                } else if (signal.isOnNext()) {
-                                    // Create Spring AI model invocation
-                                    ModelInvocation springAiInvocation = new SpringAiModelInvocation(
-                                            linkingMetadata, userAttributes, chatClientRequest, signal.get());
-                                    springAiInvocation.setSegmentName(segment, "stream");
-                                    springAiInvocation.recordLlmEventsAsync(startTime, token);
-                                }
-                            }).subscribe();
+                            );
                         } catch (Throwable t) {
                             if (segment != null) {
                                 segment.endAsync();

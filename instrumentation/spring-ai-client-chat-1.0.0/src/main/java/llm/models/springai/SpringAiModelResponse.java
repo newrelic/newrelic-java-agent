@@ -30,14 +30,11 @@ import static llm.models.ModelResponse.logParsingFailure;
  * a reference to the actual request object to avoid potential memory issues.
  */
 public class SpringAiModelResponse implements ModelResponse {
-    private static final String GENERATIONS = "generations";
     private static final String EMBEDDINGS = "embeddings";
     private static final String ASSISTANT = "assistant";
 
     // LLM operation type
     private String operationType = "";
-    // HTTP response
-    private boolean isSuccessfulResponse = false;
     private int statusCode = 0;
     private String statusText = "";
     private String responseOrganization = "";
@@ -53,13 +50,17 @@ public class SpringAiModelResponse implements ModelResponse {
     private String messageTypeValue = "";
     private List<Generation> responseGenerations = new ArrayList<>();
 
-    public SpringAiModelResponse(ChatClientResponse chatClientResponse) {
+    public SpringAiModelResponse(ChatClientResponse chatClientResponse, String streamGeneration) {
         if (chatClientResponse != null) {
             ChatResponse chatResponse = chatClientResponse.chatResponse();
             if (chatResponse != null) {
-                List<Generation> results = chatResponse.getResults();
-                if (results != null) {
-                    responseGenerations = results;
+                if (streamGeneration != null) {
+                    responseGenerations.add(new Generation(new AssistantMessage(streamGeneration)));
+                } else {
+                    List<Generation> results = chatResponse.getResults();
+                    if (results != null) {
+                        responseGenerations.addAll(results);
+                    }
                 }
                 Generation result = chatResponse.getResult();
                 if (result != null) {
@@ -93,7 +94,7 @@ public class SpringAiModelResponse implements ModelResponse {
                 }
             }
 
-            llmEmbeddingId = getRandomGuid(); // TODO does this exist?
+            llmEmbeddingId = getRandomGuid(); // TODO does this exist? need to debug embedding
             requestId = getRandomGuid();
             setOperationType(llmChatCompletionSummaryId);
         } else {
@@ -165,7 +166,14 @@ public class SpringAiModelResponse implements ModelResponse {
 
     @Override
     public boolean isErrorResponse() {
-        return !isSuccessfulResponse; // TODO how to know?
+        /*
+         * The ChatClientResponse doesn't seem to include any info about errors.
+         * When a ChatClient request in Spring AI fails, the error response is typically
+         * encapsulated in a Spring RestClientException or a similar exception type
+         * within the Spring framework, such as WebClientRequestException (for streaming calls)
+         * or an IOException related to connection issues.
+         */
+        return false;
     }
 
     @Override
@@ -208,8 +216,8 @@ public class SpringAiModelResponse implements ModelResponse {
 
     @Override
     public Integer getTimeToFirstToken() {
-        // Not available
-        return timeToFirstToken;
+        // This only applies to streams
+        return timeToFirstToken; // TODO this is from streams only
     }
 
     @Override

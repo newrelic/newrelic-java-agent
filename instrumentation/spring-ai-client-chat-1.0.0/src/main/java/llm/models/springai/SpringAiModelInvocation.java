@@ -18,8 +18,12 @@ import llm.models.ModelRequest;
 import llm.models.ModelResponse;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -35,12 +39,72 @@ public class SpringAiModelInvocation implements ModelInvocation {
     ModelRequest modelRequest;
     ModelResponse modelResponse;
 
+    /**
+     *
+     * @param linkingMetadata      agent's context linking data
+     * @param userCustomAttributes user custom attributes
+     * @param chatClientRequest    a ChatClientRequest from a client call
+     * @param chatClientResponse   a ChatClientResponse from a client call
+     */
     public SpringAiModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes,
             ChatClientRequest chatClientRequest, ChatClientResponse chatClientResponse) {
         this.linkingMetadata = linkingMetadata;
         this.userAttributes = userCustomAttributes;
         this.modelRequest = new SpringAiModelRequest(chatClientRequest);
-        this.modelResponse = new SpringAiModelResponse(chatClientResponse);
+        this.modelResponse = new SpringAiModelResponse(chatClientResponse, null);
+    }
+
+    /**
+     * Takes a list of ChatClientResponse instances from a stream.
+     *
+     * @param linkingMetadata      agent's context linking data
+     * @param userCustomAttributes user custom attributes
+     * @param chatClientRequest    a ChatClientRequest from a stream call
+     * @param list                 a list of ChatClientResponse from a client stream
+     */
+    public SpringAiModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes,
+            ChatClientRequest chatClientRequest, List<ChatClientResponse> list) {
+        this.linkingMetadata = linkingMetadata;
+        this.userAttributes = userCustomAttributes;
+        this.modelRequest = new SpringAiModelRequest(chatClientRequest);
+        int listSize = list.size();
+        if (listSize > 0) {
+            // pass in only the final ChatClientResponse instance from the stream contents
+            // but with a list of Generations from all ChatClientResponse instances for the complete content
+            this.modelResponse = new SpringAiModelResponse(list.get(listSize - 1), getStreamGeneration(list));
+        } else {
+            this.modelResponse = new SpringAiModelResponse(null, null);
+        }
+    }
+
+    /**
+     * Iterate through a List of ChatClientResponse instances to
+     * construct the complete content string from all stream chunks.
+     *
+     * @param list List of ChatClientResponse instances returned as stream chunks
+     * @return String representing the complete stream content
+     */
+    private String getStreamGeneration(
+            List<ChatClientResponse> list) {
+        StringBuilder content = new StringBuilder();
+        if (list != null && !list.isEmpty()) {
+            for (ChatClientResponse chatClientResponse : list) {
+                ChatResponse chatResponse = chatClientResponse.chatResponse();
+                if (chatResponse != null) {
+                    for (Generation result : chatResponse.getResults()) {
+                        AssistantMessage assistantMessage = result.getOutput();
+                        if (assistantMessage != null) {
+                            String messageText = assistantMessage.getText();
+                            if (messageText != null) {
+                                content.append(messageText);
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        return content.toString();
     }
 
     @Override
@@ -61,7 +125,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
-        LlmEvent llmEmbeddingEvent = builder // TODO
+        LlmEvent llmEmbeddingEvent = builder // TODO setup embedding
                 .spanId()
                 .traceId()
                 .vendor()
@@ -115,7 +179,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
     }
 
     @Override
-    public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
+    public void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser) {
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmChatCompletionMessageEvent = builder
@@ -123,15 +187,15 @@ public class SpringAiModelInvocation implements ModelInvocation {
                 .traceId()
                 .vendor()
                 .ingestSource()
-                .id(getRandomGuid()) // FIXME is this right?
+                .id(getRandomGuid())
                 .content(message)
-                .role(modelResponse.isUser())
-                .isResponse(modelResponse.isUser())
+                .role(isUser)
+                .isResponse(isUser)
                 .requestId()
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), message))
+                .tokenCount(getTokenCount(modelId, message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
@@ -161,10 +225,11 @@ public class SpringAiModelInvocation implements ModelInvocation {
     @Override
     public void reportLlmError() {
         Map<String, Object> errorParams = new HashMap<>();
+        // statusCode not available from ChatClientResponse
         int statusCode = modelResponse.getStatusCode();
         if (statusCode > 0) {
-            errorParams.put("http.statusCode", statusCode); // not available from ChatClient
-            errorParams.put("error.code", statusCode); // not available from ChatClient
+            errorParams.put("http.statusCode", statusCode);
+            errorParams.put("error.code", statusCode);
         }
         if (!modelResponse.getLlmChatCompletionSummaryId().isEmpty()) {
             errorParams.put("completion_id", modelResponse.getLlmChatCompletionSummaryId());
@@ -172,7 +237,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
         if (!modelResponse.getLlmEmbeddingId().isEmpty()) {
             errorParams.put("embedding_id", modelResponse.getLlmEmbeddingId());
         }
-        // FIXME statusText not available from ChatClient
+        // statusText not available from ChatClientResponse
         NewRelic.noticeError("LlmError: " + modelResponse.getStatusText(), errorParams);
     }
 
@@ -189,13 +254,13 @@ public class SpringAiModelInvocation implements ModelInvocation {
 
         // First, record all LlmChatCompletionMessage events representing the user input prompt
         for (int i = 0; i < numberOfRequestMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), modelResponse.isUser());
+            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), modelRequest.getModelId(), modelRequest.isUser());
             sequence++;
         }
 
         // Second, record all LlmChatCompletionMessage events representing the completion message from the LLM response
         for (int i = 0; i < numberOfResponseMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), modelResponse.isUser());
+            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), modelResponse.getModelId(), modelResponse.isUser());
             sequence++;
         }
 

@@ -65,9 +65,10 @@ public interface ModelInvocation {
      *
      * @param sequence index starting at 0 associated with each message
      * @param message  String representing the input/output message
+     * @param modelId  String representing the model ID
      * @param isUser   boolean representing if the current message event is from a user input prompt or an assistant response message
      */
-    void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser);
+    void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser);
 
     /**
      * Record all LLM events when using the sync client.
