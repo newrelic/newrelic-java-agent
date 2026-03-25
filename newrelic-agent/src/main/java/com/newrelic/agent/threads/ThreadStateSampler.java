@@ -10,10 +10,12 @@ package com.newrelic.agent.threads;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.bridge.AgentBridge;
@@ -33,16 +35,21 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final Function<Long, ThreadTracker> threads =
-            AgentBridge.collectionFactory.createAccessTimeBasedCache(180, 16, threadId -> new ThreadTracker());
+    private final Function<Long, ThreadTracker> threads;
+    private final Map<Long, ThreadTracker> threadsMap;
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final MetricAggregator metricAggregator;
+    private int cycleCount = 0;
+    private static final int CLEANUP_INTERVAL = 5; // Clean up dead threads every 5 cycles
 
     public ThreadStateSampler(ThreadMXBean threadMXBean, ThreadNameNormalizer nameNormalizer) {
         this.threadMXBean = threadMXBean;
         this.metricAggregator = new ThreadStatsMetricAggregator(ServiceFactory.getStatsService());
         this.threadNameNormalizer = nameNormalizer;
+
+        this.threadsMap = AgentBridge.collectionFactory.createConcurrentAccessTimeBasedEvictionMap(180, 16);
+        this.threads = threadId -> threadsMap.computeIfAbsent(threadId, k -> new ThreadTracker());
     }
 
     @Override
@@ -57,6 +64,41 @@ public class ThreadStateSampler implements Runnable {
                 Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
             }
         }
+
+        // Periodically, manually clean up dead threads from the cache to prevent a memory leak.
+        // Very short-lived threads terminate quickly and are never accessed again, so the
+        // default lazy eviction doesn't remove them from the cache.
+        // Run this logic every 5 cycles.
+        cycleCount++;
+        if (cycleCount >= CLEANUP_INTERVAL) {
+            cycleCount = 0;
+            cleanupDeadThreads();
+        }
+    }
+
+    /**
+     * Remove entries for threads that no longer exist.
+     * This prevents short-lived threads from accumulating in the cache.
+     */
+    private void cleanupDeadThreads() {
+        int initialSize = threadsMap.size();
+
+        threadsMap.keySet().removeIf(threadId -> threadMXBean.getThreadInfo(threadId) == null);
+        int removedCount = initialSize - threadsMap.size();
+
+        if (removedCount > 0) {
+            Agent.LOG.log(Level.FINEST, "Cleaned up {0} dead thread(s) from ThreadStateSampler cache", removedCount);
+        }
+    }
+
+    /**
+     * Package-private method for testing to get the number of tracked threads in the cache.
+     *
+     * @return cache size
+     */
+    @VisibleForTesting
+    int getTrackedThreadCount() {
+        return threadsMap.size();
     }
 
     private class ThreadTracker {
@@ -70,11 +112,14 @@ public class ThreadStateSampler implements Runnable {
         private long lastBlockedCount = -1;
         private long lastWaitedCount = -1;
 
+        private String duf = "";
+
         public ThreadTracker() {
         }
 
         public void update(ThreadInfo thread) {
             String name = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(thread));
+            duf = name;
 
             metricAggregator.recordMetric("Threads/State/" + name + "/" + thread.getThreadState().toString() + "/Count", 1);
             metricAggregator.recordMetric("Threads/SummaryState/" + thread.getThreadState().toString() + "/Count", 1);
