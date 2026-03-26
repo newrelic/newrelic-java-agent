@@ -1,17 +1,22 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.DistributedTracingTestUtil;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.tracing.Granularity;
-import org.mockito.Mockito;
 import com.newrelic.test.marker.Flaky;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mockito;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,10 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.newrelic.agent.config.coretracing.SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -63,10 +65,11 @@ public class AdaptiveSamplerTest {
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
         int DEFAULT_TARGET = 120;
         int DEFAULT_REPORT_PERIOD = 60;
+        boolean DEFAULT_IS_SHARED = true;
         int numPeriods = 5;
         long testLengthMillis = DEFAULT_REPORT_PERIOD * numPeriods * 1000;
 
-        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstance();
+        AdaptiveSampler defaultSampler = new AdaptiveSampler(DEFAULT_TARGET, DEFAULT_REPORT_PERIOD, DEFAULT_IS_SHARED);
         int totalSampled = runSamplerAndGetSampled(defaultSampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
@@ -199,53 +202,6 @@ public class AdaptiveSamplerTest {
         int expectedSampled = target * totalPeriods;
         int errorDelta = (int)(expectedSampled * DEFAULT_ERROR_MARGIN);
         assertTrue(String.format(errorMessage, expectedSampled, totalSampled), Math.abs(totalSampled - expectedSampled) <= errorDelta);
-    }
-
-    @Test
-    public void testGetAdaptiveSamplerInstanceFulfillsSingleton() throws InterruptedException, ExecutionException {
-        //The sampler is REQUIRED to be a singleton instance.
-        //This test verifies that access to the sampler always returns the same instance.
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        List<Future<?>> samplerArray = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            Future<?> fut = executor.submit(AdaptiveSampler::getSharedInstance);
-            samplerArray.add(fut);
-        }
-        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
-        Assert.assertNotNull(baseSampler);
-        for (Future<?> f : samplerArray) {
-            assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
-        }
-    }
-
-    @Test
-    public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
-        //both of these should use shared sampler instance, since sampling target is not specified
-        SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
-        SamplerConfig samplerConfig2 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig2.getSamplingTarget()).thenReturn(null);
-        //should use its own instance, even though the sampling target is the default
-        SamplerConfig samplerConfig3 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        //should use their own instances, even though they have the same target
-        SamplerConfig samplerConfig4 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig4.getSamplingTarget()).thenReturn(12);
-        SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig5.getSamplingTarget()).thenReturn(12);
-
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig1));
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig2));
-
-        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(samplerConfig3);
-        assertNotSame(AdaptiveSampler.getSharedInstance(), sampler3);
-        assertEquals(120, sampler3.getTarget());
-
-        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(samplerConfig4);
-        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(samplerConfig5);
-        assertEquals(12, sampler4.getTarget());
-        assertEquals(12, sampler5.getTarget());
-        assertNotSame(sampler4, sampler5);
     }
 
     @Test

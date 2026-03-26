@@ -2,11 +2,6 @@ package com.newrelic.agent.tracing.samplers;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.MetricNames;
-import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.coretracing.SamplerConfig;
-import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.api.agent.NewRelic;
@@ -31,24 +26,11 @@ public class AdaptiveSampler implements Sampler {
     private int sampledCountLast;
     private boolean firstPeriod;
 
-    private static AdaptiveSampler SAMPLER_SHARED_INSTANCE;
-
-    /**
-     * Package-protected constructor for creating non-shared AdaptiveSampler instances.
-     * <p>
-     * This constructor always creates non-shared instances (isSharedInstance=false).
-     * To obtain the shared singleton instance, use {@link #getSharedInstance()} instead.
-     * External callers should use {@link #getAdaptiveSampler(SamplerConfig)}.
-     *
-     * @param target the sampling target
-     * @param reportPeriodSeconds the reporting period in seconds
-     */
-
     protected AdaptiveSampler(int target, int reportPeriodSeconds) {
         this(target, reportPeriodSeconds, false);
     }
 
-    private AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance) {
+    protected AdaptiveSampler(int target, int reportPeriodSeconds, boolean isSharedInstance) {
         this(target, reportPeriodSeconds, isSharedInstance, false);
     }
 
@@ -66,54 +48,6 @@ public class AdaptiveSampler implements Sampler {
         this.firstPeriod = true;
         NewRelic.getAgent().getLogger().log(Level.INFO, "Started Adaptive Sampler with sampling target " + this.target + " and report period " +
                 reportPeriodSeconds + " seconds" + (lazyStart ? " (lazy-start mode)" : "") + ".");
-    }
-
-    /**
-     * Factory method for getting a shared instance of the adaptive sampler.
-     * This is the instance used when a top-level sampling target only is specified.
-     * Its state may be shared across multiple contexts using adaptive sampling, which is why
-     * it is a singleton.
-     * <p>
-     * Lazy-instantiated.
-     * Currently managed via synchronized as it should only be accessed a few times,
-     * when DistributedTraceImpl class is initialized.
-     *
-     * @return The AdaptiveSampler instance.
-     */
-    public static synchronized AdaptiveSampler getSharedInstance() {
-        if (SAMPLER_SHARED_INSTANCE == null) {
-            AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-            boolean serverlessMode = config.getServerlessConfig().isEnabled();
-            SAMPLER_SHARED_INSTANCE = new AdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), true, serverlessMode);
-        }
-        return SAMPLER_SHARED_INSTANCE;
-    }
-
-    public static AdaptiveSampler getAdaptiveSampler(SamplerConfig config) {
-        Integer target = config.getSamplingTarget();
-        if (target == null) {
-            return getSharedInstance();
-        } else {
-            return new AdaptiveSampler(target, ServiceFactory.getConfigService().getDefaultAgentConfig().getAdaptiveSamplingPeriodSeconds());
-        }
-    }
-
-    /**
-     * Updates the SHARED_SAMPLER_INSTANCE to use a new target.
-     * If the SHARED_SAMPLER_INSTANCE isn't already running, this method is a no-op.
-     *
-     * @param newTarget the new target value the shared sampler instance should use
-     */
-    public static synchronized void setSharedTarget(int newTarget) {
-        if (SAMPLER_SHARED_INSTANCE != null) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "Updating shared Adaptive Sampler sampling target to " + newTarget);
-            getSharedInstance().setTarget(newTarget);
-
-            ServiceFactory.getStatsService()
-                    .doStatsWork(
-                            StatsWorks.getRecordMetricWork(MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE, ((Number) newTarget).floatValue()),
-                            MetricNames.SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE);
-        }
     }
 
     /**
@@ -193,7 +127,7 @@ public class AdaptiveSampler implements Sampler {
         return sampled;
     }
 
-    private synchronized void setTarget(int newTarget) {
+    protected synchronized void setTarget(int newTarget) {
         this.target = newTarget;
     }
 
@@ -212,13 +146,4 @@ public class AdaptiveSampler implements Sampler {
     long getStartTimeMillis() {
         return startTimeMillis;
     }
-
-    //DO NOT USE this method outside of test.
-    //This method nulls out the shared adaptive sampler instance, so that a new one can be created each time a new DT Service is spun up.
-    //This is required in some tests, but should not be done in the wild.
-    @VisibleForTesting
-    public static void resetForTesting(){
-        SAMPLER_SHARED_INSTANCE = null;
-    }
-
 }

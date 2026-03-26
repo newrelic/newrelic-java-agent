@@ -7,8 +7,7 @@
 
 package com.newrelic.agent;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Cache;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -32,7 +31,7 @@ public class ThreadService extends AbstractService implements ThreadNames {
 
     public static final String NAME_PATTERN_CFG_KEY = "thread_sampler.name_pattern";
     private final Map<Long, Boolean> agentThreadIds;
-    private final Cache<Long, String> threadIdToName = Caffeine.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).executor(Runnable::run).build();
+    private final Map<Long, String> threadIdToName = AgentBridge.collectionFactory.createConcurrentAccessTimeBasedEvictionMap(300, 32);
     private volatile ThreadNameNormalizer threadNameNormalizer;
 
     public ThreadService() {
@@ -82,7 +81,7 @@ public class ThreadService extends AbstractService implements ThreadNames {
 
     @Override
     public String getThreadName(final BasicThreadInfo threadInfo) {
-        return threadIdToName.get(threadInfo.getId(), id -> threadInfo.getName());
+        return threadIdToName.computeIfAbsent(threadInfo.getId(), id -> threadInfo.getName());
     }
 
     /**

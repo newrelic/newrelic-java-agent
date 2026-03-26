@@ -7,10 +7,9 @@
 
 package com.newrelic.weave.weavepackage;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
 import com.newrelic.weave.utils.BootstrapLoader;
+import com.newrelic.weave.utils.WeakKeyLruCache;
 import com.newrelic.weave.utils.ClassCache;
 import com.newrelic.weave.utils.ClassInformation;
 import com.newrelic.weave.utils.ClassLoaderFinder;
@@ -64,8 +63,10 @@ public class WeavePackageManager {
 
     /**
      * ClassLoader -> (WeavePackageName -> WeavePackage)
+     * Uses weak keys to allow ClassLoaders to be garbage collected.
+     * No size limit needed - this cache is only populated during class loading.
      */
-    private final Cache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = Caffeine.newBuilder().weakKeys().executor(Runnable::run).build();
+    private final WeakKeyLruCache<ClassLoader, ConcurrentMap<String, WeavePackage>> optimizedWeavePackages = new WeakKeyLruCache<>(Integer.MAX_VALUE);
 
     private final WeavePackageLifetimeListener packageListener;
     private final Instrumentation instrumentation;
@@ -88,14 +89,14 @@ public class WeavePackageManager {
 
     /**
      * classloader -> (weave package -> result of successful weaving)
+     * Uses weak keys with size limit to prevent memory leaks while bounding cache size.
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
-            8).maximumSize(MAX_VALID_PACKAGE_CACHE).executor(Runnable::run).build();
+    WeakKeyLruCache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> validPackages = new WeakKeyLruCache<>(MAX_VALID_PACKAGE_CACHE);
     /**
-     * classloader -> (weave package -> result of successful weaving)
+     * classloader -> (weave package -> result of failed weaving)
+     * Uses weak keys with size limit to prevent memory leaks while bounding cache size.
      */
-    Cache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = Caffeine.newBuilder().weakKeys().initialCapacity(
-            8).maximumSize(MAX_INVALID_PACKAGE_CACHE).executor(Runnable::run).build();
+    WeakKeyLruCache<ClassLoader, ConcurrentMap<WeavePackage, PackageValidationResult>> invalidPackages = new WeakKeyLruCache<>(MAX_INVALID_PACKAGE_CACHE);
 
     WeavePackageManager() {
         this(null);
@@ -162,7 +163,7 @@ public class WeavePackageManager {
             }
             // Just in case we've already built up the cache before an extension was registered we
             // need to clear the cache to rebuild with the new extension jar on the next call to match()
-            optimizedWeavePackages.invalidateAll();
+            optimizedWeavePackages.clear();
         }
     }
 
@@ -178,7 +179,7 @@ public class WeavePackageManager {
         }
         WeavePackage remove = weavePackages.remove(weavePackage.getName());
         if (null != remove) {
-            optimizedWeavePackages.invalidateAll();
+            optimizedWeavePackages.clear();
             requiredClasses.removeAll(remove.getRequiredClasses());
             // Rebuild method signatures from weavePackages map
             rebuildWeavePackages();
@@ -269,7 +270,7 @@ public class WeavePackageManager {
         Set<PackageValidationResult> matchedPackageResults = Sets.newConcurrentHashSet();
 
         Map<String, WeavePackage> classloaderWeavePackages;
-        if (preValidateWeavePackages && optimizedWeavePackages.asMap().size() < maxPreValidatedClassLoaders) {
+        if (preValidateWeavePackages && optimizedWeavePackages.size() < maxPreValidatedClassLoaders) {
             classloaderWeavePackages = getOptimizedWeavePackages(classloader, cache);
         } else {
             classloaderWeavePackages = weavePackages;
@@ -489,7 +490,7 @@ public class WeavePackageManager {
 
         if (validateAgainstClassLoader(className, superName, interfaceNames, classloader, cache, weavePackage)) {
             final ClassLoader classloaderToUse = weavePackage.weavesBootstrap() ? BootstrapLoader.PLACEHOLDER : classloader;
-            ConcurrentMap<WeavePackage, PackageValidationResult> valid = validPackages.getIfPresent(classloaderToUse);
+            ConcurrentMap<WeavePackage, PackageValidationResult> valid = validPackages.get(classloaderToUse);
             return valid == null ? null : valid.get(weavePackage);
         }
         return null;
@@ -517,19 +518,19 @@ public class WeavePackageManager {
 
                 if ((classloader == BootstrapLoader.PLACEHOLDER && !this.canWeaveBootstrapClassLoader())
                         || (!verificationResult.succeeded())) {
-                    ConcurrentMap<WeavePackage, PackageValidationResult> result = invalidPackages.asMap().putIfAbsent(
+                    ConcurrentMap<WeavePackage, PackageValidationResult> result = invalidPackages.putIfAbsent(
                             classloader, new ConcurrentHashMap<WeavePackage, PackageValidationResult>());
                     if (result == null) {
-                        result = invalidPackages.asMap().get(classloader);
+                        result = invalidPackages.get(classloader);
                     }
                     result.put(weavePackage, verificationResult);
                     return false;
                 } else {
                     // We need to add this to the valid packages list before appending new classes to prevent a circular class load
-                    ConcurrentMap<WeavePackage, PackageValidationResult> result = validPackages.asMap().putIfAbsent(
+                    ConcurrentMap<WeavePackage, PackageValidationResult> result = validPackages.putIfAbsent(
                             classloader, new ConcurrentHashMap<WeavePackage, PackageValidationResult>());
                     if (result == null) {
-                        result = validPackages.asMap().get(classloader);
+                        result = validPackages.get(classloader);
                     }
 
                     try {
@@ -548,7 +549,7 @@ public class WeavePackageManager {
                 }
             }
 
-            ConcurrentMap<WeavePackage, PackageValidationResult> result = validPackages.getIfPresent(classloader);
+            ConcurrentMap<WeavePackage, PackageValidationResult> result = validPackages.get(classloader);
             return result != null && result.containsKey(weavePackage);
         } finally {
             currentValidationResult.remove();
@@ -559,8 +560,8 @@ public class WeavePackageManager {
      * Determine whether the specified package has been validated by the specified class loader.
      */
     private boolean hasValidated(ClassLoader classloader, WeavePackage weavePackage) {
-        ConcurrentMap<WeavePackage, PackageValidationResult> invalidResult = invalidPackages.getIfPresent(classloader);
-        ConcurrentMap<WeavePackage, PackageValidationResult> validResult = validPackages.getIfPresent(classloader);
+        ConcurrentMap<WeavePackage, PackageValidationResult> invalidResult = invalidPackages.get(classloader);
+        ConcurrentMap<WeavePackage, PackageValidationResult> validResult = validPackages.get(classloader);
         return (invalidResult != null && invalidResult.containsKey(weavePackage)) || (validResult != null
                 && validResult.containsKey(weavePackage));
     }
@@ -578,7 +579,7 @@ public class WeavePackageManager {
      * @return an optimized map of weave packages for faster matching
      */
     private Map<String, WeavePackage> getOptimizedWeavePackages(ClassLoader classloader, ClassCache cache) {
-        ConcurrentMap<String, WeavePackage> classloaderWeavePackages = optimizedWeavePackages.getIfPresent(classloader);
+        ConcurrentMap<String, WeavePackage> classloaderWeavePackages = optimizedWeavePackages.get(classloader);
         if (classloaderWeavePackages == null) {
             classloaderWeavePackages = new ConcurrentHashMap<>();
 
@@ -612,7 +613,7 @@ public class WeavePackageManager {
                 }
             }
 
-            ConcurrentMap<String, WeavePackage> optimizedMap = optimizedWeavePackages.asMap().putIfAbsent(classloader,
+            ConcurrentMap<String, WeavePackage> optimizedMap = optimizedWeavePackages.putIfAbsent(classloader,
                     classloaderWeavePackages);
             if (optimizedMap == null) {
                 // Run verifications against unmatched packages since this is

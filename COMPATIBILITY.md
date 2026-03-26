@@ -60,7 +60,7 @@ This version of the Java Agent supports Java versions 8 - 25.
     * Scala 2.12: 2.0.6 to latest
     * Scala 2.13: 3.0.0 to latest
     * Scala 3: 3.4.0 to latest
-  * OpenTelemetry 1.26.0-alpha to 1.59.0 (exclusive)
+  * OpenTelemetry 1.26.0-alpha to latest
   * Pekko 1.0.0 to latest
   * Pekko Http 1.0.0 to latest
     * Scala 2.13: 1.0.0 to latest
@@ -186,7 +186,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * PostgreSQL 8.0-312.jdbc3 to latest
   * PostgreSQL R2DBC 0.9.0 to latest
   * Slick 3.0.0 to latest
-  * Solr 5.1.0 to latest
+  * Solr 5.1.0 to 10.0.0 (exclusive)
   * Spymemcached 2.11 to latest
   * SQLServer jdk6 to latest
   * Vertx Sql Client 4.4.2 to 5.0.0 (exclusive)

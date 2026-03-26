@@ -8,6 +8,8 @@
 package com.newrelic.agent.threads;
 
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.ResponseTimeStats;
 import com.newrelic.agent.stats.StatsEngine;
@@ -24,6 +26,9 @@ public class ThreadStateSamplerTest {
 
     @Test
     public void testCpuTimeMetrics() {
+        // Initialize AgentBridge with real Caffeine factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
+
         MockServiceManager serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
         serviceManager.setStatsService(new StatsServiceImpl());

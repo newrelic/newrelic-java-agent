@@ -20,8 +20,10 @@ import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.config.ApplicationLoggingLocalDecoratingConfig;
 import com.newrelic.agent.config.ApplicationLoggingMetricsConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
 import com.newrelic.agent.stats.StatsService;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -35,6 +37,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -239,6 +242,73 @@ public class LogSenderServiceImplTest {
     }
 
     @Test
+    public void testMaxSamplesStored() throws Exception {
+        // Config value gets scaled by report period: configValue * (reportPeriodMs / 60000)
+        // With reportPeriod=5000ms: 100 * (5000/60000) = 100 * 0.0833 = 8 (rounded down)
+        int configMaxSamples = 100;
+        int expectedMaxSamples = 8; // After scaling with 5000ms report period
+
+        Map<String, Object> config = createConfig(null, 180, (long) configMaxSamples, null);
+        LogSenderServiceImpl logSenderService = createService(config);
+        logSenderService.addHarvestableToService(appName);
+
+        // Verify the scaled maxSamplesStored
+        assertEquals("Config value should be scaled by report period", expectedMaxSamples, logSenderService.getMaxSamplesStored());
+
+        // Record more logs than the max samples limit (without active transaction, they go to reservoir)
+        for (int i = 0; i < expectedMaxSamples * 2; i++) {
+            logSenderService.recordLogEvent(createAgentLogAttrs("field" + i, "value" + i));
+        }
+
+        MockRPMService rpmService = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(rpmService);
+
+        // Harvest the events
+        logSenderService.harvestHarvestables();
+
+        // The reservoir should have limited to maxSamples
+        assertEquals("Should send at most maxSamples events", expectedMaxSamples, rpmService.getEvents().size());
+
+        // Note: Unlike TransactionEventsService, LogSenderService doesn't pass a separate "eventsSeen" count
+        // to the RPM service. It only sends the actual events that fit in the reservoir.
+        // So logSenderEventsSeen will equal the number of events sent, not the number attempted.
+        assertEquals("Should track sent events", expectedMaxSamples, rpmService.getLogSenderEventsSeen());
+    }
+
+    @Test
+    public void testMultipleAppNames() throws Exception {
+        LogSenderServiceImpl logSenderService = createService();
+        logSenderService.addHarvestableToService(appName);
+
+        String appName2 = "SecondApp";
+        String appName3 = "ThirdApp";
+
+        // Record logs for first app
+        logSenderService.recordLogEvent(createAgentLogAttrs("app1-field", "app1-value"));
+
+        // Get reservoirs for each app - this triggers lazy initialization
+        DistributedSamplingPriorityQueue<LogEvent> reservoir1 = logSenderService.getReservoir(appName);
+        DistributedSamplingPriorityQueue<LogEvent> reservoir2 = logSenderService.getReservoir(appName2);
+        DistributedSamplingPriorityQueue<LogEvent> reservoir3 = logSenderService.getReservoir(appName3);
+
+        // Verify separate reservoirs were created
+        assertNotNull(reservoir1);
+        assertNotNull(reservoir2);
+        assertNotNull(reservoir3);
+
+        // Verify they are different instances (each app gets its own reservoir)
+        assertNotNull("reservoir1 and reservoir2 should be different", reservoir1 != reservoir2 ? reservoir1 : null);
+        assertNotNull("reservoir2 and reservoir3 should be different", reservoir2 != reservoir3 ? reservoir2 : null);
+        assertNotNull("reservoir1 and reservoir3 should be different", reservoir1 != reservoir3 ? reservoir1 : null);
+
+        // Verify first app has 1 event (from earlier recordLogEvent call)
+        assertEquals(1, reservoir1.size());
+
+        // Verify other apps start empty (lazy initialization creates empty reservoirs)
+        assertEquals(0, reservoir2.size());
+        assertEquals(0, reservoir3.size());
+    }
+
     public void shouldNotSendEventsFromLevelDenylistNoTxn() throws Exception {
         String levelsToBlock = "WARN,fiNe,  Bubbles";
         LogSenderServiceImpl logSenderService = createService(createConfig(null, null, null, levelsToBlock));

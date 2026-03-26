@@ -47,6 +47,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
 
     public static final String ADAPTIVE_SAMPLER_SAMPLING_TARGET = "adaptive_sampler_sampling_target";
     public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
+    public static final String CLOUD = "cloud";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
@@ -260,6 +261,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     // nested configs (alphabetized)
     private final AttributesConfig attributesConfig;
     private final AuditModeConfig auditModeConfig;
+    private final CloudConfig cloudConfig;
     private final TransactionTracerConfigImpl backgroundTransactionTracerConfig;
     private final BrowserMonitoringConfig browserMonitoringConfig;
     private final ClassTransformerConfig classTransformerConfig;
@@ -369,6 +371,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         keyTransactionConfig = initKeyTransactionConfig(apdexTInMillis);
         sqlTraceConfig = initSqlTraceConfig();
         auditModeConfig = initAuditModeConfig();
+        cloudConfig = initCloudConfig();
         browserMonitoringConfig = initBrowserMonitoringConfig();
         classTransformerConfig = initClassTransformerConfig(litemode);
         crossProcessConfig = initCrossProcessConfig();
@@ -813,6 +816,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         }
     }
 
+    private CloudConfig initCloudConfig() {
+        Map<String, Object> cloudProps = nestedProps(CLOUD);
+        return new CloudConfigImpl(cloudProps);
+    }
+
     private BrowserMonitoringConfig initBrowserMonitoringConfig() {
         Map<String, Object> props = nestedProps(BROWSER_MONITORING);
         return BrowserMonitoringConfigImpl.createBrowserMonitoringConfig(props);
@@ -1041,6 +1049,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public AuditModeConfig getAuditModeConfig() {
         return auditModeConfig;
     }
+
+    @Override
+    public CloudConfig getCloudConfig() { return cloudConfig; }
 
     @Override
     public boolean liteMode() {
