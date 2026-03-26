@@ -19,6 +19,7 @@ import llm.models.ModelResponse;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 
@@ -69,12 +70,45 @@ public class SpringAiModelInvocation implements ModelInvocation {
         this.modelRequest = new SpringAiModelRequest(chatClientRequest);
         int listSize = list.size();
         if (listSize > 0) {
-            // pass in only the final ChatClientResponse instance from the stream contents
-            // but with a list of Generations from all ChatClientResponse instances for the complete content
-            this.modelResponse = new SpringAiModelResponse(list.get(listSize - 1), getStreamGeneration(list));
+            // pass in only the ChatClientResponse instance from the stream contents but with
+            // a list of Generations from all ChatClientResponse instances for the complete content
+
+            // This is kind of gross. The behavior with streamed results can vary based on how the client is configured for different LLM servers. In the default case, for OpenAI, the final stream chunk will have the ChatClientResponse instance that contains the info that we want. For some streaming APIs, like OpenAI’s, there is extra config that can be set by the client that causes token usage to be sent back from the LLM server (it's not by default). In this case, the final stream chunk will only contain the token usage stats and none of the other required info, so we actually need to process the second to last chunk.
+            ChatClientResponse chatClientResponseLastChunk = list.get(listSize - 1);
+            if (hasFinishReason(chatClientResponseLastChunk)) {
+                this.modelResponse = new SpringAiModelResponse(chatClientResponseLastChunk, getStreamGeneration(list));
+            } else if (listSize > 1) {
+                ChatClientResponse chatClientResponseSecondToLastChunk = list.get(listSize - 2);
+                this.modelResponse = new SpringAiModelResponse(chatClientResponseSecondToLastChunk, getStreamGeneration(list));
+            } else {
+                // Just fallback to last chunk if neither of the above cases are true
+                this.modelResponse = new SpringAiModelResponse(chatClientResponseLastChunk, getStreamGeneration(list));
+            }
         } else {
             this.modelResponse = new SpringAiModelResponse(null, null);
         }
+    }
+
+    /**
+     * Check if the ChatClientResponse has a finish reason
+     *
+     * @param chatClientResponse instance to inspect
+     * @return true if there is a finish reason, else false
+     */
+    private boolean hasFinishReason(ChatClientResponse chatClientResponse) {
+        if (chatClientResponse != null) {
+            ChatResponse chatResponse = chatClientResponse.chatResponse();
+            if (chatResponse != null) {
+                Generation result = chatResponse.getResult();
+                if (result != null) {
+                    ChatGenerationMetadata chatGenerationMetadata = result.getMetadata();
+                    if (chatGenerationMetadata != null) {
+                        return chatGenerationMetadata.getFinishReason() != null;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
