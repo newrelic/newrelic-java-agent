@@ -48,7 +48,7 @@ class MonoCreate_Instrumentation {
 
         @Trace(async=true)
         public void error(Throwable e) {
-            if(ReactorConfig.errorsEnabled || ReactorConfig.errorsEnabledNetty) {
+            if(ReactorConfig.errorsEnabled) {
                 NewRelic.noticeError(e);
             }
             if(token != null) {

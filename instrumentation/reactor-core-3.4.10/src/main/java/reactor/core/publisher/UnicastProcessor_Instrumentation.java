@@ -6,6 +6,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.reactor.ReactorConfig;
 import reactor.core.Disposable;
 
 import java.util.Queue;
@@ -60,4 +61,12 @@ public class UnicastProcessor_Instrumentation<T> {
         }
         return Weaver.callOriginal();
     }
+
+    public void onError(Throwable t) {
+        if(ReactorConfig.errorsEnabled) {
+            NewRelic.noticeError(t);
+        }
+        Weaver.callOriginal();
+    }
+
 }
