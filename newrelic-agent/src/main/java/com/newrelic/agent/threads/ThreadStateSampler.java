@@ -35,7 +35,7 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final Function<Long, ThreadTracker> threads;
+    private final Function<Long, ThreadTracker> threadTrackerCreateFunction;
     private final Map<Long, ThreadTracker> threadsMap;
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
@@ -49,7 +49,7 @@ public class ThreadStateSampler implements Runnable {
         this.threadNameNormalizer = nameNormalizer;
 
         this.threadsMap = AgentBridge.collectionFactory.createConcurrentAccessTimeBasedEvictionMap(180, 16);
-        this.threads = threadId -> threadsMap.computeIfAbsent(threadId, k -> new ThreadTracker());
+        this.threadTrackerCreateFunction = threadId -> threadsMap.computeIfAbsent(threadId, k -> new ThreadTracker());
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ThreadStateSampler implements Runnable {
         for (ThreadInfo thread : threadInfos) {
             // a thread may terminate after getting its tid but before getting its thread info
             if (thread != null) {
-                threads.apply(thread.getThreadId()).update(thread);
+                threadTrackerCreateFunction.apply(thread.getThreadId()).update(thread);
             } else {
                 Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
             }
