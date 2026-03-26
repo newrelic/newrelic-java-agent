@@ -74,27 +74,4 @@ public class TokenLinkingSubscriber<T> implements CoreSubscriber<T> {
         runnable.run();
     }
 
-    public static <T> Function<? super Publisher<T>, ? extends Publisher<T>> tokenLift() {
-        return Operators.lift(new TokenLifter<>());
-    }
-
-    private static class TokenLifter<T>
-            implements BiFunction<Scannable, CoreSubscriber<? super T>, CoreSubscriber<? super T>> {
-
-        public TokenLifter() {
-        }
-
-        @Override
-        public CoreSubscriber<? super T> apply(Scannable publisher, CoreSubscriber<? super T> sub) {
-            // if Flux/Mono #just, #empty, #error
-            if (publisher instanceof Fuseable.ScalarCallable) {
-                return sub;
-            }
-            Token token = sub.currentContext().getOrDefault("newrelic-token", null);
-            if (token != null ) {
-                return new TokenLinkingSubscriber<>(sub, sub.currentContext());
-            }
-            return sub;
-        }
-    }
 }
