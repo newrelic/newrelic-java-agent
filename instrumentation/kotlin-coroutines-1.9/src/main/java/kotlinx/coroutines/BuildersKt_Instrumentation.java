@@ -5,14 +5,12 @@ import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.kotlin.coroutines_19.NRContinuationWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.Utils;
 
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
-import kotlin.coroutines.jvm.internal.SuspendFunction;
 import kotlin.jvm.functions.Function2;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -21,10 +19,6 @@ public class BuildersKt_Instrumentation {
 
 	@Trace(dispatcher = true)
 	public static <T> T runBlocking(CoroutineContext context, Function2<? super CoroutineScope, ? super Continuation<? super T>, ?> block) {
-		Token token = Utils.getToken(context);
-		if(token != null) {
-			token.link();
-		}
 		String name = Utils.getCoroutineName(context);
 		if(name != null) {
 			NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Builders","runBlocking",name);
@@ -34,7 +28,7 @@ public class BuildersKt_Instrumentation {
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Block", block.toString());
 
 		if (!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "RunBlocking",block);
 		}
         return Weaver.callOriginal();
 	}
@@ -57,12 +51,8 @@ public class BuildersKt_Instrumentation {
 				NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineName", "Could not determine");
 			}
 
-			Token token = Utils.getToken(context);
-			if(token != null) {
-				token.link();
-			}
 			if(!(block instanceof NRFunction2SuspendWrapper)) {
-                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "Async", block);
 			}
 		} else {
 			NewRelic.getAgent().getTransaction().ignore();
@@ -76,14 +66,7 @@ public class BuildersKt_Instrumentation {
 
 		NewRelic.getAgent().getTracedMethod().addCustomAttribute("Continuation", cont.toString());
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
-		}
-		if(Utils.continueWithContinuation(cont)) {
-			boolean isSuspend = cont instanceof SuspendFunction;
-			if(!isSuspend) {
-				String cont_string = Utils.getContinuationString(cont);
-                cont = new NRContinuationWrapper<>(cont, cont_string);
-			}
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(null, "Invoke",block);
 		}
         return Weaver.callOriginal();
 	}
@@ -107,12 +90,8 @@ public class BuildersKt_Instrumentation {
 				NewRelic.getAgent().getTracedMethod().addCustomAttribute("CoroutineName", "Could not determine");
 			}
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("Block", block.toString());
-			Token token = Utils.getToken(context);
-			if(token != null) {
-				token.link();
-			}
 			if (!(block instanceof NRFunction2SuspendWrapper)) {
-                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(block);
+                block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super Unit>, ?>) new NRFunction2SuspendWrapper(name, "Launch", block);
 			} 
 		} else {
 			NewRelic.getAgent().getTransaction().ignore();
@@ -133,18 +112,8 @@ public class BuildersKt_Instrumentation {
 			NewRelic.getAgent().getTracedMethod().addCustomAttribute("Completion", completion.toString());
 		}
 
-		Token token = Utils.getToken(context);
-		if(token != null) {
-			token.link();
-		}
 		if(!(block instanceof NRFunction2SuspendWrapper)) {
-            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(block);
-		}
-		if(completion != null && Utils.continueWithContinuation(completion)) {
-			if(!(completion instanceof NRContinuationWrapper)) {
-				String cont_string = Utils.getContinuationString(completion);
-                completion = new NRContinuationWrapper<>(completion, cont_string);
-			}
+            block = (NRFunction2SuspendWrapper<? super CoroutineScope, ? super Continuation<? super T>, ?>) new NRFunction2SuspendWrapper(name, "WithContext", block);
 		}
 		return Weaver.callOriginal();
 	}
