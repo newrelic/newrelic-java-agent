@@ -107,6 +107,12 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
         rootSpan.getIntrinsics().put("nr.pg", true);
 
+        float txDurationSeconds = transactionData.getDurationInMillis() / 1000.0f;
+        if (txDurationSeconds > rootSpan.getDuration()) {
+            Agent.LOG.log(Level.FINEST, "Transaction duration was longer than root span, adding nr.transactionDuration attribute with seconds value of: {0}", txDurationSeconds);
+            rootSpan.getIntrinsics().put("nr.transactionDuration", txDurationSeconds); // seconds
+        }
+
         int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
 
         Collection<Tracer> tracers = transactionData.getTracers();
