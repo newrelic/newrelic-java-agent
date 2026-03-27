@@ -161,6 +161,10 @@ public abstract class TracedError implements Comparable<TracedError>, JSONStream
         return intrinsics;
     }
 
+    public String getTransactionGuid() {
+        return transactionGuid;
+    }
+
     /**
      * Returns the stack trace associated with this error, or null if the error has no stack trace.
      */

@@ -53,6 +53,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
     public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
     public static final String ENABLED = "enabled";
+    private static final String APM_LAMBDA_MODE = "apm_lambda_mode";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
@@ -129,6 +130,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String OTEL = "opentelemetry";
     public static final String KOTLIN_COROUTINES = "coroutines";
     public static final String REINSTRUMENT = "reinstrument";
+    public static final String SERVERLESS_MODE = "serverless_mode";
     public static final String SLOW_SQL = "slow_sql";
     public static final String SPAN_EVENTS = "span_events";
     public static final String STRIP_EXCEPTION_MESSAGES = "strip_exception_messages";
@@ -205,6 +207,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private int adaptiveSamplingPeriodSeconds;
     private int adaptiveSamplingTarget;
     private final long apdexTInMillis;
+    private final boolean apmLambdaModeEnabled;
     private final String appName;
     private final List<String> appNames;
     private final boolean autoAppNamingEnabled;
@@ -282,6 +285,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final LabelsConfig labelsConfig;
     private final NormalizationRuleConfig normalizationRuleConfig;
     private final ReinstrumentConfig reinstrumentConfig;
+    private final ServerlessConfig serverlessConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
     private final SpanEventsConfig spanEventsConfig;
@@ -322,9 +326,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         experimentalRuntime = allowExperimentalRuntimeVersions();
         licenseKey = getProperty(LICENSE_KEY);
         String region = parseRegion(licenseKey);
-        host = parseHost(region);
-        metricIngestUri = parseMetricIngestUri(region);
-        eventIngestUri = parseEventIngestUri(region);
+        apmLambdaModeEnabled = getProperty(APM_LAMBDA_MODE, false);
+        serverlessConfig = initServerlessConfig();
+        host = parseHost(serverlessConfig, region);
+        metricIngestUri = parseMetricIngestUri(serverlessConfig, region);
+        eventIngestUri = parseEventIngestUri(serverlessConfig, region);
         ignoreJars = new ArrayList<>(getUniqueStrings(IGNORE_JARS, COMMA_SEPARATOR));
         insertApiKey = getProperty(INSERT_API_KEY, DEFAULT_INSERT_API_KEY);
         logLevel = initLogLevel();
@@ -452,7 +458,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * license key. If the license key doesn't conform to protocol 15+, then return the default host, otherwise construct the
      * new host using the region section of the license key.
      */
-    private String parseHost(String region) {
+    private String parseHost(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. The agent will not report to any host.");
+            return "";
+        }
         String host = getProperty(HOST);
         if (host != null) {
             Agent.LOG.log(Level.INFO, "Using configured collector host: {0}", host);
@@ -476,7 +486,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * key using the form https://metric-api.{REGION}.nr-data.net/metric/v1.
      * If the region doesn't conform to protocol 15+, then return the default metric ingest URI.
      */
-    private String parseMetricIngestUri(String region) {
+    private String parseMetricIngestUri(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. Metric data will report to console and to {0}", serverlessConfig.filePath());
+            return serverlessConfig.filePath();
+        }
         String metricIngestUri = getProperty(METRIC_INGEST_URI);
         if (metricIngestUri != null) {
             Agent.LOG.log(Level.INFO, "Using configured metric ingest URI: {0}", metricIngestUri);
@@ -500,7 +514,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
      * key using the form https://insights-collector.{REGION}.nr-data.net/v1/accounts/events.
      * If the region doesn't conform to protocol 15+, then return the default event ingest URI.
      */
-    private String parseEventIngestUri(String region) {
+    private String parseEventIngestUri(ServerlessConfig serverlessConfig, String region) {
+        if (serverlessConfig.isEnabled()) {
+            Agent.LOG.log(Level.INFO, "Serverless mode is enabled. Event data will report to console and to {0}", serverlessConfig.filePath());
+            return serverlessConfig.filePath();
+        }
         String eventIngestUri = getProperty(EVENT_INGEST_URI);
         if (eventIngestUri != null) {
             Agent.LOG.log(Level.INFO, "Using configured event ingest URI: {0}", eventIngestUri);
@@ -778,6 +796,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         return ReinstrumentConfigImpl.createReinstrumentConfig(props);
     }
 
+    private ServerlessConfig initServerlessConfig() {
+        Map<String, Object> props = nestedProps(SERVERLESS_MODE);
+        return ServerlessConfigImpl.createServerlessConfig(props);
+    }
+
     private AuditModeConfig initAuditModeConfig() {
         Object auditMode = getProperty(AuditModeConfig.PROPERTY_NAME);
 
@@ -879,6 +902,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public long getApdexTInMillis() {
         return apdexTInMillis;
+    }
+
+    @Override
+    public boolean isApmLambdaModeEnabled() {
+        return apmLambdaModeEnabled;
     }
 
     @Override
@@ -1301,6 +1329,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public ReinstrumentConfig getReinstrumentConfig() {
         return reinstrumentConfig;
+    }
+
+    @Override
+    public ServerlessConfig getServerlessConfig() {
+        return serverlessConfig;
     }
 
     @Override
