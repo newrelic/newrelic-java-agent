@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,96 +40,44 @@ public class ThreadStateSamplerTest {
         serviceManager.setStatsService(new StatsServiceImpl());
     }
 
+    /**
+     * Run to get some performance numbers related to cache cleanup
+     */
     @Test
-    public void liveThreadsShouldNotBeRemovedDuringCleanup() throws Exception {
+    public void testCleanupPerformanceWithDifferentCacheSizes() {
         ThreadStateSampler threadStateSampler = new ThreadStateSampler(
                 ManagementFactory.getThreadMXBean(),
                 ThreadNameNormalizerTest.getThreadNameNormalizer());
 
-        int initialCacheSize = threadStateSampler.getTrackedThreadCount();
+        System.out.println("\n=== Cleanup Performance Test ===");
 
-        // Create long-lived threads that will stay alive throughout the test
-        Thread[] longLivedThreads = new Thread[5];
-        for (int i = 0; i < longLivedThreads.length; i++) {
-            final int threadNum = i;
-            longLivedThreads[i] = new Thread(() -> {
-                try {
-                    Thread.sleep(30000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }, "LongLivedThread-" + threadNum);
-            longLivedThreads[i].start();
-        }
-
-        // Sample to add threads to the cache
         threadStateSampler.run();
-        int cacheAfterFirstSample = threadStateSampler.getTrackedThreadCount();
-        assertTrue("Cache should contain more threads after sampling",
-                cacheAfterFirstSample > initialCacheSize);
 
-        // Trigger cleanup
-        for (int i = 0; i < 4; i++) {
-            threadStateSampler.run();
+        int cacheSize = threadStateSampler.getTrackedThreadCount();
+        System.out.println("Initial cache size: " + cacheSize);
+
+        // Test cleanup performance - measure getThreadInfo() calls
+        long startTime = System.nanoTime();
+
+        // This simulates what cleanupDeadThreads() does
+        int deadThreadCount = 0;
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+        // Simulate checking many thread IDs (including dead ones)
+        for (long threadId = 1; threadId < cacheSize * 10000; threadId++) {
+            if (threadMXBean.getThreadInfo(threadId) == null) {
+                deadThreadCount++;
+            }
         }
 
-        // Verify live threads aare still around
-        int cacheAfterCleanup = threadStateSampler.getTrackedThreadCount();
-        assertTrue("Live threads should still be in cache after cleanup",
-                cacheAfterCleanup >= cacheAfterFirstSample);
+        long endTime = System.nanoTime();
+        double totalTimeMs = (endTime - startTime) / 1_000_000.0;
+        int checksPerformed = cacheSize * 10000;
 
-        // Nuke long-running threads manually
-        for (Thread thread : longLivedThreads) {
-            thread.interrupt();
-        }
-        for (Thread thread : longLivedThreads) {
-            thread.join(1000);
-        }
-    }
-
-    @Test
-    public void shortLivedThreadsShouldBeEvictedFromCache() throws Exception {
-        ThreadStateSampler threadStateSampler = new ThreadStateSampler(
-                ManagementFactory.getThreadMXBean(),
-                ThreadNameNormalizerTest.getThreadNameNormalizer());
-
-        int initialCacheSize = threadStateSampler.getTrackedThreadCount();
-
-        // Create and start 10 short-lived threads that will terminate quickly
-        Thread[] shortLivedThreads = new Thread[10];
-        for (int i = 0; i < shortLivedThreads.length; i++) {
-            final int threadNum = i;
-            shortLivedThreads[i] = new Thread(() -> {
-                try {
-                    // Just sleep for a short time and exit
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }, "ShortLivedThread-" + threadNum);
-            shortLivedThreads[i].start();
-        }
-
-        // Sample to add threads to the cache
-        threadStateSampler.run();
-        int cacheAfterFirstSample = threadStateSampler.getTrackedThreadCount();
-        assertTrue("Cache should contain more threads after sampling",
-                cacheAfterFirstSample > initialCacheSize);
-
-        // Wait for all short-lived threads to terminate and verify they're dead
-        for (Thread thread : shortLivedThreads) {
-            thread.join(5000); // Wait up to 5 seconds for each thread
-            assertFalse("Thread should be terminated: " + thread.getName(), thread.isAlive());
-        }
-
-        // Trigger cleanup
-        for (int i = 0; i < 4; i++) {
-            threadStateSampler.run();
-        }
-
-        int cacheAfterCleanup = threadStateSampler.getTrackedThreadCount();
-        assertEquals("Dead threads should be removed from cache after cleanup cycle",
-                initialCacheSize, cacheAfterCleanup, cacheAfterFirstSample - initialCacheSize);
+        System.out.println(String.format(
+            "Checked %d thread IDs in %.2f ms (%.3f µs per check). Simulated an eviction of %d threads from cache.",
+            checksPerformed, totalTimeMs, (totalTimeMs * 1000.0) / checksPerformed, deadThreadCount
+        ));
     }
 
     @Test

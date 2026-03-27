@@ -40,15 +40,13 @@ public class ThreadStateSampler implements Runnable {
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final MetricAggregator metricAggregator;
-    private int cycleCount = 0;
-    private static final int CLEANUP_INTERVAL = 5; // Clean up dead threads every 5 cycles
 
     public ThreadStateSampler(ThreadMXBean threadMXBean, ThreadNameNormalizer nameNormalizer) {
         this.threadMXBean = threadMXBean;
         this.metricAggregator = new ThreadStatsMetricAggregator(ServiceFactory.getStatsService());
         this.threadNameNormalizer = nameNormalizer;
 
-        this.threadsMap = AgentBridge.collectionFactory.createConcurrentAccessTimeBasedEvictionMap(180, 16);
+        this.threadsMap = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
         this.threadTrackerCreateFunction = threadId -> threadsMap.computeIfAbsent(threadId, k -> new ThreadTracker());
     }
 
@@ -65,15 +63,8 @@ public class ThreadStateSampler implements Runnable {
             }
         }
 
-        // Periodically, manually clean up dead threads from the cache to prevent a memory leak.
-        // Very short-lived threads terminate quickly and are never accessed again, so the
-        // default lazy eviction doesn't remove them from the cache.
-        // Run this logic every 5 cycles.
-        cycleCount++;
-        if (cycleCount >= CLEANUP_INTERVAL) {
-            cycleCount = 0;
-            cleanupDeadThreads();
-        }
+        // Manually cleanup
+        cleanupDeadThreads();
     }
 
     /**
@@ -112,14 +103,11 @@ public class ThreadStateSampler implements Runnable {
         private long lastBlockedCount = -1;
         private long lastWaitedCount = -1;
 
-        private String duf = "";
-
         public ThreadTracker() {
         }
 
         public void update(ThreadInfo thread) {
             String name = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(thread));
-            duf = name;
 
             metricAggregator.recordMetric("Threads/State/" + name + "/" + thread.getThreadState().toString() + "/Count", 1);
             metricAggregator.recordMetric("Threads/SummaryState/" + thread.getThreadState().toString() + "/Count", 1);
