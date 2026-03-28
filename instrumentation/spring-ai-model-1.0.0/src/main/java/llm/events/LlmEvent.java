@@ -1,0 +1,266 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package llm.events;
+
+import com.newrelic.api.agent.NewRelic;
+import llm.models.ModelInvocation;
+import llm.models.ModelRequest;
+import llm.models.ModelResponse;
+import llm.vendor.Vendor;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringRecordContentEnabled;
+
+/**
+ * Class for building an LlmEvent
+ */
+public class LlmEvent {
+    private final Map<String, Object> eventAttributes;
+    private final Map<String, Object> userLlmAttributes;
+
+    // LLM event types
+    public static final String LLM_EMBEDDING = "LlmEmbedding";
+
+    // Optional LlmEvent attributes for LlmEmbedding event
+    private final String spanId;
+    private final String traceId;
+    private final String vendor;
+    private final String ingestSource;
+    private final String id;
+    private final String requestId;
+    private final String responseModel;
+    private final String responseOrganization;
+    private final Integer responseUsageTotalTokens;
+    private final Float duration;
+    private final Boolean error;
+    private final String input;
+    private final String requestModel;
+    private final Integer tokenCount;
+
+    public static class Builder {
+        // Required builder parameters
+        private final Map<String, Object> userAttributes;
+        private final Map<String, String> linkingMetadata;
+        private final ModelRequest modelRequest;
+        private final ModelResponse modelResponse;
+
+        /*
+         * All optional builder attributes are defaulted to null so that they won't be added
+         * to the eventAttributes map unless they are explicitly set via the builder
+         * methods when constructing an LlmEvent. This allows the builder to create
+         * any type of LlmEvent with any combination of attributes solely determined
+         * by the builder methods that are called while omitting all unused attributes.
+         */
+
+        // Optional builder parameters
+        private String spanId = null;
+        private String traceId = null;
+        private String vendor = null;
+        private String ingestSource = null;
+        private String id = null;
+        private String requestId = null;
+        private String responseModel = null;
+        private String responseOrganization = null;
+        private Integer responseUsageTotalTokens = null;
+        private Float duration = null;
+        private Boolean error = null;
+        private String input = null;
+        private String requestModel = null;
+        private Integer tokenCount = null;
+
+        public Builder(ModelInvocation modelInvocation) {
+            userAttributes = modelInvocation.getUserAttributes();
+            linkingMetadata = modelInvocation.getLinkingMetadata();
+            modelRequest = modelInvocation.getModelRequest();
+            modelResponse = modelInvocation.getModelResponse();
+        }
+
+        public Builder spanId() {
+            spanId = ModelInvocation.getSpanId(linkingMetadata);
+            return this;
+        }
+
+        public Builder traceId() {
+            traceId = ModelInvocation.getTraceId(linkingMetadata);
+            return this;
+        }
+
+        public Builder vendor() {
+            vendor = Vendor.VENDOR;
+            return this;
+        }
+
+        public Builder ingestSource() {
+            ingestSource = Vendor.INGEST_SOURCE;
+            return this;
+        }
+
+        public Builder id(String modelId) {
+            id = modelId;
+            return this;
+        }
+
+        public Builder requestId() {
+            requestId = modelResponse.getRequestId();
+            return this;
+        }
+
+        public Builder responseModel() {
+            responseModel = modelResponse.getModelId();
+            return this;
+        }
+
+        public Builder responseOrganization() {
+            responseOrganization = modelResponse.getResponseOrganization();
+            return this;
+        }
+
+        public Builder responseUsageTotalTokens() {
+            responseUsageTotalTokens = modelResponse.getResponseUsageTotalTokens();
+            return this;
+        }
+
+        public Builder duration(float callDuration) {
+            duration = callDuration;
+            return this;
+        }
+
+        public Builder error() {
+            error = modelResponse.isErrorResponse();
+            return this;
+        }
+
+        public Builder input(int index) {
+            input = modelRequest.getInputText(index);
+            return this;
+        }
+
+        public Builder requestModel() {
+            requestModel = modelRequest.getModelId();
+            return this;
+        }
+
+        public Builder tokenCount(Integer count) {
+            tokenCount = count;
+            return this;
+        }
+
+        public LlmEvent build() {
+            return new LlmEvent(this);
+        }
+    }
+
+    // This populates the LlmEvent attributes map with only the attributes that were explicitly set on the builder.
+    private LlmEvent(Builder builder) {
+        // Map of custom user attributes with the llm prefix
+        userLlmAttributes = getUserLlmAttributes(builder.userAttributes);
+
+        // Map of all LLM event attributes
+        eventAttributes = new HashMap<>(userLlmAttributes);
+
+        spanId = builder.spanId;
+        if (spanId != null && !spanId.isEmpty()) {
+            eventAttributes.put("span_id", spanId);
+        }
+
+        traceId = builder.traceId;
+        if (traceId != null && !traceId.isEmpty()) {
+            eventAttributes.put("trace_id", traceId);
+        }
+
+        vendor = builder.vendor;
+        if (vendor != null && !vendor.isEmpty()) {
+            eventAttributes.put("vendor", vendor);
+        }
+
+        ingestSource = builder.ingestSource;
+        if (ingestSource != null && !ingestSource.isEmpty()) {
+            eventAttributes.put("ingest_source", ingestSource);
+        }
+
+        id = builder.id;
+        if (id != null && !id.isEmpty()) {
+            eventAttributes.put("id", id);
+        }
+
+        requestId = builder.requestId;
+        if (requestId != null && !requestId.isEmpty()) {
+            eventAttributes.put("request_id", requestId);
+        }
+
+        responseModel = builder.responseModel;
+        if (responseModel != null && !responseModel.isEmpty()) {
+            eventAttributes.put("response.model", responseModel);
+        }
+
+        responseOrganization = builder.responseOrganization;
+        if (responseOrganization != null && !responseOrganization.isEmpty()) {
+            eventAttributes.put("response.organization", responseOrganization);
+        }
+
+        responseUsageTotalTokens = builder.responseUsageTotalTokens;
+        if (responseUsageTotalTokens != null && responseUsageTotalTokens >= 0) {
+            eventAttributes.put("response.usage.total_tokens", responseUsageTotalTokens);
+        }
+
+        duration = builder.duration;
+        if (duration != null && duration >= 0) {
+            eventAttributes.put("duration", duration);
+        }
+
+        error = builder.error;
+        if (error != null && error) {
+            eventAttributes.put("error", true);
+        }
+
+        input = builder.input;
+        if (isAiMonitoringRecordContentEnabled() && input != null && !input.isEmpty()) {
+            eventAttributes.put("input", input);
+        }
+
+        requestModel = builder.requestModel;
+        if (requestModel != null && !requestModel.isEmpty()) {
+            eventAttributes.put("request.model", requestModel);
+        }
+
+        tokenCount = builder.tokenCount;
+        if (tokenCount != null && tokenCount > 0) {
+            eventAttributes.put("token_count", tokenCount);
+        }
+    }
+
+    /**
+     * Takes a map of all attributes added by the customer via the addCustomParameter API and returns a map
+     * containing only custom attributes with a llm. prefix to be added to LlmEvents.
+     *
+     * @param userAttributes Map of all custom user attributes
+     * @return Map of user attributes prefixed with llm.
+     */
+    private Map<String, Object> getUserLlmAttributes(Map<String, Object> userAttributes) {
+        Map<String, Object> userLlmAttributes = new HashMap<>();
+
+        if (userAttributes != null && !userAttributes.isEmpty()) {
+            for (Map.Entry<String, Object> entry : userAttributes.entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("llm.")) {
+                    userLlmAttributes.put(key, entry.getValue());
+                }
+            }
+        }
+        return userLlmAttributes;
+    }
+
+    /**
+     * Record a LlmEmbedding custom event
+     */
+    public void recordLlmEmbeddingEvent() {
+        NewRelic.getAgent().getInsights().recordCustomEvent(LLM_EMBEDDING, eventAttributes);
+    }
+}
