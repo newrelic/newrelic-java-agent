@@ -28,10 +28,45 @@ public abstract class ServerStream_Instrumentation {
     @NewField
     public Token token;
 
+    @NewField
+    public boolean isBidiStreaming;
+
+    @NewField
+    public boolean responseSent;
+
+    /**
+     * Instrumentation for writeMessage - called when server sends a response message.
+     * For BIDI streaming, we finalize and expire the token after the first message is sent,
+     * which ends the transaction at the point of response completion.
+     */
+    @Trace(async = true)
+    public void writeMessage(Object message) {
+        // Call original method first to send the message
+        Weaver.callOriginal();
+
+        // For BIDI streaming, end transaction after first response is sent
+        if (isBidiStreaming && !responseSent && token != null) {
+            // Finalize the transaction with success status
+            GrpcUtil.finalizeTransaction(token, Status.OK, new Metadata());
+
+            // Expire the token to end the transaction
+            token.expire();
+
+            // Mark that response was sent and clear token
+            responseSent = true;
+            token = null;
+
+            NewRelic.addCustomParameter("grpc.transaction_ended_on_response", true);
+        }
+    }
+
     @Trace(async = true)
     public void close(Status status, Metadata metadata) {
-        GrpcUtil.finalizeTransaction(token, status, metadata);
-        GrpcUtil.setServerStreamResponseStatus(status);
+        // Only finalize if token exists (token will be null for BIDI streaming after response sent)
+        if (token != null) {
+            GrpcUtil.finalizeTransaction(token, status, metadata);
+            GrpcUtil.setServerStreamResponseStatus(status);
+        }
 
         Weaver.callOriginal();
 
@@ -44,8 +79,11 @@ public abstract class ServerStream_Instrumentation {
     // server had an internal error
     @Trace(async = true)
     public void cancel(Status status) {
-        GrpcUtil.finalizeTransaction(token, status, new Metadata());
-        GrpcUtil.setServerStreamResponseStatus(status);
+        // Only finalize if token exists (token will be null for BIDI streaming after response sent)
+        if (token != null) {
+            GrpcUtil.finalizeTransaction(token, status, new Metadata());
+            GrpcUtil.setServerStreamResponseStatus(status);
+        }
 
         Weaver.callOriginal();
 
