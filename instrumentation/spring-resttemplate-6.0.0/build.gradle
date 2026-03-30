@@ -12,7 +12,7 @@ verifyInstrumentation {
     // Spring Framework 6.x only (Spring 7.x removes 4-parameter doExecute method)
     // Both 4-parameter and 5-parameter doExecute methods exist in this range
     passesOnly 'org.springframework:spring-web:[6.0.0,7.0.0)'
-    // Explicitly fail on Spring 3.x-5.x (covered by spring-resttemplate-3.0.0)
+    // Explicitly fail on Spring 3.x-5.x (method signature changes)
     fails 'org.springframework:spring-web:[,6.0.0)'
     // Explicitly fail on Spring 7.x+ (method signature changes)
     fails 'org.springframework:spring-web:[7.0.0,)'
@@ -23,6 +23,13 @@ verifyInstrumentation {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
     }
 }
 
