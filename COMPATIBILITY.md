@@ -1,8 +1,8 @@
 # Java Agent Compatibility
 
-## JVMs
+## JVMs 
 
-This version of the Java Agent supports Java versions 8 - 25.
+This version of the Java Agent supports Java versions 8 - 26.
 
   ## App/Web severs
   The agent automatically instruments the following app/web servers.
