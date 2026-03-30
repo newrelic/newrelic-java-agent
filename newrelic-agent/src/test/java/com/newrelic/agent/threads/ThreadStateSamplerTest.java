@@ -16,23 +16,72 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.api.agent.Trace;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ThreadStateSamplerTest {
 
-    @Test
-    public void testCpuTimeMetrics() {
+    private MockServiceManager serviceManager;
+
+    @Before
+    public void setUp() {
         // Initialize AgentBridge with real Caffeine factory for tests
         AgentBridge.collectionFactory = new AgentCollectionFactory();
 
-        MockServiceManager serviceManager = new MockServiceManager();
+        serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
         serviceManager.setStatsService(new StatsServiceImpl());
+    }
 
+    /**
+     * Run to get some performance numbers related to cache cleanup
+     */
+    @Test
+    public void testCleanupPerformanceWithDifferentCacheSizes() {
+        ThreadStateSampler threadStateSampler = new ThreadStateSampler(
+                ManagementFactory.getThreadMXBean(),
+                ThreadNameNormalizerTest.getThreadNameNormalizer());
+
+        System.out.println("\n=== Cleanup Performance Test ===");
+
+        threadStateSampler.run();
+
+        int cacheSize = threadStateSampler.getTrackedThreadCount();
+        System.out.println("Initial cache size: " + cacheSize);
+
+        // Test cleanup performance - measure getThreadInfo() calls
+        long startTime = System.nanoTime();
+
+        // This simulates what cleanupDeadThreads() does
+        int deadThreadCount = 0;
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+        // Simulate checking many thread IDs (including dead ones)
+        for (long threadId = 1; threadId < cacheSize * 10000; threadId++) {
+            if (threadMXBean.getThreadInfo(threadId) == null) {
+                deadThreadCount++;
+            }
+        }
+
+        long endTime = System.nanoTime();
+        double totalTimeMs = (endTime - startTime) / 1_000_000.0;
+        int checksPerformed = cacheSize * 10000;
+
+        System.out.println(String.format(
+            "Checked %d thread IDs in %.2f ms (%.3f µs per check). Simulated an eviction of %d threads from cache.",
+            checksPerformed, totalTimeMs, (totalTimeMs * 1000.0) / checksPerformed, deadThreadCount
+        ));
+    }
+
+    @Test
+    public void testCpuTimeMetrics() {
         StatsService statsService = ServiceFactory.getStatsService();
         ThreadStateSampler threadStateSampler = new ThreadStateSampler(ManagementFactory.getThreadMXBean(),
                 ThreadNameNormalizerTest.getThreadNameNormalizer());
