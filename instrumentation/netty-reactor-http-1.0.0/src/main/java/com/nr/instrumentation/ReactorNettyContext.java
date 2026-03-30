@@ -10,6 +10,8 @@ import java.util.WeakHashMap;
 
 public class ReactorNettyContext {
 
+    public static final String LIBRARY = "NettyReactor";
+
     private static final Map<Connection, SegmentData> connectionSegments = Collections.synchronizedMap(new WeakHashMap<>());
 
     public static void put(Connection connection, SegmentData segmentData) {

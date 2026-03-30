@@ -23,7 +23,6 @@ import reactor.netty.ConnectionObserver;
 import reactor.util.context.Context;
 
 import java.net.URI;
-import java.util.logging.Level;
 
 @Weave(originalName = "reactor.netty.http.client.HttpClientConnect")
 final class HttpClientConnect_Instrumentation {
@@ -78,11 +77,7 @@ final class HttpClientConnect_Instrumentation {
                                 httpMethod = "execute";
                             }
 
-                            try {
-                                segment.addOutboundRequestHeaders(new OutboundRequestWrapper(request));
-                            } catch (Throwable throwable) {
-                                // Ignore errors adding headers
-                            }
+                            segment.addOutboundRequestHeaders(new OutboundRequestWrapper(request));
                             ReactorNettyContext.put(connection, new ReactorNettyContext.SegmentData(segment, requestUri, httpMethod));
                         }
                     }
@@ -92,27 +87,18 @@ final class HttpClientConnect_Instrumentation {
                 ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
 
                 if (data != null && data.segment != null && data.requestUri != null) {
-                    try {
-                        String procedure = (data.httpMethod != null && !data.httpMethod.isEmpty())
-                                ? data.httpMethod : "execute";
+                    String procedure = (data.httpMethod != null && !data.httpMethod.isEmpty())
+                            ? data.httpMethod : "execute";
 
-                        data.segment.reportAsExternal(HttpParameters
-                                .library("NettyReactor")
-                                .uri(data.requestUri)
-                                .procedure(procedure)
-                                .inboundHeaders(new InboundResponseWrapper(response))
-                                .status(response.status().code(), response.status().reasonPhrase())
-                                .build());
-                    } catch (Throwable throwable) {
-                        AgentBridge.instrumentation.noticeInstrumentationError(throwable, "ReactorNettyHttpClient");
-                    } finally {
-                        data.segment.end();
-                    }
-                } else {
-                    AgentBridge.getAgent().getLogger().log(Level.WARNING, "ReactorNetty: Skipping reportAsExternal - missing data/segment/uri");
+                    data.segment.reportAsExternal(HttpParameters
+                            .library(ReactorNettyContext.LIBRARY)
+                            .uri(data.requestUri)
+                            .procedure(procedure)
+                            .inboundHeaders(new InboundResponseWrapper(response))
+                            .status(response.status().code(), response.status().reasonPhrase())
+                            .build());
+                    data.segment.end();
                 }
-            } else {
-                AgentBridge.getAgent().getLogger().log(Level.FINE, "ReactorNetty: State {0} not matched", state);
             }
 
             Weaver.callOriginal();
