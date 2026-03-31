@@ -120,6 +120,16 @@ public abstract class PreparedStatement_Weaved {
         Weaver.callOriginal();
     }
 
+    public void setObject(int parameterIndex, Object x) throws SQLException {
+        setParamValue(parameterIndex, x);
+        Weaver.callOriginal();
+    }
+
+    public void setArray(int parameterIndex, Array x) throws SQLException {
+        setParamValue(parameterIndex, x);
+        Weaver.callOriginal();
+    }
+
     public void clearParameters() throws SQLException {
         params = new Object[0];
 
