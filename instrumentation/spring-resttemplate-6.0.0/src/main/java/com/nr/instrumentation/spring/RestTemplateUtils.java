@@ -11,6 +11,8 @@ import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -37,12 +39,38 @@ public class RestTemplateUtils {
 
         String procedure = method != null ? method.name() : "execute";
 
-        // Use HttpParameters to include full path in segment name
-        NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
-                .library(LIBRARY)
-                .uri(uri)
-                .procedure(procedure)
-                .noInboundHeaders()
-                .build());
+        InboundHeadersWrapper inboundHeaders = extractInboundHeaders(result);
+
+        if (inboundHeaders != null) {
+            NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(uri)
+                    .procedure(procedure)
+                    .inboundHeaders(inboundHeaders)
+                    .build());
+        } else {
+            NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
+                    .library(LIBRARY)
+                    .uri(uri)
+                    .procedure(procedure)
+                    .noInboundHeaders()
+                    .build());
+        }
+    }
+
+    private static <T> InboundHeadersWrapper extractInboundHeaders(T result) {
+        if (result == null) {
+            return null;
+        }
+
+        if (result instanceof ResponseEntity) {
+            return new InboundHeadersWrapper(((ResponseEntity<?>) result).getHeaders());
+        }
+
+        if (result instanceof ClientHttpResponse) {
+            return new InboundHeadersWrapper(((ClientHttpResponse) result).getHeaders());
+        }
+
+        return null;
     }
 }
