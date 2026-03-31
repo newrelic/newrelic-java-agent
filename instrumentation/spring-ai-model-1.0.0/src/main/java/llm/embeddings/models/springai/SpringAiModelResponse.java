@@ -5,17 +5,17 @@
  *
  */
 
-package llm.models.springai;
+package llm.embeddings.models.springai;
 
 import com.newrelic.api.agent.NewRelic;
-import llm.models.ModelResponse;
+import llm.embeddings.models.ModelResponse;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.embedding.EmbeddingResponseMetadata;
 
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getRandomGuid;
+import static llm.embeddings.models.ModelInvocation.getRandomGuid;
 
 /**
  * Stores the required info from the SpringAI EmbeddingResponse without holding

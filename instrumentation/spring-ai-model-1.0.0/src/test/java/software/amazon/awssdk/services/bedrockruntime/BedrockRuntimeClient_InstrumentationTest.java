@@ -14,7 +14,7 @@
 //import com.newrelic.agent.introspec.TracedMetricData;
 //import com.newrelic.api.agent.NewRelic;
 //import com.newrelic.api.agent.Trace;
-//import llm.models.ModelResponse;
+//import llm.embeddings.models.ModelResponse;
 //import org.json.JSONObject;
 //import org.junit.Before;
 //import org.junit.Test;

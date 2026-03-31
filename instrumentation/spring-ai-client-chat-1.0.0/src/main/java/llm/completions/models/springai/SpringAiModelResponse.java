@@ -5,10 +5,10 @@
  *
  */
 
-package llm.models.springai;
+package llm.completions.models.springai;
 
 import com.newrelic.api.agent.NewRelic;
-import llm.models.ModelResponse;
+import llm.completions.models.ModelResponse;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.MessageType;
@@ -22,15 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getRandomGuid;
-import static llm.models.ModelResponse.logParsingFailure;
+import static llm.completions.models.ModelInvocation.getRandomGuid;
 
 /**
  * Stores the required info from the SpringAI ChatClientResponse without holding
  * a reference to the actual request object to avoid potential memory issues.
  */
 public class SpringAiModelResponse implements ModelResponse {
-    private static final String EMBEDDINGS = "embeddings";
     private static final String ASSISTANT = "assistant";
 
     // LLM operation type
@@ -39,7 +37,6 @@ public class SpringAiModelResponse implements ModelResponse {
     private String statusText = "";
     private String responseOrganization = "";
     private String llmChatCompletionSummaryId = "";
-    private String llmEmbeddingId = "";
     private int promptTokens = 0;
     private int completionTokens = 0;
     private int totalTokens = 0;
@@ -94,32 +91,10 @@ public class SpringAiModelResponse implements ModelResponse {
                 }
             }
 
-            llmEmbeddingId = getRandomGuid(); // TODO does this exist? need to debug embedding
             requestId = getRandomGuid();
-            setOperationType(llmChatCompletionSummaryId);
+            operationType = COMPLETION;
         } else {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Received null SpringAI ChatClientResponse");
-        }
-    }
-
-    /**
-     * Parses the operation type from the chat completion ID and assigns it to a field.
-     *
-     * @param llmChatCompletionSummaryId A unique identifier for the chat completion operation
-     */
-    private void setOperationType(String llmChatCompletionSummaryId) {
-        try {
-            if (!llmChatCompletionSummaryId.isEmpty()) { // FIXME does requestId make sense???
-                if (llmChatCompletionSummaryId.contains("chatcmpl")) {
-                    operationType = COMPLETION;
-                } else if (llmChatCompletionSummaryId.contains(EMBEDDINGS)) { // FIXME debug embedding
-                    operationType = EMBEDDING;
-                } else {
-                    logParsingFailure(null, "operation type");
-                }
-            }
-        } catch (Exception e) {
-            logParsingFailure(e, "operation type");
         }
     }
 
@@ -157,11 +132,6 @@ public class SpringAiModelResponse implements ModelResponse {
     @Override
     public String getLlmChatCompletionSummaryId() {
         return llmChatCompletionSummaryId != null ? llmChatCompletionSummaryId : getRandomGuid();
-    }
-
-    @Override
-    public String getLlmEmbeddingId() {
-        return llmEmbeddingId; // TODO need to debug embedding
     }
 
     @Override

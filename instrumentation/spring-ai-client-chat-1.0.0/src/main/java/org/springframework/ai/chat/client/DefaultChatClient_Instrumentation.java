@@ -16,8 +16,8 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import llm.models.ModelInvocation;
-import llm.models.springai.SpringAiModelInvocation;
+import llm.completions.models.ModelInvocation;
+import llm.completions.models.springai.SpringAiModelInvocation;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
-import static llm.vendor.Vendor.VENDOR_VERSION;
+import static llm.completions.vendor.Vendor.VENDOR_VERSION;
 
 public class DefaultChatClient_Instrumentation {
 
@@ -34,7 +34,7 @@ public class DefaultChatClient_Instrumentation {
     public static class DefaultCallResponseSpec_Instrumentation {
 
         /**
-         * Spring ChatClient call() gets processed here
+         * Spring ChatClient call() gets processed here. These are synchronous.
          */
         @Trace
         private ChatClientResponse doGetObservableChatClientResponse(ChatClientRequest chatClientRequest) {
@@ -69,7 +69,7 @@ public class DefaultChatClient_Instrumentation {
     public static class DefaultStreamResponseSpec_Instrumentation {
 
         /**
-         * Spring ChatClient stream() gets processed here
+         * Spring ChatClient stream() gets processed here.
          */
         @Trace
         private Flux<ChatClientResponse> doGetObservableFluxChatResponse(ChatClientRequest chatClientRequest) {
@@ -93,8 +93,6 @@ public class DefaultChatClient_Instrumentation {
                         Map<String, Object> userAttributes = txn.getUserAttributes();
                         Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
 
-//                        Token token = txn.getToken();
-
                         try {
                             // collect all chunks of the stream response into a list without blocking
                             // must use anonymous classes instead of lambdas or else instrumentation won't apply
@@ -103,41 +101,31 @@ public class DefaultChatClient_Instrumentation {
                                     new Consumer<List<ChatClientResponse>>() {
                                         @Override
                                         public void accept(List<ChatClientResponse> chatClientResponseList) {
-//                                            System.out.println("Received complete list: " + chatClientResponseList);
                                             List<ChatClientResponse> list = chatClientResponseList != null ? chatClientResponseList : new ArrayList<>();
 
                                             // Create Spring AI model invocation
                                             ModelInvocation springAiInvocation = new SpringAiModelInvocation(
                                                     linkingMetadata, userAttributes, chatClientRequest, list);
                                             springAiInvocation.setSegmentName(segment, "stream");
-                                            springAiInvocation.recordLlmEventsAsync(startTime, null); // FIXME token not needed?
+                                            springAiInvocation.recordLlmEventsAsync(startTime, null);
                                         }
                                     },
                                     // onError consumer
                                     new Consumer<Throwable>() {
                                         @Override
                                         public void accept(Throwable error) {
-//                                            System.err.println("Error: " + error);
                                             if (segment != null) {
                                                 segment.endAsync();
                                             }
-//                                            if (token != null) {
-//                                                token.expire();
-//                                            }
                                         }
                                     },
                                     // onComplete consumer
                                     new Runnable() {
                                         @Override
                                         public void run() {
-                                            // TODO do final cleanup
-//                                            System.out.println("Stream completed");
                                             if (segment != null) {
                                                 segment.endAsync();
                                             }
-//                                            if (token != null) {
-//                                                token.expire();
-//                                            }
                                         }
                                     }
                             );

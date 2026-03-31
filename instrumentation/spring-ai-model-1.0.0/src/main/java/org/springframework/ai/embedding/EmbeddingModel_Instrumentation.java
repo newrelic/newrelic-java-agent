@@ -8,13 +8,13 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import llm.models.ModelInvocation;
-import llm.models.springai.SpringAiModelInvocation;
+import llm.embeddings.models.ModelInvocation;
+import llm.embeddings.models.springai.SpringAiModelInvocation;
 
 import java.util.Map;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
-import static llm.vendor.Vendor.VENDOR_VERSION;
+import static llm.embeddings.vendor.Vendor.VENDOR_VERSION;
 
 @Weave(type = MatchType.Interface, originalName = "org.springframework.ai.embedding.EmbeddingModel")
 public abstract class EmbeddingModel_Instrumentation {

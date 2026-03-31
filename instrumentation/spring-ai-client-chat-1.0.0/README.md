@@ -2,7 +2,7 @@
 
 ## About
 
-Instruments invocations of LLMs made by the SpringAI `ChatClient`.
+Instruments invocations of LLMs made by the SpringAI `ChatClient` and generates chat completion `LlmEvent`s.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ This only works with Java 17+
 
 ### Supported Clients/APIs
 
-TODO
+SpringAI `ChatClient` `call` and `stream` APIs will be instrumented.
 
 ### Supported Models
 
@@ -24,7 +24,6 @@ TODO
 
 The main goal of this instrumentation is to generate the following LLM events to drive the UI.
 
-* `LlmEmbedding`: An event that captures data specific to the creation of an embedding.
 * `LlmChatCompletionSummary`: An event that captures high-level data about the creation of a chat completion including request, response, and call information.
 * `LlmChatCompletionMessage`: An event that corresponds to each message (sent and received) from a chat completion call including those created by the user,
   assistant, and the system.
@@ -67,11 +66,11 @@ used to group LLM messages into specific conversations.
 
 ### Metrics
 
-When in an active transaction a named span/segment for each LLM embedding and chat completion call is created using the following format:
+When in an active transaction a named span/segment for each chat completion call is created using the following format:
 
 `Llm/{operation_type}/{vendor_name}/{function_name}`
 
-* `operation_type`: `completion` or `embedding`
+* `operation_type`: `completion`
 * `vendor_name`: Name of LLM vendor (ex: `SpringAI`)
 * `function_name`: Name of instrumented function (ex: `call`, `stream`)
 
@@ -84,7 +83,7 @@ entity tagging in the UI, if a metric isn't reported within the past day the LLM
 * `vendor_name`: Name of LLM vendor (ex: `SpringAI`)
 * `vendor_version`: Version of instrumented LLM library (ex: `1.0.0`)
 
-Note: The vendor version isn't obtainable from the SpringAI `ChatClient` so the instrumentation version is used instead.
+Note: The vendor version isn't obtainable from the SpringAI `ChatClient` so the instrumentation module version is used instead.
 
 Additionally, the following supportability metrics are recorded to indicate the agent config state.
 
@@ -106,7 +105,8 @@ Supportability/Java/ML/RecordContent/Disabled
 `ai_monitoring.enabled`: Provides control over all AI Monitoring functionality. Set as true to enable all AI Monitoring features.  
 `ai_monitoring.record_content.enabled`: Provides control over whether attributes for the input and output content should be added to LLM events. Set as false to
 disable attributes for the input and output content.  
-`ai_monitoring.streaming.enabled`: NOT SUPPORTED
+`ai_monitoring.streaming.enabled`: Provides control over client streaming results. Set as false to
+disable capturing of streaming results.
 
 ### Environment Variable
 

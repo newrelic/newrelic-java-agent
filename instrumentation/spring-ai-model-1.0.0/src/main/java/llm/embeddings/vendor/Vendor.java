@@ -5,7 +5,7 @@
  *
  */
 
-package llm.vendor;
+package llm.embeddings.vendor;
 
 public class Vendor {
     public static final String VENDOR = "spring-ai";

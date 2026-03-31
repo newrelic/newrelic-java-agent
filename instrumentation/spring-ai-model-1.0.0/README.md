@@ -2,7 +2,7 @@
 
 ## About
 
-Instruments invocations of LLMs made by the SpringAI `EmbeddingModel`.
+Instruments invocations of LLMs made by the SpringAI `EmbeddingModel` and generates embedding `LlmEvent`s.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ This only works with Java 17+
 
 ### Supported Clients/APIs
 
-TODO
+SpringAI `EmbeddingModel` `call` API will be instrumented.
 
 ### Supported Models
 
@@ -81,7 +81,7 @@ entity tagging in the UI, if a metric isn't reported within the past day the LLM
 * `vendor_name`: Name of LLM vendor (ex: `SpringAI`)
 * `vendor_version`: Version of instrumented LLM library (ex: `1.0.0`)
 
-Note: The vendor version isn't obtainable from the SpringAI `EmbeddingModel` so the instrumentation version is used instead.
+Note: The vendor version isn't obtainable from the SpringAI `EmbeddingModel` so the instrumentation module version is used instead.
 
 Additionally, the following supportability metrics are recorded to indicate the agent config state.
 

@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models;
+package llm.embeddings.models;
 
 public interface ModelRequest {
     /**

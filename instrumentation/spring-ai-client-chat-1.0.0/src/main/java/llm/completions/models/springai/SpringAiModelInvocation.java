@@ -5,17 +5,17 @@
  *
  */
 
-package llm.models.springai;
+package llm.completions.models.springai;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
-import llm.events.LlmEvent;
-import llm.models.ModelInvocation;
-import llm.models.ModelRequest;
-import llm.models.ModelResponse;
+import llm.completions.events.LlmEvent;
+import llm.completions.models.ModelInvocation;
+import llm.completions.models.ModelRequest;
+import llm.completions.models.ModelResponse;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -28,11 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getRandomGuid;
-import static llm.models.ModelInvocation.getTokenCount;
-import static llm.models.ModelResponse.COMPLETION;
-import static llm.models.ModelResponse.EMBEDDING;
-import static llm.vendor.Vendor.SPRING_AI;
+import static llm.completions.models.ModelInvocation.getRandomGuid;
+import static llm.completions.models.ModelInvocation.getTokenCount;
+import static llm.completions.models.ModelResponse.COMPLETION;
+import static llm.completions.vendor.Vendor.SPRING_AI;
 
 public class SpringAiModelInvocation implements ModelInvocation {
     Map<String, String> linkingMetadata;
@@ -152,34 +151,6 @@ public class SpringAiModelInvocation implements ModelInvocation {
     }
 
     @Override
-    public void recordLlmEmbeddingEvent(long startTime, int index) {
-        if (modelResponse.isErrorResponse()) {
-            reportLlmError();
-        }
-
-        LlmEvent.Builder builder = new LlmEvent.Builder(this);
-
-        LlmEvent llmEmbeddingEvent = builder // TODO setup embedding
-                .spanId()
-                .traceId()
-                .vendor()
-                .ingestSource()
-                .id(modelResponse.getLlmEmbeddingId())
-                .requestId()
-                .input(index)
-                .requestModel()
-                .responseModel()
-                .responseOrganization()
-                .responseUsageTotalTokens()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(index)))
-                .error()
-                .duration(System.currentTimeMillis() - startTime)
-                .build();
-
-        llmEmbeddingEvent.recordLlmEmbeddingEvent();
-    }
-
-    @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
         if (modelResponse.isErrorResponse()) {
             reportLlmError();
@@ -240,8 +211,6 @@ public class SpringAiModelInvocation implements ModelInvocation {
         String operationType = modelResponse.getOperationType();
         if (operationType.equals(COMPLETION)) {
             recordLlmChatCompletionEvents(startTime);
-        } else if (operationType.equals(EMBEDDING)) {
-            recordLlmEmbeddingEvents(startTime);
         } else {
             NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: Unexpected operation type encountered when trying to record LLM events");
         }
@@ -267,9 +236,6 @@ public class SpringAiModelInvocation implements ModelInvocation {
         }
         if (!modelResponse.getLlmChatCompletionSummaryId().isEmpty()) {
             errorParams.put("completion_id", modelResponse.getLlmChatCompletionSummaryId());
-        }
-        if (!modelResponse.getLlmEmbeddingId().isEmpty()) {
-            errorParams.put("embedding_id", modelResponse.getLlmEmbeddingId());
         }
         // statusText not available from ChatClientResponse
         NewRelic.noticeError("LlmError: " + modelResponse.getStatusText(), errorParams);
@@ -300,18 +266,6 @@ public class SpringAiModelInvocation implements ModelInvocation {
 
         // Finally, record a summary event representing all LlmChatCompletionMessage events
         recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages);
-    }
-
-    /**
-     * Records one, and potentially more, LlmEmbedding events based on the number of input messages in the request.
-     * The number of LlmEmbedding events produced can differ based on vendor.
-     */
-    private void recordLlmEmbeddingEvents(long startTime) {
-        int numberOfRequestMessages = modelRequest.getNumberOfInputTextMessages();
-        // Record an LlmEmbedding event for each input message in the request
-        for (int i = 0; i < numberOfRequestMessages; i++) {
-            recordLlmEmbeddingEvent(startTime, i);
-        }
     }
 
     @Override

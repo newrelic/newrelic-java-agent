@@ -13,7 +13,7 @@
 //import com.newrelic.agent.introspec.InstrumentationTestRunner;
 //import com.newrelic.agent.introspec.Introspector;
 //import com.newrelic.api.agent.LlmTokenCountCallback;
-//import llm.models.ModelInvocation;
+//import llm.embeddings.models.ModelInvocation;
 //import llm.models.amazon.titan.TitanModelInvocation;
 //import llm.models.anthropic.claude.ClaudeModelInvocation;
 //import org.junit.Before;

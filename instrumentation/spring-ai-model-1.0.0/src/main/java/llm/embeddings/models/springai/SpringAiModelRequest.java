@@ -5,10 +5,10 @@
  *
  */
 
-package llm.models.springai;
+package llm.embeddings.models.springai;
 
 import com.newrelic.api.agent.NewRelic;
-import llm.models.ModelRequest;
+import llm.embeddings.models.ModelRequest;
 import org.springframework.ai.embedding.EmbeddingOptions;
 import org.springframework.ai.embedding.EmbeddingRequest;
 

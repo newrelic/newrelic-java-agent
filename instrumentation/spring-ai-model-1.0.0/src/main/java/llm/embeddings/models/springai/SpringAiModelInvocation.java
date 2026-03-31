@@ -5,14 +5,14 @@
  *
  */
 
-package llm.models.springai;
+package llm.embeddings.models.springai;
 
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
-import llm.events.LlmEvent;
-import llm.models.ModelInvocation;
-import llm.models.ModelRequest;
-import llm.models.ModelResponse;
+import llm.embeddings.events.LlmEvent;
+import llm.embeddings.models.ModelInvocation;
+import llm.embeddings.models.ModelRequest;
+import llm.embeddings.models.ModelResponse;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 
@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getTokenCount;
-import static llm.models.ModelResponse.EMBEDDING;
-import static llm.vendor.Vendor.SPRING_AI;
+import static llm.embeddings.models.ModelInvocation.getTokenCount;
+import static llm.embeddings.models.ModelResponse.EMBEDDING;
+import static llm.embeddings.vendor.Vendor.SPRING_AI;
 
 public class SpringAiModelInvocation implements ModelInvocation {
     Map<String, String> linkingMetadata;

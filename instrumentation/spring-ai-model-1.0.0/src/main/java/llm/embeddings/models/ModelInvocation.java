@@ -5,23 +5,21 @@
  *
  */
 
-package llm.models;
+package llm.embeddings.models;
 
-import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Segment;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import static llm.vendor.Vendor.SPRING_AI;
+import static llm.embeddings.vendor.Vendor.SPRING_AI;
 
 public interface ModelInvocation {
     /**
-     * Set name of the traced method for each LLM embedding and chat completion call
+     * Set name of the traced method for each LLM embedding call
      * Llm/{operation_type}/{vendor_name}/{function_name}
      * <p>
      * Used with the sync client
@@ -32,17 +30,6 @@ public interface ModelInvocation {
     void setTracedMethodName(Transaction txn, String functionName);
 
     /**
-     * Set name of the async segment for each LLM embedding and chat completion call
-     * Llm/{operation_type}/{vendor_name}/{function_name}
-     * <p>
-     * Used with the async client
-     *
-     * @param segment      active segment for async timing
-     * @param functionName name of SDK function being invoked
-     */
-    void setSegmentName(Segment segment, String functionName);
-
-    /**
      * Record an LlmEmbedding event that captures data specific to the creation of an embedding.
      *
      * @param startTime start time of SDK invoke method
@@ -51,43 +38,11 @@ public interface ModelInvocation {
     void recordLlmEmbeddingEvent(long startTime, int index);
 
     /**
-     * Record an LlmChatCompletionSummary event that captures high-level data about
-     * the creation of a chat completion including request, response, and call information.
-     *
-     * @param startTime        start time of SDK invoke method
-     * @param numberOfMessages total number of LlmChatCompletionMessage events associated with the summary
-     */
-    void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages);
-
-    /**
-     * Record an LlmChatCompletionMessage event that corresponds to each message (sent and received)
-     * from a chat completion call including those created by the user, assistant, and the system.
-     *
-     * @param sequence index starting at 0 associated with each message
-     * @param message  String representing the input/output message
-     * @param modelId  String representing the model ID
-     * @param isUser   boolean representing if the current message event is from a user input prompt or an assistant response message
-     */
-    void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser);
-
-    /**
      * Record all LLM events when using the sync client.
      *
      * @param startTime start time of SDK invoke method
      */
     void recordLlmEvents(long startTime);
-
-    /**
-     * Record all LLM events when using the async client.
-     * <p>
-     * This causes the txn to be active on the thread where the LlmEvents are created so
-     * that they properly added to the event reservoir on the txn. This is used when the
-     * model response is returned asynchronously via CompleteableFuture.
-     *
-     * @param startTime start time of SDK invoke method
-     * @param token     Token used to link the transaction to the thread that produces the response
-     */
-    void recordLlmEventsAsync(long startTime, Token token);
 
     /**
      * Report an LLM error.

@@ -5,11 +5,7 @@
  *
  */
 
-package llm.models;
-
-import com.newrelic.api.agent.NewRelic;
-
-import java.util.logging.Level;
+package llm.completions.models;
 
 public interface ModelRequest {
     /**
@@ -43,21 +39,6 @@ public interface ModelRequest {
     int getNumberOfRequestMessages();
 
     /**
-     * Get the input to the embedding creation call.
-     *
-     * @param index int indicating the index of a message in an array. May be ignored for request structures that always return a single message.
-     * @return String representing the input to the embedding creation call
-     */
-    String getInputText(int index);
-
-    /**
-     * Get the number of input text messages from the embedding request.
-     *
-     * @return int representing the number of request messages returned
-     */
-    int getNumberOfInputTextMessages();
-
-    /**
      * Get the LLM model ID.
      *
      * @return String representing the LLM model ID
@@ -70,18 +51,4 @@ public interface ModelRequest {
      * @return boolean true if the message is from a user, else false
      */
     boolean isUser();
-
-    /**
-     * Log when a parsing error occurs.
-     *
-     * @param e                Exception encountered when parsing the request
-     * @param fieldBeingParsed field that was being parsed
-     */
-    static void logParsingFailure(Exception e, String fieldBeingParsed) {
-        if (e != null) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, e, "AIM: Error parsing " + fieldBeingParsed + " from ModelRequest");
-        } else {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "AIM: Unable to parse empty/null " + fieldBeingParsed + " from ModelRequest");
-        }
-    }
 }
