@@ -14,22 +14,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
 
 public class PreparedStatementExplainPlanExecutor extends DefaultExplainPlanExecutor {
 
     private final Object[] sqlParameters;
-    private final DatabaseVendor vendor;
-    private final boolean isOracle;
 
     public PreparedStatementExplainPlanExecutor(SqlTracerExplainInfo tracer, String originalSqlStatement,
-            Object[] sqlParameters, RecordSql recordSql, DatabaseVendor vendor) {
+            Object[] sqlParameters, RecordSql recordSql) {
         super(tracer, originalSqlStatement, recordSql);
         this.sqlParameters = sqlParameters;
-        this.vendor = vendor;
-        this.isOracle = vendor != null && "Oracle".equalsIgnoreCase(vendor.getName());
     }
 
     @Override
@@ -105,7 +100,8 @@ public class PreparedStatementExplainPlanExecutor extends DefaultExplainPlanExec
      * - H2: Supports arrays with these type names
      * - MySQL: Does NOT support SQL array types
      * - SQL Server: Does NOT support SQL array types
-     * - Oracle: Array support (VARRAY) with Oracle-specific type names (handled below)
+     * - Oracle: Array support (VARRAY) with Oracle-specific type names -- NOT
+     *           CURRENTLY SUPPORTED BY THE AGENT
      *
      * The code handles incompatibility gracefully by returning null for unsupported types,
      * which causes the caller to fall back to using setObject() instead of setArray().
@@ -121,23 +117,23 @@ public class PreparedStatementExplainPlanExecutor extends DefaultExplainPlanExec
         }
 
         if (componentType == Integer.class || componentType == int.class) {
-            return isOracle ? "NUMBER" : "integer";
+            return "integer";
         } else if (componentType == Long.class || componentType == long.class) {
-            return isOracle ? "NUMBER" : "bigint";
+            return "bigint";
         } else if (componentType == String.class) {
-            return isOracle ? "VARCHAR2" : "varchar";
+            return "varchar";
         } else if (componentType == Double.class || componentType == double.class) {
-            return isOracle ? "BINARY_DOUBLE" : "double precision";
+            return "double precision";
         } else if (componentType == Float.class || componentType == float.class) {
-            return isOracle ? "BINARY_FLOAT" : "real";
+            return "real";
         } else if (componentType == Boolean.class || componentType == boolean.class) {
-            return isOracle ? null : "boolean"; // Oracle doesn't support boolean arrays
+            return "boolean"; // Oracle doesn't support boolean arrays
         } else if (componentType == Short.class || componentType == short.class) {
-            return isOracle ? "NUMBER" : "smallint";
+            return "smallint";
         } else if (componentType == Byte.class || componentType == byte.class) {
-            return isOracle ? "NUMBER" : "smallint";
+            return "smallint";
         } else if (componentType == Character.class || componentType == char.class) {
-            return isOracle ? "CHAR" : "char";
+            return "char";
         }
         // For other types, return null and fall back to setObject
         return null;
