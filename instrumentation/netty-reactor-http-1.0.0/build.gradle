@@ -1,0 +1,19 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.projectreactor.netty:reactor-netty-http:1.0.0")
+}
+
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-reactor-http-1.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.projectreactor.netty:reactor-netty-http:[1.0.0,)'
+}
+
+site {
+    title 'Netty Reactor Http'
+    type 'Http'
+}
