@@ -15,9 +15,12 @@ import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.GCService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.ServerlessHarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.TransactionService;
@@ -93,7 +96,6 @@ import com.newrelic.agent.utilization.UtilizationService;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
-import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
 import java.text.MessageFormat;
@@ -120,6 +122,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<>();
     private final CoreService coreService;
     private final ConfigService configService;
+    private final ServerlessService serverlessService = new ServerlessServiceImpl();
     private final BlockingQueue<StatsWork> statsWork = new LinkedBlockingQueue<>();
     private volatile ExtensionService extensionService;
     private volatile ProfilerService profilerService;
@@ -188,7 +191,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jmxService = new JmxService(jmxConfig);
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
-        boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
+        boolean jarCollectorEnabled = !config.getServerlessConfig().isEnabled()
+                && configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
@@ -264,7 +268,12 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener, jfrServiceConnectionListener);
         normalizationService = new NormalizationServiceImpl();
-        harvestService = new HarvestServiceImpl();
+
+        if (config.getServerlessConfig().isEnabled()) {
+            harvestService = new ServerlessHarvestService();
+        } else {
+            harvestService = new HarvestServiceImpl();
+        }
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
         transactionTraceService = new TransactionTraceService();
         transactionEventsService = new TransactionEventsService(transactionDataToDistributedTraceIntrinsics);
@@ -566,6 +575,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public RPMServiceManager getRPMServiceManager() {
         return rpmServiceManager;
+    }
+
+    @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
     }
 
     @Override
