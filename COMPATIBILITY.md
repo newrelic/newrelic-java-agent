@@ -1,6 +1,6 @@
 # Java Agent Compatibility
 
-## JVMs 
+## JVMs
 
 This version of the Java Agent supports Java versions 8 - 26.
 
@@ -34,6 +34,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * AWS Firehose 2.1.0 to latest
   * AWS Kinesis 1.11.106 to latest
   * AWS Lambda 1.11.280 to latest
+  * AWS Lambda Core 1.1.0 to latest
   * AWS S3 1.9.0 to latest
   * AWS SNS 1.11.12 to latest
   * AWS SQS 1.10.44 to latest
