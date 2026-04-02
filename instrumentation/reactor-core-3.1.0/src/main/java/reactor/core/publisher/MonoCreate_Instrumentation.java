@@ -55,7 +55,6 @@ class MonoCreate_Instrumentation {
                 token.linkAndExpire();
                 token = null;
             }
-            NewRelic.noticeError(e);
             Weaver.callOriginal();
         }
 

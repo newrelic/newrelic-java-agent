@@ -6,6 +6,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.reactor.ReactorConfig;
 
 @Weave(originalName = "reactor.core.publisher.ReplayProcessor")
 public class ReplayProcessor_Instrumentation<T> {
@@ -28,6 +29,9 @@ public class ReplayProcessor_Instrumentation<T> {
 
     @Trace(async = true)
     public Sinks.EmitResult tryEmitError(Throwable t) {
+        if(ReactorConfig.errorsEnabled) {
+            NewRelic.noticeError(t);
+        }
         if(token != null) {
             token.linkAndExpire();
             token = null;

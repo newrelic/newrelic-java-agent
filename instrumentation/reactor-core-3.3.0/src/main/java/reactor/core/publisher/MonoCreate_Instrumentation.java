@@ -6,6 +6,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.reactor.ReactorConfig;
 import reactor.core.CoreSubscriber;
 import reactor.util.annotation.Nullable;
 
@@ -48,11 +49,13 @@ class MonoCreate_Instrumentation {
 
         @Trace(async=true)
         public void error(Throwable e) {
+            if(ReactorConfig.errorsEnabled) {
+                NewRelic.noticeError(e);
+            }
             if(token != null) {
                 token.linkAndExpire();
                 token = null;
             }
-            NewRelic.noticeError(e);
             Weaver.callOriginal();
         }
 

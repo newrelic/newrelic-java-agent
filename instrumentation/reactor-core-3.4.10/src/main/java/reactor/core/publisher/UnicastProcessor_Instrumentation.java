@@ -47,6 +47,9 @@ public class UnicastProcessor_Instrumentation<T> {
 
     @Trace(async = true)
     public Sinks.EmitResult tryEmitError(Throwable t) {
+        if(ReactorConfig.errorsEnabled) {
+            NewRelic.noticeError(t);
+        }
         if(token != null) {
             token.linkAndExpire();
             token = null;

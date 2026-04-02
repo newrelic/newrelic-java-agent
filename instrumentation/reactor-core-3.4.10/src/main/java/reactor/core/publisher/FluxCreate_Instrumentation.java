@@ -7,6 +7,7 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.reactor.ReactorConfig;
 import reactor.core.CoreSubscriber;
 
 @Weave(originalName = "reactor.core.publisher.FluxCreate")
@@ -32,7 +33,10 @@ class FluxCreate_Instrumentation<T> {
         }
 
         @Trace(async = true)
-        public void error(Throwable e) {
+        public void error(Throwable t) {
+            if(ReactorConfig.errorsEnabled) {
+                NewRelic.noticeError(t);
+            }
             if (token != null) {
                 token.linkAndExpire();
                 token = null;
