@@ -1736,6 +1736,12 @@ public class Transaction {
             }
             return;
         }
+
+        // default true
+        // API = NoticeError API
+        // TRACER = error caught by tracer instrumentation
+        // it doesn't matter what priority (API vs TRACER) this exception is
+        // make it the current error for the transaction
         if (ignoreErrorPriority) {
             errorTracker.setThrowable(throwable, priority, expected, safeGetMostRecentSpanId());
             return;
@@ -1747,6 +1753,9 @@ public class Transaction {
                     throwable.getClass().getName(), errorTracker.getPriority(), priority);
         }
 
+        // API error priority will always take precedence over TRACER
+        // between 2 APIs, the first will always win
+        // between 2 TRACERs, the later will always win
         if (errorTracker.tryUpdatePriority(priority)) {
             errorTracker.setThrowable(throwable, priority, expected, safeGetMostRecentSpanId());
         }
