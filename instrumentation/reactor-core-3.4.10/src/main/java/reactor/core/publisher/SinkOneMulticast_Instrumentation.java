@@ -9,10 +9,6 @@ class SinkOneMulticast_Instrumentation<O> extends SinkEmptyMulticast_Instrumenta
 
     @Trace(async=true)
     public Sinks.EmitResult tryEmitValue(O value) {
-        if(token != null) {
-            token.linkAndExpire();
-            token = null;
-        }
         return Weaver.callOriginal();
 
     }
