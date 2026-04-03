@@ -3,7 +3,6 @@ package com.newrelic.instrumentation.kotlin.coroutines_19
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-import kotlin.coroutines.*
 import com.newrelic.api.agent.Token
 
 data class TokenContext(val token: Token)
