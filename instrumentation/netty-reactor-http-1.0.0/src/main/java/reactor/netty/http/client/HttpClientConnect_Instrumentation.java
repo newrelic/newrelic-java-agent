@@ -37,9 +37,7 @@ final class HttpClientConnect_Instrumentation {
         @Trace(async = true, excludeFromTransactionTrace = true)
         public void onStateChange(Connection connection, ConnectionObserver.State newState) {
 
-            String state = newState.toString();
-
-                if ("[request_prepared]".equals(state) && connection instanceof HttpClientRequest) {
+                if (HttpClientState.REQUEST_PREPARED.equals(newState) && connection instanceof HttpClientRequest) {
 
                     Context ctx = currentContext();
                     Token token = ctx != null ? ctx.getOrDefault("newrelic-token", null) : null;
@@ -81,7 +79,7 @@ final class HttpClientConnect_Instrumentation {
                             ReactorNettyContext.put(connection, new ReactorNettyContext.SegmentData(segment, requestUri, httpMethod));
                         }
                     }
-            } else if ("[response_received]".equals(state) && connection instanceof HttpClientResponse) {
+            } else if (HttpClientState.RESPONSE_RECEIVED.equals(newState) && connection instanceof HttpClientResponse) {
 
                 HttpClientResponse response = (HttpClientResponse) connection;
                 ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
