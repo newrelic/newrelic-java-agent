@@ -39,32 +39,10 @@ public class ExtensionHolderFactoryImpl implements ExtensionHolderFactory {
             return instanceCache.remove(instance);
         }
 
-        /**
-         * Uses putIfAbsent pattern instead of computeIfAbsent() to avoid
-         * ConcurrentHashMap bin-level locking during value creation.
-         * This prevents contention issues where threads get stuck in
-         * helpTransfer() under high concurrency.
-         *
-         * Trade-off: Under race conditions, multiple threads may create
-         * extension instances, but only one wins (via putIfAbsent).
-         * This is safe because valueLoader creates empty instances -
-         * no pre-populated state is lost.
-         */
         @Override
         public T getExtension(Object instance, Supplier<T> valueLoader) {
             try {
-                // Fast path: already exists
-                T value = instanceCache.get(instance);
-                if (value != null) {
-                    return value;
-                }
-
-                // Create value OUTSIDE of any lock - avoids computeIfAbsent() bin-level contention
-                T newValue = valueLoader.get();
-
-                // Atomic put - only one thread wins, losers get the winner's value
-                T existing = instanceCache.putIfAbsent(instance, newValue);
-                return existing != null ? existing : newValue;
+                return instanceCache.computeIfAbsent(instance, k -> valueLoader.get());
             } catch (RuntimeException e) {
                 AgentBridge.getAgent().getLogger().log(Level.FINE, e, "Unable to load extension class for {0}",
                         instance.getClass().getName());
