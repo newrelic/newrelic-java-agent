@@ -1,7 +1,7 @@
 # Java Agent Compatibility
 
 ## JVMs
- 
+
 This version of the Java Agent supports Java versions 8 - 26.
 
   ## App/Web severs
@@ -13,6 +13,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Mule 3.4.0 to latest
   * Netty 3.3.0.Alpha1 to 5.0.0.Alpha1 (exclusive)
   * Netty Reactor 0.7.0.RELEASE to latest
+  * Netty Reactor HTTP 1.0.0 to latest
   * Open Liberty 21.0.0.12 to latest
   * Play 2.4.0-M3 to latest
   * Resin 3.1.9 to latest
@@ -111,6 +112,7 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 2.13: 2.7.3 to latest
     * Scala 2.12: 2.6.0 to latest
   * Spray 1.3.1 to latest
+  * Spring RestTemplate 6.0.0 to 7.0.0 (exclusive)
   * Spring Webclient 5.0.0.RELEASE to latest
   * Spring Webflux 5.0.0.RELEASE to latest
   * STTP 2.2.3 to latest
