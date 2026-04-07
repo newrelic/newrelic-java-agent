@@ -7,6 +7,7 @@
 
 package java.sql;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.api.agent.Trace;
@@ -14,8 +15,22 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
+import java.util.HashMap;
+
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
+
+    @Trace(leaf = true)
+    public int [] executeBatch() {
+        int [] results = Weaver.callOriginal();
+        if (results != null) {
+            HashMap<String, Object> attributes = new HashMap<>();
+            attributes.put("batch_size", results.length);
+            AgentBridge.getAgent().getTracedMethod().addCustomAttributes(attributes);
+        }
+
+        return results;
+    }
 
     @Trace(leaf = true)
     public ResultSet executeQuery(String sql) throws SQLException {
