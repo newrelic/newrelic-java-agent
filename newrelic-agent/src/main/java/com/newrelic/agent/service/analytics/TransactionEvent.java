@@ -48,7 +48,6 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
 
     private final int port;
     private final boolean error;
-    private final boolean decider;
     /**
      * Required. Full metric name of the transaction
      */
@@ -71,7 +70,7 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
     public TransactionEvent(String appName, Map<String, Object> userAttributes, long timestamp, String name, TransactionTiming timing,
                             String guid, String referringGuid, Integer port, String tripId, PathHashes pathHashes,
                             ApdexPerfZone apdexPerfZone, SyntheticsIds syntheticsIds, SyntheticsInfo syntheticsInfo, boolean error, TimeoutCause timeoutCause,
-                            float priority, Map<String, Object> distributedTraceIntrinsics, boolean decider) {
+                            float priority, Map<String, Object> distributedTraceIntrinsics) {
         super(TYPE, timestamp, priority, userAttributes);
         if (pathHashes == null) throw new NullPointerException("pathHashes must not be null");
         if (syntheticsIds == null) throw new NullPointerException("syntheticsIds must not be null");
@@ -90,7 +89,6 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         this.syntheticsInfo = syntheticsInfo;
         this.error = error;
         this.timeoutCause = timeoutCause;
-        this.decider = decider;
         this.distributedTraceIntrinsics = distributedTraceIntrinsics;
     }
 
@@ -295,7 +293,10 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
 
         Map<String, ?> filteredUserAtts = getUserFilteredMap(getMutableUserAttributes());
         Map<String, ?> filteredAgentAtts = getFilteredMap(agentAttributes);
-        if (filteredAgentAtts.isEmpty()) {
+
+        if (ServiceFactory.getConfigService().getAgentConfig(appName).getServerlessConfig().isEnabled()) {
+            JSONArray.writeJSONString(Arrays.asList(obj, filteredUserAtts, filteredAgentAtts), out);
+        } else if (filteredAgentAtts.isEmpty()) {
             if (filteredUserAtts.isEmpty()) {
                 JSONArray.writeJSONString(Collections.singletonList(obj), out);
             } else {
@@ -326,14 +327,14 @@ public class TransactionEvent extends AnalyticsEvent implements JSONStreamAware 
         return true;
     }
 
-    @Override
-    public boolean decider() {
-        return decider;
-    }
-
-    @VisibleForTesting
     public Map<String, Object> getAgentAttributesCopy() {
         return new HashMap<>(agentAttributes);
+    }
+
+    // Only call for serverless testing
+    @VisibleForTesting
+    public void setAgentAttributes(Map<String, Object> agentAttributes) {
+        this.agentAttributes = agentAttributes;
     }
 
     public String getSyntheticsJobId() {

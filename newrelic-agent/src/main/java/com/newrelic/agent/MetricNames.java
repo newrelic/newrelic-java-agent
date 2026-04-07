@@ -205,6 +205,10 @@ public class MetricNames {
 
     public static final String TIMEOUT_ASYNC = "Java/Timeout/asyncActivityNotStarted";
 
+    public static final String SUPPORTABILITY_AUTO_APP_NAMING_REPORTING_TO = "Supportability/AutoAppNaming/ReportingTo/{0}";
+
+    public static final String SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE = "Supportability/Java/InstallType";
+
     public static final String SUPPORTABILITY_JAVA_AGENTVERSION = "Supportability/Java/AgentVersion/{0}";
 
     public static final String SUPPORTABILITY_HARVEST_SERVICE_RESPONSE_TIME = "Supportability/Harvest";
@@ -226,6 +230,9 @@ public class MetricNames {
     public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST = "Supportability/Logging/Forwarding/Denylist";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED = "Supportability/Logging/Labels/Java/enabled";
+    public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED = "Supportability/Logging/Labels/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_DISABLED = "Supportability/Logging/LocalDecorating/Java/disabled";
 
@@ -361,6 +368,11 @@ public class MetricNames {
     public static final String SUPPORTABILITY_API_SET_ACCOUNT_NAME = "SetAccountName";
     public static final String SUPPORTABILITY_API_SET_USER_ID = "SetUserId";
 
+    // Cloud API
+    public static final String SUPPORTABILITY_API_CLOUD_SET_ACCOUNT_INFO_CLIENT = "Cloud/SetAccountInfoClient/";
+    public static final String SUPPORTABILITY_API_CLOUD_SET_ACCOUNT_INFO = "Cloud/SetAccountInfo/";
+    public static final String SUPPORTABILITY_CONFIG_AWS_ACCOUNT_ID = "Supportability/Cloud/ConfigAccountInfo/aws_account_id";
+
     //Transaction supportability metrics
     public static final String SUPPORTABILITY_TRANSACTION_STARTED = "Supportability/Transaction/StartedCount";
     public static final String SUPPORTABILITY_TRANSACTION_FINISHED = "Supportability/Transaction/FinishedCount";
@@ -407,6 +419,9 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
 
+    public static final String SUPPORTABILITY_AGENT_CRAC_CHECKPOINT = "Supportability/Agent/CracCheckpoint";
+    public static final String SUPPORTABILITY_AGENT_CRAC_RESTORE = "Supportability/Agent/CracRestore";
+
     // expected errors
     public static final String SUPPORTABILITY_API_EXPECTED_ERROR_API_MESSAGE = "ExpectedError/Api/Message";
     public static final String SUPPORTABILITY_API_EXPECTED_ERROR_API_THROWABLE = "ExpectedError/Api/Throwable";
@@ -431,6 +446,12 @@ public class MetricNames {
     public static final String SUPPORTABILITY_ACCEPT_PAYLOAD_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException";
     public static final String SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS = "Supportability/DistributedTrace/CreatePayload/Success";
     public static final String SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception";
+    public static final String SUPPORTABILITY_PARTIAL_GRANULARITY_TYPE = "Supportability/Java/PartialGranularity/{0}";
+
+    //Sampler stats - to be used as Supportability/Java/{granularity}/{case}/{type}
+    public static final String SUPPORTABILITY_SAMPLER = "Supportability/Java/{0}/{1}/{2}";
+    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE = "Supportability/Trace/SamplingTarget/Server/Value";
+    public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE = "Supportability/Trace/SamplingTarget/Applied/Value";
 
     // W3C trace context generic
     public static final String SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_SUCCESS = "Supportability/TraceContext/Accept/Success";
@@ -489,6 +510,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS = "Supportability/JfrService/Stopped/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
+    public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE = "Supportability/JfrService/Config/QueueSize";
+    public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL = "Supportability/JfrService/Config/HarvestInterval";
 
     // Error Grouping
     public static final String SUPPORTABILITY_ERROR_GROUPING_CALLBACK_ENABLED = "Supportability/ErrorGrouping/Callback/enabled";
@@ -500,6 +523,9 @@ public class MetricNames {
 
     // AiMonitoring Callback Set
     public static final String SUPPORTABILITY_AI_MONITORING_TOKEN_COUNT_CALLBACK_SET = "Supportability/AiMonitoringTokenCountCallback/Set";
+
+    // Super Agent Integration
+    public static final String SUPPORTABILITY_AGENT_CONTROL_HEALTH_REPORTING_ENABLED = "Supportability/AgentControl/Health/enabled";
 
     /**
      * Utility method for adding supportability metrics to APIs

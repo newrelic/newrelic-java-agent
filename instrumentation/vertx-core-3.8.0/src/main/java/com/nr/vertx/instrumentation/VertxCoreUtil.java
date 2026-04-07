@@ -48,6 +48,15 @@ public class VertxCoreUtil {
         }
     }
 
+    public static void expireToken(Handler handler) {
+        if (handler != null) {
+            final Token token = tokenMap.remove(handler);
+            if (token != null) {
+                token.expire();
+            }
+        }
+    }
+
     public static void processResponse(Segment segment, HttpClientResponseImpl resp, String host, int port,
             String scheme) {
         try {

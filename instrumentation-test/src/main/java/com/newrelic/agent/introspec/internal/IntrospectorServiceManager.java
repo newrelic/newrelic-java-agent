@@ -24,6 +24,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -33,6 +34,8 @@ import com.newrelic.agent.reinstrument.RemoteInstrumentationService;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationServiceImpl;
 import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.samplers.SamplerService;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.Service;
 import com.newrelic.agent.service.ServiceFactory;
@@ -85,7 +88,9 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile DistributedTraceServiceImpl distributedTraceService;
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
+    private volatile ServerlessService serverlessService;
     private ExpirationService expirationService;
+    private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
     private IntrospectorServiceManager(String name) {
         super(name);
@@ -182,6 +187,8 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         configService.addIAgentConfigListener((IntrospectorSpanEventService)spanEventsService);
         transactionService.addTransactionListener((IntrospectorSpanEventService)spanEventsService);
 
+        serverlessService = new ServerlessServiceImpl();
+
         try {
             transactionTraceService.start();
             transactionEventsService.start();
@@ -189,6 +196,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         } catch (Exception e) {
             // fall through
         }
+
     }
 
     @Override
@@ -223,6 +231,11 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     @Override
     public RPMServiceManager getRPMServiceManager() {
         return rpmServiceManager;
+    }
+
+    @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
     }
 
     @Override
@@ -430,6 +443,14 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     public ExpirationService getExpirationService() {
         return expirationService;
     }
+
+    @Override
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
+    }
+
+    @Override
+    public void refreshDataForCRaCRestore() {}
 
     private AgentConfig createAgentConfig(Map<String, Object> settings, Map<String, Object> serverData) {
         settings = new HashMap<>(settings);

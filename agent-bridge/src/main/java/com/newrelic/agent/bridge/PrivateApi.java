@@ -53,6 +53,15 @@ public interface PrivateApi {
      */
     void addCustomAttribute(String key, String value);
 
+    /**
+     * Add a key/value pair to the current transaction. These are reported in errors and transaction traces. This will
+     * add the parameter even if high_security is set. Use with caution.
+     *
+     * @param key   Custom parameter key.
+     * @param value Custom parameter value. @
+     */
+    void addCustomAttribute(String key, boolean value);
+
     void addTracerParameter(String key, Number value);
 
     void addTracerParameter(String key, String value);

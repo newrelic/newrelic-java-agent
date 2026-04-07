@@ -12,11 +12,13 @@ import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.test.marker.RequiresFork;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -26,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @RunWith(Parameterized.class)
+@Category(RequiresFork.class)
 public class TransactionTest {
 
     @Parameterized.Parameters(name = "{0}")

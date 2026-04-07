@@ -6,13 +6,15 @@ import com.newrelic.api.agent.weaver.Weave;
 import dev.miku.r2dbc.mysql.ConnectionContext;
 import dev.miku.r2dbc.mysql.MySqlSslConfiguration;
 import reactor.netty.Connection;
+import java.net.SocketAddress;
 
 @Weave(type = MatchType.ExactClass, originalName = "dev.miku.r2dbc.mysql.client.ReactorNettyClient")
 class ReactorNettyClient_Instrumentation {
     @NewField
-    public final Connection clientConnection;
+    public final SocketAddress remoteAddress;
 
     ReactorNettyClient_Instrumentation(Connection connection, MySqlSslConfiguration ssl, ConnectionContext context) {
-        this.clientConnection = connection;
+        this.remoteAddress = connection == null ? null :
+                connection.channel() == null ? null : connection.channel().remoteAddress();
     }
 }

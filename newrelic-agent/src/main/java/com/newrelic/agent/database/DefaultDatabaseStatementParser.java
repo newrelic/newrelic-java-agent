@@ -93,7 +93,7 @@ public class DefaultDatabaseStatementParser implements DatabaseStatementParser {
                         return new ParsedDatabaseStatement(tableName.toLowerCase(), SELECT_OPERATION, true);
                     }
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
         return parseStatement(statement);

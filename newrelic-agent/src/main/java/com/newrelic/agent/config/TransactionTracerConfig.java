@@ -25,6 +25,16 @@ public interface TransactionTracerConfig {
     String getRecordSql();
 
     /**
+     * For large SQL statements, executing the regular expressions that attempt to parse exec and
+     * call statements can take a significant amount of time. Setting this to true will disable the
+     * execution of these complex regular expressions.
+     * Default is false.
+     *
+     * @return true if the exec and call regular expression execution is disabled
+     */
+    boolean isExecCallSqlRegexDisabled();
+
+    /**
      * The set of modules that are allowed to send up obfuscated slow query information when high_security
      * mode is enabled. If high_security mode is disabled this setting is ignored.
      *
@@ -118,5 +128,14 @@ public interface TransactionTracerConfig {
      * The number of unique traces to report before starting over.
      */
     int getTopN();
+
+    /**
+     * The String that controls what information (if any) gets added to metadata comments prepended
+     * to SQL prior to execution. Valid values are "svc_name"", "txn_name", "trace_id". An empty
+     * value disables metadata comments
+     *
+     * @return the configuration for SQL metadata comments
+     */
+    String getSqlMetadataComments();
 
 }

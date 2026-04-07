@@ -21,7 +21,8 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.vertx:vertx-web:[3.8.3,)'
+    passesOnly 'io.vertx:vertx-web:[3.8.3,5.0.0.CR1)'
+    excludeRegex '.*CR[0-9]*'
     excludeRegex '.*-milestone[0-9]'
 }
 

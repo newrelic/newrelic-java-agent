@@ -112,6 +112,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
 
                     // Error class cannot be null, but the ignored error message is optional and can be null
                     if (className != null) {
+                        className = className.trim();
                         if (message != null && !message.isEmpty()) {
                             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_IGNORE_ERROR_CONFIG_CLASS_MESSAGE);
                         } else {
@@ -123,7 +124,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
                                 " encountered. class_name must not be null. This configuration will be ignored");
                     }
                 } else if (ignoreError instanceof String) {
-                    String className = (String) ignoreError;
+                    String className = ((String) ignoreError).trim();
                     ignoreErrorsConfig.add(new IgnoreErrorConfigImpl(className.replace('/', '.'), null));
                     MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_IGNORE_ERROR_CONFIG_CLASS);
                 }
@@ -135,7 +136,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
         if (ignoreMessages instanceof Map) {
             Map<String, List<String>> ignoreMessagesMap = (Map) ignoreMessages;
             for (Map.Entry<String, List<String>> ignoreError : ignoreMessagesMap.entrySet()) {
-                String className = ignoreError.getKey();
+                String className = ignoreError.getKey().trim();
                 for (String message : ignoreError.getValue()) {
                     ignoreErrorsConfig.add(new IgnoreErrorConfigImpl(className.replace('/', '.'), message));
                     MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_IGNORE_ERROR_CONFIG_CLASS_MESSAGE);
@@ -181,6 +182,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
 
                     // Error class cannot be null, but the expected error message is optional and can be null
                     if (errorClass != null && !errorClass.isEmpty()) {
+                        errorClass = errorClass.trim();
                         if (errorMessage != null && !errorMessage.isEmpty()) {
                             MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_CONFIG_CLASS_MESSAGE);
                         } else {
@@ -192,7 +194,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
                                 " encountered. class_name must not be null. This configuration will be ignored");
                     }
                 } else if (expectedError instanceof String) {
-                    String className = (String) expectedError;
+                    String className = ((String) expectedError).trim();
                     expectedErrorConfigs.add(new ExpectedErrorConfigImpl(className.replace('/', '.'), null));
                     MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_CONFIG_CLASS);
                 }
@@ -206,7 +208,7 @@ public final class ErrorCollectorConfigImpl extends BaseConfig implements ErrorC
         if (expectedMessages instanceof Map) {
             Map<String, List<String>> expectedMessagesMap = (Map) expectedMessages;
             for (Map.Entry<String, List<String>> expectedError : expectedMessagesMap.entrySet()) {
-                String className = expectedError.getKey();
+                String className = expectedError.getKey().trim();
                 for (String message : expectedError.getValue()) {
                     expectedErrorConfigs.add(new ExpectedErrorConfigImpl(className.replace('/', '.'), message));
                     MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_CONFIG_CLASS_MESSAGE);

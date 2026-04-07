@@ -37,7 +37,9 @@ public class Deployments {
         return recordDeployment(cmd, config);
     }
 
+    @Deprecated
     static int recordDeployment(CommandLine cmd, AgentConfig config) throws Exception {
+        System.out.println("Note: This command is deprecated and will be removed in the next major release.");
         String appName = config.getApplicationName();
         if (cmd.hasOption(APP_NAME_OPTION)) {
             appName = cmd.getOptionValue(APP_NAME_OPTION);

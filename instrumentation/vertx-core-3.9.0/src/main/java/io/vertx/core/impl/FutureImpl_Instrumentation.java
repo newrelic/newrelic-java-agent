@@ -22,14 +22,30 @@ abstract class FutureImpl_Instrumentation {
 
     public abstract boolean isComplete();
 
+    // The 1st time this method is called, this.handler will be null.
+    // The provided handler will be assigned to this.handler and a token should be created for it.
+    // The 2nd time, the original code will create a Handlers and put it in this.handler.
+    // Then it will add both provided handlers to it.
+    // At this point, the first token should be expired and a token should be created for the Handlers.
+    // From there on, the Handlers will be used to store the handlers. And no token should be created.
     @Trace(async = true, excludeFromTransactionTrace = true)
     public Future onComplete(Handler<AsyncResult> handler) {
+        Handler previousHandler = this.handler;
         if (isComplete()) {
             VertxCoreUtil.linkAndExpireToken(handler);
-        } else {
-            VertxCoreUtil.storeToken(handler);
         }
-        return Weaver.callOriginal();
+
+        Future future = Weaver.callOriginal();
+
+        if (!isComplete()) {
+            if (previousHandler != this.handler) {
+                VertxCoreUtil.storeToken(this.handler);
+                if (previousHandler != null) {
+                    VertxCoreUtil.expireToken(previousHandler);
+                }
+            }
+        }
+        return future;
     }
 
     @Trace(async = true, excludeFromTransactionTrace = true)

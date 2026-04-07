@@ -9,6 +9,7 @@ package com.newrelic.agent.tracing;
 
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.DistributedTracePayload;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -19,6 +20,7 @@ import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.mockito.Mockito;
@@ -33,6 +35,9 @@ public class BaseDistributedTraceTest {
 
     @BeforeClass
     public static void beforeClass() {
+        // Initialize AgentBridge with real Caffeine factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
+
         final Map<String, Object> settings = new HashMap<>();
         settings.put(AgentConfigImpl.APP_NAME, "Unit Test");
         settings.put(AgentConfigImpl.HOST, "no-collector.example.com");
@@ -79,11 +84,6 @@ public class BaseDistributedTraceTest {
             }
 
             @Override
-            public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-                return 1.0f;
-            }
-
-            @Override
             public Map<String, Object> getIntrinsics(DistributedTracePayloadImpl inboundPayload, String guid,
                     String traceId, TransportType transportType,
                     long parentTransportDuration, long largestTransportDuration,
@@ -99,6 +99,11 @@ public class BaseDistributedTraceTest {
             @Override
             public DistributedTracePayload createDistributedTracePayload(Tracer tracer) {
                 return null;
+            }
+
+            @Override
+            public float calculatePriority(Transaction tx, DistributedTraceServiceImpl.SamplerCase samplerCase) {
+                return 0.0f;
             }
         };
         serviceManager.setDistributedTraceService(distributedTraceService);

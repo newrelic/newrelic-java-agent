@@ -9,12 +9,15 @@ package com.newrelic.agent.service.analytics;
 
 import com.google.common.collect.ComparisonChain;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.config.SpanEventsConfig;
+import com.newrelic.agent.config.coretracing.PartialGranularityConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.api.agent.Logger;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -36,7 +39,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     public SamplingPriorityQueue<SpanEvent> getOrCreateReservoir(String appName) {
        SamplingPriorityQueue<SpanEvent> reservoir = spanReservoirsForApp.get(appName);
         if (reservoir == null) {
-            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0));
+            reservoir = spanReservoirsForApp.putIfAbsent(appName, createDistributedSamplingReservoir(appName));
             if (reservoir == null) {
                 reservoir = spanReservoirsForApp.get(appName);
             }
@@ -44,10 +47,8 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         return reservoir;
     }
 
-    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName, int decidedLast) {
-        SpanEventsConfig spanEventsConfig = configService.getDefaultAgentConfig().getSpanEventsConfig();
-        int target = spanEventsConfig.getTargetSamplesStored();
-        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, decidedLast, target, SPAN_EVENT_COMPARATOR);
+    private SamplingPriorityQueue<SpanEvent> createDistributedSamplingReservoir(String appName) {
+        return new DistributedSamplingPriorityQueue<>(appName, "Span Event Service", maxSamplesStored, SPAN_EVENT_COMPARATOR);
     }
 
     @Override
@@ -63,14 +64,26 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
         }
 
         SpanEventsConfig config = configService.getAgentConfig(appName).getSpanEventsConfig();
-        int decidedLast = AdaptiveSampling.decidedLast(spanReservoirsForApp.get(appName), config.getTargetSamplesStored());
 
         // save a reference to the old reservoir to finish harvesting, and create a new one
         final SamplingPriorityQueue<SpanEvent> toSend = spanReservoirsForApp.get(appName);
-        spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName, decidedLast));
+
+        if (toSend != null){
+            toSend.logReservoirStats();
+        }
+
+        spanReservoirsForApp.put(appName, createDistributedSamplingReservoir(appName));
 
         if (toSend == null || toSend.size() <= 0) {
             return null;
+        }
+
+        DistributedTracingConfig dtConfig = configService.getAgentConfig(appName).getDistributedTracingConfig();
+        if (dtConfig != null) {
+            PartialGranularityConfig pgConfig = dtConfig.getPartialGranularityConfig();
+            if (pgConfig != null && pgConfig.isEnabled()) {
+                NewRelic.recordMetric("Supportability/Java/PartialGranularity/" + pgConfig.getType().toString(), 1.0f);
+            }
         }
 
         try {
@@ -107,7 +120,7 @@ public class CollectorSpanEventReservoirManager implements ReservoirManager<Span
     public void setMaxSamplesStored(int newMax) {
         maxSamplesStored = newMax;
         ConcurrentHashMap<String, SamplingPriorityQueue<SpanEvent>> newMaxSpanReservoirs = new ConcurrentHashMap<>();
-        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName, 0)));
+        spanReservoirsForApp.forEach((appName,reservoir ) -> newMaxSpanReservoirs.putIfAbsent(appName, createDistributedSamplingReservoir(appName)));
         spanReservoirsForApp = newMaxSpanReservoirs;
     }
 

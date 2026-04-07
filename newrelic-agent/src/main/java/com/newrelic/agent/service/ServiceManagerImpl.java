@@ -15,8 +15,12 @@ import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.GCService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.ServerlessHarvestService;
+import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.TransactionService;
@@ -30,6 +34,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.config.JmxConfig;
+import com.newrelic.agent.config.KotlinCoroutinesConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.deadlock.DeadlockDetectorService;
@@ -40,6 +45,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.instrumentation.ClassTransformerServiceImpl;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.normalization.NormalizationServiceImpl;
@@ -78,6 +84,10 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationClientFactory;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationHealthClient;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
@@ -88,6 +98,8 @@ import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
 
 import java.net.URL;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -110,6 +122,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private final ConcurrentMap<String, Service> services = new ConcurrentHashMap<>();
     private final CoreService coreService;
     private final ConfigService configService;
+    private final ServerlessService serverlessService = new ServerlessServiceImpl();
     private final BlockingQueue<StatsWork> statsWork = new LinkedBlockingQueue<>();
     private volatile ExtensionService extensionService;
     private volatile ProfilerService profilerService;
@@ -149,6 +162,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SourceLanguageService sourceLanguageService;
     private volatile ExpirationService expirationService;
     private volatile SlowTransactionService slowTransactionService;
+    private volatile AgentControlIntegrationService agentControlIntegrationService;
+    private volatile KotlinCoroutinesService kotlinCoroutinesService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -176,7 +191,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jmxService = new JmxService(jmxConfig);
 
         Logger jarCollectorLogger = Agent.LOG.getChildLogger("com.newrelic.jar_collector");
-        boolean jarCollectorEnabled = configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
+        boolean jarCollectorEnabled = !config.getServerlessConfig().isEnabled()
+                && configService.getDefaultAgentConfig().getJarCollectorConfig().isEnabled();
         AtomicBoolean shouldSendAllJars = new AtomicBoolean(true);
         TrackedAddSet<JarData> analyzedJars = new TrackedAddSet<>();
 
@@ -243,13 +259,21 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         jfrService = new JfrService(jfrConfig, configService.getDefaultAgentConfig());
         AgentConnectionEstablishedListener jfrServiceConnectionListener = new JfrServiceConnectionListener(jfrService);
 
+        KotlinCoroutinesConfig kotlinCoroutinesConfig = config.getKotlinCoroutinesConfig();
+        kotlinCoroutinesService = new KotlinCoroutinesService(kotlinCoroutinesConfig);
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
 
         rpmServiceManager = new RPMServiceManagerImpl(agentConnectionEstablishedListener, jarCollectorConnectionListener, jfrServiceConnectionListener);
         normalizationService = new NormalizationServiceImpl();
-        harvestService = new HarvestServiceImpl();
+
+        if (config.getServerlessConfig().isEnabled()) {
+            harvestService = new ServerlessHarvestService();
+        } else {
+            harvestService = new HarvestServiceImpl();
+        }
         gcService = realAgent ? new GCService() : new NoopService("GC Service");
         transactionTraceService = new TransactionTraceService();
         transactionEventsService = new TransactionEventsService(transactionDataToDistributedTraceIntrinsics);
@@ -280,6 +304,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         harvestService.addHarvestListener(jarCollectorHarvestListener);
 
         slowTransactionService = new SlowTransactionService(config);
+
+        agentControlIntegrationService = buildAgentControlIntegrationService(config);
 
         asyncTxService.start();
         threadService.start();
@@ -314,6 +340,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
+        agentControlIntegrationService.start();
+        kotlinCoroutinesService.start();
 
         startServices();
 
@@ -342,6 +370,24 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
                 .build();
 
         return InfiniteTracing.initialize(infiniteTracingConfig, NewRelic.getAgent().getMetricAggregator());
+    }
+
+    private AgentControlIntegrationService buildAgentControlIntegrationService(AgentConfig config) {
+        ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
+        AgentControlIntegrationHealthClient healthClient = null;
+
+        if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
+            healthClient = AgentControlIntegrationClientFactory.createHealthClient(config.getAgentControlIntegrationConfig());
+
+            healthDataProducers.add(circuitBreakerService);
+            healthDataProducers.add((HealthDataProducer) coreService);
+            for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
+                healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
+            }
+        }
+
+        return new AgentControlIntegrationService(healthClient, config,
+                healthDataProducers.toArray(new HealthDataProducer[]{}));
     }
 
     @Override
@@ -385,6 +431,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         distributedTraceService.stop();
         spanEventsService.stop();
         slowTransactionService.stop();
+        agentControlIntegrationService.stop();
+        kotlinCoroutinesService.stop();
         stopServices();
     }
 
@@ -530,6 +578,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     }
 
     @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
+    }
+
+    @Override
     public SamplerService getSamplerService() {
         return samplerService;
     }
@@ -654,6 +707,33 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public ExpirationService getExpirationService() {
         return expirationService;
+    }
+
+    @Override
+    public KotlinCoroutinesService getKotlinCoroutinesService() {
+        return kotlinCoroutinesService;
+    }
+
+    @Override
+    public synchronized void refreshDataForCRaCRestore() {
+        environmentService = new EnvironmentServiceImpl();
+
+        boolean realAgent = coreService.getInstrumentation() != null;
+        if (realAgent) {
+            try {
+                utilizationService.stop();
+            } catch (Exception e) {
+                Agent.LOG.warning(MessageFormat.format("Error stopping UtilizationService during CRaC Restore: ",e.getMessage()));
+            }
+        }
+        utilizationService = new UtilizationService();
+        if (realAgent) {
+            try {
+                utilizationService.start();
+            } catch (Exception e) {
+                Agent.LOG.warning(MessageFormat.format("Error starting UtilizationService during CRaC Restore: ",e.getMessage()));
+            }
+        }
     }
 
     private class InitialStatsService extends AbstractService implements StatsService {

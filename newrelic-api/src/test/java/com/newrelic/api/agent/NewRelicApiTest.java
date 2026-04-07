@@ -21,6 +21,6 @@ public class NewRelicApiTest {
     @Test
     public void checkMethodCount() {
         Method[] methods = NewRelic.class.getDeclaredMethods();
-        Assert.assertEquals(34, methods.length);
+        Assert.assertEquals(32, methods.length);
     }
 }

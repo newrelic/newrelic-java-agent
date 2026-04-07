@@ -19,9 +19,12 @@ verifyInstrumentation {
     passesOnly('org.apache.pekko:pekko-http-core_3:[1.0.0,)') {
         implementation("org.apache.pekko:pekko-stream_3:1.0.0")
     }
+
+    excludeRegex 'org.apache.pekko:pekko-http-core_.*:.*-M[0-9]*'
 }
 
 site {
     title 'Pekko Http Core'
     type 'Framework'
+    details 'Scala 2.13: 1.0.0 to latest, Scala 3: 1.0.0 to latest'
 }

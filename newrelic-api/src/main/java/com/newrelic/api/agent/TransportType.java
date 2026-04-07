@@ -16,6 +16,8 @@ public enum TransportType {
     JMS,
     IronMQ,
     AMQP,
+    ServiceBus,
+    Queue,
     Other
 
 }

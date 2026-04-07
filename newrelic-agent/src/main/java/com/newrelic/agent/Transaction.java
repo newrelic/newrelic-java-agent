@@ -40,8 +40,6 @@ import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.normalization.Normalizer;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceUtils;
-import com.newrelic.agent.service.analytics.DistributedSamplingPriorityQueue;
-import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.sql.SlowQueryListener;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
 import com.newrelic.agent.stats.StatsWorks;
@@ -59,6 +57,9 @@ import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase;
+import com.newrelic.agent.tracing.Granularity;
+import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.agent.tracing.SpanProxy;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.TransactionCache;
@@ -129,7 +130,11 @@ public class Transaction {
     static final ClassMethodSignature SCALA_API_TXN_CLASS_SIGNATURE = new ClassMethodSignature(
     "newrelic.scala.api.TraceOps$", "txn", null);
     public static final int SCALA_API_TXN_CLASS_SIGNATURE_ID =
-    ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+        ClassMethodSignatures.get().add(SCALA_API_TXN_CLASS_SIGNATURE);
+
+    public static final int GENERIC_TXN_CLASS_SIGNATURE_ID =
+            ClassMethodSignatures.get().add(new ClassMethodSignature("", "", null));
+
     private static final String THREAD_ASSERTION_FAILURE = "Thread assertion failed!";
 
     private static final ThreadLocal<Transaction> transactionHolder = new ThreadLocal<>();
@@ -280,8 +285,28 @@ public class Transaction {
         return Math.max(transportDurationInMillis, 0);
     }
 
+    // TODO does this contract work for everyone?
+    public enum PartialSampleType {
+        REDUCED("Reduced"),
+        ESSENTIAL("Essential"),
+        COMPACT("Compact");
+
+        private final String displayName;
+
+        PartialSampleType(String displayName){
+         this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    private PartialSampleType partialSampleType; // null if either not sampled or full granularity sample, value set if partally sampled
+
     // WARNING: Mutates this instance by mutating the span proxy
     public DistributedTracePayloadImpl createDistributedTracePayload(String spanId) {
+        assignPriorityRootIfNotSet();
         SpanProxy spanProxy = this.spanProxy.get();
         long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - this.getTransactionTimer().getStartTimeInNanos());
         long txnStartTimeSinceEpochInMillis = System.currentTimeMillis() - elapsedMillis;
@@ -332,20 +357,62 @@ public class Transaction {
         }
     }
 
-    private void checkAndSetPriority() {
-        if (getAgentConfig().getDistributedTracingConfig().isEnabled()) {
-            DistributedTraceService distributedTraceService = ServiceFactory.getDistributedTraceService();
+    /**
+     * Assigns priority to this transaction using the sampling decision from a remote parent.
+     *
+     * @param remoteParentSampled whether the remote parent was sampled or not
+     */
+    public void assignPriorityFromRemoteParent(boolean remoteParentSampled) {
+        DistributedTraceService dtService = ServiceFactory.getDistributedTraceService();
+        float priority = dtService.calculatePriority(this, remoteParentSampled ? SamplerCase.REMOTE_PARENT_SAMPLED : SamplerCase.REMOTE_PARENT_NOT_SAMPLED);
+        this.priority.set(priority);
+    }
 
-            DistributedTracePayloadImpl inboundPayload = spanProxy.get().getInboundDistributedTracePayload();
-            Float inboundPriority = inboundPayload != null ? inboundPayload.priority : null;
-
-            DistributedSamplingPriorityQueue<TransactionEvent> reservoir = ServiceFactory.getTransactionEventsService()
-                    .getOrCreateDistributedSamplingReservoir(getApplicationName());
-
-            priority.compareAndSet(null, distributedTraceService.calculatePriority(inboundPriority, reservoir));
-        } else {
-            priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
+    /**
+     * Assigns priority to this transaction (unless previously assigned) without any information from a remote parent.
+     * <p>
+     * If a priority assignment has already been made, this call is ignored. This is a required check to avoid
+     * overwriting any priority decision that was made earlier, either because a remote parent was processed or a previous
+     * call to this method was made earlier in the txn's lifecycle. It is also required to avoid accidentally running the
+     * adaptive sampler twice on the same transaction.
+     * <p>
+     * If Distributed Tracing is not enabled, a random priority in [0,1) is assigned.
+     */
+    public void assignPriorityRootIfNotSet(){
+        if (priority.get() == null){
+            if (getAgentConfig().getDistributedTracingConfig().isEnabled()){
+                //Warning! The "if" check above is required even though we do compareAndSet(null) below.
+                //Its purpose is to avoid running the sampler more than once for the same txn.
+                Float samplerPriority = ServiceFactory.getDistributedTraceService().calculatePriority(this, SamplerCase.ROOT);
+                priority.compareAndSet(null, samplerPriority);
+            } else {
+                priority.compareAndSet(null, DistributedTraceServiceImpl.nextTruncatedFloat());
+            }
         }
+    }
+
+    /***
+     * Retrieve priority from the inbound distributed trace payload (using both sampling and priority-related information).
+     * <p>
+     * Inbound priority information is pulled from either New Relic headers or W3C headers. In the case of W3C headers, the sampling and priority values
+     * come from the trace state header. The trace state header may be missing sampling information, priority information, or both, even if
+     * a sampling decision was available on the trace parent header.
+     *
+     * @return a float in [0, 2) if priority-related information was found, or null if a new decision needs to be made
+     */
+
+    public Float getPriorityFromInboundSamplingDecision(Granularity granularity) {
+        DistributedTracePayloadImpl payload = spanProxy.get().getInboundDistributedTracePayload();
+        if (payload != null && payload.sampled != Sampled.UNKNOWN) {
+            if (payload.priority != null) {
+                return payload.priority;
+            } else {
+                boolean sampled = payload.sampled.booleanValue();
+                float initialPriority = DistributedTraceServiceImpl.nextTruncatedFloat();
+                return initialPriority + (sampled ? granularity.priorityIncrement() : 0.0f);
+            }
+        }
+        return null;
     }
 
     public TransportType getTransportType() {
@@ -476,7 +543,6 @@ public class Transaction {
     // registered.
     private void postConstruct() {
         this.initialActivity = TransactionActivity.create(this, nextActivityId.getAndIncrement());;
-        checkAndSetPriority();
     }
 
     private static long getGCTime() {
@@ -992,7 +1058,7 @@ public class Transaction {
             synchronized (lock) {
                 // this may have the side-effect of ignoring the transaction
                 freezeTransactionName();
-
+                assignPriorityRootIfNotSet();
                 if (ignore) {
                     Agent.LOG.log(Level.FINER,
                             "Transaction {0} was cancelled: ignored. This is not an error condition.", this);
@@ -1140,6 +1206,11 @@ public class Transaction {
 
                 TransactionData transactionData = new TransactionData(this, rootCounts.getTransactionSize());
                 ServiceFactory.getTransactionService().transactionFinished(transactionData, transactionStats);
+            }
+            // In serverless mode, trigger immediate harvest when transaction completes
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Serverless mode: Beginning harvest cycle for completed transaction");
+                ServiceFactory.getHarvestService().harvestNow();
             }
         } catch (Throwable th) {
             Agent.LOG.log(Level.WARNING, th, "Transaction {0} was not reported because of an internal error.", this);
@@ -1665,6 +1736,12 @@ public class Transaction {
             }
             return;
         }
+
+        // default true
+        // API = NoticeError API
+        // TRACER = error caught by tracer instrumentation
+        // it doesn't matter what priority (API vs TRACER) this exception is
+        // make it the current error for the transaction
         if (ignoreErrorPriority) {
             errorTracker.setThrowable(throwable, priority, expected, safeGetMostRecentSpanId());
             return;
@@ -1676,6 +1753,9 @@ public class Transaction {
                     throwable.getClass().getName(), errorTracker.getPriority(), priority);
         }
 
+        // API error priority will always take precedence over TRACER
+        // between 2 APIs, the first will always win
+        // between 2 TRACERs, the later will always win
         if (errorTracker.tryUpdatePriority(priority)) {
             errorTracker.setThrowable(throwable, priority, expected, safeGetMostRecentSpanId());
         }
@@ -2571,6 +2651,10 @@ public class Transaction {
         return priority != null && isSampledPriority(priority);
     }
 
+    public boolean isIgnoreErrorPriority() {
+        return ignoreErrorPriority;
+    }
+
     private String getTransactionName() {
         // getName may return null
         String fullName = getPriorityTransactionName().getName();
@@ -2592,5 +2676,13 @@ public class Transaction {
 
     public SecurityMetaData getSecurityMetaData() {
         return securityMetaData;
+    }
+
+    public PartialSampleType getPartialSampleType() {
+        return partialSampleType;
+    }
+
+    public void setPartialSampleType(PartialSampleType partialSampleType) {
+        this.partialSampleType = partialSampleType;
     }
 }

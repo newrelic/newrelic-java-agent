@@ -9,12 +9,17 @@ package com.newrelic.agent.tracing;
 
 import com.google.common.collect.Lists;
 import com.newrelic.agent.*;
+import com.newrelic.agent.DistributedTracingTestUtil.DTConfigMapBuilder;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.attributes.CrossAgentInput;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Instrumentation;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerType;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.*;
+import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.instrumentation.InstrumentationImpl;
@@ -33,6 +38,7 @@ import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
+import com.newrelic.test.marker.RequiresFork;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -40,6 +46,7 @@ import org.json.simple.parser.ParseException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mockito;
@@ -51,9 +58,13 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
+import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.ROOT;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+@Category(RequiresFork.class)
 @RunWith(Parameterized.class)
 public class W3CTraceContextCrossAgentTest {
     private MockServiceManager serviceManager;
@@ -99,8 +110,14 @@ public class W3CTraceContextCrossAgentTest {
         Map<String, Object> config = new HashMap<>();
         config.put(AgentConfigImpl.APP_NAME, APP_NAME);
 
-        Map<String, Object> dtConfig = new HashMap<>();
-        dtConfig.put("enabled", true);
+        // Configure the sampler based on the cross agent test data
+        // This is gross, but we need to extract the value for "ratio" and if present,
+        // it gets added as a sub-option to any sampler type of "trace_id_ratio_based".
+        // Currently, if the "ratio" key exists, it will be a valid float so we can skip
+        // validation.
+
+        Map<String, Object> dtConfig = setupCoreTracingOptions(testData);
+        dtConfig.putIfAbsent("enabled", true);
         dtConfig.put("exclude_newrelic_header", true);
         config.put("distributed_tracing", dtConfig);
         Map<String, Object> spanConfig = new HashMap<>();
@@ -136,6 +153,62 @@ public class W3CTraceContextCrossAgentTest {
         spanEventService = createSpanEventService(configService, transactionDataToDistributedTraceIntrinsics);
         serviceManager.setDistributedTraceService(distributedTraceService);
         serviceManager.setSpansEventService(spanEventService);
+    }
+
+    private Map<String, Object> setupCoreTracingOptions(JSONObject testData) {
+        //full granularity settings
+        HashMap<String, Object> dtConfig = new HashMap<>();
+
+        //top-level DT setting
+        Object isDTEnabled = testData.get("distributed_tracing_enabled");
+        if (isDTEnabled != null) {
+            dtConfig.put("enabled", isDTEnabled);
+        }
+
+        //sampler settings
+        HashMap<String, Object> samplerConfig = new HashMap<>();
+        Object fullGranRoot = testData.get("root");
+        if (fullGranRoot != null) {
+            samplerConfig.put("root", fullGranRoot);
+        }
+        Object remoteParentSampled = testData.get("remote_parent_sampled");
+        if (remoteParentSampled != null) {
+            samplerConfig.put("remote_parent_sampled", remoteParentSampled);
+        }
+        Object remoteParentNotSampled = testData.get("remote_parent_not_sampled");
+        if (remoteParentNotSampled != null) {
+            samplerConfig.put("remote_parent_not_sampled", remoteParentNotSampled);
+        }
+        Object fullGranularityRatio = testData.get("full_granularity_ratio");
+        Map<String, Object> ratioConfig = fullGranularityRatio == null ? null : Collections.singletonMap("ratio", fullGranularityRatio);
+        addRatioSubOptionIfRequired(samplerConfig, ratioConfig);
+
+        //full granularity settings
+        Object fullGranularityEnabled = testData.get("full_granularity_enabled");
+        if (fullGranularityEnabled != null) {
+            HashMap<String, Object> fullGranularityConfig = new HashMap<>();
+            fullGranularityConfig.put("enabled", fullGranularityEnabled);
+            samplerConfig.put("full_granularity", fullGranularityConfig);
+        }
+
+        //partial granularity settings
+        HashMap<String, Object> partialGranularityConfig = new HashMap<>();
+        Object partialGranularityEnabled = testData.get("partial_granularity_enabled");
+        if (partialGranularityEnabled != null) {
+            partialGranularityConfig.put("enabled", partialGranularityEnabled);
+        }
+        partialGranularityConfig.put("root", testData.get("partial_granularity_root"));
+        partialGranularityConfig.put("remote_parent_sampled", testData.get("partial_granularity_remote_parent_sampled"));
+        partialGranularityConfig.put("remote_parent_not_sampled", testData.get("partial_granularity_remote_parent_not_sampled"));
+        Object partialGranularityRatio = testData.get("partial_granularity_ratio");
+        Map<String, Object> partialRatioConfig = partialGranularityRatio == null ? null : Collections.singletonMap("ratio", partialGranularityRatio);
+        addRatioSubOptionIfRequired(partialGranularityConfig, partialRatioConfig);
+        if (!partialGranularityConfig.isEmpty()) {
+            samplerConfig.put("partial_granularity", partialGranularityConfig);
+        }
+
+        dtConfig.put("sampler",  samplerConfig);
+        return dtConfig;
     }
 
     @After
@@ -176,8 +249,14 @@ public class W3CTraceContextCrossAgentTest {
         String transportType = (String) testData.get("transport_type");
         Boolean webTransaction = (Boolean) testData.get("web_transaction");
         Boolean raisesException = (Boolean) testData.get("raises_exception");
-        Boolean forceSampledTrue = (Boolean) testData.get("force_sampled_true");
         Boolean spanEventsEnabled = (Boolean) testData.get("span_events_enabled");
+        JSONArray priorityRange =  (JSONArray) testData.get("expected_priority_between");
+        //core tracing settings
+        String remoteParentSampledSamplerType = (String) testData.get("remote_parent_sampled");
+        String remoteParentNotSampledSamplerType = (String) testData.get("remote_parent_not_sampled");
+        String rootSamplerType = (String) testData.get("root");
+        Boolean forceSampledTrue = (Boolean) testData.get("force_adaptive_sampled");
+
         replaceConfig(spanEventsEnabled);
 
         System.out.println("Running test: " + testName);
@@ -199,6 +278,33 @@ public class W3CTraceContextCrossAgentTest {
         connectInfo.put(DistributedTracingConfig.PRIMARY_APPLICATION_ID, "2827902");
         AgentConfig agentConfig = AgentHelper.createAgentConfig(true, Collections.<String, Object>emptyMap(), connectInfo);
         distributedTraceService.connected(null, agentConfig);
+
+        DistributedTracingConfig dtConfig = serviceManager.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
+
+        //have to force the adaptive sampler if configured
+        if (forceSampledTrue != null) {
+            Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
+            //correct the full granularity samplers, if applicable.
+            if (distributedTraceService.getSampler(Granularity.FULL, ROOT).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, ROOT, forceSampler);
+            }
+            if (distributedTraceService.getSampler(Granularity.FULL, REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_SAMPLED, forceSampler);
+            }
+            if (distributedTraceService.getSampler(Granularity.FULL, REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
+            }
+            //correct the partial granularity samplers, if applicable.
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, ROOT).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, ROOT, forceSampler);
+            }
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_SAMPLED, forceSampler);
+            }
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+                distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
+            }
+        }
 
         Transaction.clearTransaction();
         TransactionActivity.clear();
@@ -254,9 +360,6 @@ public class W3CTraceContextCrossAgentTest {
 
         setTransportType(tx, transportType);
 
-        if (forceSampledTrue && tx.getPriority() < 1) {
-            tx.setPriorityIfNotNull(new Random().nextFloat() + 1.0f);
-        }
         if (outbound_payloads != null) {
 
             for (Object assertion : outbound_payloads) {
@@ -285,6 +388,13 @@ public class W3CTraceContextCrossAgentTest {
         TransactionEvent transactionEvent = serviceManager.getTransactionEventsService().createEvent(transactionData, transactionStats, "wat");
         JSONObject txnEvents = serializeAndParseEvents(transactionEvent);
 
+        if (priorityRange != null) {
+            assertPriorityBetween(priorityRange, transactionEvent.getPriority());
+            for (SpanEvent s : spans) {
+                assertPriorityBetween(priorityRange, s.getPriority());
+            }
+        }
+
         StatsEngine statsEngine = statsService.getStatsEngineForHarvest(APP_NAME);
         assertExpectedMetrics(expectedMetrics, statsEngine);
 
@@ -297,6 +407,18 @@ public class W3CTraceContextCrossAgentTest {
                 assertSpanEvents(commonAssertions, spans);
             }
         }
+    }
+
+    private void assertPriorityBetween(JSONArray priorityBetween, Float actualPriority) {
+        if (actualPriority == null) {
+            fail();
+        }
+        Number rawMin = (Number) priorityBetween.get(0);
+        Number rawMax = (Number) priorityBetween.get(1);
+        float minPriority = rawMin.floatValue();
+        float maxPriority = rawMax.floatValue();
+        System.out.println("Expected range: " + priorityBetween + " actual priority: " + actualPriority);
+        assertTrue(minPriority <= actualPriority && maxPriority >= actualPriority);
     }
 
     private void replaceConfig(boolean spanEventsEnabled) {
@@ -506,6 +628,10 @@ public class W3CTraceContextCrossAgentTest {
     }
 
     private void assertExpectedMetrics(List metrics, StatsEngine statsEngine) {
+        if (metrics == null) {
+            return;
+        }
+
         assertNotNull(statsEngine);
 
         for (Object metric : metrics) {
@@ -534,4 +660,43 @@ public class W3CTraceContextCrossAgentTest {
         return (JSONObject) json.get(0);
     }
 
+    private void addRatioSubOptionIfRequired(Map<String, Object> samplerConfig, Map<String, Object> ratioConfig) {
+        String [] samplerTypes = {SamplerConfig.ROOT, SamplerConfig.REMOTE_PARENT_SAMPLED, SamplerConfig.REMOTE_PARENT_NOT_SAMPLED};
+
+        if (ratioConfig != null) {
+            for (String samplerType : samplerTypes) {
+                if (samplerConfig.get(samplerType).equals(SamplerConfig.TRACE_ID_RATIO_BASED)) {
+                    Map<String, Object> traceRatioMap = Collections.singletonMap(SamplerConfig.TRACE_ID_RATIO_BASED, ratioConfig);
+                    samplerConfig.put(samplerType, traceRatioMap);
+                }
+            }
+        }
+    }
+
+    //Our cross-agent tests include the setting force_adaptive_sampling_true option.
+    //This is a bit tricky as it describes the sampling decision ONLY of the adaptive sampler,
+    //and ONLY when the sampler is required to actually make a decision.
+    //To avoid making any changes to our real adaptive sampler, this subclass overrides
+    //the computeSampled method of the Adaptive Sampler.
+    //This means that the ForceSampledAdaptiveSampler will still run on a period/with a target,
+    //but will make deterministic sampling decisions as described by the forceSampled setting,
+    //instead of following the sampling algorithm.
+    private Sampler getDefaultForceSampledAdaptiveSampler(boolean forceSampled){
+        AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        return new ForceSampledAdaptiveSampler(config.getAdaptiveSamplingTarget(), config.getAdaptiveSamplingPeriodSeconds(), forceSampled);
+    }
+
+    private static class ForceSampledAdaptiveSampler extends AdaptiveSampler {
+        boolean forceSampled;
+
+        private ForceSampledAdaptiveSampler(int target, int reportPeriodSeconds, boolean forceSampled) {
+            super(target, reportPeriodSeconds);
+            this.forceSampled = forceSampled;
+        }
+
+        @Override
+        protected boolean computeSampled() {
+            return forceSampled;
+        }
+    }
 }

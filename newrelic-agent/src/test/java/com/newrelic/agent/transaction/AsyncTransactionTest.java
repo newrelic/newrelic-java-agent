@@ -20,17 +20,20 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.servlet.BasicRequestRootTracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.objectweb.asm.Opcodes;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Category(RequiresFork.class)
 public class AsyncTransactionTest implements TransactionListener {
 
     private TransactionData data;

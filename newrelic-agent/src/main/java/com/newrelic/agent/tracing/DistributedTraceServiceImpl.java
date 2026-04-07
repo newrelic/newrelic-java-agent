@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.tracing;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ConnectionListener;
 import com.newrelic.agent.ExtendedTransactionListener;
@@ -16,12 +17,15 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.bridge.NoOpDistributedTracePayload;
+import com.newrelic.agent.tracing.samplers.AdaptiveSampler;
+import com.newrelic.agent.tracing.samplers.Sampler;
+import com.newrelic.agent.tracing.samplers.SamplerManager;
+import com.newrelic.agent.tracing.samplers.SamplerType;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransportType;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.DistributedTracingConfig;
-import com.newrelic.agent.interfaces.SamplingPriorityQueue;
-import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -54,6 +58,24 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     private final AtomicBoolean firstHarvest = new AtomicBoolean(true);
 
     private DistributedTracingConfig distributedTraceConfig;
+    private final Transaction.PartialSampleType partialSampleType;
+    private final SamplerManager samplerManager;
+
+    public enum SamplerCase {
+        ROOT("Root"),
+        REMOTE_PARENT_SAMPLED("RemoteParentSampled"),
+        REMOTE_PARENT_NOT_SAMPLED("RemoteParentNotSampled"),;
+
+        private final String displayName;
+
+        SamplerCase(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
 
     // Instantiate a new DecimalFormat instance as it is not thread safe:
     // http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
@@ -76,6 +98,8 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         super(DistributedTraceServiceImpl.class.getSimpleName());
         distributedTraceConfig = ServiceFactory.getConfigService().getDefaultAgentConfig().getDistributedTracingConfig();
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        this.samplerManager = new SamplerManager(distributedTraceConfig);
+        this.partialSampleType = distributedTraceConfig.getPartialGranularityConfig().getType();
     }
 
     @Override
@@ -128,6 +152,10 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
 
         // Fallback in case none of the previous attempts set the application ID
         applicationId.compareAndSet(null, "0");
+
+        //The connect response includes a server-only config, sampling_target, that MUST be used to configure the adaptive sampler shared instance.
+        samplerManager.setSharedSamplingTargets(agentConfig.getAdaptiveSamplingTarget());
+        recordCoreTracingSupportabilityMetrics();
     }
 
     @Override
@@ -175,43 +203,28 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     @Override
-    public <T extends PriorityAware> float calculatePriority(Float priority, SamplingPriorityQueue<T> reservoir) {
-        if (priority == null) {
-            if (reservoir == null) {
-                return nextTruncatedFloat();
-            }
-
-            // No inbound "priority" flag set so we need to calculate priority/sampling
-            int seen = reservoir.getNumberOfTries();
-            if (firstHarvest.get() || seen == 0) {
-                if (seen <= reservoir.getTarget()) {
-                    // Make sure we record the first 'target' events in the system
-                    return nextTruncatedFloat() + 1.0f;
-                }
-                return nextTruncatedFloat();
-            }
-
-            int seenLast = reservoir.getDecidedLast();
-            int sampled = reservoir.getSampled();
-            int target = reservoir.getTarget();
-
-            boolean shouldSample;
-            if (sampled < target) {
-                shouldSample = (seenLast <= 0 ? 0 : ThreadLocalRandom.current().nextInt(seenLast)) < target;
-            } else if (sampled > (target * 2)) {
-                // As soon as we hit 2x the number of "target" events sampled, we need to stop
-                shouldSample = false;
-            } else {
-                int expTarget = (int) (Math.pow((float) target, (float) target / sampled) - Math.pow((float) target, 0.5));
-                shouldSample = ThreadLocalRandom.current().nextInt(seen) < expTarget;
-            }
-
-            // Add 1.0f to the priority number if we should sample based on previous throughput
-            return nextTruncatedFloat() + (shouldSample ? 1.0f : 0.0f);
-        } else {
-            // There was already a priority set on the inbound payload, don't truncate it
+    public float calculatePriority(Transaction tx, SamplerCase samplerCase) {
+        float priority = nextTruncatedFloat();
+        if (!isEnabled() || (!isFullGranularityEnabled() && !isPartialGranularityEnabled())){
             return priority;
         }
+        String appName = tx.getApplicationName();
+        Sampler sampler;
+        if (isFullGranularityEnabled()) {
+            sampler = samplerManager.getSampler(appName, Granularity.FULL, samplerCase);
+            priority = sampler.calculatePriority(tx, Granularity.FULL);
+            logSamplerDebug(tx, priority, samplerCase, sampler, Granularity.FULL);
+        }
+        if (isPartialGranularityEnabled() && !DistributedTraceUtil.isSampledPriority(priority)) {
+            sampler = samplerManager.getSampler(appName, Granularity.PARTIAL, samplerCase);
+            priority = sampler.calculatePriority(tx, Granularity.PARTIAL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                NewRelic.getAgent().getLogger().log(Level.FINEST, "Setting partial granularity sample type to {0} for transaction {1}", partialSampleType, tx);
+                tx.setPartialSampleType(partialSampleType);
+            }
+            logSamplerDebug(tx, priority, samplerCase, sampler, Granularity.PARTIAL);
+        }
+        return priority;
     }
 
     @Override
@@ -364,6 +377,7 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
         // Override guid if this trace is sampled and spans are enabled
         // guid will be the guid of the span that is creating this payload
         boolean spansEnabled = ServiceFactory.getConfigService().getDefaultAgentConfig().getSpanEventsConfig().isEnabled();
+        tx.assignPriorityRootIfNotSet();
         boolean sampled = DistributedTraceUtil.isSampledPriority(tx.getPriority());
         if (sampled && spansEnabled) {
             // Need to do this in case the span that created this is a @Trace(excludeFromTransactionTrace=true)
@@ -382,7 +396,6 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     public void configChanged(String appName, AgentConfig agentConfig) {
         boolean wasEnabled = isEnabled();
         this.distributedTraceConfig = agentConfig.getDistributedTracingConfig();
-
         if (!wasEnabled && isEnabled()) {
             StatsService statsService = ServiceFactory.getServiceManager().getStatsService();
             statsService.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_DISTRIBUTED_TRACING);
@@ -390,4 +403,71 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
                     !distributedTraceConfig.isIncludeNewRelicHeader()));
         }
     }
+
+    public Transaction.PartialSampleType getPartialSampleType() {
+        return partialSampleType;
+    }
+
+    public boolean isFullGranularityEnabled(){
+        return distributedTraceConfig.getFullGranularityConfig().isEnabled();
+    }
+
+    public boolean isPartialGranularityEnabled(){
+        return distributedTraceConfig.getPartialGranularityConfig().isEnabled();
+    }
+
+    private void recordCoreTracingSupportabilityMetrics() {
+        if (isEnabled()) {
+            if (isFullGranularityEnabled()) {
+                for (SamplerCase samplerCase : SamplerCase.values()) {
+                    Sampler sampler = samplerManager.getSampler(Granularity.FULL, samplerCase);
+                    String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "FullGranularity", samplerCase.getDisplayName(),
+                            sampler.getType().getDisplayName());
+                    if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
+                        samplerMetric += "/Shared";
+                    }
+                    NewRelic.incrementCounter(samplerMetric);
+                }
+            }
+            if (isPartialGranularityEnabled()) {
+                for (SamplerCase samplerCase : SamplerCase.values()) {
+                    Sampler sampler = samplerManager.getSampler(Granularity.PARTIAL, samplerCase);
+                    String samplerMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_SAMPLER, "PartialGranularity", samplerCase.getDisplayName(),
+                            sampler.getType().getDisplayName());
+                    if (sampler.getType() == SamplerType.ADAPTIVE && ((AdaptiveSampler) sampler).isShared()){
+                        samplerMetric += "/Shared";
+                    }
+                    NewRelic.incrementCounter(samplerMetric);
+                }
+            }
+        }
+    }
+
+    private void logSamplerDebug(Transaction tx, float priority, SamplerCase samplerCase, Sampler sampler, Granularity granularity) {
+        if (Agent.LOG.isFinestEnabled()) {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.FINEST,
+                            "Calculated priority=" + priority +
+                                    ", sampled=" + DistributedTraceUtil.isSampledPriority(priority) +
+                                    " for transaction " + tx +
+                                    ", using sampler=" + samplerCase.name() +
+                                    ", granularity=" + granularity.name() +
+                                    ", samplerDescription=" + sampler.getDescription()
+                    );
+        }
+    }
+
+    //Testing-only utility methods. These are NOT thread-safe.
+
+    @VisibleForTesting
+    Sampler getSampler(Granularity granularity, SamplerCase samplerCase) {
+        return samplerManager.getSampler(granularity, samplerCase);
+    }
+
+    @VisibleForTesting
+    void setSampler(Granularity granularity, SamplerCase samplerCase, Sampler sampler) {
+        samplerManager.setDefaultSampler(granularity, samplerCase, sampler);
+    }
+
 }

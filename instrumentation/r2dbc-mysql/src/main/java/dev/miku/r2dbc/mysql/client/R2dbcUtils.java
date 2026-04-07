@@ -53,10 +53,9 @@ public class R2dbcUtils {
         try {
             if(client instanceof ReactorNettyClient_Instrumentation) {
                 ReactorNettyClient_Instrumentation instrumentedClient = (ReactorNettyClient_Instrumentation) client;
-                Connection clientConnection = instrumentedClient.clientConnection;
-                    if(clientConnection.channel().remoteAddress() != null && clientConnection.channel().remoteAddress() instanceof InetSocketAddress) {
-                        return (InetSocketAddress) clientConnection.channel().remoteAddress();
-                    }
+                if(instrumentedClient.remoteAddress != null && instrumentedClient.remoteAddress instanceof InetSocketAddress) {
+                    return (InetSocketAddress) instrumentedClient.remoteAddress;
+                }
             }
             return null;
         } catch(Exception exception) {

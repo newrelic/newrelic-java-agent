@@ -18,6 +18,7 @@ import com.newrelic.agent.utilization.AWS.AwsData;
 import com.newrelic.agent.utilization.Azure.AzureData;
 import com.newrelic.agent.utilization.GCP.GcpData;
 import com.newrelic.agent.utilization.PCF.PcfData;
+import com.newrelic.agent.utilization.AzureAppService.AzureAppServiceData;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ public class UtilizationService extends AbstractService {
     private final ArrayList<String> ipAddress;
     private final String bootId;
     private final String dockerContainerId;
+    private final String ecsFargateDockerContainerId;
     private final int processorCount;
     private final Future<Long> totalRamInMibFuture;
     private final UtilizationConfig configData;
@@ -56,7 +58,7 @@ public class UtilizationService extends AbstractService {
     private final ExecutorService executor = Executors.newFixedThreadPool(2, new DefaultThreadFactory(THREAD_NAME, true));
     private Future<UtilizationData> future = null;
 
-    private static final DockerData dockerData = new DockerData();
+
     private static final String THREAD_NAME = "New Relic Utilization Service";
 
     /**
@@ -69,12 +71,14 @@ public class UtilizationService extends AbstractService {
     private final boolean detectGcp;
     private final boolean detectAzure;
     private final boolean detectKubernetes;
+    private final DockerData dockerData;
 
     private static final CloudUtility cloudUtility = new CloudUtility();
     private static final AWS aws = new AWS(cloudUtility);
     private static final PCF pcf = new PCF(cloudUtility);
     private static final GCP gcp = new GCP(cloudUtility);
     private static final Azure azure = new Azure(cloudUtility);
+    private static final AzureAppService azureAppService = new AzureAppService(cloudUtility);
 
     public UtilizationService() {
         super(UtilizationService.class.getSimpleName());
@@ -86,6 +90,7 @@ public class UtilizationService extends AbstractService {
         detectGcp = agentConfig.getValue(DETECT_GOOGLE_CLOUD_PROVIDER_KEY, Boolean.TRUE);
         detectAzure = agentConfig.getValue(DETECT_AZURE_KEY, Boolean.TRUE);
         detectKubernetes = agentConfig.getValue(DETECT_KUBERNETES_KEY, Boolean.TRUE);
+        dockerData = new DockerData(agentConfig.getCloudConfig());
 
         hostName = Hostname.getHostname(agentConfig);
         fullHostName = Hostname.getFullHostname(agentConfig);
@@ -93,12 +98,13 @@ public class UtilizationService extends AbstractService {
         isLinux = isLinuxOs();
         bootId = DataFetcher.getBootId();
         dockerContainerId = detectDocker ? getDockerContainerId() : null;
+        ecsFargateDockerContainerId = detectAws ? getEcsFargateDockerContainerId() : null;
         processorCount = DataFetcher.getLogicalProcessorCount();
         totalRamInMibFuture = executor.submit(DataFetcher.getTotalRamInMibCallable());
         configData = UtilizationConfig.createFromConfigService();
         kubernetesData = getKubernetesData();
-        utilizationData = new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, bootId, null, totalRamInMibFuture,
-                configData, kubernetesData);
+        utilizationData = new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, ecsFargateDockerContainerId,
+                bootId, null, totalRamInMibFuture, configData, kubernetesData);
     }
 
     @Override
@@ -178,6 +184,10 @@ public class UtilizationService extends AbstractService {
         return azure.getData();
     }
 
+    protected AzureAppService.AzureAppServiceData getAzureAppServiceData() {
+        return azureAppService.getData();
+    }
+
     DockerData getDockerData() {
         return dockerData;
     }
@@ -190,7 +200,11 @@ public class UtilizationService extends AbstractService {
      * Do not call DockerData.getDockerContainerId(boolean, String) directly, call this method instead.
      */
     String getDockerContainerId() {
-        return getDockerData().getDockerContainerId(isLinux);
+        return getDockerData().getDockerContainerIdFromCGroups(isLinux);
+    }
+
+    String getEcsFargateDockerContainerId() {
+        return getDockerData().getDockerContainerIdForEcsFargate(isLinux);
     }
 
     class UtilizationTask implements Callable<UtilizationData> {
@@ -222,13 +236,18 @@ public class UtilizationService extends AbstractService {
                         AzureData azureData = detectAzure ? getAzureData() : AzureData.EMPTY_DATA;
                         if (azureData != AzureData.EMPTY_DATA) {
                             foundData = azureData;
+                        } else {
+                            AzureAppServiceData azureAppServiceData = detectAzure ? getAzureAppServiceData() : AzureAppServiceData.EMPTY_DATA;
+                            if (azureAppServiceData != AzureAppServiceData.EMPTY_DATA) {
+                                foundData = azureAppServiceData;
+                            }
                         }
                     }
                 }
             }
 
-            return new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, bootId, foundData, totalRamInMibFuture, configData,
-                    kubernetesData);
+            return new UtilizationData(hostName, fullHostName, ipAddress, processorCount, dockerContainerId, ecsFargateDockerContainerId, bootId,
+                    foundData, totalRamInMibFuture, configData, kubernetesData);
         }
     }
 

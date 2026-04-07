@@ -15,6 +15,10 @@ import com.newrelic.agent.LicenseException;
 import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MetricData;
 import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DataSenderConfig;
@@ -50,12 +54,14 @@ import java.nio.charset.StandardCharsets;
 import java.rmi.UnexpectedException;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -65,10 +71,10 @@ import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
 
 /**
  * A class for sending and receiving New Relic data.
- *
+ * <p>
  * This class is thread-safe.
  */
-public class DataSenderImpl implements DataSender {
+public class DataSenderImpl implements DataSender, HealthDataProducer {
 
     private static final String MODULE_TYPE = "Jars";
     private static final int PROTOCOL_VERSION = 17;
@@ -124,6 +130,9 @@ public class DataSenderImpl implements DataSender {
     private volatile int maxPayloadSizeInBytes = DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES;
     private volatile Map<String, String> requestMetadata;
     private volatile Map<String, String> metadata;
+    private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
+    private final boolean isAgentControlEnabled;
+
     public DataSenderImpl(
             DataSenderConfig config,
             HttpClientWrapper httpClientWrapper,
@@ -155,6 +164,7 @@ public class DataSenderImpl implements DataSender {
         }
 
         this.httpClientWrapper = httpClientWrapper;
+        this.isAgentControlEnabled = configService.getDefaultAgentConfig().getAgentControlIntegrationConfig().isEnabled();
     }
 
     private void checkAuditMode() {
@@ -361,7 +371,26 @@ public class DataSenderImpl implements DataSender {
         metadata.put("events_seen", eventsSeen);
         params.add(metadata);
 
-        params.add(events);
+        /*
+         * When creating the span_event_data json payload structure we need to pull
+         * all links and events off each span and treat them as if they were spans
+         * themselves. This is because links and events are not treated as first class event
+         * types with their own reservoir, and they also can't be stored alongside spans in
+         * the span reservoir. Yet they are treated as if they were spans in the json payload.
+         * This was a hacky way to get the backend to accept new SpanLink/SpanEvent event
+         * types without setting up a dedicated collector endpoint for them. The backend
+         * will synthesize SpanLink/SpanEvent events based on the span_event_data payload.
+         */
+        if (method.equals(CollectorMethods.SPAN_EVENT_DATA)) {
+            List<AnalyticsEvent> flattenedSpanEvents = new ArrayList<>(events);
+            for (SpanEvent event : (Collection<SpanEvent>) events) {
+                flattenedSpanEvents.addAll(event.getLinkOnSpanEvents());
+                flattenedSpanEvents.addAll(event.getEventOnSpanEvents());
+            }
+            params.add(flattenedSpanEvents);
+        } else {
+            params.add(events);
+        }
         invokeRunId(method, encoding, runId, params);
     }
 
@@ -513,6 +542,11 @@ public class DataSenderImpl implements DataSender {
         }
     }
 
+    @Override
+    public void commitAndFlush() throws Exception {
+        // No-Op since all data fed to the DataSender is immediately sent to the collector and is not buffered.
+    }
+
     @VisibleForTesting
     void setMaxPayloadSizeInBytes(int payloadSizeInBytes) {
         maxPayloadSizeInBytes = payloadSizeInBytes;
@@ -595,7 +629,8 @@ public class DataSenderImpl implements DataSender {
 
         if (auditMode && methodShouldBeAudited(method)) {
 
-            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, obfuscateLicenseKey(url.toString()), obfuscateLicenseKey(payloadJsonSent));
+            String msg = MessageFormat.format("Sent JSON({0}) to: {1}, with payload: {2}", method, obfuscateLicenseKey(url.toString()),
+                    obfuscateLicenseKey(payloadJsonSent));
             logger.info(msg);
         }
 
@@ -616,6 +651,11 @@ public class DataSenderImpl implements DataSender {
 
         recordDataUsageMetrics(method, payloadJsonSent, payloadJsonReceived);
 
+        AgentControlIntegrationUtils.reportHealthyStatus(healthDataChangeListeners, AgentHealth.Category.HARVEST, AgentHealth.Category.CONFIG);
+        if (method.equals(CollectorMethods.CONNECT)) {
+            AgentControlIntegrationUtils.assignEntityGuid(healthDataChangeListeners, payloadJsonReceived);
+        }
+
         if (dataSenderListener != null) {
             dataSenderListener.dataSent(method, encoding, uri, data);
         }
@@ -626,8 +666,8 @@ public class DataSenderImpl implements DataSender {
     /**
      * Record metrics tracking amount of bytes sent and received for each agent endpoint payload
      *
-     * @param method method for the agent endpoint
-     * @param payloadJsonSent JSON String of the payload that was sent
+     * @param method              method for the agent endpoint
+     * @param payloadJsonSent     JSON String of the payload that was sent
      * @param payloadJsonReceived JSON String of the payload that was received
      */
     private void recordDataUsageMetrics(String method, String payloadJsonSent, String payloadJsonReceived) {
@@ -646,14 +686,15 @@ public class DataSenderImpl implements DataSender {
                 StatsWorks.getRecordDataUsageMetricWork(
                         MessageFormat.format(MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES, COLLECTOR, method),
                         payloadBytesSent, payloadBytesReceived),
-                        MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
+                MetricNames.SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES + " " + COLLECTOR);
     }
 
     private void throwExceptionFromStatusCode(String method, ReadResult result, byte[] data, HttpClientWrapper.Request request)
             throws HttpError, LicenseException, ForceRestartException, ForceDisconnectException {
         // Comply with spec and send supportability metric only for error responses
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
-                MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
+                        MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR, result.getStatusCode()), 1),
+                MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_HTTP_ERROR);
         ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(
                 MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS, method), 1), MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_ATTEMPTS);
 
@@ -661,6 +702,8 @@ public class DataSenderImpl implements DataSender {
         switch (result.getStatusCode()) {
             case HttpResponseCode.PROXY_AUTHENTICATION_REQUIRED:
                 // agent receives a 407 response due to a misconfigured proxy (not from NR backend), throw exception
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.PROXY_ERROR,
+                        Integer.toString(result.getStatusCode()), method);
                 final String authField = result.getProxyAuthenticateHeader();
                 if (authField != null) {
                     throw new HttpError("Proxy Authentication Mechanism Failed: " + authField, result.getStatusCode(), data.length);
@@ -669,15 +712,19 @@ public class DataSenderImpl implements DataSender {
                 }
             case HttpResponseCode.UNAUTHORIZED:
                 // received 401 Unauthorized, throw exception instead of parsing LicenseException from 200 response body
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.INVALID_LICENSE);
                 throw new LicenseException(parseExceptionMessage(result.getResponseBody()));
             case HttpResponseCode.CONFLICT:
                 // received 409 Conflict, throw exception instead of parsing ForceRestartException from 200 response body
                 throw new ForceRestartException(parseExceptionMessage(result.getResponseBody()));
             case HttpResponseCode.GONE:
                 // received 410 Gone, throw exception instead of parsing ForceDisconnectException from 200 response body
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.FORCED_DISCONNECT);
                 throw new ForceDisconnectException(parseExceptionMessage(result.getResponseBody()));
             default:
                 // response is bad (neither 200 nor 202), throw generic HttpError exception
+                AgentControlIntegrationUtils.reportUnhealthyStatus(healthDataChangeListeners, AgentHealth.Status.HTTP_ERROR,
+                        Integer.toString(result.getStatusCode()), method);
                 logger.log(Level.FINER, "Connection http status code: {0}", result.getStatusCode());
                 throw HttpError.create(result.getStatusCode(), request.getURL().getHost(), data.length);
         }
@@ -714,7 +761,7 @@ public class DataSenderImpl implements DataSender {
                 logger.error(msg);
                 // this is a recoverable error. Try again later
             } else {
-                logger.log(Level.INFO, "A socket exception was encountered while sending data to New Relic ({0})."
+                logger.log(Level.SEVERE, "A socket exception was encountered while sending data to New Relic ({0})."
                         + " Please check your network / proxy settings.", e.toString());
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, "Error sending JSON({0}): {1}", method, DataSenderWriter.toJSONString(params));
@@ -727,10 +774,10 @@ public class DataSenderImpl implements DataSender {
             throw e;
         } catch (Exception e) {
             if (e instanceof SSLHandshakeException) {
-                logger.log(Level.INFO, "Unable to connect to New Relic due to an SSL error."
+                logger.log(Level.SEVERE, "Unable to connect to New Relic due to an SSL error."
                         + " Consider enabling -Djavax.net.debug=all to debug your SSL configuration such as your trust store.", e);
             }
-            logger.log(Level.INFO, "Remote {0} call failed : {1}.", method, e.toString());
+            logger.log(Level.SEVERE, "Remote {0} call failed : {1}.", method, e.toString());
             if (logger.isLoggable(Level.FINE)) {
                 logger.log(Level.FINE, "Error sending JSON({0}): {1}", method, DataSenderWriter.toJSONString(params));
             }
@@ -801,8 +848,13 @@ public class DataSenderImpl implements DataSender {
             long requestDuration = System.currentTimeMillis() - requestSent;
 
             statsService.doStatsWork(StatsWorks.getRecordResponseTimeWork(
-                    MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
+                            MessageFormat.format(MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION, method), requestDuration),
                     MetricNames.SUPPORTABILITY_AGENT_ENDPOINT_DURATION + " " + method);
         }
+    }
+
+    @Override
+    public void registerHealthDataChangeListener(HealthDataChangeListener listener) {
+        healthDataChangeListeners.add(listener);
     }
 }

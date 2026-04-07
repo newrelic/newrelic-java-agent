@@ -63,6 +63,8 @@ public class TransactionDataTestBuilder {
     private boolean includeDistributedTracePayload = false;
     private Multimap<Long, Duration> threadIdToDuration = ArrayListMultimap.create();
 
+    private Transaction.PartialSampleType partialSampleType = null;
+
     public TransactionDataTestBuilder setTx(Transaction tx) {
         this.tx = tx;
         return this;
@@ -168,6 +170,11 @@ public class TransactionDataTestBuilder {
         return this;
     }
 
+    public TransactionDataTestBuilder setPartialSampleType(Transaction.PartialSampleType partialSampleType) {
+        this.partialSampleType = partialSampleType;
+        return this;
+    }
+
     public TransactionDataTestBuilder(String appName, AgentConfig agentConfig, Tracer tracer) {
         this.appName = appName;
         this.agentConfig = agentConfig;
@@ -266,6 +273,8 @@ public class TransactionDataTestBuilder {
             when(spanProxy.getInboundDistributedTracePayload()).thenReturn(payload);
             when(tx.getSpanProxy()).thenReturn(spanProxy);
         }
+
+        when(tx.getPartialSampleType()).thenReturn(partialSampleType);
 
         return new TransactionData(tx, 0);
     }

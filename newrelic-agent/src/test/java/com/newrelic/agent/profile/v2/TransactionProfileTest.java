@@ -13,8 +13,10 @@ import com.newrelic.agent.threads.ThreadNameNormalizer;
 import com.newrelic.agent.threads.ThreadNames;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashSet;
 
+@Category(RequiresFork.class)
 public class TransactionProfileTest {
 
     TransactionProfile target;
@@ -39,7 +42,7 @@ public class TransactionProfileTest {
         TransactionActivity ta = Mockito.mock(TransactionActivity.class);
         Mockito.when(ta.getTracers()).thenReturn(Arrays.asList(tracer));
         Mockito.when(ta.getTotalCpuTime()).thenReturn(123L);
-        Mockito.when(ta.getThreadId()).thenReturn(1L);
+        Mockito.when(ta.getThreadId()).thenReturn(Thread.currentThread().getId());
         Mockito.when(ta.getRootTracer()).thenReturn(tracer);
         TransactionData td = Mockito.mock(TransactionData.class);
         Mockito.when(td.getTransactionActivities()).thenReturn(new HashSet<>(Arrays.asList(ta)));

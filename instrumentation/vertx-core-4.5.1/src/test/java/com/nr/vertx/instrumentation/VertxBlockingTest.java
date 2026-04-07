@@ -43,6 +43,7 @@ public class VertxBlockingTest {
             vertx.close();
         }
     }
+
     @Test
     public void executeBlocking_nullResultHandler() throws InterruptedException {
         //Vertx allows resultHandler to be null.
@@ -81,6 +82,4 @@ public class VertxBlockingTest {
         //give the call to executeBlocking time to complete
         Thread.sleep(500);
     }
-
-
 }

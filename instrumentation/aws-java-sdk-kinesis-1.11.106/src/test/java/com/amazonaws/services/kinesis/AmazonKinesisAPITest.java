@@ -1,29 +1,10 @@
 package com.amazonaws.services.kinesis;
 
-import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.handlers.AsyncHandler;
 import com.amazonaws.services.kinesis.model.AddTagsToStreamRequest;
-import com.amazonaws.services.kinesis.model.CreateStreamRequest;
-import com.amazonaws.services.kinesis.model.DecreaseStreamRetentionPeriodRequest;
-import com.amazonaws.services.kinesis.model.DeleteStreamRequest;
-import com.amazonaws.services.kinesis.model.DescribeLimitsRequest;
-import com.amazonaws.services.kinesis.model.DescribeStreamRequest;
-import com.amazonaws.services.kinesis.model.DisableEnhancedMonitoringRequest;
-import com.amazonaws.services.kinesis.model.EnableEnhancedMonitoringRequest;
-import com.amazonaws.services.kinesis.model.GetRecordsRequest;
-import com.amazonaws.services.kinesis.model.GetShardIteratorRequest;
-import com.amazonaws.services.kinesis.model.IncreaseStreamRetentionPeriodRequest;
-import com.amazonaws.services.kinesis.model.ListStreamsRequest;
-import com.amazonaws.services.kinesis.model.ListTagsForStreamRequest;
-import com.amazonaws.services.kinesis.model.MergeShardsRequest;
-import com.amazonaws.services.kinesis.model.PutRecordRequest;
-import com.amazonaws.services.kinesis.model.PutRecordsRequest;
-import com.amazonaws.services.kinesis.model.RemoveTagsFromStreamRequest;
-import com.amazonaws.services.kinesis.model.SplitShardRequest;
-import com.amazonaws.services.kinesis.model.UpdateShardCountRequest;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
@@ -31,6 +12,7 @@ import com.newrelic.agent.introspec.SpanEvent;
 import com.newrelic.agent.introspec.TraceSegment;
 import com.newrelic.agent.introspec.TransactionTrace;
 import com.newrelic.agent.introspec.internal.HttpServerRule;
+import com.newrelic.api.agent.CloudAccountInfo;
 import com.newrelic.api.agent.Trace;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,12 +23,11 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,6 +35,9 @@ import static org.mockito.Mockito.when;
 @InstrumentationTestConfig(includePrefixes = {"com.amazonaws"}, configName = "dt_enabled.yml")
 public class AmazonKinesisAPITest {
 
+    public static final String ACCOUNT_ID = "111111111111";
+    public static final String STREAM_NAME = "stream-name";
+    public static final String STREAM_ARN = "arn:aws:kinesis:us-east-1:111111111111:stream/stream-name";
     @Rule
     public HttpServerRule server = new HttpServerRule();
     private AmazonKinesis kinesisClient;
@@ -71,142 +55,20 @@ public class AmazonKinesisAPITest {
                 .withCredentials(new CredProvider())
                 .withEndpointConfiguration(endpoint)
                 .build();
+        AgentBridge.cloud.setAccountInfo(kinesisClient, CloudAccountInfo.AWS_ACCOUNT_ID, ACCOUNT_ID);
+        AgentBridge.cloud.setAccountInfo(kinesisAsyncClient, CloudAccountInfo.AWS_ACCOUNT_ID, ACCOUNT_ID);
     }
 
     // HttpServerRule is flaky so only 1 test is run
 
     @Test
     public void testAddTagsToStream() {
-        txn(() -> kinesisClient.addTagsToStream(new AddTagsToStreamRequest()));
-        txnAsync(() -> kinesisAsyncClient.addTagsToStreamAsync(new AddTagsToStreamRequest()));
-        assertKinesisTrace("addTagsToStream", false);
+        AddTagsToStreamRequest syncRequest = new AddTagsToStreamRequest();
+        syncRequest.setStreamName(STREAM_NAME);
+        txn(() -> kinesisClient.addTagsToStream(syncRequest));
+        txnAsyncNoStream(() -> kinesisAsyncClient.addTagsToStreamAsync(new AddTagsToStreamRequest()));
+        assertKinesisTrace("addTagsToStream", STREAM_NAME, STREAM_ARN, false);
     }
-
-//    @Test
-//    public void testCreateStream() {
-//        txn(() -> kinesisClient.createStream(new CreateStreamRequest()));
-//        txnAsync(() -> kinesisAsyncClient.createStreamAsync(new CreateStreamRequest()));
-//        assertKinesisTrace("createStream", false);
-//    }
-//
-//    @Test
-//    public void testDecreaseStreamRetentionPeriod() {
-//        txn(() -> kinesisClient.decreaseStreamRetentionPeriod(new DecreaseStreamRetentionPeriodRequest()));
-//        txnAsync(() -> kinesisAsyncClient.decreaseStreamRetentionPeriodAsync(new DecreaseStreamRetentionPeriodRequest()));
-//        assertKinesisTrace("decreaseStreamRetentionPeriod", false);
-//    }
-//
-//    @Test
-//    public void testDeleteStream() {
-//        txn(() -> kinesisClient.deleteStream(new DeleteStreamRequest()));
-//        txnAsync(() -> kinesisAsyncClient.deleteStreamAsync(new DeleteStreamRequest()));
-//        assertKinesisTrace("deleteStream", false);
-//    }
-//
-//    @Test
-//    public void testDescribeLimits() {
-//        txn(() -> kinesisClient.describeLimits(new DescribeLimitsRequest()));
-//        txnAsync(() -> kinesisAsyncClient.describeLimitsAsync(new DescribeLimitsRequest()));
-//        assertKinesisTrace("describeLimits", false);
-//    }
-//
-//    @Test
-//    public void testDescribeStream() {
-//        txn(() -> kinesisClient.describeStream(new DescribeStreamRequest()));
-//        txnAsync(() -> kinesisAsyncClient.describeStreamAsync(new DescribeStreamRequest()));
-//        assertKinesisTrace("describeStream", false);
-//    }
-//
-//    @Test
-//    public void testDisableEnhancedMonitoring() {
-//        txn(() -> kinesisClient.disableEnhancedMonitoring(new DisableEnhancedMonitoringRequest()));
-//        txnAsync(() -> kinesisAsyncClient.disableEnhancedMonitoringAsync(new DisableEnhancedMonitoringRequest()));
-//        assertKinesisTrace("disableEnhancedMonitoring", false);
-//    }
-//
-//    @Test
-//    public void testEnableEnhancedMonitoring() {
-//        txn(() -> kinesisClient.enableEnhancedMonitoring(new EnableEnhancedMonitoringRequest()));
-//        txnAsync(() -> kinesisAsyncClient.enableEnhancedMonitoringAsync(new EnableEnhancedMonitoringRequest()));
-//        assertKinesisTrace("enableEnhancedMonitoring", false);
-//    }
-//
-//    @Test
-//    public void testGetRecords() {
-//        txn(() -> kinesisClient.getRecords(new GetRecordsRequest()));
-//        txnAsync(() -> kinesisAsyncClient.getRecordsAsync(new GetRecordsRequest()));
-//        assertKinesisTrace("getRecords", false);
-//    }
-//
-//    @Test
-//    public void testGetShardIterator() {
-//        txn(() -> kinesisClient.getShardIterator(new GetShardIteratorRequest()));
-//        txnAsync(() -> kinesisAsyncClient.getShardIteratorAsync(new GetShardIteratorRequest()));
-//        assertKinesisTrace("getShardIterator", false);
-//    }
-//
-//    @Test
-//    public void testIncreaseStreamRetentionPeriod() {
-//        txn(() -> kinesisClient.increaseStreamRetentionPeriod(new IncreaseStreamRetentionPeriodRequest()));
-//        txnAsync(() -> kinesisAsyncClient.increaseStreamRetentionPeriodAsync(new IncreaseStreamRetentionPeriodRequest()));
-//        assertKinesisTrace("increaseStreamRetentionPeriod", false);
-//    }
-//
-//    @Test
-//    public void testListStreams() {
-//        txn(() -> kinesisClient.listStreams(new ListStreamsRequest()));
-//        txnAsync(() -> kinesisAsyncClient.listStreamsAsync(new ListStreamsRequest()));
-//        assertKinesisTrace("listStreams", false);
-//    }
-//
-//    @Test
-//    public void testListTagsForStream() {
-//        txn(() -> kinesisClient.listTagsForStream(new ListTagsForStreamRequest()));
-//        txnAsync(() -> kinesisAsyncClient.listTagsForStreamAsync(new ListTagsForStreamRequest()));
-//        assertKinesisTrace("listTagsForStream", false);
-//    }
-//
-//    @Test
-//    public void testMergeShards() {
-//        txn(() -> kinesisClient.mergeShards(new MergeShardsRequest()));
-//        txnAsync(() -> kinesisAsyncClient.mergeShardsAsync(new MergeShardsRequest()));
-//        assertKinesisTrace("mergeShards", false);
-//    }
-//
-//    @Test
-//    public void testPutRecord() {
-//        txn(() -> kinesisClient.putRecord(new PutRecordRequest()));
-//        txnAsync(() -> kinesisAsyncClient.putRecordAsync(new PutRecordRequest()));
-//        assertKinesisTrace("putRecord", false);
-//    }
-//
-//    @Test
-//    public void testPutRecords() {
-//        txn(() -> kinesisClient.putRecords(new PutRecordsRequest()));
-//        txnAsync(() -> kinesisAsyncClient.putRecordsAsync(new PutRecordsRequest()));
-//        assertKinesisTrace("putRecords", false);
-//    }
-//
-//    @Test
-//    public void testRemoveTagsFromStream() {
-//        txn(() -> kinesisClient.removeTagsFromStream(new RemoveTagsFromStreamRequest()));
-//        txnAsync(() -> kinesisAsyncClient.removeTagsFromStreamAsync(new RemoveTagsFromStreamRequest()));
-//        assertKinesisTrace("removeTagsFromStream", false);
-//    }
-//
-//    @Test
-//    public void testSplitShard() {
-//        txn(() -> kinesisClient.splitShard(new SplitShardRequest()));
-//        txnAsync(() -> kinesisAsyncClient.splitShardAsync(new SplitShardRequest()));
-//        assertKinesisTrace("splitShard", false);
-//    }
-//
-//    @Test
-//    public void testUpdateShardCount() {
-//        txn(() -> kinesisClient.updateShardCount(new UpdateShardCountRequest()));
-//        txnAsync(() -> kinesisAsyncClient.updateShardCountAsync(new UpdateShardCountRequest()));
-//        assertKinesisTrace("updateShardCount", false);
-//    }
 
     @Trace(dispatcher = true)
     public void txn(Runnable runnable) {
@@ -219,7 +81,7 @@ public class AmazonKinesisAPITest {
     }
 
     @Trace(dispatcher = true)
-    public void txnAsync(Supplier<Future<?>> function) {
+    public void txnAsyncNoStream(Supplier<Future<?>> function) {
         try {
             Thread.sleep(200);
             function.get().get();
@@ -227,15 +89,7 @@ public class AmazonKinesisAPITest {
         }
     }
 
-    @Trace(dispatcher = true)
-    public <R extends AmazonWebServiceRequest, E> void txnAsyncWithHandler(Function<AsyncHandler<R, E>, Future<?>> function, AsyncHandler<R, E> handler) {
-        try {
-            function.apply(handler).get();
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void assertKinesisTrace(String kinesisOperation, boolean assertSpan) {
+    private void assertKinesisTrace(String kinesisOperation, String streamName, String expectedArn, boolean assertSpan) {
         Introspector introspector = InstrumentationTestRunner.getIntrospector();
         final String traceName = "Kinesis/" + kinesisOperation;
         if (assertSpan) {
@@ -246,15 +100,18 @@ public class AmazonKinesisAPITest {
             assertEquals(2, kinesisSpans.size());
             for (SpanEvent kinesisSpan: kinesisSpans) {
                 assertEquals("aws_kinesis_data_streams", kinesisSpan.getAgentAttributes().get("cloud.platform"));
+                assertEquals(expectedArn, kinesisSpan.getAgentAttributes().get("cloud.resource_id"));
             }
         }
-        assertTxn(kinesisOperation, introspector);
-        assertTxnAsync(kinesisOperation, "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txnAsync", introspector);
+        assertTxn(kinesisOperation, streamName, "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txn",
+                expectedArn, introspector);
+        assertTxnAsyncNoStream(kinesisOperation, "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txnAsyncNoStream",
+                introspector);
+
     }
 
-    private void assertTxn(String kinesisOperation, Introspector introspector) {
-        String transactionName = "OtherTransaction/Custom/com.amazonaws.services.kinesis.AmazonKinesisAPITest/txn";
-        final String traceName = "Kinesis/" + kinesisOperation;
+    private void assertTxn(String kinesisOperation,String streamName, String transactionName, String expectedArn, Introspector introspector) {
+        final String traceName = "Kinesis/" + kinesisOperation + "/" + streamName;
         Collection<TransactionTrace> transactionTraces = introspector.getTransactionTracesForTransaction(transactionName);
         TransactionTrace transactionTrace = transactionTraces.iterator().next();
         List<TraceSegment> children = transactionTrace.getInitialTraceSegment().getChildren();
@@ -262,9 +119,10 @@ public class AmazonKinesisAPITest {
         TraceSegment trace = children.get(0);
         assertEquals(traceName, trace.getName());
         assertEquals("aws_kinesis_data_streams", trace.getTracerAttributes().get("cloud.platform"));
+        assertEquals(expectedArn, trace.getTracerAttributes().get("cloud.resource_id"));
     }
 
-    private void assertTxnAsync(String kinesisOperation, String transactionName, Introspector introspector) {
+    private void assertTxnAsyncNoStream(String kinesisOperation, String transactionName, Introspector introspector) {
         final String asyncClientTraceName = "Java/com.amazonaws.services.kinesis.AmazonKinesisAsyncClient/" + kinesisOperation + "Async";
         final String extTraceName = "Kinesis/" + kinesisOperation;
         Collection<TransactionTrace> transactionTraces = introspector.getTransactionTracesForTransaction(transactionName);
@@ -280,6 +138,7 @@ public class AmazonKinesisAPITest {
         TraceSegment extTrace = asyncFunctionTraceChildren.get(0);
         assertEquals(extTraceName, extTrace.getName());
         assertEquals("aws_kinesis_data_streams", extTrace.getTracerAttributes().get("cloud.platform"));
+        assertNull(extTrace.getTracerAttributes().get("cloud.resource_id"));
     }
 
     private static class CredProvider implements AWSCredentialsProvider {

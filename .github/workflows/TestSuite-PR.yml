@@ -19,6 +19,10 @@ on:
         required: false
         default: 'main'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   aits:
     uses: ./.github/workflows/Test-AITs.yml
@@ -54,6 +58,12 @@ jobs:
 
   unit-tests:
     uses: ./.github/workflows/GHA-Unit-Tests.yaml
+    with:
+      agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
+    secrets: inherit
+
+  verify-unshadowed-jars:
+    uses: ./.github/workflows/VerifyUnshadowedJars.yml
     with:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
     secrets: inherit

@@ -16,7 +16,7 @@ on:
 jobs:
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS clean jar
 
       - name: Cache agent
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # pin@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.2.0 # pin@v4
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}

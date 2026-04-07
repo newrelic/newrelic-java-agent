@@ -4,6 +4,421 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.1.0
+## New features and improvements
+- **_The Java Hybrid Agent_**: offering a "best-of-both-worlds" experience by combining New Relic’s deep visibility with [OpenTelemetry API compatibility](https://docs.newrelic.com/docs/apm/agents/manage-apm-agents/opentelemetry-api-support/). This release includes comprehensive support for the OpenTelemetry Tracing, Metrics, and Logs APIs, as well as standalone library and native framework instrumentation. Key enhancements like Span Links and Events on Spans are now available, ensuring seamless interoperability in mixed-mode environments.
+
+    - Update hybrid agent config based on spec changes by @jasonjkeller in [2738](https://github.com/newrelic/newrelic-java-agent/pull/2738)
+
+    - Hybrid Agent OpenTelemetry API Support by @jasonjkeller in [2711](https://github.com/newrelic/newrelic-java-agent/pull/2711)
+    - OTel Bridge API support by @sdaubin in [1886](https://github.com/newrelic/newrelic-java-agent/pull/1886)
+
+- Enhancements to coroutine ignores by @dhilpipre in [2726](https://github.com/newrelic/newrelic-java-agent/pull/2726)
+- Add agent metadata action - @mvicknr in [2732](https://github.com/newrelic/newrelic-java-agent/pull/2732), [2745](https://github.com/newrelic/newrelic-java-agent/pull/2745)
+
+## Fixes
+
+- Fix broken trace propagation with w3c headers by @jasonjkeller in [2299](https://github.com/newrelic/newrelic-java-agent/pull/2299)
+- Fix multihost preference config @jtduffy in [2720](https://github.com/newrelic/newrelic-java-agent/pull/2720 )
+- Fixed problem where suspend ignores was not being read by @dhilpipre in [2663](https://github.com/newrelic/newrelic-java-agent/pull/2663)
+
+## Version 9.0.0
+## New features and improvements
+
+- Add config to delete stale agent temp jars on startup by @jtduffy in [2676](https://github.com/newrelic/newrelic-java-agent/pull/2676)
+- Add "inclusion" option to compliment the exclude configuration for selectively instrumenting applications @jtduffy in [2638](https://github.com/newrelic/newrelic-java-agent/pull/2638)
+  - To use this feature, set the environment variable `NEW_RELIC_STARTUP_JAVA_ARTIFACT_INCLUDES` or system property `newrelic.config.startup_java_artifact_includes`. Specify the artifacts that should be instrumented as a comma-separated list.
+
+## Fixes
+
+- Resolve IllegalAccessError by moving wrapper class out of S3AsyncClient_Instrumentation by @jtduffy in [2503](https://github.com/newrelic/newrelic-java-agent/pull/2503)
+- Fix mislabeled instrumentation version on log events in logback-classic-1.5.20 by @jasonjkeller in [2594](https://github.com/newrelic/newrelic-java-agent/pull/2594)
+- Fixed logging message for max attribute value by @jeffalder in [2680](https://github.com/newrelic/newrelic-java-agent/pull/2680)
+- Corrected Trace ratio and Probability sampler priorities by @jtduffy in [2583](https://github.com/newrelic/newrelic-java-agent/pull/2583)
+
+## Removals
+
+- Removes deprecated jdbc-inet-* modules by @obenkenobi in [2572](https://github.com/newrelic/newrelic-java-agent/pull/2572)
+- Removes deprecated java.completable-future-jdk8 instrumentation by @obenkenobi in [2562](https://github.com/newrelic/newrelic-java-agent/pull/2562)
+- Removes aws wrap instrumentation by @obenkenobi in [2567](https://github.com/newrelic/newrelic-java-agent/pull/2567)
+- Removes jdbc-sybase-6 module by @obenkenobi in [2614](https://github.com/newrelic/newrelic-java-agent/pull/2614)
+- Removes play 2.3 instrumentation by @obenkenobi in [2568](https://github.com/newrelic/newrelic-java-agent/pull/2568)
+- Removes deprecated thrift-0.8 module by @obenkenobi in [2569](https://github.com/newrelic/newrelic-java-agent/pull/2569)
+- Removes deprecated solr 4.0 & 5.0 modules by @obenkenobi in [2570](https://github.com/newrelic/newrelic-java-agent/pull/2570)
+- Removes deprecated module grails-1.3 by @obenkenobi in [2573](https://github.com/newrelic/newrelic-java-agent/pull/2573)
+- Removes deprecated module hibernate-3.3 by @obenkenobi in [2574](https://github.com/newrelic/newrelic-java-agent/pull/2574)
+- Removes deprecated footer injection API by @sharvath-newrelic in [2620](https://github.com/newrelic/newrelic-java-agent/pull/2620)
+- Removes deprecated Struts 1 pointcuts by @obenkenobi in [2561](https://github.com/newrelic/newrelic-java-agent/pull/2561)
+- Removes deprecated module glassfish-3 by @sharvath-newrelic in [2575](https://github.com/newrelic/newrelic-java-agent/pull/2575)
+- Removes deprecated rabbit-amqp modules 2.5.0, 2.4.1, 1.7.2 by @obenkenobi in [2571](https://github.com/newrelic/newrelic-java-agent/pull/2571)
+- Removes deployment marker function by @jtduffy in [2589](https://github.com/newrelic/newrelic-java-agent/pull/2589)
+
+## Version 8.25.1
+## Fixes
+- Fixes Kotlin Coroutine error about third party implementation of CancellableContinuation @dhilpipre in [2582](https://github.com/newrelic/newrelic-java-agent/pull/2582)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release.
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+- `spring-3.0.0`
+- `thrift-0.8`
+- `solr-4.0.0`
+- `solr-5.0.0`
+- `jdbc-inet-merlia`
+- `jdbc-inet-oranxo`
+- `grails-1.3`
+- `rabbit-amqp-1.7.2`
+- `rabbit-amqp-2.4.1`
+- `rabbit-amqp-2.5.0`
+- `rabbit-amqp-2.7.0`
+- `glassfish-3`
+- `hibernate-3.3`
+- `hibernate-3.5`
+- `jdbc-jtds`
+
+## Version 8.25.0
+## New features and improvements
+- Adds Java 25 Support by @deleonenriqueta in [2512](https://github.com/newrelic/newrelic-java-agent/pull/2512)
+- Adds support for Logback-1.5.20 by @jtduffy in [2535](https://github.com/newrelic/newrelic-java-agent/pull/2535)
+- Introduces a config option to disable the execution of the `call` and `exec` SQL parser regular expressions by @jtduffy in [2490](https://github.com/newrelic/newrelic-java-agent/pull/2490)
+- Adds support for Kotlin Coroutines v1.4+ by @dhilpipre in [2454](https://github.com/newrelic/newrelic-java-agent/pull/2454)
+- Adds support for Kotlin Coroutines Suspend Functions generated outside of Kotlin Coroutines by @dhilpipre in [2456](https://github.com/newrelic/newrelic-java-agent/pull/2456)
+- Introduces a preference config for multiple hosts during datastore detection by @jbedell-newrelic in [2508](https://github.com/newrelic/newrelic-java-agent/pull/2508)
+- Adds a system property to configure the artifact skip function by @jtduffy in [2509](https://github.com/newrelic/newrelic-java-agent/pull/2509)
+- Adds a configuration option allowing Spring Controller transactions to be named using the controller class name and method name by @sharvath-newrelic in [2532](https://github.com/newrelic/newrelic-java-agent/pull/2532)
+- Implement SamplerConfig, centralizing all `distributed_tracing.sampler` configs into the `SamplerConfig` by @jasonjkeller in [2529](https://github.com/newrelic/newrelic-java-agent/pull/2529)
+- Updated `kafka-clients-spans-0.11.0.0` producer instrumentation to use modern distributed tracing API’s with W3C Trace Context support by @sharvath-newrelic in [2516](https://github.com/newrelic/newrelic-java-agent/pull/2516)
+
+
+## Fixes
+- Fixes parsing of error class names by @sharvath-newrelic in [2497](https://github.com/newrelic/newrelic-java-agent/pull/2497)
+- Fixed a potential memory issue caused by excessively large stack traces in error logging by @jtduffy in [2498](https://github.com/newrelic/newrelic-java-agent/pull/2498)
+- Clarify logging messages for invalid attributes on custom events and logging events by @sharvath-newrelic in [2501](https://github.com/newrelic/newrelic-java-agent/pull/2501)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release.
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+- `spring-3.0.0`
+- `thrift-0.8`
+- `solr-4.0.0`
+- `solr-5.0.0`
+- `jdbc-inet-merlia`
+- `jdbc-inet-oranxo`
+- `grails-1.3`
+- `rabbit-amqp-1.7.2`
+- `rabbit-amqp-2.4.1`
+- `rabbit-amqp-2.5.0`
+- `rabbit-amqp-2.7.0`
+- `glassfish-3`
+- `hibernate-3.3`
+- `hibernate-3.5`
+- `jdbc-jtds`
+
+
+## Version 8.24.0
+## New features and improvements
+
+- Support MongoDB Reactive Streams 5.2.0 and up by @obenkenobi in [2465](https://github.com/newrelic/newrelic-java-agent/pull/2465)
+- Jedis 6 support by @kanderson250 in [2466](https://github.com/newrelic/newrelic-java-agent/pull/2466)
+
+## Fixes
+
+- CouchBase: Add skip class to prevent double instrumentation by @jtduffy in [2462](https://github.com/newrelic/newrelic-java-agent/pull/2462)
+- Spring WebClient 5.x: Only wrap headers instead of the entire response by @jtduffy in [2464](https://github.com/newrelic/newrelic-java-agent/pull/2464)
+
+## Deprecations
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
+## Version 8.23.0
+## New features and improvements
+- Update to support v24 of graphql by @jtduffy in [2425](https://github.com/newrelic/newrelic-java-agent/pull/2425)
+- Add lettuce 6.5 instrumentation by @kanderson250 in [2430](https://github.com/newrelic/newrelic-java-agent/pull/2430)
+- Bump commons-lang version to 3.18.0 by @jtduffy in [2421](https://github.com/newrelic/newrelic-java-agent/pull/2421)
+- Add lettuce dbName to datastore params where available by @kanderson250 in [2423](https://github.com/newrelic/newrelic-java-agent/pull/2423)
+- Add an environment variable to skip implementing certain applications. The environment variable name is  `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS`. The value of it is a comma separated list of main classes, executable jar files or Java based tools/apps that the agent should NOT instrument (e.g. `NEW_RELIC_STARTUP_JAVA_ARTIFACT_SKIPS=keytool,myapp.jar,IgnoreThisClass`) by @jtduffy in [2433](https://github.com/newrelic/newrelic-java-agent/pull/2433)
+
+## Fixes
+
+- Fix a bug where SQS messages with 8 attributes are not sent to AWS. SQS messages need less then 8 attributes to pass distributed trace headers by @obenkenobi in [2422](https://github.com/newrelic/newrelic-java-agent/pull/2422)
+- Trim the "Subscriptions" bit off the end of the topic name in azure service bus client by @jbedell-newrelic in [2440](https://github.com/newrelic/newrelic-java-agent/pull/2440)
+- Fix AutoConfiguredOpenTelemetrySdk config by @jasonjkeller in [2451](https://github.com/newrelic/newrelic-java-agent/pull/2451)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+
+## Version 8.22.0
+## New features and improvements
+
+* Azure ServiceBus 7.15.0 instrumentation by @jbedell-newrelic in [2384](https://github.com/newrelic/newrelic-java-agent/pull/2384)
+* Linking metadata for Azure App services by @jbedell-newrelic in [2399](https://github.com/newrelic/newrelic-java-agent/pull/2399)
+* Connection errors now logged at SEVERE by @jtduffy in [2377](https://github.com/newrelic/newrelic-java-agent/pull/2377)
+* Log and obfuscate invalid keys added as attributes to logs and events by @jtduffy in [2388](https://github.com/newrelic/newrelic-java-agent/pull/2388)
+* Remove MonoFlatMapMain Instrumentation by @deleonenriqueta in [2400](https://github.com/newrelic/newrelic-java-agent/pull/2400)
+
+## Fixes
+
+* Relocate IntelliJ annotations library by @meiao in [2383](https://github.com/newrelic/newrelic-java-agent/pull/2383)
+* Support server side sampling_target configuration by @jtduffy in [2386](https://github.com/newrelic/newrelic-java-agent/pull/2386)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+## Version 8.21.0
+## New features and improvements
+
+- Enhances visibility into Reactor `Mono.flatMap` calls in https://github.com/newrelic/newrelic-java-agent/pull/2308
+- Adds new instrumentation for Spring-Kafka and distributed tracing when using the core Kafka client library in https://github.com/newrelic/newrelic-java-agent/pull/2312
+- Adds `KafkaConsumerConfig` event support for Kafka 3.7+ in https://github.com/newrelic/newrelic-java-agent/pull/2358
+
+## Fixes
+
+- Fixes the `distributed_tracing.sampler` config in https://github.com/newrelic/newrelic-java-agent/pull/2330
+- Fixes an Illegal Access Error that can occur when using Scala 2.12 and JDK 11. In cases where Scala 2.12 is not detectable by the agent (we check the system classloader for this - notably, sbt will load Scala classes into custom Scala loaders), there is also a feature flag to manually enable the fix via system property `-Dnewrelic.config.class_transformer.illegal_access_fix=true` in https://github.com/newrelic/newrelic-java-agent/pull/2334
+- Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274) [2355](https://github.com/newrelic/newrelic-java-agent/pull/2355)
+  - This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting:
+
+  ```yaml
+    netty:
+      http2:
+        frame_read_listener:
+          start_transaction: true
+  ```
+  - 8.20 has a logic error in the agent config so the fix is only official in agent version 8.21 and up.
+- Adds a restriction on when to add distributed trace headers for SQS messages. This is based on how large the contents of a message is in bytes and the and the size of attributes. Messages with size greater than 251 KB and/or with 9 or more attributes are excluded from getting distributed trace headers added in https://github.com/newrelic/newrelic-java-agent/pull/2353
+- Allows the `org.crac` JAR to be shadowed to prevent conflicts with customer environments. by @jbedell-newrelic in https://github.com/newrelic/newrelic-java-agent/pull/2344
+- Backports changes made in PR #1927 to prevent `NullPointerExceptions` to older versions of the `vertx-core` instrumentation in https://github.com/newrelic/newrelic-java-agent/pull/2327
+- Prevents excessive transaction segments from being created by `HttpUrlConnection` method calls (e.g. `getInputStream`) when they are not associated with an external call. This behavior can be controlled by the following config options: `NEW_RELIC_CLASS_TRANSFORMER_COM_NEWRELIC_INSTRUMENTATION_HTTPURLCONNECTION_VERBOSE=false`, sys prop `-Dnewrelic.config.class_transformer.com.newrelic.instrumentation.httpurlconnection.verbose=false`, or equivalent stanza in `newrelic.yml`. Default setting is `true` (i.e. non-external `getInputStream` and other response handler methods will be reported as before). in https://github.com/newrelic/newrelic-java-agent/pull/2365
+
+## Security
+
+- Upgrades the `com.newrelic.agent.java:infinite-tracing-protobuf` for better security with infinite tracing in https://github.com/newrelic/newrelic-java-agent/pull/2339
+- Replaces `snakeyaml` with `com.konloch:safeyaml` to address a security vulnerability in https://github.com/newrelic/newrelic-java-agent/pull/2333
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+## IAST
+
+CSEC Version Update to 1.7.0 in https://github.com/newrelic/newrelic-java-agent/pull/2348
+Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.7.0
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v8.20.0...v8.21.0
+
+## Version 8.20.0
+## New features and improvements
+
+- Support for CRaC [2250](https://github.com/newrelic/newrelic-java-agent/pull/2250)
+- Support for JDK24 [2284](https://github.com/newrelic/newrelic-java-agent/pull/2284)
+- Add sampling options when an inbound traceparent exists  [2279](https://github.com/newrelic/newrelic-java-agent/pull/2279)
+  - These options define how the agent should handle sampling of spans, depending on sampling decisions that were made for their parent span by an upstream entity. The configuration options `remote_parent_sampled` and `remote_parent_not_sampled` specify what to do in the case the parent span was sampled or not sampled, respectively. See the [documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#dt-sampler-remote-parent-sampled) for full configuration details.
+- Support for Undertow as a stand-alone module [2269](https://github.com/newrelic/newrelic-java-agent/pull/2269)
+  - This instrumentation is disabled by default to avoid conflicts with existing Wildfly instrumentation. To enable this instrumentation for stand-alone Undertow server apps, use the configuration setting:
+
+  ```yaml
+   class_transformer:
+     com.newrelic.instrumentation.undertow-server-1.1.0:
+       enabled: true
+  ```
+
+- Support for Couchbase Client [2203](https://github.com/newrelic/newrelic-java-agent/pull/2303)
+  - If the [Couchbase Client Experimental Module](https://github.com/newrelic-experimental/newrelic-java-couchbase) is currently in use, remove it from your extensions directory before upgrading to this version of the Java Agent.
+
+## Fixes
+
+- ~Fix netty 'Unknown' transactions [2274](https://github.com/newrelic/newrelic-java-agent/pull/2274)~
+ 	- ~This fix moves previous netty instrumentation changes behind a feature flag, which provides additional visibility in some cases involving HTTP2 transactions. To reenable this granularity (at the possible cost of seeing ‘Unknown’ transactions), use the config setting~:
+  ```yaml
+    netty:
+      http2:
+        frame_read_listener:
+          start_transaction: true
+  ```
+
+- Refactor AWS docker id fetch to use 5s timeout [2275](https://github.com/newrelic/newrelic-java-agent/pull/2275)
+- Feature flag to apply Kotlin `ArrayIndexOutOfBoundsException` fix to all methods [2307](https://github.com/newrelic/newrelic-java-agent/pull/2307 )
+  - This fix addresses errors that may be seen when running the Java Agent in an environment where Kotlin suspends functions are used. To use this fix, set the system property `-Dnewrelic.config.class_transformer.clear_return_stacks=true`
+- Prevent cache lock for long DB statement parsing [2294](https://github.com/newrelic/newrelic-java-agent/pull/2294)
+- Add config to specify whether java.sql is loaded by platform classloader [2267](https://github.com/newrelic/newrelic-java-agent/pull/2267)
+
+## Deprecations
+
+The following instrumentation modules are deprecated and will be removed in the next major release:
+
+- `aws-wrap-0.7.0`
+- `java.completable-future-jdk8`
+- `play-2.3`
+- `netty-3.4`
+- `Struts v1`
+
+## Version 8.19.0
+## New features and improvements
+
+- Support Adding Labels to APM Forwarded Logs by @deleonenriqueta [2238](https://github.com/newrelic/newrelic-java-agent/pull/2238)
+- Update Config File to Include APM Forwarded Log Labels Options by @deleonenriqueta [2246](https://github.com/newrelic/newrelic-java-agent/pull/2246)
+- Add response attributes for http4s server modules by @kanderson250 [2243](https://github.com/newrelic/newrelic-java-agent/pull/2243)
+- Default proxy_scheme setting to "http" by @jtduffy [2230](https://github.com/newrelic/newrelic-java-agent/pull/2230)
+- Add support for server-side application logging configs by @obenkenobi [2259](https://github.com/newrelic/newrelic-java-agent/pull/2259)
+
+## Fixes
+- invokeSuspend edge case fix by @kanderson250 [2228](https://github.com/newrelic/newrelic-java-agent/pull/2228)
+- Rename and reenable aws sqs modules by @kanderson250 [2258](https://github.com/newrelic/newrelic-java-agent/pull/2258)
+- Update JFR service to run as a daemon by @kanderson250 [2245](https://github.com/newrelic/newrelic-java-agent/pull/2245)
+
+## IAST
+- CSEC Version bump to 1.6.1 [2252](https://github.com/newrelic/newrelic-java-agent/pull/2252)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.6.1
+
+
+## Version 8.18.0
+## New features and improvements
+
+- Add scala3 source detection by @kanderson250
+- Vertx: decrease amount of tokens created by @meiao
+- Instrumentation module for Struts2 v6.7.0 by @jtduffy
+- Kafka 3.9 support by @meiao
+- Sqs distributed trace by @obenkenobi
+- Kafka clients node metrics by @meiao
+## Fixes
+
+- Fix edge case in JsonTemplateLayout with certain escaped sequences by @jtduffy
+- Correct Apdex on transaction event if an error is present by @jtduffy
+- Don't add null port to hostname attribute on JFR events by @jasonjkeller
+- Fix memory issue with httpclient-5.0 instrumentation by @jasonjkeller
+
+## Version 8.17.0
+## New features and improvements
+
+- Add support for jdbc-mariadb 3.0.0 till latest and r2dbc-mariadb 1.1.2 till latest - credit to @dhilpipre - clone of 2142 by @jtduffy in [2146](https://github.com/newrelic/newrelic-java-agent/pull/2146)
+- Auto discover AWS account ID in the DynamoDB instrumentation by @meiao in [2148](https://github.com/newrelic/newrelic-java-agent/pull/2148)
+- Auto discover AWS account ID in the Lambda sdk instrumentation by @meiao in [2167](https://github.com/newrelic/newrelic-java-agent/pull/2167)
+- Support pekko-http on scala 3 for versions 1.0.0 till latest by @kanderson250 in [2163](https://github.com/newrelic/newrelic-java-agent/pull/2163)
+- Allow JFR queue size and harvest interval to be configured via agent config by @jtduffy in [2168](https://github.com/newrelic/newrelic-java-agent/pull/2168)
+  New configs are:
+```
+  jfr:
+    # The time interval, in seconds, of how often JFR data is sent to New Relic.
+    # The default is 10 seconds.
+    harvest_interval: 10
+
+    # The size of the queue used to store JFR events. Increasing this can reduce gaps in JFR reported data
+    # but can also cause resource issues in the agent or cause data to be dropped if backend pipeline
+    # limits are exceeded.
+    # See: https://docs.newrelic.com/docs/data-apis/ingest-apis/event-api/introduction-event-api/#limits
+    #      https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/metric-api-limits-restricted-attributes/
+    # Default is 250000
+    queue_size: 250000
+```
+- Add AWS Firehose SDK Instrumentation for versions 2.1.0 till latest by @obenkenobi in [2149](https://github.com/newrelic/newrelic-java-agent/pull/2149)
+- Implement a new instrumentation module for r2dbc-mysql 1.1.3+ by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+- Memory usage reduced for the r2dbc-mssql and m2dbc-mysql modules by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+- Log when multiple, different, traceparent headers found on inbound request and only report `invalid parent header count` supportability metric when that scenario occurs by @jtduffy in [2154](https://github.com/newrelic/newrelic-java-agent/pull/2154)
+- Expected NPE in noticeTracer no longer logs full stack trace by @jasonjkeller in [2143](https://github.com/newrelic/newrelic-java-agent/pull/2143)
+
+## Fixes
+
+- Resolved a potential token timeout issue with the reactor-3.3.0 module by @jbedell-newrelic in [2169](https://github.com/newrelic/newrelic-java-agent/pull/2169)
+
+## IAST
+
+- CSEC version bump to 1.6.0 [2173](https://github.com/newrelic/newrelic-java-agent/pull/2173)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.6.0
+
+
+## Version 8.16.0
+## New features and improvements
+
+- Obfuscate JVM properties [2114](https://github.com/newrelic/newrelic-java-agent/pull/2114)
+The Java agent will now obfuscate values passed to JVM properties. For example: `-Dprop=12345` will now be sent as `-Dprop=obfuscated`. The [documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#jvm-properties-obfuscation) has information on how to disable obfuscation and how to add exceptions.
+
+- Cloud API [2081](https://github.com/newrelic/newrelic-java-agent/pull/2081)
+The Cloud API allows cloud provider account information to be provided to the agent. This will allow the agent to populate the `cloud.resource_id` attribute in calls to select cloud services.
+The [API documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/api-guides/guide-using-java-agent-api/#additional) has information on how to use it programmatically.
+This information can also be provided using a [configuration option](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#aws-account_id).
+
+- Support distributed tracing for Kafka Stream 3.7.x [2095](https://github.com/newrelic/newrelic-java-agent/pull/2095)
+- Report if agent was installed via Azure site extension [2094](https://github.com/newrelic/newrelic-java-agent/pull/2094)
+- Lazy initialization of GUIDs on DefaultTracers [2088](https://github.com/newrelic/newrelic-java-agent/pull/2088)
+- Java HttpClient:  Addition of status code to reported externals [2089](https://github.com/newrelic/newrelic-java-agent/pull/2089)
+- AWS Lambda: populate `cloud.resource_id` using data from Cloud API [2115](https://github.com/newrelic/newrelic-java-agent/pull/2115)
+- Kinesis Data Streams: populate `cloud.resource_id` [2112](https://github.com/newrelic/newrelic-java-agent/pull/2112)
+- DynamoDB: populate `cloud.resource_id` [2113](https://github.com/newrelic/newrelic-java-agent/pull/2113)
+
+## Fixes
+
+- Use recordResponseTimeMetric instead of recordMetric [2128](https://github.com/newrelic/newrelic-java-agent/pull/2128)
+- Use WeakReference HttpUrlConnection instrumentation [2082](https://github.com/newrelic/newrelic-java-agent/pull/2082)
+- Fix a bug where Jetty 12 would not properly link distributed traces [2140](https://github.com/newrelic/newrelic-java-agent/pull/2140)
+- Update to JFR daemon 1.13.0 [2129](https://github.com/newrelic/newrelic-java-agent/pull/2129)
+  This update changes the HTTP client used, which caused problems with some proxies.
+
+## IAST
+
+- CSEC version bump to 1.5.1 [2076](https://github.com/newrelic/newrelic-java-agent/pull/2076)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.5.1
+
+
+## Version 8.15.0
+## New features and improvements
+
+- Addition of AWS Lambda SDK instrumentation [1998](https://github.com/newrelic/newrelic-java-agent/pull/1998)
+- Reporting of Flyway migration events [2021](https://github.com/newrelic/newrelic-java-agent/pull/2021)
+- Add support for using an environment variable for config file location [2022](https://github.com/newrelic/newrelic-java-agent/pull/2022)
+- Support AWS Kinesis V1 and V2 SDKs [2031](https://github.com/newrelic/newrelic-java-agent/pull/2031)
+- Addition of kafka-clients-node-metrics-3.7.0 Instrumentation module [2039](https://github.com/newrelic/newrelic-java-agent/pull/2039)
+- Add instrumentation for glassfish-jul-extension logging library [2049](https://github.com/newrelic/newrelic-java-agent/pull/2049)
+- Java 23 support [2055](https://github.com/newrelic/newrelic-java-agent/pull/2055)
+- Support reporting of ECS Fargate Docker ids [2050](https://github.com/newrelic/newrelic-java-agent/pull/2050)
+- Actuator endpoint transaction naming for Spring Boot 3 [2077](https://github.com/newrelic/newrelic-java-agent/pull/2077)
+
+## Fixes
+
+- Slick 3.5.0 instrumentation bug fix [2025](https://github.com/newrelic/newrelic-java-agent/pull/2025)
+- Protect against Http2Headers methods throwing exceptions in Netty instrumentation [2042](https://github.com/newrelic/newrelic-java-agent/pull/2042)
+- Fix an issue where the Kinesis instrumentation is generating ERROR logs due to a NullPointerException [2052](https://github.com/newrelic/newrelic-java-agent/pull/2052)
+
+## IAST
+
+- CSEC version bump to 1.5 [2076](https://github.com/newrelic/newrelic-java-agent/pull/2076)
+- Changelog: https://github.com/newrelic/csec-java-agent/releases/tag/1.5.0
+
 ## Version 8.14.0
 ## New features and improvements
 

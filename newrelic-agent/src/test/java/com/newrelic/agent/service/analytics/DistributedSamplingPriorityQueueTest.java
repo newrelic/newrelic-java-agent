@@ -24,17 +24,10 @@ import static org.junit.Assert.*;
 public class DistributedSamplingPriorityQueueTest {
 
     static class SimplePriorityAware implements PriorityAware {
-        private final boolean decider;
         private final float priority;
 
-        public SimplePriorityAware(boolean decider, float priority) {
-            this.decider = decider;
+        public SimplePriorityAware(float priority) {
             this.priority = priority;
-        }
-
-        @Override
-        public boolean decider() {
-            return decider;
         }
 
         @Override
@@ -53,16 +46,16 @@ public class DistributedSamplingPriorityQueueTest {
 
     @Test
     public void resultsAreSameForBothRetryAll() {
-        DistributedSamplingPriorityQueue<SimplePriorityAware> target = new DistributedSamplingPriorityQueue<>(5, 0, 5, SimplePriorityAware.COMPARATOR);
+        DistributedSamplingPriorityQueue<SimplePriorityAware> target = new DistributedSamplingPriorityQueue<>(5, SimplePriorityAware.COMPARATOR);
 
-        target.add(new SimplePriorityAware(false, 1.2f));
-        target.add(new SimplePriorityAware(false, 0.1f));
-        target.add(new SimplePriorityAware(false, 1.3f));
-        target.add(new SimplePriorityAware(false, 1.4f));
-        target.add(new SimplePriorityAware(false, 1.5f));
-        target.add(new SimplePriorityAware(false, 1.6f));
-        target.add(new SimplePriorityAware(false, 0.7f));
-        target.add(new SimplePriorityAware(false, 2.3f));
+        target.add(new SimplePriorityAware( 1.2f));
+        target.add(new SimplePriorityAware(0.1f));
+        target.add(new SimplePriorityAware(1.3f));
+        target.add(new SimplePriorityAware(1.4f));
+        target.add(new SimplePriorityAware(1.5f));
+        target.add(new SimplePriorityAware(1.6f));
+        target.add(new SimplePriorityAware(0.7f));
+        target.add(new SimplePriorityAware(2.3f));
 
         assertEquals(5, target.size());
 
@@ -96,10 +89,10 @@ public class DistributedSamplingPriorityQueueTest {
     }
 
     public DistributedSamplingPriorityQueue<SimplePriorityAware> getRetryTarget() {
-        DistributedSamplingPriorityQueue<SimplePriorityAware> retryTarget = new DistributedSamplingPriorityQueue<>(5, 0, 5, SimplePriorityAware.COMPARATOR);
-        retryTarget.add(new SimplePriorityAware(false, 1.1f));
-        retryTarget.add(new SimplePriorityAware(false, 0.9f));
-        retryTarget.add(new SimplePriorityAware(false, 1.7f));
+        DistributedSamplingPriorityQueue<SimplePriorityAware> retryTarget = new DistributedSamplingPriorityQueue<>(5, SimplePriorityAware.COMPARATOR);
+        retryTarget.add(new SimplePriorityAware(1.1f));
+        retryTarget.add(new SimplePriorityAware(0.9f));
+        retryTarget.add(new SimplePriorityAware(1.7f));
         assertEquals(3, retryTarget.size());
         return retryTarget;
     }
@@ -164,7 +157,7 @@ public class DistributedSamplingPriorityQueueTest {
 
     @Test
     public void testPriorityExternalSort() {
-        DistributedSamplingPriorityQueue<SpanEvent> eventPool = new DistributedSamplingPriorityQueue<>(10, 0, 0, CUSTOM_COMPARATOR);
+        DistributedSamplingPriorityQueue<SpanEvent> eventPool = new DistributedSamplingPriorityQueue<>(10, CUSTOM_COMPARATOR);
         seedEventPool(eventPool);
 
         List<SpanEvent> spanEvents = eventPool.asList();
@@ -191,6 +184,29 @@ public class DistributedSamplingPriorityQueueTest {
         final DistributedSamplingPriorityQueue<SpanEvent> sizeZeroQueue = new DistributedSamplingPriorityQueue<>(0);
         addSpanEvents(33, sizeZeroQueue);
         assertEquals(0, sizeZeroQueue.size());
+    }
+
+    @Test
+    public void testGetMinPriority() {
+        DistributedSamplingPriorityQueue<SimplePriorityAware> queue = new DistributedSamplingPriorityQueue<>(5);
+
+        queue.add(new SimplePriorityAware(1.6f));
+        queue.add(new SimplePriorityAware(1.8f));
+        queue.add(new SimplePriorityAware(1.7f));
+        queue.add(new SimplePriorityAware(0.55f));
+        queue.add(new SimplePriorityAware(0.1f));
+        queue.add(new SimplePriorityAware(0.2f));
+        queue.add(new SimplePriorityAware(1.65f));
+
+        assertEquals(0.55f, queue.getMinPriority(), 0.0f);
+
+        queue.add(new SimplePriorityAware(0.2f));
+
+        assertEquals(0.55f, queue.getMinPriority(), 0.0f);
+
+        queue.add(new SimplePriorityAware(1.72f));
+
+        assertEquals(1.6f, queue.getMinPriority(), 0.0f);
     }
 
     private void addSpanEvents(int numberToAdd, DistributedSamplingPriorityQueue<SpanEvent> queue) {

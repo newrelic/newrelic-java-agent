@@ -13,7 +13,8 @@ import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.test.marker.Java17IncompatibleTest;
 import com.newrelic.test.marker.Java21IncompatibleTest;
-import com.newrelic.test.marker.Java22IncompatibleTest;
+import com.newrelic.test.marker.Java25IncompatibleTest;
+import com.newrelic.test.marker.Java26IncompatibleTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -26,7 +27,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Category({ Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java22IncompatibleTest.class })
+@Category({ Java17IncompatibleTest.class, Java21IncompatibleTest.class, Java25IncompatibleTest.class, Java26IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "com.nr.agent.instrumentation.play2816", "play" })
 public class ServerInstrumentationTest {

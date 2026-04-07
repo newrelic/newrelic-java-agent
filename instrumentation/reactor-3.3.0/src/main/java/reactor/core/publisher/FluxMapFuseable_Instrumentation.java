@@ -54,5 +54,13 @@ abstract class FluxMapFuseable_Instrumentation {
             }
             Weaver.callOriginal();
         }
+
+        public void cancel() {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
     }
 }

@@ -2,10 +2,10 @@ package com.nr.instrumentation.http4s
 
 import cats.data.Kleisli
 import cats.effect.Sync
-import com.newrelic.api.agent.Token
+import com.newrelic.api.agent.{NewRelic, Token, Transaction, TransactionNamePriority}
 import org.http4s.{Request, Response}
 import cats.implicits._
-import com.newrelic.agent.bridge.{AgentBridge, ExitTracer, Transaction, TransactionNamePriority}
+import com.newrelic.agent.bridge.{AgentBridge, ExitTracer}
 
 object TransactionMiddleware {
   def genHttpApp[F[_] : Sync](httpApp: Kleisli[F, Request[F], Response[F]]): Kleisli[F, Request[F], Response[F]] =
@@ -15,23 +15,23 @@ object TransactionMiddleware {
     construct(AgentBridge.instrumentation.createScalaTxnTracer())
       .redeemWith(_ => httpApp(request),
              tracer => for {
-               txn <- construct(AgentBridge.getAgent.getTransaction)
+               txn <- construct(NewRelic.getAgent().getTransaction())
                token <-  setupTxn(txn, request)
                res <- attachErrorEvent(httpApp(request), tracer, token)
-               _ <- completeTxn(tracer, token)
+               _ <- completeTxn(tracer, token, res, txn)
              } yield res
            )
 
   private def setupTxn[F[_]:Sync](txn: Transaction, request: Request[F]): F[Token] = construct {
-    val t = txn.asInstanceOf[com.newrelic.api.agent.Transaction]
-    val token = t.getToken
+    val token = txn.getToken
     txn.setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "HTTP4s", "EmberServerHandler")
     txn.getTracedMethod.setMetricName("HTTP4s", "RequestHandler")
-    t.setWebRequest(RequestWrapper(request))
+    txn.setWebRequest(RequestWrapper(request))
     token
   }
 
-  private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
+  private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token, res: Response[F], txn: Transaction): F[Unit] = construct {
+    txn.setWebResponse(ResponseWrapper(res))
     expireTokenIfNecessary(token)
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)

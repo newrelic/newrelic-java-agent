@@ -5,20 +5,18 @@ import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.ServiceManager;
-import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.test.marker.Flaky;
 import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
@@ -30,7 +28,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -45,6 +42,9 @@ public class JfrServiceTest {
     @Mock
     AgentConfig agentConfig;
 
+    @Mock
+    ServerlessConfig serverlessConfig;
+
     @Before
     public void before() {
         MockitoAnnotations.openMocks(this);
@@ -53,12 +53,17 @@ public class JfrServiceTest {
         ServiceFactory.setServiceManager(manager);
 
         when(jfrConfig.useLicenseKey()).thenReturn(true);
+        when(jfrConfig.getHarvestInterval()).thenReturn(22);
+        when(jfrConfig.getQueueSize()).thenReturn(300_000);
         when(agentConfig.getApplicationName()).thenReturn("test_app_name");
         when(agentConfig.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
         when(agentConfig.getEventIngestUri()).thenReturn(DEFAULT_EVENT_INGEST_URI);
         when(agentConfig.getLicenseKey()).thenReturn("test_1234_license_key");
+        when(agentConfig.getProxyScheme()).thenReturn("http");
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
+        when(agentConfig.getServerlessConfig()).thenReturn(serverlessConfig);
+        when(serverlessConfig.isEnabled()).thenReturn(false);
     }
 
     @Test
@@ -71,6 +76,9 @@ public class JfrServiceTest {
         assertEquals("test_app_name", daemonConfig.getMonitoredAppName());
         assertEquals(DEFAULT_METRIC_INGEST_URI, daemonConfig.getMetricsUri().toString());
         assertEquals(DEFAULT_EVENT_INGEST_URI, daemonConfig.getEventsUri().toString());
+        assertEquals(22, daemonConfig.getHarvestInterval().getSeconds());
+        assertEquals(300_000, (int)daemonConfig.getQueueSize());
+        assertEquals("http", daemonConfig.getProxyScheme());
     }
 
     @Test
@@ -120,8 +128,23 @@ public class JfrServiceTest {
         verify(spyJfr, times(0)).startJfrLoop();
     }
 
-    @Category( IBMJ9IncompatibleTest.class )
     @Test
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndServerlessModeIsTrue() throws JfrRecorderException {
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+        when(serverlessConfig.isEnabled()).thenReturn(true);
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        when(spyJfr.coreApisExist()).thenReturn(true);
+
+        spyJfr.doStart();
+
+        assertFalse(spyJfr.isEnabled());
+        verify(spyJfr, times(0)).startJfrLoop();
+    }
+
+    @Category( { IBMJ9IncompatibleTest.class, Flaky.class } )
+    @Test
+    // Flaky note: org.mockito.exceptions.verification.WantedButNotInvoked on verify(spyJfr, timeout(100)).startJfrLoop();
     public void jfrLoopDoesStart() {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);

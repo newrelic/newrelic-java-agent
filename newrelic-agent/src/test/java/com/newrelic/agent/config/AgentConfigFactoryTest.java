@@ -8,9 +8,12 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.HarvestServiceImpl;
+import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.database.SqlObfuscator;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.transport.CollectorMethods;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -31,6 +34,11 @@ public class AgentConfigFactoryTest {
 
     public static Map<String, Object> createMap() {
         return new HashMap<>();
+    }
+
+    @BeforeClass
+    public static void setupServiceManager(){
+        ServiceFactory.setServiceManager(new MockServiceManager());
     }
 
     @Test
@@ -242,6 +250,20 @@ public class AgentConfigFactoryTest {
         Map<String, Object> serverSettings = loggingHarvestLimit(10);
         AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
         Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+    }
+
+    @Test
+    public void mergeServerData_withServerSideSampledTotals_overridesAgentDefault() {
+        Map<String, Object> localSettings = createMap();
+        Map<String, Object> txnEventsSettings = createMap();
+        Map<String, Object> serverSettings = createMap();
+
+        txnEventsSettings.put("target_samples_stored", 50);
+        localSettings.put(AgentConfigImpl.TRANSACTION_EVENTS, txnEventsSettings);
+        serverSettings.put("sampling_target", 10);
+
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
+        Assert.assertEquals(10, config.getTransactionEventsConfig().getTargetSamplesStored());
     }
 
     private Map<String, Object> logForwardingSettingsEnabled(boolean enabled) {

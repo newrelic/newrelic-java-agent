@@ -30,7 +30,7 @@ final class DefaultLambdaAsyncClient_Instrumentation {
     private final SdkClientConfiguration clientConfiguration = Weaver.callOriginal();
 
     public CompletableFuture<InvokeResponse> invoke(InvokeRequest invokeRequest) {
-        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.functionName(), invokeRequest.qualifier(), clientConfiguration);
+        FunctionRawData functionRawData = new FunctionRawData(invokeRequest.functionName(), invokeRequest.qualifier(), clientConfiguration, this);
         CloudParameters cloudParameters = LambdaUtil.getCloudParameters(functionRawData);
         String functionName = LambdaUtil.getSimpleFunctionName(functionRawData);
         Segment segment = NewRelic.getAgent().getTransaction().startSegment("Lambda", "invoke/" + functionName);

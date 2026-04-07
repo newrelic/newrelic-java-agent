@@ -78,15 +78,11 @@ public class MetricsScheduler {
                     }
                 }
 
-                for (NewRelicMetricsReporter.NodeMetricNames consumerNodeMetricNames : nrMetricsReporter.getNodes().values()) {
+                for (String nodeTopicName : nrMetricsReporter.getNodeTopicNames()) {
                     if (METRICS_AS_EVENTS) {
-                        for (String eventName : consumerNodeMetricNames.getEventNames()) {
-                            eventData.put(eventName, 1f);
-                        }
+                        eventData.put(nodeTopicName, 1f);
                     } else {
-                        for (String metricName : consumerNodeMetricNames.getMetricNames()) {
-                            NewRelic.recordMetric(metricName, 1f);
-                        }
+                        NewRelic.recordMetric(nodeTopicName, 1f);
                     }
                 }
 

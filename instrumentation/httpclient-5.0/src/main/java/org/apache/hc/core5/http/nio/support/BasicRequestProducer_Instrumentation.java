@@ -17,7 +17,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 public class BasicRequestProducer_Instrumentation {
 
     @NewField
-    public final HttpRequest nrRequest;
+    public HttpRequest nrRequest;
 
     public BasicRequestProducer_Instrumentation(final HttpRequest request, final AsyncEntityProducer dataProducer) {
         nrRequest = request;

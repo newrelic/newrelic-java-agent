@@ -1,0 +1,18 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.struts:struts2-core:6.7.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-struts-6.7.0',
+            'Implementation-Title-Alias': 'apache-struts' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.struts:struts2-core:[6.7.0,)'
+}
+
+site {
+    title 'Struts'
+    type 'Framework'
+}

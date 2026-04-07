@@ -8,11 +8,9 @@
 package com.newrelic.agent.model;
 
 /**
- * Simple interface to grab a priority (float) value from an object and to determine if this app was the "decider".
+ * Simple interface to grab a priority (float) value from an object.
  */
 public interface PriorityAware {
-
-    boolean decider();
 
     float getPriority();
 

@@ -7,6 +7,7 @@
 
 package com.newrelic.weave;
 
+import com.newrelic.weave.utils.ReturnInsnProcessor;
 import com.newrelic.weave.utils.WeaveUtils;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -19,12 +20,12 @@ import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     /**
@@ -113,7 +114,6 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             }
             int access = opcode == Opcodes.INVOKESTATIC ? Opcodes.ACC_STATIC : 0;
             inliner.inliner = new InliningAdapter(api, access, desc, this, mv, inliner.remapper);
-
         }
         inliner.method.accept(inliner.inliner);
     }
@@ -133,6 +133,14 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             } else {
                 // Copy the MethodNode before modifying the instructions list (which is not thread safe)
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
+                //Feature flag for method nodes that require additional return insn processing.
+                //Introduced because some Kotlin code throws ArrayIndexOutOfBoundsException when weaved.
+                //To enable this feature, set -Dnewrelic.config.class_transformer.clear_return_stacks=true
+                if (Boolean.getBoolean("newrelic.config.class_transformer.clear_return_stacks")) {
+                    MethodNode result = WeaveUtils.newMethodNode(methodNodeCopy);
+                    methodNodeCopy.accept(new ClearReturnAdapter(owner, methodNodeCopy, result));
+                    methodNodeCopy = result;
+                }
                 methodNodeCopy.instructions.resetLabels();
                 InliningAdapter originalInliner = method.inliner;
 
@@ -231,6 +239,35 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
             // an access exception with the WebSphere security manager. The newLocal method seems to
             // do about the same thing but a little more. anyway, the tests pass..
             return caller.newLocal(type);
+        }
+    }
+
+    /**
+     * This adapter checks a method's return instructions, adding additional POPs prior to return instructions
+     * if the return is made with extra (>1) operands on the stack.
+     * <p>
+     * ReturnInsnProcessor.clearReturnStacks is placed in visitEnd() of this adapter, rather than called directly on
+     * the source node, for thread safety reasons. Our thread safety strategy is to synchronize on the accept method
+     * of the source node, and require that all modifications to bytecode be initiated by an invocation of accept():
+     * <p>
+     * source.accept(new ClearReturnAdapter(owner, source, next)) //conforms to thread-safe model
+     * <p>
+     * ReturnInsnProcessor.clearReturnStacks(owner, source) //does not conform to thread-safe model
+     */
+    class ClearReturnAdapter extends MethodNode {
+        String owner;
+
+        public ClearReturnAdapter(String owner, MethodNode source, MethodVisitor next) {
+            super(WeaveUtils.ASM_API_LEVEL, source.access, source.name, source.desc, source.signature,
+                    source.exceptions.toArray(new String[source.exceptions.size()]));
+            this.mv = next;
+            this.owner = owner;
+        }
+
+        @Override
+        public void visitEnd() {
+            ReturnInsnProcessor.clearReturnStacks(owner, this);
+            accept(mv);
         }
     }
 

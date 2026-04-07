@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.kafka;
 
 import org.apache.kafka.common.metrics.KafkaMetric;
@@ -10,18 +17,6 @@ class CachedKafkaMetrics {
     static CachedKafkaMetric newCachedKafkaMetric(final KafkaMetric metric) {
         if ("app-info".equals(metric.metricName().group()) && "version".equals(metric.metricName().name())) {
             return new CachedKafkaVersion(metric);
-        }
-
-        Measurable measurable = null;
-        try {
-            measurable = metric.measurable();
-        } catch (final IllegalStateException e) {
-        }
-
-        final boolean isCumulativeSumType = measurable != null &&
-                CumulativeSumSupport.isCumulativeSumClass(measurable.getClass().getName());
-        if (isCumulativeSumType) {
-            return new CachedKafkaCounter(metric);
         }
 
         if (!(metric.metricValue() instanceof Number)) {
@@ -101,60 +96,6 @@ class CachedKafkaMetrics {
         @Override
         public void report(final FiniteMetricRecorder recorder) {
             recorder.recordMetric(newRelicMetricName, ((Number) metric.metricValue()).floatValue());
-        }
-    }
-
-    private static class CachedKafkaCounter implements CachedKafkaMetric {
-        private final KafkaMetric metric;
-        private static final Pattern totalPattern = Pattern.compile("-total$");
-
-        private final String counterMetricName;
-        private final String totalMetricName;
-
-        private int previous = -1;
-
-        public CachedKafkaCounter(final KafkaMetric metric) {
-            this.metric = metric;
-
-            totalMetricName = MetricNameUtil.buildMetricName(metric);
-
-            String metricName = metric.metricName().name();
-            String counterName = totalPattern.matcher(metricName).replaceAll("-counter");
-            if (counterName.equals(metricName)) {
-                counterName = metricName + "-counter";
-            }
-            counterMetricName = MetricNameUtil.buildMetricName(metric, counterName);
-        }
-
-        @Override
-        public boolean isValid() {
-            return true;
-        }
-
-        @Override
-        public String displayName() {
-            return MetricNameUtil.buildDisplayName(metric);
-        }
-
-        @Override
-        public void report(final FiniteMetricRecorder recorder) {
-            final Number value = ((Number) metric.metricValue());
-            if (!recorder.tryRecordMetric(totalMetricName, value.floatValue())) {
-                // we can't trust the last observed value, so reset
-                previous = -1;
-                return;
-            }
-
-            final int intValue = value.intValue();
-            if (previous == -1L) {
-                previous = intValue;
-                return;
-            }
-
-            final int delta = intValue - previous;
-            previous = intValue;
-
-            recorder.incrementCounter(counterMetricName, delta);
         }
     }
 

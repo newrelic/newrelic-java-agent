@@ -17,23 +17,29 @@ import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.AiMonitoring;
+import com.newrelic.api.agent.Cloud;
 import com.newrelic.api.agent.ErrorApi;
 import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TraceMetadata;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class AgentImpl implements com.newrelic.agent.bridge.Agent {
+public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
 
     private final Logger logger;
 
     public AgentImpl(Logger logger) {
         this.logger = logger;
+        Core.getGlobalContext().register(this);
     }
 
     /**
@@ -145,6 +151,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
     }
 
     @Override
+    public Cloud getCloud() {
+        return AgentBridge.cloud;
+    }
+
+    @Override
     public Logs getLogSender() {
         return ServiceFactory.getServiceManager().getLogSenderService();
     }
@@ -184,4 +195,17 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent {
         );
     }
 
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("CRaC checkpoint requested");
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        Agent.LOG.info("CRaC restore requested, refreshing Environment and Utilization information");
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
+        ServiceFactory.getServiceManager().refreshDataForCRaCRestore();
+        ServiceFactory.getRPMService().reconnect();
+    }
 }

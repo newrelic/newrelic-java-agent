@@ -10,6 +10,8 @@ package com.newrelic.agent.utilization;
 import com.newrelic.agent.AgentHelper;
 import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.config.CloudConfig;
+import com.newrelic.agent.config.CloudConfigImpl;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
@@ -26,6 +28,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +38,12 @@ import static org.mockito.Mockito.when;
 
 public class DockerDataTest {
 
-    private final DockerData dockerData = new DockerData();
+    private final CloudConfig cloudConfig = new CloudConfigImpl(Collections.emptyMap());
+    private final DockerData dockerData = new DockerData(cloudConfig);
 
     @Test
     public void testGetDockerIdNotLinux() {
-        Assert.assertNull(dockerData.getDockerContainerId(false));
+        Assert.assertNull(dockerData.getDockerContainerIdFromCGroups(false));
     }
     @Test
     public void testCheckLineAndGetIdValidV2() {
@@ -342,7 +346,7 @@ public class DockerDataTest {
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenReturn(byteArrayStream);
 
-        DockerData dockerData = new DockerData();
+        DockerData dockerData = new DockerData(cloudConfig);
         Assert.assertEquals("1e1698469422439ea356071e581e8545-2769485393", dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
     }
 
@@ -352,7 +356,7 @@ public class DockerDataTest {
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenReturn(byteArrayStream);
 
-        DockerData dockerData = new DockerData();
+        DockerData dockerData = new DockerData(cloudConfig);
         Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
     }
 
@@ -361,13 +365,13 @@ public class DockerDataTest {
         AwsFargateMetadataFetcher mockFetcher = mock(AwsFargateMetadataFetcher.class);
         when(mockFetcher.openStream()).thenThrow(new IOException("oops"));
 
-        DockerData dockerData = new DockerData();
+        DockerData dockerData = new DockerData(cloudConfig);
         Assert.assertNull(dockerData.retrieveDockerIdFromFargateMetadata(mockFetcher));
     }
 
     @Test
     public void getDockerContainerId_withNoDockerIdSource_returnsNull() {
-        Assert.assertNull(dockerData.getDockerContainerId(true));
+        Assert.assertNull(dockerData.getDockerContainerIdFromCGroups(true));
     }
 
     private void processFile(File file, String answer, CGroup cgroup) {

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.config;
 
+import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
 import java.util.List;
@@ -55,10 +56,19 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     boolean isAutoTransactionNamingEnabled();
 
+    int getAdaptiveSamplingTarget();
+
+    int getAdaptiveSamplingPeriodSeconds();
+
     /**
      * Get the ApdexT value sent by New Relic, or the default value.
      */
     long getApdexTInMillis();
+
+    /**
+     * Returns true if NEW_RELIC_APM_LAMBDA_MODE is set to true
+     */
+    boolean isApmLambdaModeEnabled();
 
     /**
      * If NewRelic sent an ApdexT for a key transaction, return that; otherwise, return the ApdextT value for the
@@ -149,6 +159,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     JmxConfig getJmxConfig();
 
     /**
+     * Gets the Kotlin Coroutines configuration settings.
+     *
+     * @return Kotlin Coroutines configuration settings
+     */
+    KotlinCoroutinesConfig getKotlinCoroutinesConfig();
+
+    /**
      * Gets the JarCollectorService configuration settings.
      *
      * @return JarCollectorService configuration settings.
@@ -161,6 +178,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * @return Reinstrumentation configuration settings.
      */
     ReinstrumentConfig getReinstrumentConfig();
+
+    /**
+     * Gets the ServerlessConfig configuration settings.
+     *
+     * @return ServerlessConfig configuration settings.
+     */
+    ServerlessConfig getServerlessConfig();
 
     /**
      * Get the cross process application settings.
@@ -188,6 +212,13 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      * Get the attributes configuration.
      */
     AttributesConfig getAttributesConfig();
+
+    /**
+     * Get the cloud related configuration.
+     */
+    CloudConfig getCloudConfig();
+
+    ObfuscateJvmPropsConfig getObfuscateJvmPropsConfig();
 
     /**
      * The agent language (java).
@@ -225,6 +256,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     String getLogFilePath();
 
     String getLogLevel();
+
+    DatastoreInstanceDetection.MultiHostConfig getDatastoreMultihostPreference();
 
     /**
      * Jars which should be ignored by java agent and thus should not be sent up to the collector.
@@ -352,5 +385,7 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     InfiniteTracingConfig getInfiniteTracingConfig();
 
     SlowTransactionsConfig getSlowTransactionsConfig();
+
+    AgentControlIntegrationConfig getAgentControlIntegrationConfig();
 
 }

@@ -20,7 +20,7 @@ import java.util.logging.Level;
 
 public class GraphQLErrorHandler {
     public static void reportNonNullableExceptionToNR(FieldValueInfo result) {
-        CompletableFuture<ExecutionResult> exceptionResult = result.getFieldValue();
+        CompletableFuture<Object> exceptionResult = result.getFieldValueFuture();
         if (resultHasException(exceptionResult)) {
             reportExceptionFromCompletedExceptionally(exceptionResult);
         }
@@ -34,11 +34,11 @@ public class GraphQLErrorHandler {
         NewRelic.noticeError(throwableFromGraphQLError(error));
     }
 
-    private static boolean resultHasException(CompletableFuture<ExecutionResult> exceptionResult) {
+    private static boolean resultHasException(CompletableFuture<Object> exceptionResult) {
         return exceptionResult != null && exceptionResult.isCompletedExceptionally();
     }
 
-    private static void reportExceptionFromCompletedExceptionally(CompletableFuture<ExecutionResult> exceptionResult) {
+    private static void reportExceptionFromCompletedExceptionally(CompletableFuture<Object> exceptionResult) {
         try {
             exceptionResult.get();
         } catch (InterruptedException e) {

@@ -54,7 +54,7 @@ jobs:
   notify-failure:
     needs: [ verify-instrumentation-1, verify-instrumentation-2 ]
     if: ${{ failure() }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Send failure message to Slack
         id: slack

@@ -56,17 +56,6 @@ public class AgentCommandLineParserTest {
     }
 
     @Test
-    public void parseCommand_withDeploymentOption_callsRecordDeployment() {
-        String[] args = new String[] { "deployment" };
-        AgentCommandLineParser parser = new AgentCommandLineParser();
-
-        try (MockedStatic<Deployments> deploymentsMock = Mockito.mockStatic(Deployments.class)) {
-            parser.parseCommand(args);
-            deploymentsMock.verify(() -> Deployments.recordDeployment(Mockito.any()));
-        }
-    }
-
-    @Test
     public void parseCommand_withInstrumentOption_callsValidateInstrumentation() {
         String[] args = new String[] { "instrument" };
         AgentCommandLineParser parser = new AgentCommandLineParser();

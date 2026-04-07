@@ -25,6 +25,8 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
+import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;
 import com.newrelic.agent.util.asm.ClassStructure;
@@ -33,6 +35,7 @@ import com.newrelic.bootstrap.BootstrapAgent;
 import com.newrelic.bootstrap.BootstrapLoader;
 import com.newrelic.bootstrap.EmbeddedJarFilesImpl;
 import com.newrelic.weave.utils.Streams;
+import com.newrelic.agent.stats.TransactionStats;
 import org.objectweb.asm.ClassReader;
 
 import java.io.ByteArrayOutputStream;
@@ -160,6 +163,8 @@ public final class Agent {
             LOG.warning(msg);
         }
 
+        EmbeddedJarFilesImpl.cleanupStaleTempJarFiles();
+
         if (!tryToInitializeServiceManager(inst)) {
             return;
         }
@@ -267,6 +272,22 @@ public final class Agent {
                         NewRelicSecurity.getAgent().deactivateSecurity();
                     }
                 });
+                ServiceFactory.getTransactionService().addTransactionListener(new ExtendedTransactionListener() {
+                    @Override
+                    public void dispatcherTransactionStarted(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionStarted();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionCancelled(Transaction transaction) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionCancelled();
+                    }
+
+                    @Override
+                    public void dispatcherTransactionFinished(TransactionData transactionData, TransactionStats transactionStats) {
+                        NewRelicSecurity.getAgent().dispatcherTransactionFinished();
+                    }
+                });
             } catch (Throwable t2) {
                 LOG.error("license_key is empty in the config. Not starting New Relic Security Agent.");
             }
@@ -290,12 +311,15 @@ public final class Agent {
             ServiceManager serviceManager = new ServiceManagerImpl(coreService, configService);
             ServiceFactory.setServiceManager(serviceManager);
 
-            if (isLicenseKeyEmpty(serviceManager.getConfigService().getDefaultAgentConfig().getLicenseKey())) {
+            AgentConfig agentConfig = serviceManager.getConfigService().getDefaultAgentConfig();
+            if (isLicenseKeyEmpty(agentConfig.getLicenseKey()) && !agentConfig.getServerlessConfig().isEnabled()) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.MISSING_LICENSE);
                 LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
                 return false;
             }
 
             if (!serviceManager.getConfigService().getDefaultAgentConfig().isAgentEnabled()) {
+                AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.AGENT_DISABLED);
                 LOG.warning("agent_enabled is false in the config. Not starting New Relic Agent.");
                 return false;
             }

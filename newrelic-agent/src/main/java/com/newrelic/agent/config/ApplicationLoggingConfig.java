@@ -8,6 +8,8 @@
 package com.newrelic.agent.config;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration for application logging features. These settings do not pertain to agent logs.
@@ -69,4 +71,41 @@ public interface ApplicationLoggingConfig {
      * @return a list of Strings
      */
     List<String> getForwardingContextDataExclude();
+
+    /**
+     * Allow the agent to add labels to application logs.
+     *
+     * @return true if logging labels are enabled, false otherwise
+     */
+    boolean isLogLabelsEnabled();
+
+    /**
+     * Removes excluded labels from the labels map.
+     *
+     * @return a map of filtered log labels
+     */
+
+    Map<String, String> removeExcludedLogLabels(Map<String, String> labels);
+
+    /**
+     * Get the set of excluded labels.
+     *
+     * @return a Set of excluded labels
+     */
+    Set<String> getLogLabelsExcludeSet();
+
+    /**
+     * Return the enabled flag for the auto_app_naming_association flag
+     *
+     * @return true if auto_app_naming_association is enabled
+     */
+    boolean isAutoAppNamingAssociationEnabled();
+
+    /**
+     * Get the set of log levels that should be blocked from being sent during Log Forwarding.
+     * These are supplied in UPPERCASE format for case-insensitive comparison.
+     *
+     * @return A Set of uppercase Strings of log levels that should not be sent to New Relic. May be empty.
+     */
+    Set<String> getLogLevelDenylist();
 }

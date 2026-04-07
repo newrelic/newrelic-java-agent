@@ -108,4 +108,13 @@ public interface ClassTransformerConfig extends Config {
     boolean isDefaultMethodTracingEnabled();
 
     boolean isEnhancedSpringTransactionNaming();
+
+    /**
+     * When true, Spring Controller transactions will be named using the controller class name and method name
+     * (e.g., "CustomerController/edit") instead of using request mappings (e.g., "/api/v1/customer (POST)").
+     * This helps prevent transaction name cardinality issues with complex URI patterns.
+     *
+     * @return true if Spring Controller transactions should use class name and method name format
+     */
+    boolean useControllerClassAndMethodForSpringTransactionNaming();
 }

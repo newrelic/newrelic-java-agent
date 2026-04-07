@@ -10,7 +10,9 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.vertx:vertx-core:[4.5.1,)'
+    passesOnly 'io.vertx:vertx-core:[4.5.1,5.0.0.CR1)'
+    excludeRegex '.*CR[0-9]*'
+    excludeRegex '.*-milestone[0-9]'
 }
 
 site {

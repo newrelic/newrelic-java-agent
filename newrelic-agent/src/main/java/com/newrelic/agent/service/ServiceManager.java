@@ -10,6 +10,7 @@ package com.newrelic.agent.service;
 import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.TransactionService;
@@ -26,6 +27,7 @@ import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
+import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.profile.ProfilerService;
@@ -88,6 +90,8 @@ public interface ServiceManager extends Service {
 
     RPMServiceManager getRPMServiceManager();
 
+    ServerlessService getServerlessService();
+
     SamplerService getSamplerService();
 
     CoreService getCoreService();
@@ -125,4 +129,8 @@ public interface ServiceManager extends Service {
     SourceLanguageService getSourceLanguageService();
 
     ExpirationService getExpirationService();
+
+    KotlinCoroutinesService getKotlinCoroutinesService();
+
+    void refreshDataForCRaCRestore();
 }

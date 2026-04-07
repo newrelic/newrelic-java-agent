@@ -20,7 +20,7 @@ object TransactionMiddleware {
                txn <- construct(AgentBridge.getAgent.getTransaction)
                token <-  setupTxn(txn, request)
                res <- attachErrorEvent(httpApp(request), tracer, token)
-               _ <- completeTxn(tracer, token)
+               _ <- completeTxn(tracer, token, txn, res)
              } yield res
            )
 
@@ -33,7 +33,8 @@ object TransactionMiddleware {
     token
   }
 
-  private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token): F[Unit] = construct {
+  private def completeTxn[F[_]:Sync](tracer: ExitTracer, token: Token, txn: Transaction, res: Response[F]): F[Unit] = construct {
+    txn.setWebResponse(ResponseWrapper(res))
     expireTokenIfNecessary(token)
     tracer.finish(176, null)
   }.handleErrorWith(_ => Sync[F].unit)

@@ -1,0 +1,22 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.0.3")
+
+    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j:2.2.1")
+    testImplementation(project(":instrumentation:jdbc-generic")){ transitive = false }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.jdbc-mariadb-3.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.mariadb.jdbc:mariadb-java-client:(3.0.2-rc,)'
+    exclude 'org.mariadb.jdbc:mariadb-java-client:[3.0.0-alpha,3.0.2-rc]'
+}
+
+site {
+    title 'MariaDB Java Client'
+    type 'Datastore'
+}

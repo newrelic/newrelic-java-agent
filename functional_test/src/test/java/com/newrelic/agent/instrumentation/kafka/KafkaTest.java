@@ -154,6 +154,13 @@ public class KafkaTest {
     private void processRecord(ConsumerRecord<String, String> record) {
         NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.CUSTOM_HIGH,
                 true, "kafka", "processRecord");
+
+        final Iterator<Header> traceparentIterator = record.headers().headers("traceparent").iterator();
+        Assert.assertTrue("W3C traceparent header should be present", traceparentIterator.hasNext());
+
+        final Iterator<Header> tracestateIterator = record.headers().headers("tracestate").iterator();
+        Assert.assertTrue("W3C tracestate header should be present", tracestateIterator.hasNext());
+
         final Iterator<Header> nrIterator = record.headers().headers("newrelic").iterator();
         if (nrIterator.hasNext()) {
             final Header nrHeader = nrIterator.next();
@@ -161,6 +168,139 @@ public class KafkaTest {
         }
         else {
             Assert.fail("DT header wasn't added to all messages");
+        }
+    }
+
+    @Test
+    public void produceConsumeTestExcludeNewRelicHeader() throws Exception {
+        EnvironmentHolderSettingsGenerator envHolderSettings = new EnvironmentHolderSettingsGenerator(CONFIG_FILE, "exclude_newrelic_header_test", CLASS_LOADER);
+        EnvironmentHolder holder = new EnvironmentHolder(envHolderSettings);
+        holder.setupEnvironment();
+        kafkaUnitRule.getKafkaUnit().createTopic(testTopic, 1);
+        final KafkaConsumer<String, String> consumer = setupConsumer();
+
+        final CountDownLatch latch = new CountDownLatch(2);
+        final ConcurrentLinkedQueue<TransactionData> finishedTransactions = new ConcurrentLinkedQueue<>();
+        TransactionListener transactionListener = (transactionData, transactionStats) -> {
+            finishedTransactions.add(transactionData);
+            latch.countDown();
+        };
+        ServiceFactory.getTransactionService().addTransactionListener(transactionListener);
+
+        try {
+            produceMessage();
+            final Future<?> submit = executorService.submit(() -> consumeMessageExcludeNewRelicHeader(consumer));
+            submit.get(30, TimeUnit.SECONDS);
+            latch.await(30, TimeUnit.SECONDS);
+
+            Assert.assertEquals(2, finishedTransactions.size());
+
+            TransactionData firstTransaction = finishedTransactions.poll();
+            TransactionData secondTransaction = finishedTransactions.poll();
+
+            TransactionData conTxn = null;
+            Assert.assertNotNull(firstTransaction);
+            if (firstTransaction.getInboundDistributedTracePayload() != null) {
+                conTxn = firstTransaction;
+            } else {
+                Assert.assertNotNull(secondTransaction);
+                if (secondTransaction.getInboundDistributedTracePayload() != null) {
+                    conTxn = secondTransaction;
+                }
+            }
+
+            Assert.assertNotNull("Consumer transaction should have an inbound distributed trace payload", conTxn);
+            Assert.assertNotNull("Inbound distributed trace payload should not be null", conTxn.getInboundDistributedTracePayload());
+        } finally {
+            ServiceFactory.getTransactionService().removeTransactionListener(transactionListener);
+            consumer.close();
+        }
+    }
+
+    @Trace(dispatcher = true)
+    private void consumeMessageExcludeNewRelicHeader(KafkaConsumer<String, String> consumer) {
+        final ConsumerRecords<String, String> records = consumer.poll(1000);
+        Assert.assertEquals(1, records.count());
+
+        for (ConsumerRecord<String, String> record : records) {
+            processRecordExcludeNewRelicHeader(record);
+        }
+    }
+
+    private void processRecordExcludeNewRelicHeader(ConsumerRecord<String, String> record) {
+        NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.CUSTOM_HIGH,
+                true, "kafka", "processRecord");
+
+        // Verify W3C Trace Context headers are present
+        final Iterator<Header> traceparentIterator = record.headers().headers("traceparent").iterator();
+        Assert.assertTrue("W3C traceparent header should be present", traceparentIterator.hasNext());
+
+        final Iterator<Header> tracestateIterator = record.headers().headers("tracestate").iterator();
+        Assert.assertTrue("W3C tracestate header should be present", tracestateIterator.hasNext());
+
+        // Verify legacy newrelic header is NOT present when exclude_newrelic_header is true
+        final Iterator<Header> nrIterator = record.headers().headers("newrelic").iterator();
+        if (nrIterator.hasNext()) {
+            Assert.fail("newrelic header should NOT be present when exclude_newrelic_header is true");
+        }
+
+        // Accept W3C distributed trace headers (traceparent + tracestate)
+        NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(
+                com.newrelic.api.agent.TransportType.Kafka,
+                new KafkaHeadersAdapter(record.headers()));
+    }
+
+    // Adapter to expose Kafka headers as NewRelic Headers for DT propagation
+    private static class KafkaHeadersAdapter implements com.newrelic.api.agent.Headers {
+        private final org.apache.kafka.common.header.Headers headers;
+
+        KafkaHeadersAdapter(org.apache.kafka.common.header.Headers headers) {
+            this.headers = headers;
+        }
+
+        @Override
+        public com.newrelic.api.agent.HeaderType getHeaderType() {
+            return com.newrelic.api.agent.HeaderType.MESSAGE;
+        }
+
+        @Override
+        public String getHeader(String name) {
+            Iterator<Header> it = headers.headers(name).iterator();
+            return it.hasNext() ? new String(it.next().value(), StandardCharsets.UTF_8) : null;
+        }
+
+        @Override
+        public Collection<String> getHeaders(String name) {
+            Collection<String> result = new java.util.ArrayList<>();
+            for (Header h : headers.headers(name)) {
+                result.add(new String(h.value(), StandardCharsets.UTF_8));
+            }
+            return result;
+        }
+
+        @Override
+        public void setHeader(String name, String value) {
+            headers.remove(name);
+            headers.add(name, value.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public void addHeader(String name, String value) {
+            headers.add(name, value.getBytes(StandardCharsets.UTF_8));
+        }
+
+        @Override
+        public Collection<String> getHeaderNames() {
+            Collection<String> names = new java.util.HashSet<>();
+            for (Header h : headers) {
+                names.add(h.key());
+            }
+            return names;
+        }
+
+        @Override
+        public boolean containsHeader(String name) {
+            return headers.headers(name).iterator().hasNext();
         }
     }
 

@@ -7,9 +7,12 @@
 
 package com.newrelic.agent.config;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
 
@@ -24,6 +27,9 @@ import static com.newrelic.agent.config.AgentConfigImpl.APPLICATION_LOGGING;
  *     context_data:
  *       enabled: false
  *       include:
+ *       exclude:
+ *     labels:
+ *       enabled: false
  *       exclude:
  *   metrics:
  *     enabled: true
@@ -45,12 +51,12 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
 
     private final boolean applicationLoggingEnabled;
 
-    public ApplicationLoggingConfigImpl(Map<String, Object> pProps, boolean highSecurity) {
+    public ApplicationLoggingConfigImpl(Map<String, Object> pProps, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         super(pProps, SYSTEM_PROPERTY_ROOT);
         applicationLoggingEnabled = getProperty(ENABLED, DEFAULT_ENABLED);
         applicationLoggingMetricsConfig = createApplicationLoggingMetricsConfig();
         applicationLoggingLocalDecoratingConfig = createApplicationLoggingLocalDecoratingConfig();
-        applicationLoggingForwardingConfig = createApplicationLoggingForwardingConfig(highSecurity);
+        applicationLoggingForwardingConfig = createApplicationLoggingForwardingConfig(highSecurity, isAutoAppNamingEnabled);
     }
 
     private ApplicationLoggingMetricsConfig createApplicationLoggingMetricsConfig() {
@@ -63,16 +69,16 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
         return new ApplicationLoggingLocalDecoratingConfig(localDecoratingProps, SYSTEM_PROPERTY_ROOT);
     }
 
-    private ApplicationLoggingForwardingConfig createApplicationLoggingForwardingConfig(boolean highSecurity) {
+    private ApplicationLoggingForwardingConfig createApplicationLoggingForwardingConfig(boolean highSecurity, boolean isAutoAppNamingEnabled) {
         Map<String, Object> forwardingProps = getProperty(FORWARDING, Collections.emptyMap());
-        return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity);
+        return new ApplicationLoggingForwardingConfig(forwardingProps, SYSTEM_PROPERTY_ROOT, highSecurity, isAutoAppNamingEnabled);
     }
 
-    static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity) {
+    static ApplicationLoggingConfigImpl createApplicationLoggingConfig(Map<String, Object> settings, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         if (settings == null) {
             settings = Collections.emptyMap();
         }
-        return new ApplicationLoggingConfigImpl(settings, highSecurity);
+        return new ApplicationLoggingConfigImpl(settings, highSecurity, isAutoAppNamingEnabled);
     }
 
     @Override
@@ -88,6 +94,11 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     @Override
     public boolean isLocalDecoratingEnabled() {
         return applicationLoggingEnabled && applicationLoggingLocalDecoratingConfig.getEnabled();
+    }
+
+    @VisibleForTesting
+    public ApplicationLoggingLocalDecoratingConfig getLocalDecoratingConfig() {
+        return applicationLoggingLocalDecoratingConfig;
     }
 
     @Override
@@ -114,4 +125,30 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public List<String> getForwardingContextDataExclude() {
         return applicationLoggingForwardingConfig.contextDataExclude();
     }
+
+    @Override
+    public boolean isLogLabelsEnabled() {
+        return applicationLoggingEnabled && applicationLoggingForwardingConfig.isLogLabelsEnabled();
+    }
+
+    @Override
+    public Map<String, String> removeExcludedLogLabels(Map<String, String> labels) {
+        return applicationLoggingForwardingConfig.removeExcludedLabels(labels);
+    }
+
+    @Override
+    public Set<String> getLogLabelsExcludeSet() {
+        return applicationLoggingForwardingConfig.getLoggingLabelsExcludeSet();
+    }
+
+    @Override
+    public boolean isAutoAppNamingAssociationEnabled() {
+        return applicationLoggingForwardingConfig.isAutoAppNamingAssociationEnabled();
+    }
+
+    @Override
+    public Set<String> getLogLevelDenylist(){
+        return applicationLoggingForwardingConfig.getLogLevelDenylist();
+    }
 }
+

@@ -1258,6 +1258,114 @@ public class ErrorCollectorConfigImplTest {
         }
     }
 
+    @Test
+    public void ignoreErrorsClassWithLeadingSpaces() {
+        LogMocker mocker = new LogMocker();
+        try {
+            String ignoreErrorClass = "com.newrelic.IgnoreErrorClass";
+
+            Map<String, Object> localSettings = createMap();
+            List<String> ignoreClassesList = new ArrayList<>();
+            ignoreClassesList.add("  " + ignoreErrorClass);
+
+            localSettings.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreClassesList);
+            ErrorCollectorConfig config = ErrorCollectorConfigImpl.createErrorCollectorConfig(localSettings);
+
+            Set<IgnoreErrorConfig> ignoreErrors = config.getIgnoreErrors();
+            assertFalse(ignoreErrors.isEmpty());
+            assertEquals(1, ignoreErrors.size());
+
+            IgnoreErrorConfig ignoreError = ignoreErrors.iterator().next();
+            assertEquals(ignoreErrorClass, ignoreError.getErrorClass());
+            assertNull(ignoreError.getErrorMessage());
+
+            mocker.verifyNoMessage();
+        } finally {
+            mocker.close();
+        }
+    }
+
+    @Test
+    public void ignoreErrorsClassWithTrailingSpaces() {
+        LogMocker mocker = new LogMocker();
+        try {
+            String ignoreErrorClass = "com.newrelic.IgnoreErrorClass";
+
+            Map<String, Object> localSettings = createMap();
+            List<String> ignoreClassesList = new ArrayList<>();
+            ignoreClassesList.add(ignoreErrorClass + "  ");
+
+            localSettings.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreClassesList);
+            ErrorCollectorConfig config = ErrorCollectorConfigImpl.createErrorCollectorConfig(localSettings);
+
+            Set<IgnoreErrorConfig> ignoreErrors = config.getIgnoreErrors();
+            assertFalse(ignoreErrors.isEmpty());
+            assertEquals(1, ignoreErrors.size());
+
+            IgnoreErrorConfig ignoreError = ignoreErrors.iterator().next();
+            assertEquals(ignoreErrorClass, ignoreError.getErrorClass());
+            assertNull(ignoreError.getErrorMessage());
+
+            mocker.verifyNoMessage();
+        } finally {
+            mocker.close();
+        }
+    }
+
+    @Test
+    public void ignoreErrorsClassWithLeadingAndTrailingSpaces() {
+        LogMocker mocker = new LogMocker();
+        try {
+            String ignoreErrorClass = "com.newrelic.IgnoreErrorClass";
+
+            Map<String, Object> localSettings = createMap();
+            List<String> ignoreClassesList = new ArrayList<>();
+            ignoreClassesList.add(" " + ignoreErrorClass + " ");
+
+            localSettings.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreClassesList);
+            ErrorCollectorConfig config = ErrorCollectorConfigImpl.createErrorCollectorConfig(localSettings);
+
+            Set<IgnoreErrorConfig> ignoreErrors = config.getIgnoreErrors();
+            assertFalse(ignoreErrors.isEmpty());
+            assertEquals(1, ignoreErrors.size());
+
+            IgnoreErrorConfig ignoreError = ignoreErrors.iterator().next();
+            assertEquals(ignoreErrorClass, ignoreError.getErrorClass());
+            assertNull(ignoreError.getErrorMessage());
+
+            mocker.verifyNoMessage();
+        } finally {
+            mocker.close();
+        }
+    }
+
+    @Test
+    public void ignoreErrorsClassWithNewlinePrefix() {
+        LogMocker mocker = new LogMocker();
+        try {
+            String ignoreErrorClass = "com.newrelic.IgnoreErrorClass";
+
+            Map<String, Object> localSettings = createMap();
+            List<String> ignoreClassesList = new ArrayList<>();
+            ignoreClassesList.add("\n" + ignoreErrorClass);
+
+            localSettings.put(ErrorCollectorConfigImpl.IGNORE_CLASSES, ignoreClassesList);
+            ErrorCollectorConfig config = ErrorCollectorConfigImpl.createErrorCollectorConfig(localSettings);
+
+            Set<IgnoreErrorConfig> ignoreErrors = config.getIgnoreErrors();
+            assertFalse(ignoreErrors.isEmpty());
+            assertEquals(1, ignoreErrors.size());
+
+            IgnoreErrorConfig ignoreError = ignoreErrors.iterator().next();
+            assertEquals(ignoreErrorClass, ignoreError.getErrorClass());
+            assertNull(ignoreError.getErrorMessage());
+
+            mocker.verifyNoMessage();
+        } finally {
+            mocker.close();
+        }
+    }
+
     // Mock out the Logger so we can verify warnings were (or were not) logged at a given level.
     // Note: do not "over verify" by checking the log message itself - too brittle.
     private class LogMocker {

@@ -10,6 +10,7 @@ package com.newrelic.agent.trace;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class TransactionGuidFactory {
+    private static final char[] hexchars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     private TransactionGuidFactory() {
     }
@@ -21,7 +22,6 @@ public class TransactionGuidFactory {
         // return Long.toHexString(Math.abs(randomHolder.get().nextLong()))
         // In addition, this one returns 16 useful digits, while the obvious one returns slightly fewer.
         // Note that the digits are generated in "reverse order", which is perfectly fine here.
-        final char[] hexchars = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
         long random = ThreadLocalRandom.current().nextLong();
         char[] result = new char[16];
         for (int i = 0; i < 16; ++i) {

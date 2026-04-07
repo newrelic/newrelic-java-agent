@@ -29,7 +29,9 @@ public class UtilizationData {
     private static final String VENDORS_KEY = "vendors";
     private static final String BOOT_ID = "boot_id";
     private static final String DOCKER = "docker";
+    private static final String ECS = "ecs";
     private static final String DOCKER_ID_KEY = "id";
+    private static final String ECS_ID_KEY = "ecsDockerId";
     private static final String CONFIG_KEY = "config";
     private static final String KUBERNETES = "kubernetes";
 
@@ -39,23 +41,26 @@ public class UtilizationData {
     private final ArrayList<String> ipAddress;
     private final Integer logicalProcessorCount;
     private final String dockerContainerId;
+    private final String ecsFargateDockerContainerId;
     private final String bootId;
     private final Long totalRamMib;
     private final UtilizationConfig dataConfig;
     private final KubernetesData kubernetesData;
 
-    public UtilizationData(String host, String fullHost, ArrayList<String> ip, Integer logicalProcessorCt, String dockerId, String bootId,
-            CloudData cloudData, Future<Long> ramFuture, UtilizationConfig configData, KubernetesData kubernetesData) {
-        this(host, fullHost, ip, logicalProcessorCt, dockerId, bootId, cloudData, getTotalRamMibFromFuture(ramFuture), configData, kubernetesData);
+    public UtilizationData(String host, String fullHost, ArrayList<String> ip, Integer logicalProcessorCt, String dockerId, String ecsFargateDockerContainerId,
+            String bootId, CloudData cloudData, Future<Long> ramFuture, UtilizationConfig configData, KubernetesData kubernetesData) {
+        this(host, fullHost, ip, logicalProcessorCt, dockerId, ecsFargateDockerContainerId, bootId, cloudData,
+                getTotalRamMibFromFuture(ramFuture), configData, kubernetesData);
     }
 
-    public UtilizationData(String host, String fullHost, ArrayList<String> ip, Integer logicalProcessorCt, String dockerId, String bootId,
-            CloudData cloudData, Long ram, UtilizationConfig configData, KubernetesData kubernetesData) {
+    public UtilizationData(String host, String fullHost, ArrayList<String> ip, Integer logicalProcessorCt, String dockerId, String ecsFargateDockerContainerId,
+            String bootId, CloudData cloudData, Long ram, UtilizationConfig configData, KubernetesData kubernetesData) {
         this.hostname = host;
         this.fullHostName = fullHost;
         this.ipAddress = ip;
         this.logicalProcessorCount = Integer.valueOf(0).equals(logicalProcessorCt) ? null : logicalProcessorCt;
         this.dockerContainerId = dockerId;
+        this.ecsFargateDockerContainerId = ecsFargateDockerContainerId;
         this.bootId = bootId;
         this.cloudData = cloudData;
         this.totalRamMib = Long.valueOf(0).equals(ram) ? null : ram;
@@ -114,6 +119,12 @@ public class UtilizationData {
             Map<String, String> docker = new HashMap<>();
             docker.put(DOCKER_ID_KEY, dockerContainerId);
             vendors.put(DOCKER, docker);
+        }
+
+        if (ecsFargateDockerContainerId != null) {
+            Map<String, String> ecs = new HashMap<>();
+            ecs.put(ECS_ID_KEY, ecsFargateDockerContainerId);
+            vendors.put(ECS, ecs);
         }
 
         if (!vendors.isEmpty()) {

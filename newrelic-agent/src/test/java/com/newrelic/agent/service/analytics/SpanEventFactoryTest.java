@@ -13,6 +13,8 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.AttributeFilter;
+import com.newrelic.agent.model.EventOnSpan;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
@@ -26,6 +28,7 @@ import com.newrelic.api.agent.MessageProduceParameters;
 import org.junit.Test;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -238,6 +241,7 @@ public class SpanEventFactoryTest {
         when(mockParameters.getProduct()).thenReturn("MySQL");
         when(mockParameters.getHost()).thenReturn("dbserver");
         when(mockParameters.getPort()).thenReturn(3306);
+        when(mockParameters.getCloudResourceId()).thenReturn("123456789");
 
         SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
 
@@ -249,6 +253,7 @@ public class SpanEventFactoryTest {
         assertEquals("dbserver", target.getAgentAttributes().get("server.address"));
         assertEquals(3306, target.getAgentAttributes().get("server.port"));
         assertEquals("dbserver:3306", target.getAgentAttributes().get("peer.address"));
+        assertEquals("123456789", target.getAgentAttributes().get("cloud.resource_id"));
     }
 
     @Test
@@ -287,6 +292,22 @@ public class SpanEventFactoryTest {
         assertEquals(expectedHost, agentAttrs.get("peer.hostname"));
         assertEquals(expectedPort, agentAttrs.get("server.port"));
         assertEquals("consumer", target.getIntrinsics().get("span.kind"));
+    }
+
+    @Test
+    public void shouldSetCloudResourceIdOnSpanFromDatastoreParameters() {
+        String expectedArn = "arn:aws:dynamodb:us-west-1:123456789012:tableName";
+        DatastoreParameters mockParameters = mock(DatastoreParameters.class);
+        when(mockParameters.getOperation()).thenReturn("putItem");
+        when(mockParameters.getCollection()).thenReturn("tableName");
+        when(mockParameters.getProduct()).thenReturn("DynamoDB");
+        when(mockParameters.getHost()).thenReturn("dbserver");
+        when(mockParameters.getPort()).thenReturn(1234);
+        when(mockParameters.getCloudResourceId()).thenReturn(expectedArn);
+        SpanEvent target = spanEventFactory.setExternalParameterAttributes(mockParameters).build();
+
+        Map<String, Object> agentAttrs = target.getAgentAttributes();
+        assertEquals(expectedArn, agentAttrs.get("cloud.resource_id"));
     }
 
     @Test
@@ -347,6 +368,74 @@ public class SpanEventFactoryTest {
 
         assertEquals("yes", spanEvent.getAgentAttributes().get("filtered"));
         assertNull(spanEvent.getAgentAttributes().get("original"));
+    }
+
+    @Test
+    public void linkOnSpanEventsShouldBeSet() {
+        ArrayList<LinkOnSpan> linkOnSpans = new ArrayList<>();
+
+        LinkOnSpan linkOnSpan1 = LinkOnSpan
+                .builder()
+                .appName("linkOnSpan1")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build();
+
+        LinkOnSpan linkOnSpan2 = LinkOnSpan
+                .builder()
+                .appName("linkOnSpan2")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("id", "id")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("linkedSpanId", "linkedSpanId")
+                .putIntrinsic("linkedTraceId", "linkedTraceId")
+                .build();
+
+        linkOnSpans.add(linkOnSpan1);
+        linkOnSpans.add(linkOnSpan2);
+
+        SpanEvent target = spanEventFactory.setLinkOnSpanEvents(linkOnSpans).build();
+
+        assertFalse(target.getLinkOnSpanEvents().isEmpty());
+        assertEquals(2, target.getLinkOnSpanEvents().size());
+        assertEquals("linkOnSpan1", target.getLinkOnSpanEvents().get(0).getAppName());
+        assertEquals("linkOnSpan2", target.getLinkOnSpanEvents().get(1).getAppName());
+    }
+
+    @Test
+    public void eventOnSpanEventsShouldBeSet() {
+        ArrayList<EventOnSpan> eventOnSpans = new ArrayList<>();
+
+        EventOnSpan eventOnSpan1 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan1")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        EventOnSpan eventOnSpan2 = EventOnSpan
+                .builder()
+                .appName("eventOnSpan2")
+                .timestamp(System.currentTimeMillis())
+                .putIntrinsic("span.id", "spanId")
+                .putIntrinsic("trace.id", "traceId")
+                .putIntrinsic("name", "name")
+                .build();
+
+        eventOnSpans.add(eventOnSpan1);
+        eventOnSpans.add(eventOnSpan2);
+
+        SpanEvent target = spanEventFactory.setEventOnSpanEvents(eventOnSpans).build();
+
+        assertFalse(target.getEventOnSpanEvents().isEmpty());
+        assertEquals(2, target.getEventOnSpanEvents().size());
+        assertEquals("eventOnSpan1", target.getEventOnSpanEvents().get(0).getAppName());
+        assertEquals("eventOnSpan2", target.getEventOnSpanEvents().get(1).getAppName());
     }
 
     private static class PassNothingAttributeFilter extends AttributeFilter.PassEverythingAttributeFilter {

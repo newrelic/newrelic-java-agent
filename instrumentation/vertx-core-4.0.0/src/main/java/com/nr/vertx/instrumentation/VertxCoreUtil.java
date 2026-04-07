@@ -13,7 +13,6 @@ import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
-import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.vertx.core.Handler;
 import io.vertx.core.http.impl.HttpClientResponseImpl;
@@ -45,6 +44,15 @@ public class VertxCoreUtil {
             final Token token = tokenMap.remove(handler);
             if (token != null) {
                 token.linkAndExpire();
+            }
+        }
+    }
+
+    public static void expireToken(Handler handler) {
+        if (handler != null) {
+            final Token token = tokenMap.remove(handler);
+            if (token != null) {
+                token.expire();
             }
         }
     }

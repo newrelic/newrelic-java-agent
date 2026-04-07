@@ -11,6 +11,7 @@ import com.newrelic.agent.application.PriorityApplicationName;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.api.agent.NewRelic;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -72,9 +73,14 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
         };
 
         AgentConfig config = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        String host = config.getHost();
-        String port = Integer.toString(config.getPort());
-        getLogger().config(MessageFormat.format("Configured to connect to New Relic at {0}:{1}", host, port));
+
+        if (config.getServerlessConfig().isEnabled()) {
+            getLogger().config("Configured to connect to New Relic via serverless layer");
+        } else {
+            String host = config.getHost();
+            String port = Integer.toString(config.getPort());
+            getLogger().config(MessageFormat.format("Configured to connect to New Relic at {0}:{1}", host, port));
+        }
         defaultRPMService = createRPMService(config.getApplicationNames(), connectionConfigListener, connectionListener);
         List<IRPMService> list = new ArrayList<>(1);
         list.add(defaultRPMService);
@@ -157,6 +163,8 @@ public class RPMServiceManagerImpl extends AbstractService implements RPMService
             list.addAll(appNameToRPMService.values());
             list.add(defaultRPMService);
             rpmServices = Collections.unmodifiableList(list);
+            //Report app name to the default app so we can find all auto-named apps in the UI.
+            NewRelic.incrementCounter(MessageFormat.format(MetricNames.SUPPORTABILITY_AUTO_APP_NAMING_REPORTING_TO, appName));
             if (isStarted()) {
                 try {
                     rpmService.start();

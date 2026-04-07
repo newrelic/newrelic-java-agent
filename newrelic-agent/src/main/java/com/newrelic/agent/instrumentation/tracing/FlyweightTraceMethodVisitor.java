@@ -35,7 +35,7 @@ import java.util.logging.Level;
  * Flyweight timers can be created when an instrumented method doesn't participate in transaction traces and is a leaf
  * (no children). Instead of creating a {@link Tracer} object, we create local variables to store the timing information
  * and the details of the traced method.
- * 
+ *
  * @see Transaction#startFlyweightTracer()
  * @see Transaction#finishFlyweightTracer(TracedMethod, long, long, String, String, String, String, String[])
  */
@@ -82,7 +82,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
     /**
      * Creates handlers responsible for generating the bytecode that replaces invocations of all {@link TracedMethod}
      * methods.
-     * 
+     *
      * @see TracedMethod
      */
     private Map<Method, Handler> getTracedMethodMethodHandlers() {
@@ -122,6 +122,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         addUnsupportedMethod(map, new Method("trackChildThreads", "()Z"));
         addUnsupportedMethod(map, new Method("setTrackCallbackRunnable", "(Z)V"));
         addUnsupportedMethod(map, new Method("isTrackCallbackRunnable", "()Z"));
+        addUnsupportedMethod(map, new Method("excludeLeaf", "()V"));
         addUnsupportedMethod(map, new Method("reportAsDatastore",
                 "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"));
         addUnsupportedMethod(map, new Method("addOutboundRequestHeaders",
@@ -137,7 +138,10 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
         addUnsupportedMethod(map, new Method("addCustomAttribute", "(Ljava/lang/String;Ljava/lang/Number;)V"));
         addUnsupportedMethod(map, new Method("addCustomAttribute", "(Ljava/lang/String;Z)V"));
         addUnsupportedMethod(map, new Method("addCustomAttributes", "(Ljava/util/Map;)V"));
-
+        addUnsupportedMethod(map, new Method("addSpanLink", "(Lcom/newrelic/agent/bridge/opentelemetry/SpanLink;)V"));
+        addUnsupportedMethod(map, new Method("getSpanLinks", "()Ljava/util/List;"));
+        addUnsupportedMethod(map, new Method("addSpanEvent", "(Lcom/newrelic/agent/bridge/opentelemetry/SpanEvent;)V"));
+        addUnsupportedMethod(map, new Method("getSpanEvents", "()Ljava/util/List;"));
         map.put(new Method("getParentTracedMethod", "()Lcom/newrelic/agent/bridge/TracedMethod;"), mv -> mv.loadLocal(parentTracerLocal));
 
         return map;
@@ -224,7 +228,7 @@ public class FlyweightTraceMethodVisitor extends AdviceAdapter {
 
     /**
      * This code is injected at every exit instruction, whether a return or an ATHROW.
-     * 
+     *
      * @see Transaction#finishFlyweightTracer(TracedMethod, long, long, String, String, String, String, String[])
      */
     private void onEveryExit() {

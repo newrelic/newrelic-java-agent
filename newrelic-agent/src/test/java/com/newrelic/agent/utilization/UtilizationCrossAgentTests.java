@@ -158,6 +158,7 @@ public class UtilizationCrossAgentTests {
 
         // no cross-agent tests for docker yet.
         String containerId = null;
+        String ecsFargateDockerId = null;
 
         CloudData data = null;
 
@@ -210,8 +211,8 @@ public class UtilizationCrossAgentTests {
             addresses.addAll(ipAddress);
         }
 
-        UtilizationData utilizationData = new UtilizationData(hostname, fullHostname, addresses, logical_processors, containerId, boot_id, data, total_ram_mib,
-                UtilizationConfig.createFromConfigService(), KubernetesData.extractKubernetesValues(systemPropertyProvider));
+        UtilizationData utilizationData = new UtilizationData(hostname, fullHostname, addresses, logical_processors, containerId, ecsFargateDockerId,
+                boot_id, data, total_ram_mib, UtilizationConfig.createFromConfigService(), KubernetesData.extractKubernetesValues(systemPropertyProvider));
         Assert.assertEquals("cross agent test '" + testname + "' failed.", expectedOutput, toJSONObject(utilizationData.map()));
     }
 

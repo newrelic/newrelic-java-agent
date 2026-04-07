@@ -22,14 +22,25 @@ abstract class FutureImpl_Instrumentation {
 
     public abstract boolean isComplete();
 
+    // see README for notes on this method
     @Trace(async = true, excludeFromTransactionTrace = true)
     public Future setHandler(Handler<AsyncResult> handler) {
+        Handler previousHandler = this.handler;
         if (isComplete()) {
             VertxCoreUtil.linkAndExpireToken(handler);
-        } else {
-            VertxCoreUtil.storeToken(handler);
         }
-        return Weaver.callOriginal();
+
+        Future future = Weaver.callOriginal();
+
+        if (!isComplete()) {
+            if (previousHandler != this.handler) {
+                VertxCoreUtil.storeToken(this.handler);
+                if (previousHandler != null) {
+                    VertxCoreUtil.expireToken(previousHandler);
+                }
+            }
+        }
+        return future;
     }
 
     @Trace(async = true, excludeFromTransactionTrace = true)

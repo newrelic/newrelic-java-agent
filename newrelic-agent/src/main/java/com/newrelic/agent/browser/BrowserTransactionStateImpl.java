@@ -28,7 +28,7 @@ public class BrowserTransactionStateImpl implements BrowserTransactionState {
 
     // Thread safety: public accessors that touch this object's state are synchronized. There are numerous public
     // accessors that just forwards requests through to the Transaction; these aren't synchronized here, except
-    // when the manipulate the results (e.g. getAgentAttributes()).
+    // when they manipulate the results (e.g. getAgentAttributes()).
 
     private final Object lock = new Object();
     private final Transaction tx;

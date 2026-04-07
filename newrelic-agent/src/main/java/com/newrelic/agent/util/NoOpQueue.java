@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Queue;
 
-public final class NoOpQueue<E extends PriorityAware> implements Queue<E> {
+public final class NoOpQueue<E extends PriorityAware> implements MinAwareQueue<E> {
     private static final Queue<? extends PriorityAware> INSTANCE = new NoOpQueue<>();
 
     public static <T extends PriorityAware> Queue<T> getInstance() {
@@ -109,5 +109,10 @@ public final class NoOpQueue<E extends PriorityAware> implements Queue<E> {
 
     @Override
     public void clear() {
+    }
+
+    @Override
+    public E peekLast(){
+        return null;
     }
 }

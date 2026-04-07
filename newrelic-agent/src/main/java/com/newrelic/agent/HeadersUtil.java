@@ -8,6 +8,7 @@
 package com.newrelic.agent;
 
 import com.google.common.collect.ImmutableSet;
+import com.newrelic.agent.tracing.Sampled;
 import com.newrelic.api.agent.Headers;
 import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.tracers.DefaultTracer;
@@ -265,6 +266,7 @@ public class HeadersUtil {
                 }
                 if (w3CTracePayload.getTraceParent() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceParent(w3CTracePayload.getTraceParent());
+                    tx.assignPriorityFromRemoteParent(w3CTracePayload.getTraceParent().sampled());
                 }
                 if (w3CTracePayload.getTraceState() != null) {
                     tx.getSpanProxy().setInitiatingW3CTraceState(w3CTracePayload.getTraceState());
@@ -275,6 +277,10 @@ public class HeadersUtil {
             String tracePayload = HeadersUtil.getNewRelicTraceHeader(inboundHeaders);
             if (tracePayload != null) {
                 tx.acceptDistributedTracePayload(tracePayload);
+                DistributedTracePayloadImpl newRelicPayload = tx.getSpanProxy().getInboundDistributedTracePayload();
+                if (newRelicPayload != null && newRelicPayload.sampled != Sampled.UNKNOWN) {
+                    tx.assignPriorityFromRemoteParent(newRelicPayload.sampled.booleanValue());
+                }
             }
         }
     }

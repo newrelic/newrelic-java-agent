@@ -59,6 +59,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
     private final Map<String, Object> intrinsicAttributes;
     private final long rootTracerStartTime;
     private Map<Tracer, Collection<Tracer>> children;
+
     private final String guid;
     private final Map<String, Map<String, String>> prefixedAttributes;
     private String syntheticsResourceId;
@@ -66,6 +67,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
     private String syntheticsInitiator;
     private Map<String, String> syntheticsAttributes;
     private final String applicationName;
+    private final boolean isServerlessMode;
 
     private TransactionTrace(TransactionData transactionData, SqlObfuscator sqlObfuscator) {
         this.applicationName = transactionData.getApplicationName();
@@ -83,6 +85,7 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 userAttributes.putAll(transactionData.getUserAttributes());
             }
         }
+        isServerlessMode = ServiceFactory.getConfigService().getAgentConfig(applicationName).getServerlessConfig().isEnabled();
         prefixedAttributes = transactionData.getPrefixedAttributes();
         intrinsicAttributes = getIntrinsics(transactionData);
         startTime = transactionData.getWallClockStartTimeMs();
@@ -177,13 +180,21 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
                 kids = new ArrayList<>(parentTracer == null ? 1 : Math.max(1, parentTracer.getChildCount()));
                 children.put(parentTracer, kids);
             }
-            kids.add(tracer);
+            //This check was added to allow leaves to be marked as excluded after they are constructed and added to the tracer list.
+            //It should have no effect on traces that are marked as excluded the normal way, via annotation.
+            if (tracer.isTransactionSegment()){
+                kids.add(tracer);
+            }
         }
         return children;
     }
 
     public long getStartTime() {
         return startTime;
+    }
+
+    public String getGuid() {
+        return guid;
     }
 
     private static SqlObfuscator getSqlObfuscator(String appName) {
@@ -336,13 +347,18 @@ public class TransactionTrace implements Comparable<TransactionTrace>, JSONStrea
 
         List<Object> data = Arrays.asList(startTime, Collections.EMPTY_MAP, Collections.EMPTY_MAP, rootSegment, getAttributes());
 
-        if (null == syntheticsResourceId) {
+        if (null == syntheticsResourceId && !isServerlessMode) {
             JSONArray.writeJSONString(Arrays.asList(startTime, duration, rootMetricName, requestUri,
                     getData(writer, data), guid, null, forcePersist), writer);
         } else {
             JSONArray.writeJSONString(Arrays.asList(startTime, duration, rootMetricName, requestUri,
                     getData(writer, data), guid, null, forcePersist, xraySessionId, syntheticsResourceId), writer);
         }
+    }
+
+    // This is for serverless
+    public List<Object> getTraceDetailsAsList() {
+        return Arrays.asList(startTime, Collections.EMPTY_MAP, Collections.EMPTY_MAP, rootSegment, getAttributes());
     }
 
     private Object getData(Writer writer, List<Object> data) {

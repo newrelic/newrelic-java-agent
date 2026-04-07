@@ -63,6 +63,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -1003,6 +1004,51 @@ public class TransactionTraceTest {
         }
         root.finish(0, null);
         Assert.assertEquals("Java/java.lang.Object/dude", TransactionSegment.getMetricName(root));
+    }
+
+    @Test
+    public void testExcludeChildLeafFromTT() throws Exception {
+        setUp(true, true, false);
+        Transaction tx = Transaction.getTransaction(true);
+        TransactionActivity txa = TransactionActivity.get();
+        // make sure the test env is sane
+        Assert.assertNotNull(tx);
+        Assert.assertNotNull(txa);
+        Assert.assertEquals(tx, txa.getTransaction());
+
+        final ClassMethodSignature sig = new ClassMethodSignature("Test", "dude", "()V");
+        final MetricNameFormat metricNameFormat = new SimpleMetricNameFormat("Test.dude", "Test.dude");
+        final int defaultFlags = TracerFlags.GENERATE_SCOPED_METRIC | TracerFlags.TRANSACTION_TRACER_SEGMENT; // @Trace
+        final int leafFlags = defaultFlags | TracerFlags.LEAF;
+
+        DefaultTracer root = new OtherRootTracer(txa, sig, new Object(), metricNameFormat, defaultFlags,
+                System.currentTimeMillis());
+        txa.tracerStarted(root);
+        Assert.assertEquals(txa, root.getTransactionActivity());
+        Assert.assertEquals(tx, root.getTransaction());
+
+        final MetricNameFormat mNFChild1 = new SimpleMetricNameFormat("child1", "child1");
+        DefaultTracer child1 = new DefaultTracer(txa, sig, new Object(), mNFChild1, leafFlags,
+                System.currentTimeMillis());
+        txa.tracerStarted(child1);
+        //excludeLeaf forces child1 to be marked as excluded
+        child1.excludeLeaf();
+        child1.finish(0, null);
+
+        final MetricNameFormat mNFChild2 = new SimpleMetricNameFormat("child2", "child2");
+        DefaultTracer child2 = new DefaultTracer(txa, sig, new Object(), mNFChild2, leafFlags,
+                System.currentTimeMillis());
+        txa.tracerStarted(child2);
+        child2.finish(0, null);
+
+        root.finish(0, null);
+
+        //TransactionTrace should honor the new excludes flag and drop child1 from the trace
+        Map<Tracer, Collection<Tracer>> tt = TransactionTrace.buildChildren(Arrays.asList(root, child1, child2));
+        Collection<Tracer> filteredChildren = tt.get(root);
+        Assert.assertNotNull(filteredChildren);
+        Assert.assertEquals(1, filteredChildren.size());
+        Assert.assertTrue(filteredChildren.contains(child2));
     }
 
     @Test

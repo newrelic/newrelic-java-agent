@@ -7,10 +7,14 @@
 
 package com.newrelic.agent.bridge;
 
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.api.agent.ExternalParameters;
 import com.newrelic.api.agent.InboundHeaders;
 import com.newrelic.api.agent.OutboundHeaders;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public final class NoOpTracedMethod implements TracedMethod {
@@ -26,6 +30,24 @@ public final class NoOpTracedMethod implements TracedMethod {
 
     @Override
     public void nameTransaction(TransactionNamePriority namePriority) {
+    }
+
+    @Override
+    public void addSpanLink(SpanLink link) {
+    }
+
+    @Override
+    public List<SpanLink> getSpanLinks() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addSpanEvent(SpanEvent event) {
+    }
+
+    @Override
+    public List<SpanEvent> getSpanEvents() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -97,6 +119,10 @@ public final class NoOpTracedMethod implements TracedMethod {
     @Override
     public boolean isTrackCallbackRunnable() {
         return false;
+    }
+
+    @Override
+    public void excludeLeaf() {
     }
 
     @Override

@@ -1,19 +1,30 @@
+/*
+ *
+ *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent;
 
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
+import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.lang.instrument.Instrumentation;
+@Category(RequiresFork.class)
 public class AgentTest {
 
     static IAgentLogger logger;
@@ -48,8 +59,14 @@ public class AgentTest {
     @Test
     public void test_emptyLicense() {
         try (MockedStatic<ConfigServiceFactory> csfMock = Mockito.mockStatic(ConfigServiceFactory.class)) {
+            ServerlessConfig serverlessConfig = Mockito.mock(ServerlessConfig.class);
+            Mockito.when(serverlessConfig.isEnabled()).thenReturn(false);
+
             AgentConfig agentConfig = Mockito.mock(AgentConfig.class);
+            Mockito.when(agentConfig.getAgentControlIntegrationConfig()).thenReturn(Mockito.mock(AgentControlIntegrationConfig.class));
             Mockito.when(agentConfig.getLicenseKey()).thenReturn(null);
+            Mockito.when(agentConfig.getServerlessConfig()).thenReturn(serverlessConfig);
+
             ConfigService configService = Mockito.mock(ConfigService.class);
             Mockito.when(configService.getDefaultAgentConfig()).thenReturn(agentConfig);
             csfMock.when(() -> ConfigServiceFactory.createConfigService(Mockito.any(), Mockito.anyBoolean())).thenReturn(configService);
@@ -64,6 +81,7 @@ public class AgentTest {
     public void test_agentDisabled2() {
         try (MockedStatic<ConfigServiceFactory> csfMock = Mockito.mockStatic(ConfigServiceFactory.class)) {
             AgentConfig agentConfig = Mockito.mock(AgentConfig.class);
+            Mockito.when(agentConfig.getAgentControlIntegrationConfig()).thenReturn(Mockito.mock(AgentControlIntegrationConfig.class));
             Mockito.when(agentConfig.getLicenseKey()).thenReturn("licenseKey");
             Mockito.when(agentConfig.isAgentEnabled()).thenReturn(false);
             ConfigService configService = Mockito.mock(ConfigService.class);

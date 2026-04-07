@@ -55,7 +55,7 @@ public final class AttributeNames {
 
     public static final String RESPONSE_CONTENT_TYPE_PARAMETER_NAME = "response.headers.contentType";
 
-    // Opem Telemetry compatible attributes for host and port
+    // Open Telemetry compatible attributes for host and port
     public static final String SERVER_ADDRESS = "server.address";
     public static final String SERVER_PORT = "server.port";
 

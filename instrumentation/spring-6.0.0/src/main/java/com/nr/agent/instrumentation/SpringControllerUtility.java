@@ -6,7 +6,6 @@
  */
 package com.nr.agent.instrumentation;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.NewRelic;

@@ -4,6 +4,8 @@ import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.bridge.opentelemetry.SpanEvent;
+import com.newrelic.agent.bridge.opentelemetry.SpanLink;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.TransactionTracerConfig;
 import com.newrelic.agent.database.SqlObfuscator;
@@ -123,6 +125,8 @@ public class MethodExitTracerNoSkipTest {
         instance.setMetricName("foo");
         instance.setMetricNameFormatInfo("foo", "bar", "baz");
         instance.getGuid();
+        instance.addSpanLink(new SpanLink(0, "", "", "", "", Collections.emptyMap()));
+        instance.addSpanEvent(new SpanEvent(0, "", "", "", Collections.emptyMap()));
     }
 
     private static class TestMethodExitTracerNoSkip extends MethodExitTracerNoSkip {

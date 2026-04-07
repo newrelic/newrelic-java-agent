@@ -7,6 +7,7 @@
 
 package org.apache.kafka.clients.producer;
 
+import com.nr.instrumentation.kafka.ClientType;
 import org.apache.kafka.clients.producer.internals.ProducerMetadata;
 import org.apache.kafka.common.metrics.Metrics;
 import org.apache.kafka.common.Node;
@@ -44,11 +45,7 @@ public class KafkaProducer_Instrumentation<K, V> {
     public KafkaProducer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            Set<String> nodeNames = new HashSet<>(nodes.size());
-            for (Node node : nodes) {
-                nodeNames.add(node.host() + ":" + node.port());
-            }
-            metrics.addReporter(new NewRelicMetricsReporter(nodeNames, NewRelicMetricsReporter.Mode.PRODUCER));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.PRODUCER, nodes));
             initialized = true;
         }
     }

@@ -129,6 +129,26 @@ public class Strings {
         return updated.toString();
     }
 
+    /**
+     * Obfuscate the supplied String. If the String is null or less than 4 characters, return the
+     * original String. Otherwise, return the first character + "***" + the last character.
+     *
+     * @param target The String to obfuscate
+     * @return the obfuscated String or the original String if it's null or less than 4 characters
+     */
+    public static String obfuscate(String target) {
+        int MIN_LENGTH = 3;
+        if (target != null) {
+            if (target.length() <= MIN_LENGTH) {
+                return target;
+            }
+
+            return target.charAt(0) + "***" + target.charAt(target.length() - 1);
+        }
+
+        return null;
+    }
+
     private static int findDotOrHyphen(String string, int start) {
         if (string == null) {
             return -1;
