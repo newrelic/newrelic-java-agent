@@ -135,7 +135,7 @@ common: &default_settings
         # A comma separated list of label keys that should NOT be added to application logs.
         # Example:
         #   exclude: label_name1,label_name2
-        exclude:
+        #exclude:
 
       # Whether the log events should include context from loggers with support for that.
       context_data:
@@ -148,6 +148,10 @@ common: &default_settings
 
         # A comma separated list of attribute keys whose values should not be sent to New Relic.
         #exclude:
+
+      # A comma separated list of strings representing log levels that should not be forwarded. Log level names are case-insensitive but otherwise must be an exact match.
+      # Example values: "info, debug"
+      #log_level_denylist:
 
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
