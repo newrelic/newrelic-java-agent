@@ -84,6 +84,9 @@ public class Utils implements CoroutineConfigListener {
 	 * coroutineScope can be a Coroutine name or CoroutineScope class name
 	 */
 	public static boolean continueWithScope(String coroutineScope) {
+		if(coroutineScope == null) {
+			return true;
+		}
 		for(Pattern ignoredScope : ignoredScopePatterns) {
 			if(ignoredScope.matcher(coroutineScope).matches()) {
 				return false;
