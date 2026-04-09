@@ -11,32 +11,15 @@ import com.nr.instrumentation.reactor.ReactorConfig;
 @Weave(originalName = "reactor.core.publisher.SinkEmptyMulticast")
 class SinkEmptyMulticast_Instrumentation<T> {
 
-    @NewField
-    protected Token token = null;
-
-    SinkEmptyMulticast_Instrumentation() {
-        if(token == null) {
-            token = NewRelic.getAgent().getTransaction().getToken();
-        }
-    }
-
-    @Trace(async=true)
+    @Trace
     public Sinks.EmitResult tryEmitEmpty() {
-        if(token != null) {
-            token.linkAndExpire();
-            token = null;
-        }
         return Weaver.callOriginal();
     }
 
-    @Trace(async=true)
+    @Trace
     public Sinks.EmitResult tryEmitError(Throwable t) {
         if(ReactorConfig.errorsEnabled) {
             NewRelic.noticeError(t);
-        }
-        if(token != null) {
-            token.linkAndExpire();
-            token = null;
         }
         return Weaver.callOriginal();
     }
