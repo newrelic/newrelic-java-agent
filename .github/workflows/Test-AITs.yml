@@ -573,6 +573,7 @@ jobs:
 
                 TEST_NAME=$(echo "$test_result" | jq -r '.metadata.test_name')
                 JAVA_VERSION=$(echo "$test_result" | jq -r '.metadata.java_version')
+                FRAMEWORK_VERSION=$(echo "$test_result" | jq -r '.metadata.framework_version // "N/A"')
 
                 # Parse test name for hierarchy: <dir>-<test_file>.<test_case>
                 DIR=$(echo "$TEST_NAME" | cut -d'-' -f1)
@@ -673,6 +674,7 @@ jobs:
             echo "| Metric | Value |" >> performance-metrics-report.md
             echo "|--------|-------|" >> performance-metrics-report.md
             echo "| Java Version | ${JAVA_VERSION} |" >> performance-metrics-report.md
+            echo "| Framework Version | ${FRAMEWORK_VERSION} |" >> performance-metrics-report.md
             echo "| CPU Time (s) | ${CPU_TIME} |" >> performance-metrics-report.md
             echo "| Response Time Total (s) | ${RESP_TIME} |" >> performance-metrics-report.md
             echo "| Response Count | ${RESP_COUNT} |" >> performance-metrics-report.md
