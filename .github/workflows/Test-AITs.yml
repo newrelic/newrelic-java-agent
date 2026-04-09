@@ -705,7 +705,7 @@ jobs:
           cd wiki
 
           # Add link to index page
-          LINK_TEXT="- [Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})"
+          LINK_TEXT="- [Performance Metrics ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})"
           if ! grep -q "performance-metrics-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
             echo "" >> Performance-Metrics.md
             echo "${LINK_TEXT}" >> Performance-Metrics.md
@@ -737,7 +737,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "View detailed metrics in [Wiki - Performance ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
+            echo "View detailed metrics in [Wiki - Performance Metrics ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
           fi
 
   notify-if-negative-values:
