@@ -587,11 +587,20 @@ jobs:
             fi
           done
 
-          # Sort by dir, test_case (grouping), then java_version and framework_version (for table rows)
-          sort -t'|' -k1,1 -k3,3 -k5,5n -k6,6 "$TEMP_FILE" -o "$TEMP_FILE"
+          # Sorted by dir, test_file, test_case, then java_version and framework_version (for table rows)
+          sort -t'|' -k1,1 -k2,2 -k3,3 -k5,5n -k6,6 "$TEMP_FILE" -o "$TEMP_FILE"
 
           close_test_case() {
             if [ -n "$CURRENT_TEST_CASE" ]; then
+              echo "" >> performance-metrics-report.md
+              echo "</details>" >> performance-metrics-report.md
+              echo "</blockquote>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
+            fi
+          }
+
+          close_test_file() {
+            if [ -n "$CURRENT_TEST_FILE" ]; then
               echo "" >> performance-metrics-report.md
               echo "</details>" >> performance-metrics-report.md
               echo "</blockquote>" >> performance-metrics-report.md
@@ -607,32 +616,47 @@ jobs:
             fi
           }
 
-          # context for nested dropdowns
+          # tracking current context for nested dropdowns
           CURRENT_DIR=""
+          CURRENT_TEST_FILE=""
           CURRENT_TEST_CASE=""
 
           while IFS='|' read -r DIR TEST_FILE TEST_CASE TEST_NAME JAVA_VERSION FRAMEWORK_VERSION JSON_DATA; do
-            # Open new directory dropdown if changed
+
             if [ "$DIR" != "$CURRENT_DIR" ]; then
               close_test_case
+              close_test_file
               close_directory
 
               echo "<details>" >> performance-metrics-report.md
               echo "<summary><strong>📁 ${DIR}</strong></summary>" >> performance-metrics-report.md
               echo "" >> performance-metrics-report.md
               CURRENT_DIR="$DIR"
+              CURRENT_TEST_FILE=""
               CURRENT_TEST_CASE=""
             fi
 
-            if [ "${DIR}|${TEST_CASE}" != "${CURRENT_DIR}|${CURRENT_TEST_CASE}" ]; then
+            if [ "$TEST_FILE" != "$CURRENT_TEST_FILE" ]; then
+              close_test_case
+              close_test_file
+
+              echo "<blockquote>" >> performance-metrics-report.md
+              echo "<details>" >> performance-metrics-report.md
+              echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> performance-metrics-report.md
+              echo "" >> performance-metrics-report.md
+              CURRENT_TEST_FILE="$TEST_FILE"
+              CURRENT_TEST_CASE=""
+            fi
+
+            if [ "$TEST_CASE" != "$CURRENT_TEST_CASE" ]; then
               close_test_case
 
               echo "<blockquote>" >> performance-metrics-report.md
               echo "<details>" >> performance-metrics-report.md
-              echo "<summary><strong>📋 ${TEST_NAME}</strong></summary>" >> performance-metrics-report.md
+              echo "<summary><strong>📋 ${TEST_CASE}</strong></summary>" >> performance-metrics-report.md
               echo "" >> performance-metrics-report.md
 
-              # Horizontal comparison table
+              # horizontal comparison table
               echo "| Java | Framework | CPU Time (s) | Response Time (s) | Response Count | Throughput | Errors | Heap Max (%) |" >> performance-metrics-report.md
               echo "|------|-----------|--------------|-------------------|----------------|------------|--------|--------------|" >> performance-metrics-report.md
 
@@ -660,6 +684,7 @@ jobs:
           done < "$TEMP_FILE"
 
           close_test_case
+          close_test_file
           close_directory
 
           rm -f "$TEMP_FILE"
