@@ -674,7 +674,8 @@ jobs:
 
             CPU_TIME_FMT=$(printf "%.2f" "$CPU_TIME" 2>/dev/null || echo "$CPU_TIME")
             RESP_TIME_FMT=$(printf "%.2f" "$RESP_TIME" 2>/dev/null || echo "$RESP_TIME")
-            HEAP_UTIL_FMT=$(printf "%.1f%%" "$(echo "$HEAP_UTIL * 100" | bc -l 2>/dev/null)" 2>/dev/null || echo "0.0%")
+            # heap_utilization_max is already a percentage (0-100), just format it
+            HEAP_UTIL_FMT=$(printf "%.1f%%" "$HEAP_UTIL" 2>/dev/null || echo "0.0%")
             if [ "$HEAP_PRESENT" = "false" ] || [ "$HEAP_UTIL" = "0.0" ]; then
               HEAP_UTIL_FMT="-"
             fi
