@@ -9,7 +9,7 @@ package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.ForceDisconnectException;
-import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.api.agent.Logger;
 

@@ -6,6 +6,9 @@
  */
 package com.newrelic.agent.agentcontrol;
 
+import com.newrelic.agent.agentcontrol.health.AgentControlIntegrationHealthClient;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
+
 public class AgentControlHealthUnitTestClient implements AgentControlIntegrationHealthClient {
 
     private AgentHealth agentHealth;

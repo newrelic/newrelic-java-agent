@@ -20,8 +20,8 @@ import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
-import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.health.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.api.agent.NewRelicApiImplementation;
 
 import java.lang.instrument.Instrumentation;

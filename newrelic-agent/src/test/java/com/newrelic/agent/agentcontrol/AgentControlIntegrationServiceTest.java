@@ -8,11 +8,16 @@ package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.agentcontrol.effectiveconfig.AgentControlIntegrationEffectiveConfigClient;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,6 +31,7 @@ public class AgentControlIntegrationServiceTest {
     AgentControlIntegrationConfig mockAgentControlIntegrationConfig;
     RPMServiceManager mockRPMServiceManager;
     AgentHealth mockAgentHealth;
+    Map<String, Object> mockEffectiveConfig;
 
     @Before
     public void before() {
@@ -40,6 +46,14 @@ public class AgentControlIntegrationServiceTest {
 
         when(mockAgentConfig.getAgentControlIntegrationConfig()).thenReturn(mockAgentControlIntegrationConfig);
         when(mockAgentConfig.getAgentControlIntegrationConfig()).thenReturn(mockAgentControlIntegrationConfig);
+
+        mockEffectiveConfig = new HashMap<>();
+        mockEffectiveConfig.put("log_level", "FINEST");
+        mockEffectiveConfig.put("audit_mode", true);
+        mockEffectiveConfig.put("jar_collector.enabled", true);
+        mockEffectiveConfig.put("jfr.enabled", true);
+        mockEffectiveConfig.put("jfr.harvest_interval", 10);
+        mockEffectiveConfig.put("jfr.queue_size", 20000);
     }
 
     @Test
@@ -47,7 +61,8 @@ public class AgentControlIntegrationServiceTest {
         when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
         when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
         AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
-        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
         service.doStart();
         Thread.sleep(2100);
 
@@ -61,7 +76,8 @@ public class AgentControlIntegrationServiceTest {
         when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
         when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
         AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
-        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
         service.onUnhealthyStatus(AgentHealth.Status.GC_CIRCUIT_BREAKER, "1", "2");
         service.doStart();
         Thread.sleep(2100);
@@ -77,7 +93,8 @@ public class AgentControlIntegrationServiceTest {
         when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
         when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
         AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
-        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
         service.onUnhealthyStatus(AgentHealth.Status.GC_CIRCUIT_BREAKER, "1", "2");
         service.doStart();
         Thread.sleep(2100);
@@ -99,7 +116,8 @@ public class AgentControlIntegrationServiceTest {
         when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
         when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
         AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
-        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
         service.doStart();
         service.doStop();
 
@@ -113,10 +131,27 @@ public class AgentControlIntegrationServiceTest {
     public void doStart_ignoresStartCommand_whenEnabledIsFalse() throws Exception {
         when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(false);
         AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
-        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
         service.doStart();
         Thread.sleep(2100);
 
         assertNull(healthClient.getAgentHealth());
+        assertNull(effectiveConfigClient.effectiveConfig);
+    }
+
+    @Test
+    public void constructor_writesEffectiveConfig() throws Exception {
+        when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
+        when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
+        AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
+        AgentControlEffectiveConfigUnitTestClient effectiveConfigClient = new AgentControlEffectiveConfigUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, effectiveConfigClient, mockAgentConfig);
+        service.doStart();
+        Thread.sleep(2100);
+
+        assertTrue(healthClient.getAgentHealth().isHealthy());
+        assertEquals("Healthy", healthClient.getAgentHealth().getCurrentStatus());
+        service.doStop();
     }
 }

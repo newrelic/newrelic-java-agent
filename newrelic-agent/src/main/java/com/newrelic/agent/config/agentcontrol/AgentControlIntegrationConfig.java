@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.config;
+package com.newrelic.agent.config.agentcontrol;
 
 import java.net.URI;
 
@@ -36,4 +36,18 @@ public interface AgentControlIntegrationConfig {
      * @return the client type
      */
     String getHealthClientType();
+
+    /**
+     * Get the effective config reporting location information
+     *
+     * @return the location for the effective config information
+     */
+    URI getEffectiveConfigDeliveryLocation();
+
+    /**
+     * Return the effective config client type ("file" or "noop" for example)
+     *
+     * @return the client type
+     */
+    String getEffectiveConfigClientType();
 }

@@ -7,7 +7,7 @@
 
 package com.newrelic.agent;
 
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigFactoryTest;

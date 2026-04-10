@@ -8,6 +8,7 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
 import java.util.List;
