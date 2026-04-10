@@ -1,3 +1,9 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package llm.completions.events;
 
 import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
@@ -6,19 +12,15 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.LlmTokenCountCallback;
-import junit.framework.TestCase;
 import llm.completions.models.ModelInvocation;
 import llm.completions.models.springai.SpringAiModelInvocation;
 import llm.completions.vendor.Vendor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
-import org.springframework.ai.chat.client.DefaultChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.metadata.ChatResponseMetadata;
@@ -33,13 +35,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static com.newrelic.agent.deps.org.yaml.snakeyaml.nodes.NodeId.sequence;
 import static llm.completions.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
 import static llm.completions.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
-import static llm.completions.models.ModelInvocation.getRandomGuid;
-import static llm.completions.models.ModelInvocation.getTokenCount;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -51,6 +49,31 @@ import static org.mockito.Mockito.when;
 public class LlmEventTest {
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
+    // Given
+    Map<String, String> linkingMetadata = new HashMap<>();
+
+    Map<String, Object> userAttributes = new HashMap<>();
+
+    // Expected request values
+    String expectedRequestModelId = "request-model";
+    Double expectedTemp = 0.3;
+    String expectedPromptUserMessage = "tell me a joke";
+    UserMessage expectedUserMessage = new UserMessage(expectedPromptUserMessage);
+    List<UserMessage> expectedPromptUserMessages = new ArrayList<>();
+    Integer expectedMaxTokens = 1000;
+
+    // Expected response values
+    List<Generation> expectedResults = new ArrayList<>();
+    String expectedGenerationMessage = "generated results";
+    String expectedFinishReason = "stop";
+
+    Generation expectedGeneration = new Generation(new AssistantMessage(expectedGenerationMessage),
+            ChatGenerationMetadata.builder().finishReason(expectedFinishReason).build());
+    String expectedResponseModelId = "response-model";
+    Integer expectedPromptTokens = 123;
+    Integer expectedCompletionTokens = 456;
+    Integer expectedTotalTokens = 579;
+
     @Before
     public void before() {
         introspector.clear();
@@ -60,75 +83,22 @@ public class LlmEventTest {
     public void setUp() {
         LlmTokenCountCallback llmTokenCountCallback = (model, content) -> 13;
         LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
+
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        userAttributes.put("llm.conversation_id", "conversation-id-value");
+        userAttributes.put("llm.testPrefix", "testPrefix");
+        userAttributes.put("test", "test");
+
+        expectedPromptUserMessages.add(expectedUserMessage);
+        expectedResults.add(expectedGeneration);
     }
 
     @Test
     public void testRecordLlmChatCompletionMessageEvent() {
-        // Given
-        Map<String, String> linkingMetadata = new HashMap<>();
-        linkingMetadata.put("span.id", "span-id-123");
-        linkingMetadata.put("trace.id", "trace-id-xyz");
-
-        Map<String, Object> userAttributes = new HashMap<>();
-        userAttributes.put("llm.conversation_id", "conversation-id-890");
-        userAttributes.put("llm.testPrefix", "testPrefix");
-        userAttributes.put("test", "test");
-
-        // Expected request values
-        String expectedRequestModelId = "request-model";
-        Double expectedTemp = 0.3;
-        String expectedPromptUserMessage = "tell me a joke";
-        UserMessage expectedUserMessage = new UserMessage(expectedPromptUserMessage);
-        List<UserMessage> expectedPromptUserMessages =  new ArrayList<>();
-        expectedPromptUserMessages.add(expectedUserMessage);
-        Integer expectedMaxTokens = 1000;
-
-        // Mock out ModelRequest
-        ChatClientRequest mockChatClientRequest = mock(ChatClientRequest.class);
-        Prompt mockPrompt = mock(Prompt.class);
-        ChatOptions mockChatOptions = mock(ChatOptions.class);
-
-        when(mockPrompt.getOptions()).thenReturn(mockChatOptions);
-        when(mockPrompt.getUserMessages()).thenReturn(expectedPromptUserMessages);
-        when(mockPrompt.getUserMessage()).thenReturn(expectedUserMessage);
-
-        when(mockChatOptions.getModel()).thenReturn(expectedRequestModelId);
-        when(mockChatOptions.getTemperature()).thenReturn(expectedTemp);
-        when(mockChatOptions.getMaxTokens()).thenReturn(expectedMaxTokens);
-
-        when(mockChatClientRequest.prompt()).thenReturn(mockPrompt);
-
-        // Expected response values
-        List<Generation> expectedResults =  new ArrayList<>();
-        String expectedGenerationMessage = "generated results";
-        String expectedFinishReason = "stop";
-
-        Generation expectedGeneration = new Generation(new AssistantMessage(expectedGenerationMessage), ChatGenerationMetadata.builder().finishReason(expectedFinishReason).build());
-        expectedResults.add(expectedGeneration);
-        String expectedResponseModelId = "response-model";
-        Integer expectedPromptTokens = 123;
-        Integer expectedCompletionTokens = 456;
-        Integer expectedTotalTokens = 579;
-
-        // Mock out ModelResponse
-        ChatClientResponse mockChatClientResponse = mock(ChatClientResponse.class);
-
-        ChatResponse mockChatResponse = mock(ChatResponse.class);
-        when(mockChatClientResponse.chatResponse()).thenReturn(mockChatResponse);
-        when(mockChatResponse.getResults()).thenReturn(expectedResults);
-        when(mockChatResponse.getResult()).thenReturn(expectedGeneration);
-
-        ChatResponseMetadata chatResponseMetadata = mock(ChatResponseMetadata.class);
-        when(mockChatResponse.getMetadata()).thenReturn(chatResponseMetadata);
-        Usage mockUsage = mock(Usage.class);
-        when(chatResponseMetadata.getModel()).thenReturn(expectedResponseModelId);
-        when(chatResponseMetadata.getUsage()).thenReturn(mockUsage);
-        when(mockUsage.getPromptTokens()).thenReturn(expectedPromptTokens);
-        when(mockUsage.getCompletionTokens()).thenReturn(expectedCompletionTokens);
-        when(mockUsage.getTotalTokens()).thenReturn(expectedTotalTokens);
-
         // Instantiate ModelInvocation
-        SpringAiModelInvocation springAiModelInvocation = new SpringAiModelInvocation(linkingMetadata, userAttributes, mockChatClientRequest, mockChatClientResponse);
+        SpringAiModelInvocation springAiModelInvocation = mockSpringAiModelInvocation();
 
         // When
         // Build LlmEmbedding event
@@ -176,77 +146,14 @@ public class LlmEventTest {
         assertEquals(0, attributes.get("sequence"));
         assertFalse(((String) attributes.get("completion_id")).isEmpty());
         assertEquals(13, attributes.get("token_count"));
-        assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
+        assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
 
     @Test
     public void testRecordLlmChatCompletionSummaryEvent() {
-        // Given
-        Map<String, String> linkingMetadata = new HashMap<>();
-        linkingMetadata.put("span.id", "span-id-123");
-        linkingMetadata.put("trace.id", "trace-id-xyz");
-
-        Map<String, Object> userAttributes = new HashMap<>();
-        userAttributes.put("llm.conversation_id", "conversation-id-890");
-        userAttributes.put("llm.testPrefix", "testPrefix");
-        userAttributes.put("test", "test");
-
-        // Expected request values
-        String expectedRequestModelId = "request-model";
-        Double expectedTemp = 0.3;
-        String expectedPromptUserMessage = "tell me a joke";
-        UserMessage expectedUserMessage = new UserMessage(expectedPromptUserMessage);
-        List<UserMessage> expectedPromptUserMessages =  new ArrayList<>();
-        expectedPromptUserMessages.add(expectedUserMessage);
-        Integer expectedMaxTokens = 5000;
-
-        // Mock out ModelRequest
-        ChatClientRequest mockChatClientRequest = mock(ChatClientRequest.class);
-        Prompt mockPrompt = mock(Prompt.class);
-        ChatOptions mockChatOptions = mock(ChatOptions.class);
-
-        when(mockPrompt.getOptions()).thenReturn(mockChatOptions);
-        when(mockPrompt.getUserMessages()).thenReturn(expectedPromptUserMessages);
-        when(mockPrompt.getUserMessage()).thenReturn(expectedUserMessage);
-
-        when(mockChatOptions.getModel()).thenReturn(expectedRequestModelId);
-        when(mockChatOptions.getTemperature()).thenReturn(expectedTemp);
-        when(mockChatOptions.getMaxTokens()).thenReturn(expectedMaxTokens);
-
-        when(mockChatClientRequest.prompt()).thenReturn(mockPrompt);
-
-        // Expected response values
-        List<Generation> expectedResults =  new ArrayList<>();
-        String expectedGenerationMessage = "generated results";
-        String expectedFinishReason = "stop";
-
-        Generation expectedGeneration = new Generation(new AssistantMessage(expectedGenerationMessage), ChatGenerationMetadata.builder().finishReason(expectedFinishReason).build());
-        expectedResults.add(expectedGeneration);
-        String expectedResponseModelId = "response-model";
-        Integer expectedPromptTokens = 123;
-        Integer expectedCompletionTokens = 456;
-        Integer expectedTotalTokens = 579;
-
-        // Mock out ModelResponse
-        ChatClientResponse mockChatClientResponse = mock(ChatClientResponse.class);
-
-        ChatResponse mockChatResponse = mock(ChatResponse.class);
-        when(mockChatClientResponse.chatResponse()).thenReturn(mockChatResponse);
-        when(mockChatResponse.getResults()).thenReturn(expectedResults);
-        when(mockChatResponse.getResult()).thenReturn(expectedGeneration);
-
-        ChatResponseMetadata chatResponseMetadata = mock(ChatResponseMetadata.class);
-        when(mockChatResponse.getMetadata()).thenReturn(chatResponseMetadata);
-        Usage mockUsage = mock(Usage.class);
-        when(chatResponseMetadata.getModel()).thenReturn(expectedResponseModelId);
-        when(chatResponseMetadata.getUsage()).thenReturn(mockUsage);
-        when(mockUsage.getPromptTokens()).thenReturn(expectedPromptTokens);
-        when(mockUsage.getCompletionTokens()).thenReturn(expectedCompletionTokens);
-        when(mockUsage.getTotalTokens()).thenReturn(expectedTotalTokens);
-
         // Instantiate ModelInvocation
-        SpringAiModelInvocation springAiModelInvocation = new SpringAiModelInvocation(linkingMetadata, userAttributes, mockChatClientRequest, mockChatClientResponse);
+        SpringAiModelInvocation springAiModelInvocation = mockSpringAiModelInvocation();
 
         LlmEvent.Builder builder = new LlmEvent.Builder(springAiModelInvocation);
         LlmEvent llmChatCompletionSummaryEvent = builder
@@ -293,7 +200,44 @@ public class LlmEventTest {
         assertEquals(2, attributes.get("response.number_of_messages"));
         assertEquals(expectedFinishReason, attributes.get("response.choices.finish_reason"));
         assertEquals(9000f, attributes.get("duration"));
-        assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
+        assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
+    }
+
+    private SpringAiModelInvocation mockSpringAiModelInvocation() {
+        // Mock out ModelRequest
+        ChatClientRequest mockChatClientRequest = mock(ChatClientRequest.class);
+        Prompt mockPrompt = mock(Prompt.class);
+        ChatOptions mockChatOptions = mock(ChatOptions.class);
+
+        when(mockPrompt.getOptions()).thenReturn(mockChatOptions);
+        when(mockPrompt.getUserMessages()).thenReturn(expectedPromptUserMessages);
+        when(mockPrompt.getUserMessage()).thenReturn(expectedUserMessage);
+
+        when(mockChatOptions.getModel()).thenReturn(expectedRequestModelId);
+        when(mockChatOptions.getTemperature()).thenReturn(expectedTemp);
+        when(mockChatOptions.getMaxTokens()).thenReturn(expectedMaxTokens);
+
+        when(mockChatClientRequest.prompt()).thenReturn(mockPrompt);
+
+        // Mock out ModelResponse
+        ChatClientResponse mockChatClientResponse = mock(ChatClientResponse.class);
+
+        ChatResponse mockChatResponse = mock(ChatResponse.class);
+        when(mockChatClientResponse.chatResponse()).thenReturn(mockChatResponse);
+        when(mockChatResponse.getResults()).thenReturn(expectedResults);
+        when(mockChatResponse.getResult()).thenReturn(expectedGeneration);
+
+        ChatResponseMetadata chatResponseMetadata = mock(ChatResponseMetadata.class);
+        when(mockChatResponse.getMetadata()).thenReturn(chatResponseMetadata);
+        Usage mockUsage = mock(Usage.class);
+        when(chatResponseMetadata.getModel()).thenReturn(expectedResponseModelId);
+        when(chatResponseMetadata.getUsage()).thenReturn(mockUsage);
+        when(mockUsage.getPromptTokens()).thenReturn(expectedPromptTokens);
+        when(mockUsage.getCompletionTokens()).thenReturn(expectedCompletionTokens);
+        when(mockUsage.getTotalTokens()).thenReturn(expectedTotalTokens);
+
+        // Instantiate ModelInvocation
+        return new SpringAiModelInvocation(linkingMetadata, userAttributes, mockChatClientRequest, mockChatClientResponse);
     }
 }
