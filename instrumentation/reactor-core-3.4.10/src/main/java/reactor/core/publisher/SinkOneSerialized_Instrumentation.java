@@ -7,7 +7,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 @Weave(originalName = "reactor.core.publisher.SinkOneSerialized")
 public abstract class SinkOneSerialized_Instrumentation<T>  extends  SinkEmptySerialized_Instrumentation<T>{
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitValue(T t) {
         return Weaver.callOriginal();
     }

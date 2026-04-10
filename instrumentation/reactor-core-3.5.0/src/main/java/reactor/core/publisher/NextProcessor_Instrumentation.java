@@ -1,23 +1,20 @@
 package reactor.core.publisher;
 
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.reactor.ReactorConfig;
-import reactor.core.CorePublisher;
 
 @Weave(originalName = "reactor.core.publisher.NextProcessor")
 class NextProcessor_Instrumentation<O> {
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     Sinks.EmitResult tryEmitError(Throwable cause) {
         return Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     Sinks.EmitResult tryEmitValue(O value) {
         return Weaver.callOriginal();
     }

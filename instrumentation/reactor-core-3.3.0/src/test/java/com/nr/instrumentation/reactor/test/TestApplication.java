@@ -132,36 +132,6 @@ public class TestApplication {
 
 	}
 
-//	private void printSegments(TraceSegment segment, int indents) {
-//		String segmentName = segment.getName();
-//		String classname = segment.getClassName();
-//		String methodName = segment.getMethodName();
-//		int callCount = segment.getCallCount();
-//		StringBuilder sb = new StringBuilder();
-//		for(int i = 0; i < indents; i++) {
-//			sb.append("  ");
-//		}
-//		sb.append("Name: ").append(segmentName);
-//		sb.append(", Class: ").append(classname);
-//		sb.append(", Method: ").append(methodName);
-//		sb.append(", CallCount: ").append(callCount);
-//		Map<String, Object> attributes = segment.getTracerAttributes();
-//		if(attributes != null) {
-//			Set<String> keys = attributes.keySet();
-//			for(String key : keys) {
-//				Object value = attributes.get(key);
-//				sb.append(", Attribute: ").append(key);
-//				sb.append(": ");
-//				sb.append(value);
-//			}
-//		}
-//		System.out.println(sb.toString());
-//		List<TraceSegment> children = segment.getChildren();
-//		for(TraceSegment child : children) {
-//			printSegments(child, indents + 2);
-//		}
-//	}
-
 	@Test
 	public void doFluxPublishOnTest() {
 		testFluxPub();

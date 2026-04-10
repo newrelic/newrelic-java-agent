@@ -23,7 +23,7 @@ class FluxCreate_Instrumentation<T> {
             token = NewRelic.getAgent().getTransaction().getToken();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void complete() {
             if (token != null) {
                 token.linkAndExpire();
@@ -32,7 +32,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void error(Throwable t) {
             if(ReactorConfig.errorsEnabled) {
                 NewRelic.noticeError(t);
@@ -52,7 +52,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void request(long n) {
             if (token != null) {
                 token.link();
@@ -69,7 +69,7 @@ class FluxCreate_Instrumentation<T> {
             super(actual);
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public FluxSink<T> next(T t) {
             if (token != null) {
                 token.link();
@@ -86,7 +86,7 @@ class FluxCreate_Instrumentation<T> {
             super(actual);
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public FluxSink<T> next(T t) {
             if (token != null) {
                 token.link();
@@ -102,7 +102,7 @@ class FluxCreate_Instrumentation<T> {
             super(actual);
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public FluxSink<T> next(T t) {
             if (token != null) {
                 token.link();
@@ -125,7 +125,7 @@ class FluxCreate_Instrumentation<T> {
             }
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void complete() {
             if (token != null) {
                 token.linkAndExpire();
@@ -134,7 +134,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void error(Throwable t) {
             if (token != null) {
                 token.linkAndExpire();
@@ -143,7 +143,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public FluxSink<T> next(T t) {
             if (token != null) {
                 token.link();
@@ -166,7 +166,7 @@ class FluxCreate_Instrumentation<T> {
             }
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void complete() {
             if (token != null) {
                 token.linkAndExpire();
@@ -175,7 +175,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public void error(Throwable t) {
             if (token != null) {
                 token.linkAndExpire();
@@ -184,7 +184,7 @@ class FluxCreate_Instrumentation<T> {
             Weaver.callOriginal();
         }
 
-        @Trace(async = true)
+        @Trace(async = true, excludeFromTransactionTrace = true)
         public FluxSink<T> next(T t) {
             if (token != null) {
                 token.link();

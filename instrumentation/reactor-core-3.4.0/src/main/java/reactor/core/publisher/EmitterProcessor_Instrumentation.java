@@ -9,17 +9,17 @@ import com.nr.instrumentation.reactor.ReactorConfig;
 @Weave(originalName = "reactor.core.publisher.EmitterProcessor")
 public class EmitterProcessor_Instrumentation<T> {
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitComplete() {
         return Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitError(Throwable t) {
         return Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitNext(T t) {
         return Weaver.callOriginal();
     }

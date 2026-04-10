@@ -9,12 +9,11 @@ import com.nr.instrumentation.reactor.ReactorConfig;
 @Weave(originalName = "reactor.core.publisher.SinkManyBestEffort")
 class SinkManyBestEffort_Instrumentation<T> {
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitComplete() {
         return Weaver.callOriginal();
     }
 
-    @Trace
     public Sinks.EmitResult tryEmitError(Throwable t) {
         if(ReactorConfig.errorsEnabled) {
             NewRelic.noticeError(t);

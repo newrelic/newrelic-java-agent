@@ -9,12 +9,11 @@ import com.nr.instrumentation.reactor.ReactorConfig;
 @Weave(originalName = "reactor.core.publisher.SinkManySerialized")
 class SinkManySerialized_Instrumentation<T> {
 
-    @Trace(async = true)
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitComplete() {
         return Weaver.callOriginal();
     }
 
-    @Trace(async = true)
     public Sinks.EmitResult tryEmitError(Throwable t) {
         if(ReactorConfig.errorsEnabled) {
             NewRelic.noticeError(t);
@@ -22,7 +21,7 @@ class SinkManySerialized_Instrumentation<T> {
         return Weaver.callOriginal();
     }
 
-    @Trace(async = true)
+    @Trace(excludeFromTransactionTrace = true)
     public Sinks.EmitResult tryEmitNext(T t) {
         return Weaver.callOriginal();
     }

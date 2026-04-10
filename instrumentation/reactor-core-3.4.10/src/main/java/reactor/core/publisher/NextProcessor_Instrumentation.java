@@ -9,12 +9,12 @@ import com.nr.instrumentation.reactor.ReactorConfig;
 @Weave(originalName = "reactor.core.publisher.NextProcessor")
 class NextProcessor_Instrumentation<O> {
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     Sinks.EmitResult tryEmitError(Throwable cause) {
         return Weaver.callOriginal();
     }
 
-    @Trace
+    @Trace(excludeFromTransactionTrace = true)
     Sinks.EmitResult tryEmitValue(O value) {
         return Weaver.callOriginal();
     }

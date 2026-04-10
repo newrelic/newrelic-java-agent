@@ -29,7 +29,7 @@ class MonoCreate_Instrumentation {
             }
         }
 
-        @Trace(async=true)
+        @Trace(async=true, excludeFromTransactionTrace = true)
         public void success() {
             if(token != null) {
                 token.linkAndExpire();
@@ -38,7 +38,7 @@ class MonoCreate_Instrumentation {
             Weaver.callOriginal();
         }
 
-        @Trace(async=true)
+        @Trace(async=true, excludeFromTransactionTrace = true)
         public void success(T value) {
             if(token != null) {
                 token.linkAndExpire();
@@ -47,7 +47,7 @@ class MonoCreate_Instrumentation {
             Weaver.callOriginal();
         }
 
-        @Trace(async=true)
+        @Trace(async=true, excludeFromTransactionTrace = true)
         public void error(Throwable e) {
             if(ReactorConfig.errorsEnabled) {
                 NewRelic.noticeError(e);
@@ -59,7 +59,7 @@ class MonoCreate_Instrumentation {
             Weaver.callOriginal();
         }
 
-        @Trace(async=true)
+        @Trace(async=true, excludeFromTransactionTrace = true)
         public void cancel() {
             if(token != null) {
                 token.linkAndExpire();

@@ -21,7 +21,7 @@ public class NRRunnableWrapper implements Runnable {
 	}
 
 	@Override
-	@Trace(async=true)
+	@Trace(async=true, excludeFromTransactionTrace = true)
 	public void run() {
 		if(token != null) {
 			token.linkAndExpire();

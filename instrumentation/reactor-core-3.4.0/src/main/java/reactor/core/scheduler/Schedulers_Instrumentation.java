@@ -10,7 +10,6 @@ import com.nr.instrumentation.reactor.NRRunnableWrapper;
 import com.nr.instrumentation.reactor.ReactorUtils;
 
 import reactor.core.Disposable;
-import reactor.util.annotation.Nullable;
 
 @Weave(originalName = "reactor.core.scheduler.Schedulers")
 public class Schedulers_Instrumentation {
