@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("io.netty:netty-all:4.1.15.Final")
+    implementation("io.netty:netty-all:4.0.8.Final")
 }
 
 jar {
@@ -12,7 +12,7 @@ jar {
 
 // This module doesn't support HTTP/2
 verifyInstrumentation {
-    passesOnly 'io.netty:netty-all:[4.0.8.Final,4.1.16.Final)'
+    passes 'io.netty:netty-all:[4.0.8.Final]'
 }
 
 site {
