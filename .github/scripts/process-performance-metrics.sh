@@ -142,7 +142,7 @@ while IFS='|' read -r DIR TEST_FILE TEST_CASE TEST_NAME JAVA_VERSION FRAMEWORK_V
 
         echo "<blockquote>" >> "$OUTPUT_FILE"
         echo "<details>" >> "$OUTPUT_FILE"
-        echo "<summary><strong>📄 ${TEST_FILE}</strong></summary>" >> "$OUTPUT_FILE"
+        echo "<summary><strong> ${TEST_FILE}</strong></summary>" >> "$OUTPUT_FILE"
         echo "" >> "$OUTPUT_FILE"
         CURRENT_TEST_FILE="$TEST_FILE"
         CURRENT_TEST_CASE=""
@@ -153,7 +153,7 @@ while IFS='|' read -r DIR TEST_FILE TEST_CASE TEST_NAME JAVA_VERSION FRAMEWORK_V
 
         echo "<blockquote>" >> "$OUTPUT_FILE"
         echo "<details>" >> "$OUTPUT_FILE"
-        echo "<summary><strong>📋 ${TEST_CASE}</strong></summary>" >> "$OUTPUT_FILE"
+        echo "<summary><strong> ${TEST_CASE}</strong></summary>" >> "$OUTPUT_FILE"
         echo "" >> "$OUTPUT_FILE"
 
         echo "| Java | Framework | CPU Time (s) | Response Time (s) | Response Count | Throughput | Errors | Heap Max (%) |" >> "$OUTPUT_FILE"
