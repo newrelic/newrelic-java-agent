@@ -129,7 +129,7 @@ while IFS='|' read -r DIR TEST_FILE TEST_CASE TEST_NAME JAVA_VERSION FRAMEWORK_V
         close_directory
 
         echo "<details>" >> "$OUTPUT_FILE"
-        echo "<summary><strong>📁 ${DIR}</strong></summary>" >> "$OUTPUT_FILE"
+        echo "<summary><strong> ${DIR}</strong></summary>" >> "$OUTPUT_FILE"
         echo "" >> "$OUTPUT_FILE"
         CURRENT_DIR="$DIR"
         CURRENT_TEST_FILE=""
