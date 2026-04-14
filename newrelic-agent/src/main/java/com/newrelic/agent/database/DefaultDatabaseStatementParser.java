@@ -29,6 +29,8 @@ public class DefaultDatabaseStatementParser implements DatabaseStatementParser {
     private static final Pattern COMMENT_PATTERN = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
     private static final Pattern NR_HINT_PATTERN = Pattern.compile(
             "\\s*/\\*\\s*nrhint\\s*:\\s*([^\\*]*)\\s*\\*/\\s*([^\\s]*).*", Pattern.DOTALL);
+    private static final Pattern NR_HINT_BATCH_PATTERN = Pattern.compile(
+            "^\\s*/\\*\\s*NRBATCH:(\\d+)\\s*\\*/\\s*(.*)$", Pattern.DOTALL);
     private static final Pattern VALID_METRIC_NAME_MATCHER = Pattern.compile("[a-zA-Z0-9.$_@]+");
     private static final Pattern EXEC_VAR_PATTERN = Pattern.compile(
             ".*(?:exec|execute)\\s+[^\\s(,]*.*?=(?:\\s|)([^\\s]*)", PATTERN_SWITCHES);
@@ -74,6 +76,24 @@ public class DefaultDatabaseStatementParser implements DatabaseStatementParser {
     public ParsedDatabaseStatement getParsedDatabaseStatement(
             DatabaseVendor databaseVendor, String statement,
             ResultSetMetaData metaData) {
+        Matcher batchMatcher = NR_HINT_BATCH_PATTERN.matcher(statement);
+        if (batchMatcher.matches()) {
+            // We store the batch size as part of the BATCH hint, but not going to use
+            // it right now. The idea was to append this to the new operation name but
+            // that risks MGI. Batch size is added as a custom attribute which will
+            // show up on the corresponding DT span.
+            //int batchSize = Integer.parseInt(batchMatcher.group(1));
+            String actualSql = batchMatcher.group(2);
+
+            // Normal parsing flow
+            ParsedDatabaseStatement parsed = parseStatement(actualSql);
+
+            // New operation name with "batch" String
+            String batchOperation = "batch_" + parsed.getOperation();
+            return new ParsedDatabaseStatement(parsed.getModel(), batchOperation, parsed.recordMetric());
+        }
+
+
         Matcher hintMatcher = NR_HINT_PATTERN.matcher(statement);
         if (hintMatcher.matches()) {
             String model = hintMatcher.group(1).trim().toLowerCase();

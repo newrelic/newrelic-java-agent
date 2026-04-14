@@ -10,8 +10,10 @@ package java.sql;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
@@ -19,15 +21,30 @@ import java.util.HashMap;
 
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
+    @NewField
+    String sampleBatchSql = null;
+
+    public void addBatch(String sql) throws SQLException {
+        if (sampleBatchSql == null) {
+            sampleBatchSql = sql;
+        }
+        Weaver.callOriginal();
+    }
 
     @Trace(leaf = true)
-    public int [] executeBatch() {
-        int [] results = Weaver.callOriginal();
-        if (results != null) {
-            HashMap<String, Object> attributes = new HashMap<>();
-            attributes.put("batch_size", results.length);
-            AgentBridge.getAgent().getTracedMethod().addCustomAttributes(attributes);
+    public int [] executeBatch() throws SQLException {
+        String sql = sampleBatchSql;
+        if (sql == null) {
+            sql = JdbcHelper.getSql((Statement) this);
         }
+
+        int [] results = Weaver.callOriginal();
+        String batchSql = sql;
+        if (results != null && sql != null) {
+            AgentBridge.getAgent().getTracedMethod().addCustomAttribute("batch_size", results.length);
+            batchSql = String.format("/* NRBATCH:%d */ %s", results.length, sql);
+        }
+        DatastoreMetrics.noticeSql(getConnection(), batchSql, null);
 
         return results;
     }

@@ -702,4 +702,71 @@ public class DatabaseStatementResponseParserTest {
         }
 
     }
+
+    @Test
+    public void testBatchInsertHint() {
+        String sql = "/* NRBATCH:50 */ INSERT INTO users (name, email) VALUES (?, ?)";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_insert", parsedStatement.getOperation());
+        assertEquals("users", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+        assertEquals(getScopedMetric("users", "batch_insert"), parsedStatement.getMetricName());
+    }
+
+    @Test
+    public void testBatchUpdateHint() {
+        String sql = "/* NRBATCH:100 */ UPDATE orders SET status = ? WHERE id = ?";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_update", parsedStatement.getOperation());
+        assertEquals("orders", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+        assertEquals(getScopedMetric("orders", "batch_update"), parsedStatement.getMetricName());
+    }
+
+    @Test
+    public void testBatchDeleteHint() {
+        String sql = "/* NRBATCH:25 */ DELETE FROM temp_table WHERE processed = true";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_delete", parsedStatement.getOperation());
+        assertEquals("temp_table", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+        assertEquals(getScopedMetric("temp_table", "batch_delete"), parsedStatement.getMetricName());
+    }
+
+    @Test
+    public void testBatchHintWithWhitespace() {
+        String sql = "  /*   NRBATCH:200   */   INSERT INTO products VALUES (?, ?, ?)";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_insert", parsedStatement.getOperation());
+        assertEquals("products", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+    }
+
+    @Test
+    public void testBatchHintPreservesComplexSql() {
+        String sql = "/* NRBATCH:10 */ INSERT INTO orders (customer_id, total) SELECT customer_id, SUM(amount) FROM temp_orders GROUP BY customer_id";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_insert", parsedStatement.getOperation());
+        assertEquals("orders", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+    }
+
+    @Test
+    public void testBatchHintWithSchemaQualifiedTable() {
+        String sql = "/* NRBATCH:75 */ UPDATE myschema.mytable SET updated_at = NOW() WHERE id = ?";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("batch_update", parsedStatement.getOperation());
+        assertEquals("myschema.mytable", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+    }
+
+    @Test
+    public void testNonBatchStatementUnaffected() {
+        // Verify that SQL without NRBATCH hint is parsed normally
+        String sql = "INSERT INTO users (name, email) VALUES (?, ?)";
+        ParsedDatabaseStatement parsedStatement = parseStatement(sql);
+        assertEquals("insert", parsedStatement.getOperation());  // Not "batch_insert"
+        assertEquals("users", parsedStatement.getModel());
+        assertTrue(parsedStatement.recordMetric());
+    }
 }
