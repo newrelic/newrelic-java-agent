@@ -20,14 +20,30 @@ public class DatastoreMetrics {
      * Notice a SQL statement to detect long running queries and enqueue for future processing.
      *
      * Note: This method has no implementation, instead it is automatically wired up in
-     * {@link com.newrelic.agent.instrumentation.tracing.TraceClassVisitor} by creating a
-     * SqlTracer (instead of a DefaultTracer) for the SQL specific functions.
+     * com.newrelic.agent.instrumentation.tracing.TraceClassVisitor (newrelic-agent project)
+     * by creating a SqlTracer (instead of a DefaultTracer) for the SQL specific functions.
      *
      * @param connection Connection used to run this query
      * @param sql The raw SQL string used in this query
      * @param params The parameters provided with the query (or null if no parameters are required)
      */
     public static void noticeSql(Connection connection, String sql, Object[] params) {
+        // No-op
+    }
+
+    /**
+     * Notice a SQL statement executed as a batch operation.
+     *
+     * Note: This method has no implementation, instead it is automatically wired up in
+     * com.newrelic.agent.instrumentation.tracing.TraceClassVisitor (newrelic-agent project)
+     * by creating a SqlTracer with a batch size attribute.
+     *
+     * @param connection Connection used to run this query
+     * @param sql The raw SQL string used in this query
+     * @param params The parameters provided with the query (or null if no parameters are required)
+     * @param batchSize Number of operations in the batch
+     */
+    public static void noticeBatchSql(Connection connection, String sql, Object[] params, int batchSize) {
         // No-op
     }
 }

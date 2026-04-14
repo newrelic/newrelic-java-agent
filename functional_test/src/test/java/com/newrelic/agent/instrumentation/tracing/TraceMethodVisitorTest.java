@@ -82,6 +82,32 @@ public class TraceMethodVisitorTest {
         Assert.assertEquals(noticeSqlClass.noticeSqlInvokeCount, 0);
     }
 
+    @Test
+    public void testNoticeBatchSql() {
+        NoticeBatchSqlClass noticeBatchSqlClass = new NoticeBatchSqlClass();
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlInvokeCount, counter.tracerCount);
+
+        noticeBatchSqlClass.noticeBatchSqlMethod();
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlInvokeCount, counter.tracerCount);
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlConnection, counter.tracer.connection);
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlSql, counter.tracer.rawSql);
+        Assert.assertArrayEquals(noticeBatchSqlClass.noticeBatchSqlParams, counter.tracer.params);
+        Assert.assertEquals(noticeBatchSqlClass.batchSize, counter.tracer.batchSize);  // NEW: Verify batch size
+    }
+
+    @Test
+    public void testNoticeBatchSqlAsDispatcher() {
+        NoticeBatchSqlClass noticeBatchSqlClass = new NoticeBatchSqlClass();
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlDispatcherInvokeCount, counter.tracerCount);
+
+        noticeBatchSqlClass.noticeBatchSqlDispatcherMethod();
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlDispatcherInvokeCount, counter.tracerCount);
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlDispatcherConnection, counter.tracer.connection);
+        Assert.assertEquals(noticeBatchSqlClass.noticeBatchSqlDispatcherSql, counter.tracer.rawSql);
+        Assert.assertArrayEquals(noticeBatchSqlClass.noticeBatchSqlDispatcherParams, counter.tracer.params);
+        Assert.assertEquals(noticeBatchSqlClass.batchSizeDispatcher, counter.tracer.batchSize);  // NEW: Verify batch size
+    }
+
     public static class NoOpCountingInstrumentation extends NoOpInstrumentation {
         public int tracerCount = 0;
         public NoOpTrackingSqlTracer tracer; 
@@ -410,5 +436,31 @@ public class TraceMethodVisitorTest {
             return false;
         }
     }
-    
+
+    public static class NoticeBatchSqlClass {
+        public int noticeBatchSqlInvokeCount = 0;
+        public Connection noticeBatchSqlConnection = new NoOpConnection();
+        public String noticeBatchSqlSql = "INSERT INTO users VALUES (?, ?)";
+        public Object[] noticeBatchSqlParams = null;
+        public int batchSize = 50;
+
+        public int noticeBatchSqlDispatcherInvokeCount = 0;
+        public Connection noticeBatchSqlDispatcherConnection = new NoOpConnection();
+        public String noticeBatchSqlDispatcherSql = "UPDATE orders SET status = ? WHERE id = ?";
+        public Object[] noticeBatchSqlDispatcherParams = null;
+        public int batchSizeDispatcher = 100;
+
+        @Trace
+        public void noticeBatchSqlMethod() {
+            noticeBatchSqlInvokeCount++;
+            DatastoreMetrics.noticeBatchSql(noticeBatchSqlConnection, noticeBatchSqlSql, noticeBatchSqlParams, batchSize);
+        }
+
+        @Trace(dispatcher = true)
+        public void noticeBatchSqlDispatcherMethod() {
+            noticeBatchSqlDispatcherInvokeCount++;
+            DatastoreMetrics.noticeBatchSql(noticeBatchSqlDispatcherConnection, noticeBatchSqlDispatcherSql,
+                    noticeBatchSqlDispatcherParams, batchSizeDispatcher);
+        }
+    }
 }

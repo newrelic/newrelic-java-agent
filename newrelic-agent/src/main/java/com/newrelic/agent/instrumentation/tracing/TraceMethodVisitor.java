@@ -256,6 +256,9 @@ public class TraceMethodVisitor extends AdviceAdapter {
         } else if (NoticeSqlVisitor.isNoticeSqlMethod(owner, name, desc)) {
             // Replace calls to DatastoreMetrics.noticeSql() with  instructions to set parameter values on the SqlTracer
             rewriteNoticeSqlCall();
+        } else if (NoticeSqlVisitor.isNoticeBatchSqlMethod(owner, name, desc)) {
+            // Replace calls to DatastoreMetrics.noticeBatchSql()
+            rewriteNoticeBatchSqlCall();
         } else {
             super.visitMethodInsn(opcode, owner, name, desc, itf);
         }
@@ -269,6 +272,18 @@ public class TraceMethodVisitor extends AdviceAdapter {
 
         visitLabel(doWorkLabel);
         setSqlTracerData();
+
+        visitLabel(endLabel);
+    }
+
+    private void rewriteNoticeBatchSqlCall() {
+        Label doWorkLabel = newLabel(), endLabel = newLabel();
+        int parameterCount = NoticeSqlVisitor.getBatchSqlTracerSettersCount();
+
+        skipIfNotSqlTracer(parameterCount, doWorkLabel, endLabel);
+
+        visitLabel(doWorkLabel);
+        setBatchSqlTracerData();  // Use batch-specific setter
 
         visitLabel(endLabel);
     }
@@ -290,6 +305,23 @@ public class TraceMethodVisitor extends AdviceAdapter {
     private void setSqlTracerData() {
         // Iterate in reverse order since parameters will be in reverse order on the stack
         Iterator<Map.Entry<String, Type>> iterator = NoticeSqlVisitor.getSqlTracerSettersInReverseOrder();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Type> entry = iterator.next();
+
+            // Load the SqlTracer and swap order with the parameter
+            // value since we will be calling invoke on the SqlTracer
+            loadTracer();
+            swap();
+
+            // Call the setter on the SqlTracer with the correct name & method type
+            invokeInterface(Type.getType(SqlTracer.class), new Method(entry.getKey(), Type.VOID_TYPE,
+                    new Type[] { entry.getValue() }));
+        }
+    }
+
+    private void setBatchSqlTracerData() {
+        // Iterate in reverse order since parameters will be in reverse order on the stack
+        Iterator<Map.Entry<String, Type>> iterator = NoticeSqlVisitor.getBatchSqlTracerSettersInReverseOrder();
         while (iterator.hasNext()) {
             Map.Entry<String, Type> entry = iterator.next();
 

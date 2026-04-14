@@ -9,6 +9,7 @@ package com.newrelic.agent.instrumentation.sql;
 
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.datastore.ConnectionFactory;
@@ -31,12 +32,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class NoOpTrackingSqlTracer implements SqlTracer {
     public Connection connection = null;
     public ConnectionFactory connectionFactory = null;
     public String rawSql = null;
     public Object[] params = null;
+    public int batchSize = 0;
 
     public Transaction tx = null;
     public Object sql = null;
@@ -447,5 +450,14 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
 
     @Override
     public void excludeLeaf() {
+    }
+
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+    }
+
+    @Override
+    public int getBatchSize() {
+        return batchSize;
     }
 }
