@@ -252,4 +252,64 @@ public class JurassicModelResponse implements ModelResponse {
     public String getStatusText() {
         return statusText;
     }
+
+    @Override
+    public Integer getPromptTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode promptNode = getResponseBodyJsonMap().get("prompt");
+                if (promptNode != null && promptNode.isObject()) {
+                    Map<String, JsonNode> promptObject = promptNode.asObject();
+                    if (promptObject != null) {
+                        JsonNode tokensNode = promptObject.get("tokens");
+                        if (tokensNode != null && tokensNode.isArray()) {
+                            return tokensNode.asArray().size();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "prompt tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getCompletionTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode completionsNode = getResponseBodyJsonMap().get(COMPLETIONS);
+                if (completionsNode.isArray()) {
+                    List<JsonNode> completionsArray = completionsNode.asArray();
+                    if (!completionsArray.isEmpty()) {
+                        JsonNode firstCompletion = completionsArray.get(0);
+                        if (firstCompletion.isObject()) {
+                            JsonNode dataNode = firstCompletion.asObject().get(DATA);
+                            if (dataNode.isObject()) {
+                                JsonNode tokensNode = dataNode.asObject().get("tokens");
+                                if (tokensNode.isArray()) {
+                                    return tokensNode.asArray().size();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "completion tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getTotalTokens() {
+        Integer promptTokens = getPromptTokens();
+        Integer completionTokens = getCompletionTokens();
+
+        // Only return total if both values are available
+        if (promptTokens != null && completionTokens != null) {
+            return promptTokens + completionTokens;
+        }
+        return null;
+    }
 }
