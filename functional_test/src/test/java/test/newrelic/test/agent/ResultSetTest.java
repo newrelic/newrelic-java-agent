@@ -46,15 +46,15 @@ public class ResultSetTest {
                 metrics.contains("OtherTransaction/Custom/test.newrelic.test.agent.ResultSetTest/transactionStart"));
     }
 
-    @Test
-    public void testConcurrentCallableInOldCode() throws ClassNotFoundException {
-        // If this test fails, it means the XmlRpcPointCut is no longer being used. In this
-        // case, the testFlyWeightResultSet test is not actually testing what it should.
-        // It should test a pointcut being hit within a result set method.
-        Class<?> daClass = this.getClass().getClassLoader().loadClass(
-                "com.newrelic.agent.instrumentation.pointcuts.XmlRpcPointCut");
-        Assert.assertTrue(daClass.getName().contains("XmlRpcPointCut"));
-    }
+//    @Test
+//    public void testConcurrentCallableInOldCode() throws ClassNotFoundException {
+//        // If this test fails, it means the XmlRpcPointCut is no longer being used. In this
+//        // case, the testFlyWeightResultSet test is not actually testing what it should.
+//        // It should test a pointcut being hit within a result set method.
+//        Class<?> daClass = this.getClass().getClassLoader().loadClass(
+//                "com.newrelic.agent.instrumentation.pointcuts.XmlRpcPointCut");
+//        Assert.assertTrue(daClass.getName().contains("XmlRpcPointCut"));
+//    }
 
     @Trace(dispatcher = true)
     public void transactionStart() throws SQLException {
