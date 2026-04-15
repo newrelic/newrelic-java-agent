@@ -34,6 +34,7 @@ import static llm.models.TestUtil.assertErrorEvent;
 import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,12 +47,32 @@ public class JurassicModelInvocationTest {
     // Completion
     private final String completionModelId = "ai21.j2-mid-v1";
     private final String completionRequestBody = "{\"temperature\":0.5,\"maxTokens\":1000,\"prompt\":\"What is the color of the sky?\"}";
-    private final String completionResponseBody =
-            "{\"id\":1234,\"prompt\":{\"text\":\"What is the color of the sky?\",\"tokens\":[{\"generatedToken\":{\"token\":\"▁What▁is▁the\",\"logprob\":-9.992481231689453,\"raw_logprob\":-9.992481231689453}\n" +
-                    ",\"topTokens\":null,\"textRange\":{\"start\":0,\"end\":11}}]},\"completions\":[{\"data\":{\"text\":\"\\nThe color of the sky is blue.\",\"tokens\":[{\"generatedToken\":{\"token\":\"<|newline|>\",\"logprob\":0.0,\"raw_logprob\":-1.389883691444993E-4},\"topTokens\":null,\"textRange\":{\"start\":0,\"end\":1}}]},\"finishReason\":{\"reason\":\"endoftext\"}}]}";
     private final String completionRequestInput = "What is the color of the sky?";
     private final String completionResponseContent = "\nThe color of the sky is blue.";
     private final String finishReason = "endoftext";
+
+    // Completion with token arrays for testing usage extraction
+    private final String completionResponseBodyWithTokens =
+            "{\"id\":1234,\"prompt\":{\"text\":\"What is the color of the sky?\",\"tokens\":[" +
+                    "{\"generatedToken\":{\"token\":\"▁What\"},\"textRange\":{\"start\":0,\"end\":5}}," +
+                    "{\"generatedToken\":{\"token\":\"▁is\"},\"textRange\":{\"start\":5,\"end\":8}}," +
+                    "{\"generatedToken\":{\"token\":\"▁the\"},\"textRange\":{\"start\":8,\"end\":12}}," +
+                    "{\"generatedToken\":{\"token\":\"▁color\"},\"textRange\":{\"start\":12,\"end\":18}}" +
+                    "]},\"completions\":[{\"data\":{\"text\":\"\\nThe color of the sky is blue.\",\"tokens\":[" +
+                    "{\"generatedToken\":{\"token\":\"<|newline|>\"},\"textRange\":{\"start\":0,\"end\":1}}," +
+                    "{\"generatedToken\":{\"token\":\"▁The\"},\"textRange\":{\"start\":1,\"end\":5}}," +
+                    "{\"generatedToken\":{\"token\":\"▁color\"},\"textRange\":{\"start\":5,\"end\":11}}," +
+                    "{\"generatedToken\":{\"token\":\"▁of\"},\"textRange\":{\"start\":11,\"end\":14}}," +
+                    "{\"generatedToken\":{\"token\":\"▁the\"},\"textRange\":{\"start\":14,\"end\":18}}," +
+                    "{\"generatedToken\":{\"token\":\"▁sky\"},\"textRange\":{\"start\":18,\"end\":22}}," +
+                    "{\"generatedToken\":{\"token\":\"▁is\"},\"textRange\":{\"start\":22,\"end\":25}}," +
+                    "{\"generatedToken\":{\"token\":\"▁blue\"},\"textRange\":{\"start\":25,\"end\":30}}," +
+                    "{\"generatedToken\":{\"token\":\".\"},\"textRange\":{\"start\":30,\"end\":31}}" +
+                    "]},\"finishReason\":{\"reason\":\"endoftext\"}}]}";
+
+    // Completion with missing token arrays (incomplete usage data)
+    private final String completionResponseBodyWithoutTokens =
+            "{\"id\":1234,\"prompt\":{\"text\":\"What is the color of the sky?\"},\"completions\":[{\"data\":{\"text\":\"\\nThe color of the sky is blue.\"},\"finishReason\":{\"reason\":\"endoftext\"}}]}";
 
     @Before
     public void before() {
@@ -64,8 +85,8 @@ public class JurassicModelInvocationTest {
     public void testCompletion() {
         boolean isError = false;
 
-        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody, completionResponseBody,
-                isError);
+        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody,
+                completionResponseBodyWithoutTokens, isError);
         jurassicModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -93,8 +114,8 @@ public class JurassicModelInvocationTest {
     public void testCompletionError() {
         boolean isError = true;
 
-        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody, completionResponseBody,
-                isError);
+        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody,
+                completionResponseBodyWithoutTokens, isError);
         jurassicModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -116,6 +137,78 @@ public class JurassicModelInvocationTest {
         assertLlmChatCompletionSummaryAttributes(llmChatCompletionSummaryEvent, completionModelId, finishReason);
 
         assertErrorEvent(isError, introspector.getErrorEvents());
+    }
+
+    @Test
+    public void testCompletionWithCompleteUsageData() {
+
+        boolean isError = false;
+
+        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody,
+                completionResponseBodyWithTokens, isError);
+        jurassicModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(0, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertEquals(4, summaryAttributes.get("response.usage.prompt_tokens"));
+        assertEquals(9, summaryAttributes.get("response.usage.completion_tokens"));
+        assertEquals(13, summaryAttributes.get("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithIncompleteUsageData() {
+        boolean isError = false;
+
+        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody,
+                completionResponseBodyWithoutTokens, isError);
+        jurassicModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(13, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithNoCallback() {
+        boolean isError = false;
+
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(null);
+
+        JurassicModelInvocation jurassicModelInvocation = mockJurassicModelInvocation(completionModelId, completionRequestBody,
+                completionResponseBodyWithoutTokens, isError);
+        jurassicModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertFalse(attributes.containsKey("token_count"));
+        }
     }
 
     private JurassicModelInvocation mockJurassicModelInvocation(String modelId, String requestBody, String responseBody, boolean isError) {
