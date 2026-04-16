@@ -11,7 +11,7 @@ import org.springframework.ai.document.Document;
 
 import java.util.List;
 
-import static org.springframework.ai.embedding.EmbeddingUtil.buildEmbeddingResponse;
+import static util.EmbeddingUtil.buildEmbeddingResponse;
 
 public class MockEmbeddingModel extends AbstractEmbeddingModel {
     @Override

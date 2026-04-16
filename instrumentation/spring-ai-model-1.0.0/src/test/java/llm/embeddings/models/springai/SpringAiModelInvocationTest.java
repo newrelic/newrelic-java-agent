@@ -20,13 +20,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import static llm.embeddings.TestUtil.assertLlmEmbeddingAttributes;
 import static llm.embeddings.events.LlmEvent.LLM_EMBEDDING;
 import static org.junit.Assert.assertEquals;
-import static org.springframework.ai.embedding.EmbeddingUtil.buildEmbeddingRequest;
-import static org.springframework.ai.embedding.EmbeddingUtil.buildEmbeddingResponse;
-import static org.springframework.ai.embedding.EmbeddingUtil.embeddingInputString;
-import static org.springframework.ai.embedding.EmbeddingUtil.embeddingModelId;
+import static util.EmbeddingUtil.assertLlmEmbeddingAttributes;
+import static util.EmbeddingUtil.buildEmbeddingRequest;
+import static util.EmbeddingUtil.buildEmbeddingResponse;
+import static util.EmbeddingUtil.embeddingInputString;
+import static util.EmbeddingUtil.embeddingModelId;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework.ai.embedding" }, configName = "llm_enabled.yml")

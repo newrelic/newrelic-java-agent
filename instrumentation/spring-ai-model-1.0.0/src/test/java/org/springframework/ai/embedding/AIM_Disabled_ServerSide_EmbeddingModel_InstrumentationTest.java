@@ -33,7 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.ai.embedding.EmbeddingUtil.buildEmbeddingRequest;
+import static util.EmbeddingUtil.buildEmbeddingRequest;
 
 @Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)

@@ -29,14 +29,14 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static llm.embeddings.TestUtil.assertLlmEmbeddingAttributes;
 import static llm.embeddings.events.LlmEvent.LLM_EMBEDDING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.ai.embedding.EmbeddingUtil.buildEmbeddingRequest;
-import static org.springframework.ai.embedding.EmbeddingUtil.embeddingInputString;
-import static org.springframework.ai.embedding.EmbeddingUtil.embeddingModelId;
+import static util.EmbeddingUtil.assertLlmEmbeddingAttributes;
+import static util.EmbeddingUtil.buildEmbeddingRequest;
+import static util.EmbeddingUtil.embeddingInputString;
+import static util.EmbeddingUtil.embeddingModelId;
 
 @Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
