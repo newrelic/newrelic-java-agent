@@ -34,6 +34,7 @@ import static llm.models.TestUtil.assertErrorEvent;
 import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -46,10 +47,15 @@ public class Llama2ModelInvocationTest {
     // Completion
     private final String completionModelId = "meta.llama2-13b-chat-v1";
     private final String completionRequestBody = "{\"top_p\":0.9,\"max_gen_len\":1000,\"temperature\":0.5,\"prompt\":\"What is the color of the sky?\"}";
-    private final String completionResponseBody = "{\"generation\":\"\\n\\nThe color of the sky is blue.\",\"prompt_token_count\":9,\"generation_token_count\":306,\"stop_reason\":\"stop\"}";
     private final String completionRequestInput = "What is the color of the sky?";
     private final String completionResponseContent = "\n\nThe color of the sky is blue.";
     private final String finishReason = "stop";
+
+    // Completion with token data (complete usage data)
+    private final String completionResponseBodyWithTokens = "{\"generation\":\"\\n\\nThe color of the sky is blue.\",\"prompt_token_count\":9,\"generation_token_count\":306,\"stop_reason\":\"stop\"}";
+
+    // Completion without token data (incomplete usage data)
+    private final String completionResponseBodyWithoutTokens = "{\"generation\":\"\\n\\nThe color of the sky is blue.\",\"stop_reason\":\"stop\"}";
 
     @Before
     public void before() {
@@ -62,8 +68,7 @@ public class Llama2ModelInvocationTest {
     public void testCompletion() {
         boolean isError = false;
 
-        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBody,
-                isError);
+        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
         llama2ModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -91,8 +96,7 @@ public class Llama2ModelInvocationTest {
     public void testCompletionError() {
         boolean isError = true;
 
-        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBody,
-                isError);
+        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
         llama2ModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -161,4 +165,74 @@ public class Llama2ModelInvocationTest {
         return new Llama2ModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
                 mockInvokeModelResponse);
     }
+
+    @Test
+    public void testCompletionWithCompleteUsageData() {
+
+        boolean isError = false;
+
+        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithTokens, isError);
+        llama2ModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(0, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertEquals(9, summaryAttributes.get("response.usage.prompt_tokens"));
+        assertEquals(306, summaryAttributes.get("response.usage.completion_tokens"));
+        assertEquals(315, summaryAttributes.get("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithIncompleteUsageData() {
+        boolean isError = false;
+
+        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
+        llama2ModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(13, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithNoCallback() {
+        boolean isError = false;
+
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(null);
+
+        Llama2ModelInvocation llama2ModelInvocation = mockLlama2ModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
+        llama2ModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertFalse(attributes.containsKey("token_count"));
+        }
+    }
+
 }
