@@ -185,4 +185,19 @@ public class ClaudeModelResponse implements ModelResponse {
     public String getStatusText() {
         return statusText;
     }
+
+    @Override
+    public Integer getPromptTokens() {
+        return null;
+    }
+
+    @Override
+    public Integer getCompletionTokens() {
+        return null;
+    }
+
+    @Override
+    public Integer getTotalTokens() {
+        return null;
+    }
 }
