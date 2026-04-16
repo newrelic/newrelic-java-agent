@@ -16,7 +16,7 @@ SpringAI `EmbeddingModel` `call` API will be instrumented.
 
 ### Supported Models
 
-TODO
+The `EmbeddingModel` provides a consistent set of APIs that should generally be agnostic of the underlying LLM. In general, variations of OpenAI and Azure OpenAI have been verified to be compatible with this instrumentation.
 
 ## Involved Pieces
 

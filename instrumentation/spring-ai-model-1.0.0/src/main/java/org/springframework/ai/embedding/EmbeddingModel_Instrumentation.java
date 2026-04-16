@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package org.springframework.ai.embedding;
 
 import com.newrelic.agent.bridge.AgentBridge;

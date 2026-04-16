@@ -60,20 +60,19 @@ public class SpringAiModelInvocation implements ModelInvocation {
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmEmbeddingEvent = builder
-                .spanId()
-                .traceId()
-                .vendor()
-                .ingestSource()
                 .id(modelResponse.getLlmEmbeddingId())
                 .requestId()
+                .spanId()
+                .traceId()
                 .input(index)
                 .requestModel()
                 .responseModel()
                 .responseOrganization()
                 .responseUsageTotalTokens()
-                .tokenCount(getTokenCount(modelResponse.getModelId(), modelRequest.getInputText(index)))
-                .error()
+                .vendor()
+                .ingestSource()
                 .duration(System.currentTimeMillis() - startTime)
+                .error()
                 .build();
 
         llmEmbeddingEvent.recordLlmEmbeddingEvent();

@@ -4,6 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
+
 package llm.completions.events;
 
 import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;

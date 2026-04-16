@@ -16,7 +16,9 @@ SpringAI `ChatClient` `call` and `stream` APIs will be instrumented.
 
 ### Supported Models
 
-TODO
+The `ChatClient` provides a consistent set of APIs that should generally be agnostic of the underlying LLM. In general, variations of OpenAI and Azure OpenAI have been verified to be compatible with this instrumentation.
+
+We do not instrument the older `ChatModel` client that preceded `ChatClient`, as it returns raw LLM responses as JSON structures, which will potentially be different for every model and thus is inherently brittle and subject to change.
 
 ## Involved Pieces
 
