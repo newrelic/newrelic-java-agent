@@ -9,6 +9,7 @@ package llm.models.amazon.titan;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountResolver;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
@@ -24,7 +25,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static llm.models.ModelInvocation.getRandomGuid;
-import static llm.models.ModelInvocation.getTokenCount;
 import static llm.models.ModelResponse.COMPLETION;
 import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;
@@ -55,6 +55,16 @@ public class TitanModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmEmbeddingEvent(long startTime, int index) {
+        // Calculate hasCompleteUsage here for interface compatibility
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getPromptTokens(),
+                modelResponse.getCompletionTokens(),
+                modelResponse.getTotalTokens()
+        );
+        recordLlmEmbeddingEvent(startTime, index, hasCompleteUsage);
+    }
+
+    private void recordLlmEmbeddingEvent(long startTime, int index, boolean hasCompleteUsage) {
         if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
@@ -71,7 +81,10 @@ public class TitanModelInvocation implements ModelInvocation {
                 .input(index)
                 .requestModel()
                 .responseModel()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(index)))
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(
+                        hasCompleteUsage,
+                        modelRequest.getModelId(),
+                        modelRequest.getInputText(index)))
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
                 .build();
@@ -81,13 +94,23 @@ public class TitanModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
+        // Calculate hasCompleteUsage here for interface compatibility
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getPromptTokens(),
+                modelResponse.getCompletionTokens(),
+                modelResponse.getTotalTokens()
+        );
+        recordLlmChatCompletionSummaryEvent(startTime, numberOfMessages, hasCompleteUsage);
+    }
+
+    private void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages, boolean hasCompleteUsage) {
         if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
-        LlmEvent llmChatCompletionSummaryEvent = builder
+        LlmEvent.Builder summaryBuilder = builder
                 .spanId()
                 .traceId()
                 .vendor()
@@ -101,14 +124,33 @@ public class TitanModelInvocation implements ModelInvocation {
                 .responseNumberOfMessages(numberOfMessages)
                 .responseChoicesFinishReason()
                 .error()
-                .duration(System.currentTimeMillis() - startTime)
-                .build();
+                .duration(System.currentTimeMillis() - startTime);
+
+        // Only add usage fields if complete (all-or-nothing rule)
+        if (hasCompleteUsage) {
+            summaryBuilder
+                    .responseUsagePromptTokens()
+                    .responseUsageCompletionTokens()
+                    .responseUsageTotalTokens();
+        }
+
+        LlmEvent llmChatCompletionSummaryEvent = summaryBuilder.build();
 
         llmChatCompletionSummaryEvent.recordLlmChatCompletionSummaryEvent();
     }
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
+
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getPromptTokens(),
+                modelResponse.getCompletionTokens(),
+                modelResponse.getTotalTokens()
+        );
+        recordLlmChatCompletionMessageEvent(sequence, message, isUser, hasCompleteUsage);
+    }
+
+    private void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser, boolean hasCompleteUsage) {
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmChatCompletionMessageEvent = builder
@@ -124,7 +166,10 @@ public class TitanModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), message))
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(
+                        hasCompleteUsage,
+                        modelRequest.getModelId(),
+                        message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
@@ -174,22 +219,28 @@ public class TitanModelInvocation implements ModelInvocation {
         int numberOfResponseMessages = modelResponse.getNumberOfResponseMessages();
         int totalNumberOfMessages = numberOfRequestMessages + numberOfResponseMessages;
 
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getPromptTokens(),
+                modelResponse.getCompletionTokens(),
+                modelResponse.getTotalTokens()
+        );
+
         int sequence = 0;
 
         // First, record all LlmChatCompletionMessage events representing the user input prompt
         for (int i = 0; i < numberOfRequestMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), true);
+            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), true, hasCompleteUsage);
             sequence++;
         }
 
         // Second, record all LlmChatCompletionMessage events representing the completion message from the LLM response
         for (int i = 0; i < numberOfResponseMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), false);
+            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), false, hasCompleteUsage);
             sequence++;
         }
 
         // Finally, record a summary event representing all LlmChatCompletionMessage events
-        recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages);
+        recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages, hasCompleteUsage);
     }
 
     /**
@@ -198,9 +249,16 @@ public class TitanModelInvocation implements ModelInvocation {
      */
     private void recordLlmEmbeddingEvents(long startTime) {
         int numberOfRequestMessages = modelRequest.getNumberOfInputTextMessages();
+
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getPromptTokens(),
+                modelResponse.getCompletionTokens(),
+                modelResponse.getTotalTokens()
+        );
+
         // Record an LlmEmbedding event for each input message in the request
         for (int i = 0; i < numberOfRequestMessages; i++) {
-            recordLlmEmbeddingEvent(startTime, i);
+            recordLlmEmbeddingEvent(startTime, i, hasCompleteUsage);
         }
     }
 

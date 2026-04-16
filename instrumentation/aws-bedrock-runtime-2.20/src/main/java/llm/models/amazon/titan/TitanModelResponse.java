@@ -239,4 +239,64 @@ public class TitanModelResponse implements ModelResponse {
     public String getStatusText() {
         return statusText;
     }
+
+    @Override
+    public Integer getPromptTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode inputTextTokenCountNode = getResponseBodyJsonMap().get("inputTextTokenCount");
+
+                if  (inputTextTokenCountNode != null && inputTextTokenCountNode.isNumber()) {
+                    return Integer.parseInt(inputTextTokenCountNode.text());
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "prompt tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getCompletionTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode resultsNode = getResponseBodyJsonMap().get("results");
+
+                if (resultsNode != null && resultsNode.isArray()) {
+                    List<JsonNode> resultsArray = resultsNode.asArray();
+
+                    if (!resultsArray.isEmpty()) {
+                        JsonNode firstResult = resultsArray.get(0);
+
+                        if (firstResult != null && firstResult.isObject()) {
+                            Map<String, JsonNode> resultMap = firstResult.asObject();
+
+                            if (resultMap != null && !resultMap.isEmpty()) {
+                                JsonNode tokenCountNode = resultMap.get("tokenCount");
+
+                                if  (tokenCountNode != null && tokenCountNode.isNumber()) {
+                                    return Integer.parseInt(tokenCountNode.text());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "completion tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getTotalTokens() {
+        Integer promptTokens = getPromptTokens();
+        Integer completionTokens = getCompletionTokens();
+
+        // Only return total if both values are available
+        if (promptTokens != null && completionTokens != null) {
+            return promptTokens + completionTokens;
+        }
+        return null;
+    }
 }
