@@ -55,7 +55,7 @@ public class TitanModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmEmbeddingEvent(long startTime, int index) {
-        // Calculate hasCompleteUsage here for interface compatibility
+
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
                 modelResponse.getPromptTokens(),
                 modelResponse.getCompletionTokens(),
@@ -94,7 +94,7 @@ public class TitanModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
-        // Calculate hasCompleteUsage here for interface compatibility
+
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
                 modelResponse.getPromptTokens(),
                 modelResponse.getCompletionTokens(),

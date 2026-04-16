@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static llm.models.ModelInvocation.getRandomGuid;
-import static llm.models.ModelInvocation.getTokenCount;
 import static llm.models.ModelResponse.COMPLETION;
 import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;

@@ -120,52 +120,6 @@ public class Llama2ModelInvocationTest {
         assertErrorEvent(isError, introspector.getErrorEvents());
     }
 
-    private Llama2ModelInvocation mockLlama2ModelInvocation(String modelId, String requestBody, String responseBody, boolean isError) {
-        // Given
-        Map<String, String> linkingMetadata = new HashMap<>();
-        linkingMetadata.put("span.id", "span-id-123");
-        linkingMetadata.put("trace.id", "trace-id-xyz");
-
-        Map<String, Object> userAttributes = new HashMap<>();
-        userAttributes.put("llm.conversation_id", "conversation-id-value");
-        userAttributes.put("llm.testPrefix", "testPrefix");
-        userAttributes.put("test", "test");
-
-        // Mock out ModelRequest
-        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
-        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
-        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
-        when(mockRequestSdkBytes.asUtf8String()).thenReturn(requestBody);
-        when(mockInvokeModelRequest.modelId()).thenReturn(modelId);
-
-        // Mock out ModelResponse
-        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
-        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
-        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
-        when(mockResponseSdkBytes.asUtf8String()).thenReturn(responseBody);
-
-        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
-        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
-
-        if (isError) {
-            when(mockSdkHttpResponse.statusCode()).thenReturn(400);
-            when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("BAD_REQUEST"));
-            when(mockSdkHttpResponse.isSuccessful()).thenReturn(false);
-        } else {
-            when(mockSdkHttpResponse.statusCode()).thenReturn(200);
-            when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
-            when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
-        }
-
-        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
-        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
-        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
-
-        // Instantiate ModelInvocation
-        return new Llama2ModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
-                mockInvokeModelResponse);
-    }
-
     @Test
     public void testCompletionWithCompleteUsageData() {
 
@@ -233,6 +187,52 @@ public class Llama2ModelInvocationTest {
             Map<String, Object> attributes = messageEvent.getAttributes();
             assertFalse(attributes.containsKey("token_count"));
         }
+    }
+
+    private Llama2ModelInvocation mockLlama2ModelInvocation(String modelId, String requestBody, String responseBody, boolean isError) {
+        // Given
+        Map<String, String> linkingMetadata = new HashMap<>();
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        Map<String, Object> userAttributes = new HashMap<>();
+        userAttributes.put("llm.conversation_id", "conversation-id-value");
+        userAttributes.put("llm.testPrefix", "testPrefix");
+        userAttributes.put("test", "test");
+
+        // Mock out ModelRequest
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn(requestBody);
+        when(mockInvokeModelRequest.modelId()).thenReturn(modelId);
+
+        // Mock out ModelResponse
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn(responseBody);
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+
+        if (isError) {
+            when(mockSdkHttpResponse.statusCode()).thenReturn(400);
+            when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("BAD_REQUEST"));
+            when(mockSdkHttpResponse.isSuccessful()).thenReturn(false);
+        } else {
+            when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+            when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+            when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        }
+
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+
+        // Instantiate ModelInvocation
+        return new Llama2ModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
+                mockInvokeModelResponse);
     }
 
 }
