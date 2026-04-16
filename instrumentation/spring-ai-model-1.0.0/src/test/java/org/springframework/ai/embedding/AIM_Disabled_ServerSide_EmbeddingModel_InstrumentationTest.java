@@ -7,13 +7,11 @@
 
 package org.springframework.ai.embedding;
 
-import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.agent.introspec.Event;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
-import com.newrelic.api.agent.LlmTokenCountCallback;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.test.marker.Java11IncompatibleTest;
@@ -34,27 +32,25 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static util.EmbeddingUtil.buildEmbeddingRequest;
+import static util.EmbeddingUtil.expectedConversationId;
+import static util.EmbeddingUtil.expectedTestPrefix;
 
 @Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework.ai.embedding" }, configName = "llm_disabled_server_side.yml")
 public class AIM_Disabled_ServerSide_EmbeddingModel_InstrumentationTest {
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
-    EmbeddingModel embeddingModel = new MockEmbeddingModel();
 
     @Before
     public void before() {
-        LlmTokenCountCallback llmTokenCountCallback = (model, content) -> 13;
-        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
-
         introspector.clear();
     }
 
     @Test
-    public void testInvokeModelEmbedding() {
+    public void testCallEmbeddingModel() {
         EmbeddingResponse embeddingResponse = callModelInTransaction();
         assertNotNull(embeddingResponse);
-        assertNoLlmTransaction();
+        assertNoLlmTransaction("call");
         assertNoLlmSupportabilityMetrics();
         assertNoLlmEvents();
         assertTrue(introspector.getErrorEvents().isEmpty());
@@ -62,18 +58,19 @@ public class AIM_Disabled_ServerSide_EmbeddingModel_InstrumentationTest {
 
     @Trace(dispatcher = true)
     private EmbeddingResponse callModelInTransaction() {
-        NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events
-        NewRelic.addCustomParameter("llm.testPrefix", "testPrefix"); // Will be added to LLM events
+        EmbeddingModel embeddingModel = new MockEmbeddingModel();
+        NewRelic.addCustomParameter("llm.conversation_id", expectedConversationId); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.testPrefix", expectedTestPrefix); // Will be added to LLM events
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
         return embeddingModel.call(buildEmbeddingRequest());
     }
 
-    private void assertNoLlmTransaction() {
+    private void assertNoLlmTransaction(String functionName) {
         assertEquals(1, introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(2)));
         Collection<String> transactionNames = introspector.getTransactionNames();
         String transactionName = transactionNames.iterator().next();
         Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(transactionName);
-        assertFalse(metrics.containsKey("Llm/" + ModelResponse.EMBEDDING + "/SpringAI/invokeModel"));
+        assertFalse(metrics.containsKey("Llm/" + ModelResponse.EMBEDDING + "/SpringAI/" + functionName));
     }
 
     private void assertNoLlmSupportabilityMetrics() {

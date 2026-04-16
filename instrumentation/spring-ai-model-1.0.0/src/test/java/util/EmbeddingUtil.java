@@ -8,6 +8,7 @@
 package util;
 
 import com.newrelic.agent.introspec.Event;
+import llm.embeddings.models.springai.SpringAiModelInvocation;
 import llm.embeddings.vendor.Vendor;
 import org.springframework.ai.chat.metadata.DefaultUsage;
 import org.springframework.ai.embedding.Embedding;
@@ -17,6 +18,7 @@ import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.ai.embedding.EmbeddingResponseMetadata;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,27 +29,34 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class EmbeddingUtil {
+    // Given
+    public static Map<String, String> linkingMetadata = new HashMap<>();
+    public static Map<String, Object> userAttributes = new HashMap<>();
+
     // request
-    public static String embeddingInputString = "This is the embedding string to be vectorized";
-    public static int dimensions = 10;
+    public static String expectedEmbeddingInputString = "This is the embedding string to be vectorized";
+    public static int expectedDimensions = 10;
 
     // response
-    public static String embeddingModelId = "text-embedding-3-small";
-    public static int promptTokens = 1;
-    public static int completionTokens = 2;
-    public static int totalTokens = 3;
+    public static String expectedEmbeddingModelId = "text-embedding-3-small";
+    public static int expectedPromptTokens = 1;
+    public static int expectedCompletionTokens = 2;
+    public static int expectedTotalTokens = 3;
+
+    public static String expectedConversationId = "conversation-id-value";
+    public static String expectedTestPrefix = "testPrefix";
 
     public static EmbeddingRequest buildEmbeddingRequest() {
         List<String> embeddingInputs = new LinkedList<>();
-        embeddingInputs.add(embeddingInputString);
-        EmbeddingOptions embeddingOptions = EmbeddingOptionsBuilder.builder().withModel(embeddingModelId).withDimensions(dimensions).build();
+        embeddingInputs.add(expectedEmbeddingInputString);
+        EmbeddingOptions embeddingOptions = EmbeddingOptionsBuilder.builder().withModel(expectedEmbeddingModelId).withDimensions(expectedDimensions).build();
         return new EmbeddingRequest(embeddingInputs, embeddingOptions);
     }
 
     public static EmbeddingResponse buildEmbeddingResponse() {
-        DefaultUsage defaultUsage = new DefaultUsage(promptTokens, completionTokens, totalTokens);
+        DefaultUsage defaultUsage = new DefaultUsage(expectedPromptTokens, expectedCompletionTokens, expectedTotalTokens);
 
-        EmbeddingResponseMetadata embeddingResponseMetadata = new EmbeddingResponseMetadata(embeddingModelId, defaultUsage);
+        EmbeddingResponseMetadata embeddingResponseMetadata = new EmbeddingResponseMetadata(expectedEmbeddingModelId, defaultUsage);
 
         List<Embedding> embeddings = new LinkedList<>();
         float[] embeddingValues = new float[4];
@@ -70,11 +79,25 @@ public class EmbeddingUtil {
         assertEquals(requestInput, attributes.get("input"));
         assertEquals(modelId, attributes.get("request.model"));
         assertEquals(modelId, attributes.get("response.model"));
-        assertEquals(totalTokens, attributes.get("response.usage.total_tokens"));
+        assertEquals(expectedTotalTokens, attributes.get("response.usage.total_tokens"));
         assertEquals(Vendor.VENDOR, attributes.get("vendor"));
         assertEquals(Vendor.INGEST_SOURCE, attributes.get("ingest_source"));
         assertTrue(((Float) attributes.get("duration")) >= 0);
-        assertEquals("testPrefix", attributes.get("llm.testPrefix"));
-        assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
+        assertEquals(expectedTestPrefix, attributes.get("llm.testPrefix"));
+        assertEquals(expectedConversationId, attributes.get("llm.conversation_id"));
+    }
+
+    public static void setupMockTestEnv() {
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        userAttributes.put("llm.conversation_id", expectedConversationId);
+        userAttributes.put("llm.testPrefix", expectedTestPrefix);
+        userAttributes.put("test", "test");
+    }
+
+    public static SpringAiModelInvocation mockSpringAiModelInvocation() {
+        return new SpringAiModelInvocation(linkingMetadata, userAttributes, buildEmbeddingRequest(),
+                buildEmbeddingResponse());
     }
 }

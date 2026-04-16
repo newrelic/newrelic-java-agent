@@ -16,46 +16,31 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import static llm.embeddings.events.LlmEvent.LLM_EMBEDDING;
 import static org.junit.Assert.assertEquals;
 import static util.EmbeddingUtil.assertLlmEmbeddingAttributes;
-import static util.EmbeddingUtil.buildEmbeddingRequest;
-import static util.EmbeddingUtil.buildEmbeddingResponse;
-import static util.EmbeddingUtil.embeddingInputString;
-import static util.EmbeddingUtil.embeddingModelId;
+import static util.EmbeddingUtil.mockSpringAiModelInvocation;
+import static util.EmbeddingUtil.expectedEmbeddingInputString;
+import static util.EmbeddingUtil.expectedEmbeddingModelId;
+import static util.EmbeddingUtil.setupMockTestEnv;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "org.springframework.ai.embedding" }, configName = "llm_enabled.yml")
 public class SpringAiModelInvocationTest {
-
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
-
-    // Given
-    Map<String, String> linkingMetadata = new HashMap<>();
-
-    Map<String, Object> userAttributes = new HashMap<>();
 
     @Before
     public void before() {
         introspector.clear();
-
-        linkingMetadata.put("span.id", "span-id-123");
-        linkingMetadata.put("trace.id", "trace-id-xyz");
-
-        userAttributes.put("llm.conversation_id", "conversation-id-value");
-        userAttributes.put("llm.testPrefix", "testPrefix");
-        userAttributes.put("test", "test");
+        setupMockTestEnv();
     }
 
     @Test
     public void testCompletion() {
         // Instantiate ModelInvocation
-        SpringAiModelInvocation springAiModelInvocation = new SpringAiModelInvocation(linkingMetadata, userAttributes, buildEmbeddingRequest(),
-                buildEmbeddingResponse());
+        SpringAiModelInvocation springAiModelInvocation = mockSpringAiModelInvocation();
         springAiModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmEmbeddingEvents = introspector.getCustomEvents(LLM_EMBEDDING);
@@ -63,6 +48,6 @@ public class SpringAiModelInvocationTest {
         Iterator<Event> llmEmbeddingEventIterator = llmEmbeddingEvents.iterator();
         Event llmEmbeddingEvent = llmEmbeddingEventIterator.next();
 
-        assertLlmEmbeddingAttributes(llmEmbeddingEvent, embeddingModelId, embeddingInputString);
+        assertLlmEmbeddingAttributes(llmEmbeddingEvent, expectedEmbeddingModelId, expectedEmbeddingInputString);
     }
 }
