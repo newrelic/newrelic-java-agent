@@ -36,6 +36,7 @@ import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static llm.models.TestUtil.assertLlmEmbeddingAttributes;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -54,10 +55,15 @@ public class TitanModelInvocationTest {
     // Completion
     private final String completionModelId = "amazon.titan-text-lite-v1";
     private final String completionRequestBody = "{\"inputText\":\"What is the color of the sky?\",\"textGenerationConfig\":{\"maxTokenCount\":1000,\"stopSequences\":[\"User:\"],\"temperature\":0.5,\"topP\":0.9}}";
-    private final String completionResponseBody = "{\"inputTextTokenCount\":8,\"results\":[{\"tokenCount\":9,\"outputText\":\"\\nThe color of the sky is blue.\",\"completionReason\":\"FINISH\"}]}";
     private final String completionRequestInput = "What is the color of the sky?";
     private final String completionResponseContent = "\nThe color of the sky is blue.";
     private final String finishReason = "FINISH";
+
+    // Completion with token data (complete usage data)
+    private final String completionResponseBodyWithTokens = "{\"inputTextTokenCount\":8,\"results\":[{\"tokenCount\":9,\"outputText\":\"\\nThe color of the sky is blue.\",\"completionReason\":\"FINISH\"}]}";
+
+    // Completion without token data (incomplete usage data)
+    private final String completionResponseBodyWithoutTokens = "{\"results\":[{\"outputText\":\"\\nThe color of the sky is blue.\",\"completionReason\":\"FINISH\"}]}";
 
     @Before
     public void before() {
@@ -87,7 +93,7 @@ public class TitanModelInvocationTest {
     public void testCompletion() {
         boolean isError = false;
 
-        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
         titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -132,7 +138,7 @@ public class TitanModelInvocationTest {
     public void testCompletionError() {
         boolean isError = true;
 
-        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
         titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
 
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
@@ -201,4 +207,73 @@ public class TitanModelInvocationTest {
         return new TitanModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
                 mockInvokeModelResponse);
     }
+
+    @Test
+    public void testCompletionWithCompleteUsageData() {
+        boolean isError = false;
+
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithTokens, isError);
+        titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(0, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertEquals(8, summaryAttributes.get("response.usage.prompt_tokens"));
+        assertEquals(9, summaryAttributes.get("response.usage.completion_tokens"));
+        assertEquals(17, summaryAttributes.get("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithIncompleteUsageData() {
+        boolean isError = false;
+
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
+        titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(13, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithNoCallback() {
+        boolean isError = false;
+
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(null);
+
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(completionModelId, completionRequestBody, completionResponseBodyWithoutTokens, isError);
+        titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertFalse(attributes.containsKey("token_count"));
+        }
+    }
+
 }
