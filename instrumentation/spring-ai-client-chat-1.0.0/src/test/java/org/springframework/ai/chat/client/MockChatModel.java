@@ -22,18 +22,18 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MockChatModel implements ChatModel {
-    public static String requestModelId = "gpt-4o-request";
-    public static String responseModelId = "gpt-4o-response";
-    public static String completionId = "chatcmpl-DQiVf9ymJ30wEL1PROnY8JKZHA3Ku";
-    public static String generationMessage = "Why don't scientists trust atoms? Because they make up everything!";
-    public static String finishReason = "stop";
-    public static double temp = 0.7;
-    public static int maxTokens = 1000;
-    public static int promptTokens = 1;
-    public static int completionTokens = 2;
-    public static int totalTokens = 3;
+import static util.CompletionUtil.expectedCompletionId;
+import static util.CompletionUtil.expectedCompletionTokens;
+import static util.CompletionUtil.expectedFinishReason;
+import static util.CompletionUtil.expectedGenerationMessage;
+import static util.CompletionUtil.expectedMaxTokens;
+import static util.CompletionUtil.expectedPromptTokens;
+import static util.CompletionUtil.expectedRequestModelId;
+import static util.CompletionUtil.expectedResponseModelId;
+import static util.CompletionUtil.expectedTemp;
+import static util.CompletionUtil.expectedTotalTokens;
 
+public class MockChatModel implements ChatModel {
     @Override
     public ChatResponse call(Prompt prompt) {
         return buildMockChatResponse();
@@ -51,7 +51,7 @@ public class MockChatModel implements ChatModel {
 
     @Override
     public ChatOptions getDefaultOptions() {
-        return ChatOptions.builder().model(requestModelId).maxTokens(maxTokens).temperature(temp).build();
+        return ChatOptions.builder().model(expectedRequestModelId).maxTokens(expectedMaxTokens).temperature(expectedTemp).build();
     }
 
     @Override
@@ -72,14 +72,14 @@ public class MockChatModel implements ChatModel {
     private ChatResponse buildMockChatResponse() {
         List<Generation> generations = new ArrayList<>();
 
-        Generation generation = new Generation(new AssistantMessage(generationMessage),
-                ChatGenerationMetadata.builder().finishReason(finishReason).build());
+        Generation generation = new Generation(new AssistantMessage(expectedGenerationMessage),
+                ChatGenerationMetadata.builder().finishReason(expectedFinishReason).build());
         generations.add(generation);
 
-        DefaultUsage defaultUsage = new DefaultUsage(promptTokens, completionTokens, totalTokens);
+        DefaultUsage defaultUsage = new DefaultUsage(expectedPromptTokens, expectedCompletionTokens, expectedTotalTokens);
 
         ChatResponseMetadata.Builder chatResponseMetadataBuilder = ChatResponseMetadata.builder();
-        chatResponseMetadataBuilder.model(responseModelId).usage(defaultUsage).id(completionId);
+        chatResponseMetadataBuilder.model(expectedResponseModelId).usage(defaultUsage).id(expectedCompletionId);
         return ChatResponse.builder().metadata(chatResponseMetadataBuilder.build()).generations(generations).build();
     }
 }

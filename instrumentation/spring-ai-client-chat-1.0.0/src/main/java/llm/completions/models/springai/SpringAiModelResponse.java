@@ -187,7 +187,7 @@ public class SpringAiModelResponse implements ModelResponse {
     @Override
     public Integer getTimeToFirstToken() {
         // This only applies to streams
-        return timeToFirstToken; // TODO this is from streams only
+        return timeToFirstToken;
     }
 
     @Override

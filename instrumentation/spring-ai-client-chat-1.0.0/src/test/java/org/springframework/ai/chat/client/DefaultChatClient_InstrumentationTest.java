@@ -32,13 +32,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static llm.completions.TestUtil.assertLlmChatCompletionMessageAttributes;
-import static llm.completions.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static llm.completions.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
 import static llm.completions.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static util.CompletionUtil.assertLlmChatCompletionMessageAttributes;
+import static util.CompletionUtil.assertLlmChatCompletionSummaryAttributes;
+import static util.CompletionUtil.expectedConversationId;
+import static util.CompletionUtil.expectedFinishReason;
+import static util.CompletionUtil.expectedGenerationMessage;
+import static util.CompletionUtil.expectedPromptUserMessage;
+import static util.CompletionUtil.expectedRequestModelId;
+import static util.CompletionUtil.expectedResponseModelId;
+import static util.CompletionUtil.expectedTemp;
+import static util.CompletionUtil.expectedTestPrefix;
 
 @Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
@@ -47,7 +55,6 @@ public class DefaultChatClient_InstrumentationTest {
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
     ChatClient chatClient;
-    String userPrompt = "Hello, tell me a joke";
 
     @Before
     public void setup() {
@@ -94,20 +101,20 @@ public class DefaultChatClient_InstrumentationTest {
     @Trace(dispatcher = true)
     private ChatClientResponse callModelInTransaction() {
         NewRelic.getAgent().getAiMonitoring().setLlmTokenCountCallback(new TokenCountCallback());
-        NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events
-        NewRelic.addCustomParameter("llm.testPrefix", "testPrefix"); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.conversation_id", expectedConversationId); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.testPrefix", expectedTestPrefix); // Will be added to LLM events
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
-        return chatClient.prompt().user(userPrompt).call().chatClientResponse();
+        return chatClient.prompt().user(expectedPromptUserMessage).call().chatClientResponse();
     }
 
     @Trace(dispatcher = true)
     private Flux<ChatClientResponse> streamModelInTransaction() {
         NewRelic.getAgent().getAiMonitoring().setLlmTokenCountCallback(new TokenCountCallback());
-        NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events
-        NewRelic.addCustomParameter("llm.testPrefix", "testPrefix"); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.conversation_id", expectedConversationId); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.testPrefix", expectedTestPrefix); // Will be added to LLM events
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
         return chatClient.prompt()
-                .user(userPrompt)
+                .user(expectedPromptUserMessage)
                 .advisors()
                 .stream()
                 .chatClientResponse();
@@ -135,12 +142,11 @@ public class DefaultChatClient_InstrumentationTest {
         Iterator<Event> llmChatCompletionMessageEventIterator = llmChatCompletionMessageEvents.iterator();
         // LlmChatCompletionMessage event for user request message
         Event llmChatCompletionMessageEventOne = llmChatCompletionMessageEventIterator.next();
-        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventOne, MockChatModel.responseModelId, userPrompt, false);
+        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventOne, expectedResponseModelId, expectedPromptUserMessage, false);
 
         // LlmChatCompletionMessage event for assistant response message
         Event llmChatCompletionMessageEventTwo = llmChatCompletionMessageEventIterator.next();
-        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventTwo, MockChatModel.responseModelId, MockChatModel.generationMessage,
-                true);
+        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventTwo, expectedResponseModelId, expectedGenerationMessage, true);
 
         // LlmCompletionSummary events
         Collection<Event> llmCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
@@ -149,7 +155,7 @@ public class DefaultChatClient_InstrumentationTest {
         Iterator<Event> llmCompletionSummaryEventIterator = llmCompletionSummaryEvents.iterator();
         // Summary event for both LlmChatCompletionMessage events
         Event llmCompletionSummaryEvent = llmCompletionSummaryEventIterator.next();
-        assertLlmChatCompletionSummaryAttributes(llmCompletionSummaryEvent, MockChatModel.requestModelId, MockChatModel.responseModelId,
-                MockChatModel.finishReason, MockChatModel.temp);
+        assertLlmChatCompletionSummaryAttributes(llmCompletionSummaryEvent, expectedRequestModelId, expectedResponseModelId, expectedFinishReason,
+                expectedTemp);
     }
 }

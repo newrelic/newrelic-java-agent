@@ -37,6 +37,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static util.CompletionUtil.expectedConversationId;
+import static util.CompletionUtil.expectedPromptUserMessage;
+import static util.CompletionUtil.expectedTestPrefix;
 
 @Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 @RunWith(InstrumentationTestRunner.class)
@@ -45,7 +48,6 @@ public class AIM_Disabled_ServerSide_DefaultChatClient_InstrumentationTest {
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
     ChatClient chatClient;
-    String userPrompt = "Hello, tell me a joke";
 
     @Before
     public void setup() {
@@ -71,7 +73,7 @@ public class AIM_Disabled_ServerSide_DefaultChatClient_InstrumentationTest {
     public void testCallModelCompletion() {
         ChatClientResponse chatClientResponse = callModelInTransaction();
         assertNotNull(chatClientResponse);
-        assertNoLlmTransaction();
+        assertNoLlmTransaction("call");
         assertNoLlmSupportabilityMetrics();
         assertNoLlmEvents();
         assertTrue(introspector.getErrorEvents().isEmpty());
@@ -83,7 +85,7 @@ public class AIM_Disabled_ServerSide_DefaultChatClient_InstrumentationTest {
         List<ChatClientResponse> chatClientResponses = chatClientResponseFlux.collectList().block();
         assertNotNull(chatClientResponses);
         assertNotNull(chatClientResponses.get(0));
-        assertNoLlmTransaction();
+        assertNoLlmTransaction("stream");
         assertNoLlmSupportabilityMetrics();
         assertNoLlmEvents();
         assertTrue(introspector.getErrorEvents().isEmpty());
@@ -91,35 +93,35 @@ public class AIM_Disabled_ServerSide_DefaultChatClient_InstrumentationTest {
 
     @Trace(dispatcher = true)
     private ChatClientResponse callModelInTransaction() {
-        NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events
-        NewRelic.addCustomParameter("llm.testPrefix", "testPrefix"); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.conversation_id", expectedConversationId); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.testPrefix", expectedTestPrefix); // Will be added to LLM events
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
-        return chatClient.prompt().user(userPrompt).call().chatClientResponse();
+        return chatClient.prompt().user(expectedPromptUserMessage).call().chatClientResponse();
     }
 
     @Trace(dispatcher = true)
     private Flux<ChatClientResponse> streamModelInTransaction() {
-        NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events
-        NewRelic.addCustomParameter("llm.testPrefix", "testPrefix"); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.conversation_id", expectedConversationId); // Will be added to LLM events
+        NewRelic.addCustomParameter("llm.testPrefix", expectedTestPrefix); // Will be added to LLM events
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
         return chatClient.prompt()
-                .user(userPrompt)
+                .user(expectedPromptUserMessage)
                 .advisors()
                 .stream()
                 .chatClientResponse();
     }
 
-    private void assertNoLlmTransaction() {
+    private void assertNoLlmTransaction(String functionName) {
         assertEquals(1, introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(2)));
         Collection<String> transactionNames = introspector.getTransactionNames();
         String transactionName = transactionNames.iterator().next();
         Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(transactionName);
-        assertFalse(metrics.containsKey("Llm/" + ModelResponse.COMPLETION + "/Bedrock/invokeModel"));
+        assertFalse(metrics.containsKey("Llm/" + ModelResponse.COMPLETION + "/SpringAI/" + functionName));
     }
 
     private void assertNoLlmSupportabilityMetrics() {
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertFalse(unscopedMetrics.containsKey("Supportability/Java/ML/Bedrock/2.20"));
+        assertFalse(unscopedMetrics.containsKey("Supportability/Java/ML/SpringAI/1.0.0"));
     }
 
     private void assertNoLlmEvents() {
