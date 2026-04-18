@@ -127,7 +127,6 @@ public class Llama2ModelInvocation implements ModelInvocation {
                 .error()
                 .duration(System.currentTimeMillis() - startTime);
 
-        // Only add usage fields if complete (all-or-nothing rule)
         if (hasCompleteUsage) {
             summaryBuilder
                     .responseUsagePromptTokens()

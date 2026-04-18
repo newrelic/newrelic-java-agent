@@ -51,7 +51,7 @@ public class JurassicModelInvocationTest {
     private final String completionResponseContent = "\nThe color of the sky is blue.";
     private final String finishReason = "endoftext";
 
-    // Completion with token arrays for testing usage extraction
+    // Completion with token arrays (complete usage data))
     private final String completionResponseBodyWithTokens =
             "{\"id\":1234,\"prompt\":{\"text\":\"What is the color of the sky?\",\"tokens\":[" +
                     "{\"generatedToken\":{\"token\":\"▁What\"},\"textRange\":{\"start\":0,\"end\":5}}," +

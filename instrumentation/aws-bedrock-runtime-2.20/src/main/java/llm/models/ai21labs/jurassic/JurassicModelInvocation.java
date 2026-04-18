@@ -89,7 +89,7 @@ public class JurassicModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
-        // Calculate hasCompleteUsage here for interface compatibility
+
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
                 modelResponse.getPromptTokens(),
                 modelResponse.getCompletionTokens(),
@@ -121,7 +121,6 @@ public class JurassicModelInvocation implements ModelInvocation {
                 .error()
                 .duration(System.currentTimeMillis() - startTime);
 
-        // Only add usage fields if complete (all-or-nothing rule)
         if (hasCompleteUsage) {
             summaryBuilder
                     .responseUsagePromptTokens()
@@ -136,7 +135,7 @@ public class JurassicModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
-        // Calculate hasCompleteUsage here for interface compatibility
+
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
                 modelResponse.getPromptTokens(),
                 modelResponse.getCompletionTokens(),
@@ -214,7 +213,6 @@ public class JurassicModelInvocation implements ModelInvocation {
         int numberOfResponseMessages = modelResponse.getNumberOfResponseMessages();
         int totalNumberOfMessages = numberOfRequestMessages + numberOfResponseMessages;
 
-        // Check once for complete usage data to avoid redundant calls
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
                 modelResponse.getPromptTokens(),
                 modelResponse.getCompletionTokens(),
