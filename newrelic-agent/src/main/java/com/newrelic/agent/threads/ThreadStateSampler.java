@@ -10,13 +10,15 @@ package com.newrelic.agent.threads;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.AbstractMetricAggregator;
@@ -33,8 +35,8 @@ public class ThreadStateSampler implements Runnable {
      * A cache of thread ids to some tracked thread state.  The cpu times reported by the Java apis we use are monotonically
      * increasing, so we have to track previous values and compute deltas.
      */
-    private final LoadingCache<Long, ThreadTracker> threads = Caffeine.newBuilder().expireAfterAccess(3, TimeUnit.MINUTES).executor(Runnable::run).build(
-            threadId -> new ThreadTracker());
+    private final Function<Long, ThreadTracker> threadTrackerCreateFunction;
+    private final Map<Long, ThreadTracker> threadsMap;
     private final ThreadMXBean threadMXBean;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final MetricAggregator metricAggregator;
@@ -43,6 +45,9 @@ public class ThreadStateSampler implements Runnable {
         this.threadMXBean = threadMXBean;
         this.metricAggregator = new ThreadStatsMetricAggregator(ServiceFactory.getStatsService());
         this.threadNameNormalizer = nameNormalizer;
+
+        this.threadsMap = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
+        this.threadTrackerCreateFunction = threadId -> threadsMap.computeIfAbsent(threadId, k -> new ThreadTracker());
     }
 
     @Override
@@ -52,11 +57,39 @@ public class ThreadStateSampler implements Runnable {
         for (ThreadInfo thread : threadInfos) {
             // a thread may terminate after getting its tid but before getting its thread info
             if (thread != null) {
-                threads.get(thread.getThreadId()).update(thread);
+                threadTrackerCreateFunction.apply(thread.getThreadId()).update(thread);
             } else {
                 Agent.LOG.finer("ThreadStateSampler: Skipping null thread.");
             }
         }
+
+        // Manually cleanup
+        cleanupDeadThreads();
+    }
+
+    /**
+     * Remove entries for threads that no longer exist.
+     * This prevents short-lived threads from accumulating in the cache.
+     */
+    private void cleanupDeadThreads() {
+        int initialSize = threadsMap.size();
+
+        threadsMap.keySet().removeIf(threadId -> threadMXBean.getThreadInfo(threadId) == null);
+        int removedCount = initialSize - threadsMap.size();
+
+        if (removedCount > 0) {
+            Agent.LOG.log(Level.FINEST, "Cleaned up {0} dead thread(s) from ThreadStateSampler cache", removedCount);
+        }
+    }
+
+    /**
+     * Package-private method for testing to get the number of tracked threads in the cache.
+     *
+     * @return cache size
+     */
+    @VisibleForTesting
+    int getTrackedThreadCount() {
+        return threadsMap.size();
     }
 
     private class ThreadTracker {

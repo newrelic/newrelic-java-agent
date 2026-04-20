@@ -239,7 +239,7 @@ public class CoreTracingCrossAgentTest {
 
         for (Object metric : metrics) {
             List expectedStats = (List) metric;
-            String expectedMetricName = (String) expectedStats.get(0);
+            String expectedMetricName = ((String) expectedStats.get(0)).replace("<LANG>", "Java");
 
             Long expectedMetricCount = (Long) ((JSONArray) metric).get(1);
             final String message = String.format("Expected total %d for: %s", expectedMetricCount, expectedMetricName);

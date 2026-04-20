@@ -5,11 +5,9 @@ import com.newrelic.agent.RPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.JfrConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.service.ServiceFactory;
-import com.newrelic.agent.service.ServiceManager;
-import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
@@ -19,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
@@ -31,7 +28,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -45,6 +41,9 @@ public class JfrServiceTest {
 
     @Mock
     AgentConfig agentConfig;
+
+    @Mock
+    ServerlessConfig serverlessConfig;
 
     @Before
     public void before() {
@@ -63,6 +62,8 @@ public class JfrServiceTest {
         when(agentConfig.getProxyScheme()).thenReturn("http");
         when(agentConfig.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
                 .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
+        when(agentConfig.getServerlessConfig()).thenReturn(serverlessConfig);
+        when(serverlessConfig.isEnabled()).thenReturn(false);
     }
 
     @Test
@@ -118,6 +119,20 @@ public class JfrServiceTest {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
         when(agentConfig.isHighSecurity()).thenReturn(true);
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        when(spyJfr.coreApisExist()).thenReturn(true);
+
+        spyJfr.doStart();
+
+        assertFalse(spyJfr.isEnabled());
+        verify(spyJfr, times(0)).startJfrLoop();
+    }
+
+    @Test
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndServerlessModeIsTrue() throws JfrRecorderException {
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+        when(serverlessConfig.isEnabled()).thenReturn(true);
         when(jfrConfig.isEnabled()).thenReturn(true);
         when(spyJfr.coreApisExist()).thenReturn(true);
 

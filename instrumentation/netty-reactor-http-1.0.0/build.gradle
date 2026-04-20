@@ -1,0 +1,34 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    // reactor-netty 1.0+ split into multiple artifacts (http depends on core transitively)
+    implementation("io.projectreactor.netty:reactor-netty-http:1.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.netty-reactor-http-1.0.0' }
+}
+
+verifyInstrumentation {
+    // reactor-netty 1.0.0+ split into multiple artifacts (reactor-netty-http, reactor-netty-core)
+    // Both artifacts are required together. Skip artifact matching and rely on class matching only.
+    passes 'io.projectreactor.netty:reactor-netty-http:[1.0.0,)'
+    verifyClasspath = false
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Netty Reactor HTTP'
+    type 'Appserver'
+}

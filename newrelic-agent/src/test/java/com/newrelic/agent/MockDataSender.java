@@ -130,6 +130,11 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
+    public void commitAndFlush() throws Exception {
+
+    }
+
+    @Override
     public void sendModules(List<? extends JSONStreamAware> jarData) throws Exception {
     }
 

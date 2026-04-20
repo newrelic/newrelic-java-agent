@@ -1,0 +1,39 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    // Compile against Spring 6.0.0 for compatibility, instrumentation supports Spring 6.x
+    implementation("org.springframework:spring-web:6.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-resttemplate-6.0.0' }
+}
+
+verifyInstrumentation {
+    // Spring Framework 6.x only (Spring 7.x removes 4-parameter doExecute method)
+    // Both 4-parameter and 5-parameter doExecute methods exist in this range
+    passesOnly 'org.springframework:spring-web:[6.0.0,7.0.0)'
+    // Explicitly fail on Spring 3.x-5.x (method signature changes)
+    fails 'org.springframework:spring-web:[,6.0.0)'
+    // Explicitly fail on Spring 7.x+ (method signature changes)
+    fails 'org.springframework:spring-web:[7.0.0,)'
+    // Exclude pre-release versions (RC, M, SNAPSHOT)
+    excludeRegex 'org.springframework:spring-web:.*(RC|M)[0-9]*$'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Spring RestTemplate'
+    type 'Http'
+}

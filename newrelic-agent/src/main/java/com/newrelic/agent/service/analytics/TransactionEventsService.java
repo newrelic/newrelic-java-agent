@@ -8,14 +8,13 @@
 package com.newrelic.agent.service.analytics;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.Harvestable;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.TransactionListener;
 import com.newrelic.agent.attributes.AttributesUtils;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.TransactionEventsConfig;
@@ -33,7 +32,6 @@ import com.newrelic.agent.stats.StatsBase;
 import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
-import com.newrelic.agent.tracing.DistributedTracePayloadImpl;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.util.TimeConversion;
 
@@ -46,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -95,11 +94,8 @@ public class TransactionEventsService extends AbstractService implements EventSe
      *
      * Multiple events for the same transaction name will reference a single instance of the transaction name string
      * using this cache.
-     *
-     * @see Caffeine#maximumSize(long)
-     * @see Caffeine#expireAfterAccess(long, TimeUnit)
      */
-    private volatile LoadingCache<String, String> transactionNameCache;
+    private volatile Function<String, String> transactionNameCache;
 
     private volatile int maxSamplesStored;
     private List<Harvestable> harvestables = new ArrayList<>();
@@ -121,12 +117,8 @@ public class TransactionEventsService extends AbstractService implements EventSe
         harvestables.add(harvestable);
     }
 
-    private static LoadingCache<String, String> createTransactionNameCache(int maxSamplesStored) {
-        return Caffeine.newBuilder()
-                .maximumSize(maxSamplesStored)
-                .expireAfterAccess(5, TimeUnit.MINUTES)
-                .executor(Runnable::run)
-                .build(key -> key);
+    private static Function<String, String> createTransactionNameCache(int maxSamplesStored) {
+        return AgentBridge.collectionFactory.createAccessTimeBasedCacheWithMaxSize(300, maxSamplesStored, key -> key);
     }
 
     @VisibleForTesting
@@ -362,7 +354,7 @@ public class TransactionEventsService extends AbstractService implements EventSe
      * of any single metric name is kept in memory.
      */
     private String getMetricName(TransactionData transactionData) {
-        return transactionNameCache.get(transactionData.getBlameOrRootMetricName());
+        return transactionNameCache.apply(transactionData.getBlameOrRootMetricName());
     }
 
     // public for testing purposes

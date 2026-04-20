@@ -7,8 +7,8 @@
 
 package com.newrelic.agent.extension;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.cache.Caffeine;
+import com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.cache.CacheLoader;
 import com.google.common.collect.ImmutableSet;
 import com.newrelic.agent.util.asm.BenignClassReadException;
 import com.newrelic.agent.util.asm.Utils;
@@ -43,9 +43,6 @@ public class DependencyRemapperTest {
                 "com/newrelic/agent/deps/org/objectweb/asm/ClassVisitor", remapper.getRemappings().get(
                         "org/objectweb/asm/ClassVisitor"));
         Assert.assertEquals(remapper.getRemappings().toString(),
-                "com/newrelic/agent/deps/com/github/benmanes/caffeine/cache/Caffeine", remapper.getRemappings().get(
-                        "com/github/benmanes/caffeine/cache/Caffeine"));
-        Assert.assertEquals(remapper.getRemappings().toString(),
                 "com/newrelic/agent/deps/com/google/common/collect/ImmutableSet", remapper.getRemappings().get(
                         "com/google/common/collect/ImmutableSet"));
     }
@@ -57,14 +54,6 @@ public class DependencyRemapperTest {
         Assert.assertEquals(remapper.getRemappings().toString(),
                 "com/newrelic/agent/deps/com/google/common/collect/ImmutableSet",
                 remapper.mapType(Type.getInternalName(ImmutableSet.class)));
-    }
-
-    @Test
-    public void caffeine() {
-        DependencyRemapper remapper = ExtensionRewriter.REMAPPER;
-        Assert.assertEquals(remapper.getRemappings().toString(),
-                "com/newrelic/agent/deps/com/github/benmanes/caffeine/cache/CacheLoader",
-                remapper.mapType(Type.getInternalName(CacheLoader.class)));
     }
 
     @Test

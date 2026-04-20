@@ -1,0 +1,26 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-lambda-java-core-events-1.2.0',
+            'Implementation-Title-Alias': 'aws-lambda-java-core' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+
+    // AWS Lambda Java Core contains the RequestHandler and RequestStreamHandler interfaces
+    implementation("com.amazonaws:aws-lambda-java-core:1.2.3")
+    implementation("com.amazonaws:aws-lambda-java-events:3.11.0")
+}
+
+verifyInstrumentation {
+    passesOnly('com.amazonaws:aws-lambda-java-core:[1.1.0,)') {
+        implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+    }
+
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
+}
+
+site {
+    title 'AWS Lambda Core'
+    type 'Framework'
+}

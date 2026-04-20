@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class CoreServiceImpl extends AbstractService implements CoreService, HealthDataProducer {
@@ -37,7 +38,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
     private final Instrumentation instrumentation;
     private volatile InstrumentationProxy instrumentationProxy;
     private final List<HealthDataChangeListener> healthDataChangeListeners = new CopyOnWriteArrayList<>();
-
+    private final AtomicBoolean shutdownInProgress = new AtomicBoolean(false);
 
     public CoreServiceImpl(Instrumentation instrumentation) {
         super(CoreService.class.getName());
@@ -125,7 +126,7 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
         }
 
         if (config.isSendDataOnExit() && ((System.currentTimeMillis() - startTime) >= config.getSendDataOnExitThresholdInMillis())) {
-            // Grab all RPMService instances (may be multiple with auto_app_naming enabled) and harvest them
+            // Grab all RPMService instances (maybe multiple with auto_app_naming enabled) and harvest them
             List<IRPMService> rpmServices = ServiceFactory.getRPMServiceManager().getRPMServices();
             for (IRPMService rpmService : rpmServices) {
                 rpmService.harvestNow();
@@ -137,12 +138,15 @@ public class CoreServiceImpl extends AbstractService implements CoreService, Hea
         getLogger().fine("Agent JVM shutdown hook: done.");
     }
 
-    private synchronized void shutdown() {
-        try {
-            ServiceFactory.getServiceManager().stop();
-            getLogger().info("New Relic Agent has shutdown");
-        } catch (Throwable t) {
-            Agent.LOG.log(Level.SEVERE, t, "Error shutting down New Relic Agent");
+    private void shutdown() {
+        // Prevent multiple shutdown attempts occurring at the same time
+        if (shutdownInProgress.compareAndSet(false, true)) {
+            try {
+                ServiceFactory.getServiceManager().stop();
+                getLogger().info("New Relic Agent has shutdown");
+            } catch (Throwable t) {
+                Agent.LOG.log(Level.SEVERE, t, "Error shutting down New Relic Agent");
+            }
         }
     }
 

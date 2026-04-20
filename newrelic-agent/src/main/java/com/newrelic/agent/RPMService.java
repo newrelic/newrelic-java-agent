@@ -14,7 +14,6 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.BrowserMonitoringConfig;
 import com.newrelic.agent.config.BrowserMonitoringConfigImpl;
-import com.newrelic.agent.config.DistributedTracingConfig;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.environment.AgentIdentity;
@@ -47,8 +46,8 @@ import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 import com.newrelic.agent.utilization.UtilizationData;
-import com.newrelic.api.agent.NewRelic;
 import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
@@ -63,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
@@ -82,6 +82,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private final String host;
     private final int port;
+    private final boolean serverlessMode;
     private final List<AgentConnectionEstablishedListener> agentConnectionEstablishedListeners;
     private volatile boolean connected = false;
     private final ErrorService errorService;
@@ -96,6 +97,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
     private final AtomicInteger retryCount = new AtomicInteger(0);
+    private final ReentrantLock reentrantLock = new ReentrantLock();
 
     private String rpmLink;
     private long lastReportTime;
@@ -110,7 +112,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         super(RPMService.class.getSimpleName() + "/" + appNames.get(0));
         appName = appNames.get(0).intern();
         AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
-        dataSender = DataSenderFactory.create(config, dataSenderListener);
+        this.serverlessMode = config.getServerlessConfig().isEnabled();
+        if (serverlessMode) {
+            dataSender = DataSenderFactory.createServerless(new DataSenderServerlessConfig(Agent.getVersion(), config.getServerlessConfig()), Agent.LOG,
+                    ServiceFactory.getServiceManager().getServerlessService(),
+                    config.getServerlessConfig());
+        } else {
+            dataSender = DataSenderFactory.create(config, dataSenderListener);
+        }
         this.appNames = appNames;
         this.connectionConfigListener = connectionConfigListener;
         this.connectionListener = connectionListener;
@@ -246,46 +255,52 @@ public class RPMService extends AbstractService implements IRPMService, Environm
      * Notify RPM that this agent has launched, and obtain the agent run id
      */
     @Override
-    public synchronized void launch() throws Exception {
-        if (isConnected()) {
-            return;
-        }
-
-        Map<String, Object> data = doConnect();
-        Agent.LOG.log(Level.FINER, "Connection response : {0}", data);
-        List<String> requiredParams = new ArrayList<>(Arrays.asList(COLLECT_ERRORS_KEY, COLLECT_TRACES_KEY, DATA_REPORT_PERIOD_KEY));
-        if (!data.keySet().containsAll(requiredParams)) {
-            requiredParams.removeAll(data.keySet());
-            throw new UnexpectedException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
-        }
-        Agent.LOG.log(Level.INFO, "Agent {0} connected to {1}", toString(), getHostString());
+    public void launch() throws Exception {
+        reentrantLock.lock();
 
         try {
-            logCollectorMessages(data);
-        } catch (Exception ex) {
-            Agent.LOG.log(Level.FINEST, ex, "Error processing collector connect messages");
-        }
+            if (isConnected()) {
+                return;
+            }
 
-        AgentConfig config = null;
-        if (connectionConfigListener != null) {
-            // Merge server-side data with local config before notifying connection listeners
-            config = connectionConfigListener.connected(this, data);
-        }
+            Map<String, Object> data = doConnect();
+            Agent.LOG.log(Level.FINER, "Connection response : {0}", data);
+            List<String> requiredParams = new ArrayList<>(Arrays.asList(COLLECT_ERRORS_KEY, COLLECT_TRACES_KEY, DATA_REPORT_PERIOD_KEY));
+            if (!data.keySet().containsAll(requiredParams) && !serverlessMode) {
+                requiredParams.removeAll(data.keySet());
+                throw new UnexpectedException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
+            }
+            Agent.LOG.log(Level.INFO, "Agent {0} connected to {1}", toString(), getHostString());
 
-        connectionTimestamp = System.nanoTime();
-        connected = true;
-        hasEverConnected = true;
-        entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
+            try {
+                logCollectorMessages(data);
+            } catch (Exception ex) {
+                Agent.LOG.log(Level.FINEST, ex, "Error processing collector connect messages");
+            }
 
-        if (connectionListener != null) {
-            config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
-            connectionListener.connected(this, config);
-        }
+            AgentConfig config = null;
+            if (connectionConfigListener != null && !serverlessMode) {
+                // Merge server-side data with local config before notifying connection listeners
+                config = connectionConfigListener.connected(this, data);
+            }
 
-        String agentRunToken = (String) data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
-        Map<String, String> requestMetadata = (Map<String, String>) data.get(ConnectionResponse.REQUEST_HEADERS);
-        for (AgentConnectionEstablishedListener listener : agentConnectionEstablishedListeners) {
-            listener.onEstablished(appName, agentRunToken, requestMetadata);
+            connectionTimestamp = System.nanoTime();
+            connected = true;
+            hasEverConnected = true;
+            entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
+
+            if (connectionListener != null) {
+                config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
+                connectionListener.connected(this, config);
+            }
+
+            String agentRunToken = serverlessMode ? "serverless-run-token" : (String) data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
+            Map<String, String> requestMetadata = (Map<String, String>) data.get(ConnectionResponse.REQUEST_HEADERS);
+            for (AgentConnectionEstablishedListener listener : agentConnectionEstablishedListeners) {
+                listener.onEstablished(appName, agentRunToken, requestMetadata);
+            }
+        } finally {
+            reentrantLock.unlock();
         }
     }
 
@@ -306,6 +321,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private void logCollectorMessages(Map<String, Object> data) {
+        if (serverlessMode) {
+            return;
+        }
         List<Map<String, String>> messages = (List<Map<String, String>>) data.get("messages");
         if (messages != null) {
             for (Map<String, String> message : messages) {
@@ -377,19 +395,28 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
-    public synchronized void reconnect() {
-        Agent.LOG.log(Level.INFO, "{0} is reconnecting", getApplicationName());
+    public void reconnect() {
+        reentrantLock.lock();
         try {
-            shutdown();
-        } catch (Exception e) {
-            // ignore
+            Agent.LOG.log(Level.INFO, "{0} is reconnecting", getApplicationName());
+            try {
+                shutdown();
+            } catch (Exception e) {
+                // ignore
+            } finally {
+                reconnectAsync();
+            }
         } finally {
-            reconnectAsync();
+            reentrantLock.unlock();
         }
+
     }
 
     @Override
     public String getHostString() {
+        if (serverlessMode) {
+            return "serverless";
+        }
         return MessageFormat.format("{0}:{1}", host, Integer.toString(port));
     }
 
@@ -723,8 +750,16 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     /**
      * notify RPM that the agent is shutting down
      */
-    public synchronized void shutdown() throws Exception {
-        disconnect();
+    public void shutdown() throws Exception {
+        if (reentrantLock.tryLock(5, TimeUnit.SECONDS)) {
+            try {
+                disconnect();
+            } finally {
+                reentrantLock.unlock();
+            }
+        } else {
+            Agent.LOG.log(Level.WARNING, "Unable to acquire lock for shutdown within timeout - shutdown may already be in progress");
+        }
     }
 
     @Override
@@ -738,6 +773,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         //
         // Note: even if we are not connected, we don't need to initiate a connection attempt - although there are
         // several cases, bottom line is that the Agent should already be attempting to connect.
+        //
+        // Update: Replaced the synchronized block with a reentrant lock with timeout. Same thing in the
+        // shutdown() method, so threads can now fail gracefully rather than deadlocking indefinitely.
 
         final int MAX_WAIT_SECONDS = 10;
         final long end = System.currentTimeMillis() + MAX_WAIT_SECONDS * 1000L;
@@ -745,18 +783,23 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         Throwable trouble = null;
 
         while (!done && System.currentTimeMillis() < end) {
+            boolean lockAcquired = false;
             try {
-                synchronized (this) {
+                if (reentrantLock.tryLock(200, TimeUnit.MILLISECONDS)) {
+                    lockAcquired = true;
                     if (isConnected()) {
                         ServiceFactory.getHarvestService().harvestNow();
                         done = true;
                     }
                 }
-                Thread.sleep(200);
             } catch (InterruptedException iex) {
                 // sleep returned early - ignore it - the process is ending anyway
             } catch (Exception ex) {
                 trouble = ex;
+            } finally {
+                if (lockAcquired) {
+                    reentrantLock.unlock();
+                }
             }
         }
 
@@ -842,7 +885,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             // we had a connection/run id once and reconnecting failed.
             // Assumption: failed re-connect should be a result of a temporary condition, and we need to retry
             try {
-                Agent.LOG.fine("Trying to re-establish connection to New Relic.");
+                if (serverlessMode) {
+                    Agent.LOG.log(Level.FINE, "Trying to re-establish connection for serverless mode.");
+                }
+                else {
+                    Agent.LOG.fine("Trying to re-establish connection to New Relic.");
+                }
                 this.launch();
             } catch (Exception e) {
                 Agent.LOG.fine("Problem trying to re-establish connection to New Relic: " + e.getMessage());
@@ -1001,6 +1049,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
         return (HealthDataProducer) dataSender;
+    }
+
+    @Override
+    public void commitAndFlush() {
+        try {
+            if (serverlessMode) {
+                dataSender.commitAndFlush();
+            }
+        } catch (Exception e) {
+            Agent.LOG.log(Level.WARNING, "Failed to commit and flush data when finishing a harvest {0}", e.toString());
+        }
     }
 
     @Override
