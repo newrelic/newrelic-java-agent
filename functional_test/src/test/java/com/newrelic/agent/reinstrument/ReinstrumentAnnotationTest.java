@@ -7,10 +7,15 @@
 
 package com.newrelic.agent.reinstrument;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.concurrent.Future;
+import com.newrelic.agent.instrumentation.InstrumentTestUtils;
+import com.newrelic.agent.instrumentation.InstrumentationType;
+import com.newrelic.agent.instrumentation.InstrumentedMethod;
+import com.newrelic.agent.service.ServiceFactory;
+import org.apache.solr.core.SolrCore;
+import org.junit.Assert;
+import org.junit.Test;
+import org.xml.sax.SAXException;
+import test.newrelic.test.agent.TestLifecycle;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -20,19 +25,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.HttpJspPage;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.solr.core.SolrConfig;
-import org.apache.solr.core.SolrCore;
-import org.apache.solr.schema.IndexSchema;
-import org.junit.Assert;
-import org.junit.Test;
-import org.xml.sax.SAXException;
-
-import com.newrelic.agent.instrumentation.InstrumentTestUtils;
-import com.newrelic.agent.instrumentation.InstrumentationType;
-import com.newrelic.agent.instrumentation.InstrumentedMethod;
-import com.newrelic.agent.service.ServiceFactory;
-import test.newrelic.test.agent.RpcCall;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.concurrent.Future;
 
 public class ReinstrumentAnnotationTest {
 
@@ -396,14 +391,14 @@ public class ReinstrumentAnnotationTest {
     @Test
     public void testXmlPlusPointCut() throws NoSuchMethodException, SecurityException {
 
-        RpcCall rpcCall = new RpcCall();
+        TestLifecycle lifecycle = new TestLifecycle();
 
-        InstrumentedMethod annotation = test.newrelic.test.agent.RpcCall.class.getDeclaredMethod(
-                "invoke", Object[].class).getAnnotation(InstrumentedMethod.class);
+        InstrumentedMethod annotation = test.newrelic.test.agent.TestLifecycle.class.getDeclaredMethod(
+                "execute", javax.faces.context.FacesContext.class).getAnnotation(InstrumentedMethod.class);
         Assert.assertNotNull(annotation);
         Assert.assertEquals(1, annotation.instrumentationTypes().length);
         Assert.assertEquals(InstrumentationType.Pointcut, annotation.instrumentationTypes()[0]);
-        Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.XmlRpcPointCut",
+        Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut",
                 annotation.instrumentationNames()[0]);
 
         // reinstrument with more instrumentation
@@ -414,10 +409,10 @@ public class ReinstrumentAnnotationTest {
         sb.append(" xsi:schemaLocation=\"newrelic-extension extension.xsd \" name=\"Not A Pointcut\">");
         sb.append("<instrumentation>");
         sb.append("<pointcut transactionStartPoint=\"true\" >");
-        sb.append("<className>test.newrelic.test.agent.RpcCall");
+        sb.append("<className>test.newrelic.test.agent.TestLifecycle");
         sb.append("</className>");
         sb.append("<method>");
-        sb.append("<name>invoke</name>");
+        sb.append("<name>execute</name>");
         sb.append("</method>");
         sb.append("</pointcut>");
         sb.append("</instrumentation>");
@@ -426,14 +421,14 @@ public class ReinstrumentAnnotationTest {
         // reinstrument for the first time
         ServiceFactory.getRemoteInstrumentationService().processXml(sb.toString());
 
-        annotation = test.newrelic.test.agent.RpcCall.class.getDeclaredMethod(
-                "invoke", Object[].class).getAnnotation(InstrumentedMethod.class);
+        annotation = test.newrelic.test.agent.TestLifecycle.class.getDeclaredMethod(
+                "execute", javax.faces.context.FacesContext.class).getAnnotation(InstrumentedMethod.class);
         Assert.assertNotNull(annotation);
         Assert.assertEquals(2, annotation.instrumentationTypes().length);
 
         for (int i = 0; i < annotation.instrumentationTypes().length; i++) {
             if (annotation.instrumentationTypes()[i] == InstrumentationType.Pointcut) {
-                Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.XmlRpcPointCut",
+                Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut",
                         annotation.instrumentationNames()[i]);
             } else if (annotation.instrumentationTypes()[i] == InstrumentationType.RemoteCustomXml) {
                 Assert.assertEquals("Not A Pointcut", annotation.instrumentationNames()[i]);
