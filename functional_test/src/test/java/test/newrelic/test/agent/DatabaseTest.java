@@ -156,8 +156,8 @@ public class DatabaseTest {
             }
         };
 
-        // AgentHelper.verifyMetrics(applicationName, "Database/test/select", "Database/test2/delete",
-        // "Database/test3/delete");
+        Set<String> metrics = AgentHelper.getMetrics();
+        AgentHelper.verifyDatastoreMetrics(metrics, DatastoreVendor.Derby, "test", "batch_insert");
     }
 
     @Test
