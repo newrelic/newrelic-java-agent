@@ -213,6 +213,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## Other instrumented features
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
+  * Java XML RPC 8 to latest
   * JSP 2.0 to latest
   * OpenEJB 3.0 to latest
   * OpenJPA 1.0 to latest
