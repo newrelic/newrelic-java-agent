@@ -8,7 +8,6 @@
 package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.instrumentation.pointcuts.MathCSConcurrentPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.XmlRpcPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.container.JasperCompilerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.ProcessActionPortletPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.RenderPortletPointCut;
@@ -71,8 +70,6 @@ public class ClassTransformerTest {
                 new RenderPortletPointCut(classTransformer),
                 // Tomcat
                 new JasperCompilerPointCut(classTransformer),
-
-                new XmlRpcPointCut(classTransformer),
                 // java concurrent
                 new MathCSConcurrentPointCut(classTransformer));
 
