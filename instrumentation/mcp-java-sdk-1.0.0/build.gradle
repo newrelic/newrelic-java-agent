@@ -1,0 +1,24 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.mcp-java-sdk-1.0.0' }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'io.modelcontextprotocol.sdk:mcp:1.1.1'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+verifyInstrumentation {
+    passes 'io.modelcontextprotocol.sdk:mcp:[1.0.0,)'
+}
+
+site {
+    title 'MCP Java SDK'
+    type 'AI'
+}
