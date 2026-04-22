@@ -131,8 +131,8 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     }
 
     /**
-     * This will return the configured "process_host.display_name" config property if set; otherwise
-     * it will utilize the standard hostname resolution logic.
+     * This will return the configured "process_host.display_name" config property if
+     * jfr.use_display_name is true; otherwise it will utilize the standard hostname resolution logic.
      *
      * @return the configured display name String or host name from the environment
      */
