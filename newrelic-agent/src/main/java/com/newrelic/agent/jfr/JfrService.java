@@ -13,6 +13,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -63,7 +64,7 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
                 Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
-                final String hostname = getHostname();
+                final String hostname = getJfrHostnameOrDisplayName();
                 commonAttrs.put(HOSTNAME, hostname);
                 final JFRUploader uploader = buildUploader(daemonConfig);
                 String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
@@ -129,7 +130,21 @@ public class JfrService extends AbstractService implements AgentConfigListener {
         return true;
     }
 
-    private String getHostname() {
+    /**
+     * This will return the configured "process_host.display_name" config property if set; otherwise
+     * it will utilize the standard hostname resolution logic.
+     *
+     * @return the configured display name String or host name from the environment
+     */
+    @VisibleForTesting
+    String getJfrHostnameOrDisplayName() {
+        String hostnameFromEnvironment = getHostname();
+        return jfrConfig.useDisplayName() ?
+                Hostname.getDisplayHostname(defaultAgentConfig, hostnameFromEnvironment) : hostnameFromEnvironment;
+    }
+
+    @VisibleForTesting
+    String getHostname() {
         String host;
         Integer appPort = ServiceFactory
             .getEnvironmentService()
