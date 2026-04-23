@@ -58,15 +58,9 @@ public class JurassicModelInvocation implements ModelInvocation {
             reportLlmError();
         }
 
-        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
-                modelResponse.getPromptTokens(),
-                modelResponse.getCompletionTokens(),
-                modelResponse.getTotalTokens()
-        );
-
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
-        LlmEvent llmEmbeddingEvent = builder
+        LlmEvent.Builder summaryBuilder = builder
                 .spanId()
                 .traceId()
                 .vendor()
@@ -76,14 +70,15 @@ public class JurassicModelInvocation implements ModelInvocation {
                 .input(index)
                 .requestModel()
                 .responseModel()
-                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(
-                        hasCompleteUsage,
-                        modelRequest.getModelId(),
-                        modelRequest.getInputText(index)))
                 .error()
-                .duration(System.currentTimeMillis() - startTime)
-                .build();
+                .duration(System.currentTimeMillis() - startTime);
 
+        Integer totalTokens = modelResponse.getResponseUsageTotalTokens();
+        if (totalTokens != null && totalTokens >= 0) {
+            summaryBuilder.responseUsageTotalTokens();
+        }
+
+        LlmEvent llmEmbeddingEvent = summaryBuilder.build();
         llmEmbeddingEvent.recordLlmEmbeddingEvent();
     }
 
@@ -91,9 +86,9 @@ public class JurassicModelInvocation implements ModelInvocation {
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
 
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
-                modelResponse.getPromptTokens(),
-                modelResponse.getCompletionTokens(),
-                modelResponse.getTotalTokens()
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
         );
         recordLlmChatCompletionSummaryEvent(startTime, numberOfMessages, hasCompleteUsage);
     }
@@ -137,9 +132,9 @@ public class JurassicModelInvocation implements ModelInvocation {
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
 
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
-                modelResponse.getPromptTokens(),
-                modelResponse.getCompletionTokens(),
-                modelResponse.getTotalTokens()
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
         );
         recordLlmChatCompletionMessageEvent(sequence, message, isUser, hasCompleteUsage);
     }
@@ -214,9 +209,9 @@ public class JurassicModelInvocation implements ModelInvocation {
         int totalNumberOfMessages = numberOfRequestMessages + numberOfResponseMessages;
 
         boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
-                modelResponse.getPromptTokens(),
-                modelResponse.getCompletionTokens(),
-                modelResponse.getTotalTokens()
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
         );
 
         int sequence = 0;
