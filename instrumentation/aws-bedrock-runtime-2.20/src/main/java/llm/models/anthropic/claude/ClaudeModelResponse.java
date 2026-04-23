@@ -187,17 +187,17 @@ public class ClaudeModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getPromptTokens() {
+    public Integer getResponseUsagePromptTokens() {
         return null;
     }
 
     @Override
-    public Integer getCompletionTokens() {
+    public Integer getResponseUsageCompletionTokens() {
         return null;
     }
 
     @Override
-    public Integer getTotalTokens() {
+    public Integer getResponseUsageTotalTokens() {
         return null;
     }
 }

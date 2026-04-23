@@ -188,7 +188,7 @@ public class Llama2ModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getPromptTokens() {
+    public Integer getResponseUsagePromptTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode promptTokenCountNode = getResponseBodyJsonMap().get("prompt_token_count");
@@ -204,7 +204,7 @@ public class Llama2ModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getCompletionTokens() {
+    public Integer getResponseUsageCompletionTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode generationTokenCountNode = getResponseBodyJsonMap().get("generation_token_count");
@@ -220,9 +220,9 @@ public class Llama2ModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getTotalTokens() {
-        Integer promptTokens = getPromptTokens();
-        Integer completionTokens = getCompletionTokens();
+    public Integer getResponseUsageTotalTokens() {
+        Integer promptTokens = getResponseUsagePromptTokens();
+        Integer completionTokens = getResponseUsageCompletionTokens();
 
         // Only return total if both values are available
         if (promptTokens != null && completionTokens != null) {

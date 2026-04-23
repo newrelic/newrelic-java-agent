@@ -254,7 +254,7 @@ public class JurassicModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getPromptTokens() {
+    public Integer getResponseUsagePromptTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode promptNode = getResponseBodyJsonMap().get("prompt");
@@ -275,7 +275,7 @@ public class JurassicModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getCompletionTokens() {
+    public Integer getResponseUsageCompletionTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode completionsNode = getResponseBodyJsonMap().get(COMPLETIONS);
@@ -302,9 +302,9 @@ public class JurassicModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getTotalTokens() {
-        Integer promptTokens = getPromptTokens();
-        Integer completionTokens = getCompletionTokens();
+    public Integer getResponseUsageTotalTokens() {
+        Integer promptTokens = getResponseUsagePromptTokens();
+        Integer completionTokens = getResponseUsageCompletionTokens();
 
         // Only return total if both values are available
         if (promptTokens != null && completionTokens != null) {

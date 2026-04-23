@@ -214,17 +214,17 @@ public class LlmEvent {
         }
 
         public Builder responseUsagePromptTokens() {
-            responseUsagePromptTokens = modelResponse.getPromptTokens();
+            responseUsagePromptTokens = modelResponse.getResponseUsagePromptTokens();
             return this;
         }
 
         public Builder responseUsageCompletionTokens() {
-            responseUsageCompletionTokens = modelResponse.getCompletionTokens();
+            responseUsageCompletionTokens = modelResponse.getResponseUsageCompletionTokens();
             return this;
         }
 
         public Builder responseUsageTotalTokens() {
-            responseUsageTotalTokens = modelResponse.getTotalTokens();
+            responseUsageTotalTokens = modelResponse.getResponseUsageTotalTokens();
             return this;
         }
 

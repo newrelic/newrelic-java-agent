@@ -107,19 +107,19 @@ public interface ModelResponse {
      *
      * @return Integer representing the prompt token count or null if not provided by the model
      */
-    Integer getPromptTokens();
+    Integer getResponseUsagePromptTokens();
 
     /**
      * Get the number of tokens in the completion/response from the LLM response usage metadata.
      *
      * @return Integer representing the completion token count or null if not provided by the model
      */
-    Integer getCompletionTokens();
+    Integer getResponseUsageCompletionTokens();
 
     /**
      * Get the total number of tokens (prompt + completion) from the LLM response usage metadata.
      *
      * @return Integer representing the total token count or null if not provided by the model
      */
-    Integer getTotalTokens();
+    Integer getResponseUsageTotalTokens();
 }

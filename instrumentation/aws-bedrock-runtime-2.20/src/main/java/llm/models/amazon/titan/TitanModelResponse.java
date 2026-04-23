@@ -241,7 +241,7 @@ public class TitanModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getPromptTokens() {
+    public Integer getResponseUsagePromptTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode inputTextTokenCountNode = getResponseBodyJsonMap().get("inputTextTokenCount");
@@ -257,7 +257,7 @@ public class TitanModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getCompletionTokens() {
+    public Integer getResponseUsageCompletionTokens() {
         try {
             if (!getResponseBodyJsonMap().isEmpty()) {
                 JsonNode resultsNode = getResponseBodyJsonMap().get("results");
@@ -289,14 +289,15 @@ public class TitanModelResponse implements ModelResponse {
     }
 
     @Override
-    public Integer getTotalTokens() {
-        Integer promptTokens = getPromptTokens();
-        Integer completionTokens = getCompletionTokens();
+    public Integer getResponseUsageTotalTokens() {
+        Integer promptTokens = getResponseUsagePromptTokens();
+        Integer completionTokens = getResponseUsageCompletionTokens();
 
-        // Only return total if both values are available
+        // Completion: return sum of prompt AND completion tokens
+        // Embedding: completion tokens not present, return only prompt tokens
         if (promptTokens != null && completionTokens != null) {
             return promptTokens + completionTokens;
         }
-        return null;
+        return promptTokens;
     }
 }
