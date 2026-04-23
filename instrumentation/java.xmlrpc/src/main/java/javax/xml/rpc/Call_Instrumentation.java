@@ -4,7 +4,6 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -19,44 +18,29 @@ import java.util.logging.Level;
 public abstract class Call_Instrumentation {
     @Trace
     public Object invoke(Object[] inputParams) throws RemoteException {
-        Transaction transaction = AgentBridge.getAgent().getTransaction(false);
-
-        Segment segment = null;
-        if (transaction != null) {
-            segment = createSegment(transaction);
-        }
-
         Object response = Weaver.callOriginal();
-
-        if (segment != null) {
-            reportExternal(transaction, segment);
-        }
+        reportExternal();
 
         return response;
     }
 
     @Trace
     public Object invoke(QName operationName, Object[] inputParams) throws RemoteException {
-        Transaction transaction = AgentBridge.getAgent().getTransaction(false);
-
-        Segment segment = null;
-        if (transaction != null) {
-            segment = createSegment(transaction);
-        }
-
         Object response = Weaver.callOriginal();
-
-        if (segment != null) {
-            reportExternal(transaction, segment);
-        }
+        reportExternal();
 
         return response;
     }
 
     public abstract String getTargetEndpointAddress();
 
-    private void reportExternal(Transaction transaction, Segment segment) {
-        // No null check on txn since we check in the invoke calls
+    private void reportExternal() {
+        Transaction transaction = AgentBridge.getAgent().getTransaction(false);
+
+        if (transaction == null) {
+            return;
+        }
+
         transaction.getTracedMethod().setMetricName("Java", "Call", "invoke");
         String endpointAddress = getTargetEndpointAddress();
         URI uri;
@@ -76,10 +60,5 @@ public abstract class Call_Instrumentation {
                 .noInboundHeaders()
                 .build());
 
-        segment.end();
-    }
-
-    private Segment createSegment(Transaction transaction) {
-        return transaction.startSegment("Java", "XmlRpc");
     }
 }
