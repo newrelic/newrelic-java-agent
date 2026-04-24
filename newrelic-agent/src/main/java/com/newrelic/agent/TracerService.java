@@ -19,10 +19,12 @@ import com.newrelic.agent.tracers.PointCutInvocationHandler;
 import com.newrelic.agent.tracers.RetryException;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TracerFactory;
+import com.newrelic.api.agent.NewRelic;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class TracerService extends AbstractService {
     private final Map<String, TracerFactory> tracerFactories = new ConcurrentHashMap<>();
@@ -138,6 +140,10 @@ public class TracerService extends AbstractService {
             }
             if (transaction == null) {
                 return null;
+            }
+            if (TransactionActivity.get() == null) {
+                NewRelic.getAgent().getLogger().log(Level.FINE, "TracerServiceImpl.getTracer called without a TransactionActivity on the thread");
+                TransactionActivity.create(transaction, Integer.MAX_VALUE);
             }
             try {
                 return transaction.getTransactionState().getTracer(transaction, tracerFactory, signature, object, args);
