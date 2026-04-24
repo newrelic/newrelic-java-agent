@@ -2,6 +2,7 @@ package util;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.api.agent.Trace;
 
 import static util.TokenAndRefUtils.*;
 
@@ -20,6 +21,7 @@ public final class TokenAwareRunnable implements Runnable {
     }
 
     @Override
+    @Trace(async=true)
     public void run() {
         try {
             if (delegate != null) {
