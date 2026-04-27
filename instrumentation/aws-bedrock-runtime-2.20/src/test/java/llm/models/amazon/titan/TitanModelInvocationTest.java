@@ -50,6 +50,7 @@ public class TitanModelInvocationTest {
     private final String embeddingModelId = "amazon.titan-embed-text-v1";
     private final String embeddingRequestBody = "{\"inputText\":\"What is the color of the sky?\"}";
     private final String embeddingResponseBody = "{\"embedding\":[0.328125,0.44335938],\"inputTextTokenCount\":8}";
+    private final String embeddingResponseBodyWithoutTokens = "{\"embedding\":[0.328125,0.44335938]}";
     private final String embeddingRequestInput = "What is the color of the sky?";
 
     // Completion
@@ -256,6 +257,42 @@ public class TitanModelInvocationTest {
         assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
         assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
         assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testEmbeddingWithTotalTokens() {
+        boolean isError = false;
+
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(embeddingModelId, embeddingRequestBody, embeddingResponseBody, isError);
+        titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmEmbeddingEvents = introspector.getCustomEvents(LLM_EMBEDDING);
+        assertEquals(1, llmEmbeddingEvents.size());
+        Event llmEmbeddingEvent = llmEmbeddingEvents.iterator().next();
+        Map<String, Object> attributes = llmEmbeddingEvent.getAttributes();
+
+        assertEquals(8, attributes.get("response.usage.total_tokens"));
+        assertFalse(attributes.containsKey("token_count"));
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
+    }
+
+    @Test
+    public void testEmbeddingWithoutTotalTokens() {
+        boolean isError = false;
+
+        TitanModelInvocation titanModelInvocation = mockTitanModelInvocation(embeddingModelId, embeddingRequestBody, embeddingResponseBodyWithoutTokens, isError);
+        titanModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmEmbeddingEvents = introspector.getCustomEvents(LLM_EMBEDDING);
+        assertEquals(1, llmEmbeddingEvents.size());
+        Event llmEmbeddingEvent = llmEmbeddingEvents.iterator().next();
+        Map<String, Object> attributes = llmEmbeddingEvent.getAttributes();
+
+        assertFalse(attributes.containsKey("token_count"));
+        assertFalse(attributes.containsKey("response.usage.total_tokens"));
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
     }
 
     @Test

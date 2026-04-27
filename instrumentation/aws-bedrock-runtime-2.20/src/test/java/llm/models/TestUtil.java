@@ -92,11 +92,9 @@ public class TestUtil {
         assertFalse(((String) attributes.get("request_id")).isEmpty());
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
         assertEquals("conversation-id-value", attributes.get("llm.conversation_id"));
-
-        if (attributes.containsKey("token_count")) {
-            Object tokenCount = attributes.get("token_count");
-            assertTrue("token_count should be 0 or 13, was: " + tokenCount, tokenCount.equals(0) || tokenCount.equals(13));
-        }
+        assertFalse("LlmEmbedding must not have token_count attribute", attributes.containsKey("token_count"));
+        assertFalse("LlmEmbedding must not have response.usage.prompt_tokens attribute", attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse("LlmEmbedding must not have response.usage.completion_tokens attribute", attributes.containsKey("response.usage.completion_tokens"));
     }
 
     public static void assertErrorEvent(boolean isError, Collection<ErrorEvent> errorEvents) {

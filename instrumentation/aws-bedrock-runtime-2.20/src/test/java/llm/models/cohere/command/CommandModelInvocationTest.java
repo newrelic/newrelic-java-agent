@@ -113,6 +113,24 @@ public class CommandModelInvocationTest {
     }
 
     @Test
+    public void testEmbeddingTokenAttributes() {
+        boolean isError = false;
+
+        CommandModelInvocation commandModelInvocation = mockCommandModelInvocation(embeddingModelId, embeddingRequestBody, embeddingResponseBody, isError);
+        commandModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmEmbeddingEvents = introspector.getCustomEvents(LLM_EMBEDDING);
+        assertEquals(1, llmEmbeddingEvents.size());
+        Event llmEmbeddingEvent = llmEmbeddingEvents.iterator().next();
+        Map<String, Object> attributes = llmEmbeddingEvent.getAttributes();
+
+        assertFalse(attributes.containsKey("token_count"));
+        assertFalse(attributes.containsKey("response.usage.total_tokens"));
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
+    }
+
+    @Test
     public void testEmbeddingError() {
         boolean isError = true;
 
