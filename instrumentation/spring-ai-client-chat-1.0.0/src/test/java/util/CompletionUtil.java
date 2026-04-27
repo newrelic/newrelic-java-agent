@@ -63,6 +63,7 @@ public class CompletionUtil {
     public static Integer expectedPromptTokens = 123;
     public static Integer expectedCompletionTokens = 456;
     public static Integer expectedTotalTokens = 579;
+    public static Integer expectedTokenCountWithCompleteSummaryUsage = 0;
     public static String expectedCompletionId = "chatcmpl-DQiVf9ymJ30wEL1PROnY8JKZHA3Ku";
 
     public static void assertLlmChatCompletionMessageAttributes(Event event, String modelId, String content, boolean isResponse) {
@@ -77,7 +78,7 @@ public class CompletionUtil {
         assertEquals(modelId, attributes.get("response.model"));
         assertEquals(expectedTestPrefix, attributes.get("llm.testPrefix"));
         assertEquals(expectedConversationId, attributes.get("llm.conversation_id"));
-        assertEquals(13, attributes.get("token_count"));
+        assertEquals(expectedTokenCountWithCompleteSummaryUsage, attributes.get("token_count"));
 
         assertEquals(content, attributes.get("content"));
         if (isResponse) {
@@ -149,7 +150,7 @@ public class CompletionUtil {
     }
 
     public static void setupMockTestEnv() {
-        LlmTokenCountCallback llmTokenCountCallback = (model, content) -> 13;
+        LlmTokenCountCallback llmTokenCountCallback = (model, content) -> expectedTotalTokens;
         LlmTokenCountCallbackHolder.setLlmTokenCountCallback(llmTokenCountCallback);
 
         linkingMetadata.put("span.id", "span-id-123");

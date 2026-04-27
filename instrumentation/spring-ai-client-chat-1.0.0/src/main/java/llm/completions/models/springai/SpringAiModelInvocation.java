@@ -9,6 +9,7 @@ package llm.completions.models.springai;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountResolver;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
@@ -29,7 +30,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static llm.completions.models.ModelInvocation.getRandomGuid;
-import static llm.completions.models.ModelInvocation.getTokenCount;
 import static llm.completions.models.ModelResponse.COMPLETION;
 import static llm.completions.vendor.Vendor.SPRING_AI;
 
@@ -185,6 +185,13 @@ public class SpringAiModelInvocation implements ModelInvocation {
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser) {
+
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
+        );
+
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmChatCompletionMessageEvent = builder
@@ -200,7 +207,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(getTokenCount(modelId, message))
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(hasCompleteUsage, modelId, message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();

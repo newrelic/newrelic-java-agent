@@ -42,7 +42,6 @@ public class LlmEvent {
     private final Boolean error;
     private final String input;
     private final String requestModel;
-    private final Integer tokenCount;
 
     public static class Builder {
         // Required builder parameters
@@ -73,7 +72,6 @@ public class LlmEvent {
         private Boolean error = null;
         private String input = null;
         private String requestModel = null;
-        private Integer tokenCount = null;
 
         public Builder(ModelInvocation modelInvocation) {
             userAttributes = modelInvocation.getUserAttributes();
@@ -144,11 +142,6 @@ public class LlmEvent {
 
         public Builder requestModel() {
             requestModel = modelRequest.getModelId();
-            return this;
-        }
-
-        public Builder tokenCount(Integer count) {
-            tokenCount = count;
             return this;
         }
 
@@ -228,11 +221,6 @@ public class LlmEvent {
         requestModel = builder.requestModel;
         if (requestModel != null && !requestModel.isEmpty()) {
             eventAttributes.put("request.model", requestModel);
-        }
-
-        tokenCount = builder.tokenCount;
-        if (tokenCount != null && tokenCount > 0) {
-            eventAttributes.put("token_count", tokenCount);
         }
     }
 

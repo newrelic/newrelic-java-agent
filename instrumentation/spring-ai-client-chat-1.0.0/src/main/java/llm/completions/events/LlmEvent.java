@@ -363,7 +363,7 @@ public class LlmEvent {
         }
 
         tokenCount = builder.tokenCount;
-        if (tokenCount != null && tokenCount > 0) {
+        if (tokenCount != null && tokenCount >= 0) {
             eventAttributes.put("token_count", tokenCount);
         }
 

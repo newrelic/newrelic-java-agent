@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.embeddings.models.ModelInvocation.getTokenCount;
 import static llm.embeddings.models.ModelResponse.EMBEDDING;
 import static llm.embeddings.vendor.Vendor.SPRING_AI;
 

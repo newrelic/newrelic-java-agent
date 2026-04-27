@@ -126,6 +126,5 @@ NEW_RELIC_AI_MONITORING_STREAMING_ENABLED
 AI monitoring can be enhanced by using the following agent APIs:
 
 * `recordLlmFeedbackEvent` - Can be used to record an LlmFeedback event to associate user feedback with a specific distributed trace.
-* `setLlmTokenCountCallback` - Can be used to register a Callback that provides a token count.
 * `addCustomParameter` - Used to add custom attributed to LLM events. See [Custom LLM Attributes](#custom-llm-attributes)
 

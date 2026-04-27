@@ -7,7 +7,7 @@
 
 package llm.completions.events;
 
-import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountResolver;
 import com.newrelic.agent.introspec.Event;
 import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
@@ -49,6 +49,12 @@ public class LlmEventTest {
         // Instantiate ModelInvocation
         SpringAiModelInvocation springAiModelInvocation = mockSpringAiModelInvocation();
 
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                springAiModelInvocation.getModelResponse().getResponseUsagePromptTokens(),
+                springAiModelInvocation.getModelResponse().getResponseUsageCompletionTokens(),
+                springAiModelInvocation.getModelResponse().getResponseUsageTotalTokens()
+        );
+
         // When
         // Build LlmEmbedding event
         LlmEvent.Builder builder = new LlmEvent.Builder(springAiModelInvocation);
@@ -65,8 +71,7 @@ public class LlmEventTest {
                 .responseModel() // attribute 10
                 .sequence(0) // attribute 11
                 .completionId() // attribute 12
-                .tokenCount(LlmTokenCountCallbackHolder.getLlmTokenCountCallback()
-                        .calculateLlmTokenCount(expectedResponseModelId, expectedPromptUserMessage)) // attribute 13
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(hasCompleteUsage, expectedResponseModelId, expectedPromptUserMessage)) // attribute 13
                 .build();
 
         // attributes 14 & 15 should be the two llm.* prefixed userAttributes

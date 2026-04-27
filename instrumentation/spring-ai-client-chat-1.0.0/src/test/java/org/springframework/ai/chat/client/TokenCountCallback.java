@@ -9,9 +9,11 @@ package org.springframework.ai.chat.client;
 
 import com.newrelic.api.agent.LlmTokenCountCallback;
 
+import static util.CompletionUtil.expectedTotalTokens;
+
 public class TokenCountCallback implements LlmTokenCountCallback {
     @Override
     public int calculateLlmTokenCount(String model, String content) {
-        return 13;
+        return expectedTotalTokens;
     }
 }

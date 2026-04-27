@@ -9,12 +9,10 @@ package llm.completions.models;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import static llm.completions.vendor.Vendor.SPRING_AI;
@@ -169,21 +167,5 @@ public interface ModelInvocation {
      */
     static String getRandomGuid() {
         return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Calculates the tokenCount based on a user provided callback
-     *
-     * @param model   String representation of the LLM model
-     * @param content String representation of the message content or prompt
-     * @return int representing the tokenCount
-     */
-    static int getTokenCount(String model, String content) {
-        if (LlmTokenCountCallbackHolder.getLlmTokenCountCallback() == null || Objects.equals(content, "")) {
-            return 0;
-        }
-        return LlmTokenCountCallbackHolder
-                .getLlmTokenCountCallback()
-                .calculateLlmTokenCount(model, content);
     }
 }
