@@ -84,6 +84,9 @@ public class Utils implements CoroutineConfigListener {
 	 * coroutineScope can be a Coroutine name or CoroutineScope class name
 	 */
 	public static boolean continueWithScope(String coroutineScope) {
+		if(coroutineScope == null) {
+			return true;
+		}
 		for(Pattern ignoredScope : ignoredScopePatterns) {
 			if(ignoredScope.matcher(coroutineScope).matches()) {
 				return false;
@@ -119,48 +122,6 @@ public class Utils implements CoroutineConfigListener {
 	}
 
 	public static String sub = "createCoroutineFromSuspendFunction";
-
-	/*
-	 * Set the async token in the CoroutineContext
-	 * Used to track the transaction across multiple threads
-	 */
-	public static void setToken(CoroutineContext context) {
-		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
-		if (tokenContext == null) {
-			Token t = NewRelic.getAgent().getTransaction().getToken();
-			if(t != null && t.isActive()) {
-				NRTokenContextKt.addTokenContext(context, t);
-			} else if(t != null) {
-				t.expire();
-				t = null;
-			}
-		}
-
-	}
-
-	/*
-	 * Gets the async token in the CoroutineContext if it is set
-	 */
-	public static Token getToken(CoroutineContext context) {
-		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
-		if(tokenContext != null) {
-			return tokenContext.getToken();
-		}
-		return null;
-	}
-
-	/*
-	 * Expires the async token in the CoroutineContext if it is set and
-	 * removes the tokencontext from the CoroutineContext
-	 */
-	public static void expireToken(CoroutineContext context) {
-		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
-		if(tokenContext != null) {
-			Token token = tokenContext.getToken();
-			token.expire();
-			NRTokenContextKt.removeTokenContext(context);
-		}
-	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation) {

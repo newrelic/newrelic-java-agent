@@ -11,21 +11,21 @@ import kotlin.coroutines.Continuation;
 @Weave(originalName = "kotlinx.coroutines.channels.BufferedChannel")
 public abstract class BufferedChannel_Instrumentation<E> {
 
-	@Trace(dispatcher = true)
+	@Trace
 	public Object receive(Continuation<? super E> cont) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"receive");
 
 		return Weaver.callOriginal();
 	}
 
-	@Trace(dispatcher = true)
+	@Trace
 	public void cancel(java.util.concurrent.CancellationException ex) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"Cancel");
 
 		 Weaver.callOriginal();
 	}
 	
-	@Trace(dispatcher = true)
+	@Trace
 	public Object send(E e, Continuation<? super Unit> cont) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"send");
 		return Weaver.callOriginal();
