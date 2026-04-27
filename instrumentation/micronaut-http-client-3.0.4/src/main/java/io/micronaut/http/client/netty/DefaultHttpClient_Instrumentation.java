@@ -1,11 +1,10 @@
 package io.micronaut.http.client.netty;
 
+import com.newrelic.api.agent.*;
+import com.newrelic.api.agent.weaver.NewField;
+import io.netty.channel.ChannelHandlerContext;
 import org.reactivestreams.Publisher;
 
-import com.newrelic.api.agent.HttpParameters;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
-import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.api.agent.weaver.MatchType;
@@ -60,7 +59,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 
     @Trace
     public <I, O, E> Publisher<io.micronaut.http.HttpResponse<O>> exchange(io.micronaut.http.HttpRequest<I> request, Argument<O> bodyType,
-            Argument<E> errorType) {
+                                                                           Argument<E> errorType) {
         MicronautHeaders headers = new MicronautHeaders(request);
         NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
@@ -174,4 +173,37 @@ public abstract class DefaultHttpClient_Instrumentation {
         return result;
     }
 
+    @Weave(type = MatchType.BaseClass, originalName = "io.micronaut.http.client.netty.DefaultHttpClient$SimpleChannelInboundHandlerInstrumented")
+    static abstract class SimpleChannelInboundHandlerInstrumented_Instrumentation<I> {
+
+        @NewField
+        private Token token = null;
+
+        SimpleChannelInboundHandlerInstrumented_Instrumentation() {
+            token = NewRelic.getAgent().getTransaction().getToken();
+        }
+
+        SimpleChannelInboundHandlerInstrumented_Instrumentation(boolean autoRelease) {
+            token = NewRelic.getAgent().getTransaction().getToken();
+        }
+
+        @Trace(async = true)
+        protected void channelReadInstrumented(ChannelHandlerContext ctx, I msg) {
+            if(token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true)
+        protected void channelRead0(ChannelHandlerContext ctx, I msg) {
+            if(token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+    }
 }
+
