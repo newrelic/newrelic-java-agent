@@ -36,6 +36,7 @@ import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
 import static llm.events.LlmEvent.LLM_EMBEDDING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -323,4 +324,266 @@ public class LlmEventTest {
         assertEquals("conversation-id-890", attributes.get("llm.conversation_id"));
         assertEquals("testPrefix", attributes.get("llm.testPrefix"));
     }
+
+    @Test
+    public void testRecordLlmChatCompletionSummaryEventWithCompleteUsage() {
+
+        Map<String, String> linkingMetadata = new HashMap<>();
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        Map<String, Object> userAttributes = new HashMap<>();
+        userAttributes.put("llm.conversation_id", "conversation-id-890");
+        userAttributes.put("llm.testPrefix", "testPrefix");
+        userAttributes.put("test", "test");
+
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn("{\"inputText\":\"What is the color of the\n" +
+                "  sky?\",\"textGenerationConfig\":{\"temperature\":0.5,\"maxTokenCount\":1000}}");
+        when(mockInvokeModelRequest.modelId()).thenReturn("amazon.titan-text-express-v1");
+
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn("{\"results\":[{\"tokenCount\":9,\"outputText\":\"The sky is blue.\",\"completionReason\":\"FINISH\"}],\"inputTextTokenCount\":8}");
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+
+        TitanModelInvocation titanModelInvocation = new TitanModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
+                mockInvokeModelResponse);
+
+        LlmEvent.Builder builder = new LlmEvent.Builder(titanModelInvocation);
+        LlmEvent llmChatCompletionSummaryEvent = builder
+                .spanId()
+                .traceId()
+                .vendor()
+                .ingestSource()
+                .id(titanModelInvocation.getModelResponse().getLlmChatCompletionSummaryId())
+                .requestId()
+                .requestTemperature()
+                .requestModel()
+                .responseModel()
+                .responseNumberOfMessages(2)
+                .responseChoicesFinishReason()
+                .duration(9000f)
+                .responseUsagePromptTokens()
+                .responseUsageCompletionTokens()
+                .responseUsageTotalTokens()
+                .build();
+
+        llmChatCompletionSummaryEvent.recordLlmChatCompletionSummaryEvent();
+
+        Collection<Event> customEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, customEvents.size());
+
+        Event event = customEvents.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertEquals(17, attributes.size());
+        assertEquals(8, attributes.get("response.usage.prompt_tokens"));
+        assertEquals(9, attributes.get("response.usage.completion_tokens"));
+        assertEquals(17,  attributes.get("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testResponseUsageFieldsOmittedWhenNull() {
+
+        Map<String, String> linkingMetadata = new HashMap<>();
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        Map<String, Object> userAttributes = new HashMap<>();
+        userAttributes.put("llm.conversation_id", "conversation-id-890");
+        userAttributes.put("llm.testPrefix", "testPrefix");
+        userAttributes.put("test", "test");
+
+        String expectedUserPrompt = "Human: What is the color of the sky?\n\nAssistant:";
+
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn(
+                        "{\"stop_sequences\":[\"\\n\\nHuman:\"],\"max_tokens_to_sample\":1000,\"temperature\":0.5,\"prompt\":\"Human: What is the color of the sky?\\n\\nAssistant:\"}");
+        when(mockInvokeModelRequest.modelId()).thenReturn("anthropic.claude-v2");
+
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn("{\"completion\":\" The sky appears blue during the day because of how sunlight interacts with the gases in Earth's atmosphere.\",\"stop_reason\":\"stop_sequence\",\"stop\":\"\\n\\nHuman:\"}");
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(200);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of("OK"));
+
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn("90a22e92-db1d-4474-97a9-28b143846301");
+
+        ClaudeModelInvocation claudeModelInvocation = new ClaudeModelInvocation(linkingMetadata, userAttributes, mockInvokeModelRequest,
+                mockInvokeModelResponse);
+
+        LlmEvent.Builder builder = new LlmEvent.Builder(claudeModelInvocation);
+        LlmEvent event = builder
+                .spanId()
+                .traceId()
+                .vendor()
+                .ingestSource()
+                .id(ModelInvocation.getRandomGuid())
+                .content(expectedUserPrompt)
+                .role(true)
+                .isResponse(true)
+                .requestId()
+                .responseModel()
+                .sequence(0)
+                .completionId()
+                .responseUsagePromptTokens()
+                .responseUsageCompletionTokens()
+                .responseUsageTotalTokens()
+                .tokenCount(LlmTokenCountCallbackHolder.getLlmTokenCountCallback().calculateLlmTokenCount("model", "content"))
+                .build();
+
+        event.recordLlmChatCompletionSummaryEvent();
+
+        Collection<Event> customEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        Event recordedEvent = customEvents.iterator().next();
+        Map<String, Object> attributes = recordedEvent.getAttributes();
+
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(attributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testResponseUsageFieldsIncludedWhenZero() {
+
+        Map<String, String> linkingMetadata = new HashMap<>();
+        Map<String, Object> userAttributes = new HashMap<>();
+
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn("{\"inputText\":\"test\"}");
+        when(mockInvokeModelRequest.modelId()).thenReturn("amazon.titan-text-express-v1");
+
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn(
+                "{\"results\":[{\"tokenCount\":0,\"outputText\":\"test\"}],\"inputTextTokenCount\":0}"
+        );
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+
+        BedrockRuntimeResponseMetadata mockMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockMetadata);
+        when(mockMetadata.requestId()).thenReturn("test-id");
+
+        TitanModelInvocation titanModelInvocation = new TitanModelInvocation(
+                linkingMetadata,
+                userAttributes,
+                mockInvokeModelRequest,
+                mockInvokeModelResponse
+        );
+
+        LlmEvent.Builder builder = new LlmEvent.Builder(titanModelInvocation);
+        LlmEvent event = builder
+                .spanId()
+                .responseUsagePromptTokens()
+                .responseUsageCompletionTokens()
+                .responseUsageTotalTokens()
+                .build();
+
+        event.recordLlmChatCompletionSummaryEvent();
+
+        Collection<Event> customEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        Event recordedEvent = customEvents.iterator().next();
+        Map<String, Object> attributes = recordedEvent.getAttributes();
+
+        assertTrue(attributes.containsKey("response.usage.prompt_tokens"));
+        assertTrue(attributes.containsKey("response.usage.completion_tokens"));
+        assertTrue(attributes.containsKey("response.usage.total_tokens"));
+        assertEquals(0, attributes.get("response.usage.prompt_tokens"));
+        assertEquals(0, attributes.get("response.usage.completion_tokens"));
+        assertEquals(0, attributes.get("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testRecordLlmEmbeddingEventWithPartialUsageOmitted() {
+
+        Map<String, String> linkingMetadata = new HashMap<>();
+        Map<String, Object> userAttributes = new HashMap<>();
+
+        InvokeModelRequest mockInvokeModelRequest = mock(InvokeModelRequest.class);
+        SdkBytes mockRequestSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelRequest.body()).thenReturn(mockRequestSdkBytes);
+        when(mockRequestSdkBytes.asUtf8String()).thenReturn("{\"inputText\":\"test embedding\"}");
+        when(mockInvokeModelRequest.modelId()).thenReturn("amazon.titan-embed-text-v1");
+
+        InvokeModelResponse mockInvokeModelResponse = mock(InvokeModelResponse.class);
+        SdkBytes mockResponseSdkBytes = mock(SdkBytes.class);
+        when(mockInvokeModelResponse.body()).thenReturn(mockResponseSdkBytes);
+
+        when(mockResponseSdkBytes.asUtf8String()).thenReturn(
+                "{\"embedding\":[0.1,0.2,0.3],\"inputTextTokenCount\":8}"
+        );
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockInvokeModelResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+
+        BedrockRuntimeResponseMetadata mockMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockInvokeModelResponse.responseMetadata()).thenReturn(mockMetadata);
+        when(mockMetadata.requestId()).thenReturn("test-id");
+
+        TitanModelInvocation titanModelInvocation = new TitanModelInvocation(
+                linkingMetadata,
+                userAttributes,
+                mockInvokeModelRequest,
+                mockInvokeModelResponse
+        );
+
+        LlmEvent.Builder builder = new LlmEvent.Builder(titanModelInvocation);
+        LlmEvent llmEmbeddingEvent = builder
+                .spanId()
+                .traceId()
+                .vendor()
+                .ingestSource()
+                .id(titanModelInvocation.getModelResponse().getLlmEmbeddingId())
+                .requestId()
+                .input(0)
+                .requestModel()
+                .responseModel()
+                .tokenCount(13)
+                .duration(9000f)
+                .build();
+
+        llmEmbeddingEvent.recordLlmEmbeddingEvent();
+
+        Collection<Event> customEvents = introspector.getCustomEvents(LLM_EMBEDDING);
+        Event event = customEvents.iterator().next();
+        Map<String, Object> attributes = event.getAttributes();
+
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(attributes.containsKey("response.usage.total_tokens"));
+
+        // token_count should use callback value (13) since usage is incomplete
+        assertEquals(13, attributes.get("token_count"));
+    }
+
 }

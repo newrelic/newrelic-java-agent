@@ -240,4 +240,19 @@ public class CommandModelResponse implements ModelResponse {
     public String getStatusText() {
         return statusText;
     }
+
+    @Override
+    public Integer getResponseUsagePromptTokens() {
+        return null;
+    }
+
+    @Override
+    public Integer getResponseUsageCompletionTokens() {
+        return null;
+    }
+
+    @Override
+    public Integer getResponseUsageTotalTokens() {
+        return null;
+    }
 }

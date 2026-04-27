@@ -9,6 +9,7 @@ package llm.models.ai21labs.jurassic;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountResolver;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
@@ -23,7 +24,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getTokenCount;
 import static llm.models.ModelResponse.COMPLETION;
 import static llm.models.ModelResponse.EMBEDDING;
 import static llm.vendor.Vendor.BEDROCK;
@@ -60,7 +60,7 @@ public class JurassicModelInvocation implements ModelInvocation {
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
-        LlmEvent llmEmbeddingEvent = builder
+        LlmEvent.Builder summaryBuilder = builder
                 .spanId()
                 .traceId()
                 .vendor()
@@ -70,23 +70,37 @@ public class JurassicModelInvocation implements ModelInvocation {
                 .input(index)
                 .requestModel()
                 .responseModel()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), modelRequest.getInputText(index)))
                 .error()
-                .duration(System.currentTimeMillis() - startTime)
-                .build();
+                .duration(System.currentTimeMillis() - startTime);
 
+        Integer totalTokens = modelResponse.getResponseUsageTotalTokens();
+        if (totalTokens != null && totalTokens >= 0) {
+            summaryBuilder.responseUsageTotalTokens();
+        }
+
+        LlmEvent llmEmbeddingEvent = summaryBuilder.build();
         llmEmbeddingEvent.recordLlmEmbeddingEvent();
     }
 
     @Override
     public void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages) {
+
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
+        );
+        recordLlmChatCompletionSummaryEvent(startTime, numberOfMessages, hasCompleteUsage);
+    }
+
+    private void recordLlmChatCompletionSummaryEvent(long startTime, int numberOfMessages, boolean hasCompleteUsage) {
         if (modelResponse.isErrorResponse()) {
             reportLlmError();
         }
 
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
-        LlmEvent llmChatCompletionSummaryEvent = builder
+        LlmEvent.Builder summaryBuilder = builder
                 .spanId()
                 .traceId()
                 .vendor()
@@ -100,14 +114,32 @@ public class JurassicModelInvocation implements ModelInvocation {
                 .responseNumberOfMessages(numberOfMessages)
                 .responseChoicesFinishReason()
                 .error()
-                .duration(System.currentTimeMillis() - startTime)
-                .build();
+                .duration(System.currentTimeMillis() - startTime);
+
+        if (hasCompleteUsage) {
+            summaryBuilder
+                    .responseUsagePromptTokens()
+                    .responseUsageCompletionTokens()
+                    .responseUsageTotalTokens();
+        }
+
+        LlmEvent llmChatCompletionSummaryEvent = summaryBuilder.build();
 
         llmChatCompletionSummaryEvent.recordLlmChatCompletionSummaryEvent();
     }
 
     @Override
     public void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser) {
+
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
+        );
+        recordLlmChatCompletionMessageEvent(sequence, message, isUser, hasCompleteUsage);
+    }
+
+    private void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser, boolean hasCompleteUsage) {
         LlmEvent.Builder builder = new LlmEvent.Builder(this);
 
         LlmEvent llmChatCompletionMessageEvent = builder
@@ -123,7 +155,10 @@ public class JurassicModelInvocation implements ModelInvocation {
                 .responseModel()
                 .sequence(sequence)
                 .completionId()
-                .tokenCount(getTokenCount(modelRequest.getModelId(), message))
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(
+                        hasCompleteUsage,
+                        modelRequest.getModelId(),
+                        message))
                 .build();
 
         llmChatCompletionMessageEvent.recordLlmChatCompletionMessageEvent();
@@ -173,22 +208,28 @@ public class JurassicModelInvocation implements ModelInvocation {
         int numberOfResponseMessages = modelResponse.getNumberOfResponseMessages();
         int totalNumberOfMessages = numberOfRequestMessages + numberOfResponseMessages;
 
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
+        );
+
         int sequence = 0;
 
         // First, record all LlmChatCompletionMessage events representing the user input prompt
         for (int i = 0; i < numberOfRequestMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), true);
+            recordLlmChatCompletionMessageEvent(sequence, modelRequest.getRequestMessage(i), true, hasCompleteUsage);
             sequence++;
         }
 
         // Second, record all LlmChatCompletionMessage events representing the completion message from the LLM response
         for (int i = 0; i < numberOfResponseMessages; i++) {
-            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), false);
+            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), false, hasCompleteUsage);
             sequence++;
         }
 
         // Finally, record a summary event representing all LlmChatCompletionMessage events
-        recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages);
+        recordLlmChatCompletionSummaryEvent(startTime, totalNumberOfMessages, hasCompleteUsage);
     }
 
     /**

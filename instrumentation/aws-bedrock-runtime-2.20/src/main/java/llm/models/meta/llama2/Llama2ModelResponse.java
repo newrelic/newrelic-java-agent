@@ -186,4 +186,49 @@ public class Llama2ModelResponse implements ModelResponse {
     public String getStatusText() {
         return statusText;
     }
+
+    @Override
+    public Integer getResponseUsagePromptTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode promptTokenCountNode = getResponseBodyJsonMap().get("prompt_token_count");
+
+                if  (promptTokenCountNode != null && promptTokenCountNode.isNumber()) {
+                    return Integer.parseInt(promptTokenCountNode.text());
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "prompt tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getResponseUsageCompletionTokens() {
+        try {
+            if (!getResponseBodyJsonMap().isEmpty()) {
+                JsonNode generationTokenCountNode = getResponseBodyJsonMap().get("generation_token_count");
+
+                if (generationTokenCountNode != null && generationTokenCountNode.isNumber()) {
+                    return Integer.parseInt(generationTokenCountNode.text());
+                }
+            }
+        } catch (Exception e) {
+            logParsingFailure(e, "completion tokens");
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getResponseUsageTotalTokens() {
+        Integer promptTokens = getResponseUsagePromptTokens();
+        Integer completionTokens = getResponseUsageCompletionTokens();
+
+        // Only return total if both values are available
+        if (promptTokens != null && completionTokens != null) {
+            return promptTokens + completionTokens;
+        }
+        return null;
+    }
+
 }

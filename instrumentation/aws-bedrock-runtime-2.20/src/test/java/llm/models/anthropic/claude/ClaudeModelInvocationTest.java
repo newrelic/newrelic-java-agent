@@ -34,6 +34,7 @@ import static llm.models.TestUtil.assertErrorEvent;
 import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -114,6 +115,49 @@ public class ClaudeModelInvocationTest {
         assertLlmChatCompletionSummaryAttributes(llmChatCompletionSummaryEvent, completionModelId, finishReason);
 
         assertErrorEvent(isError, introspector.getErrorEvents());
+    }
+
+    @Test
+    public void testCompletionWithIncompleteUsageData() {
+        boolean isError = false;
+
+        ClaudeModelInvocation claudeModelInvocation = mockClaudeModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        claudeModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(13, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithNoCallback() {
+        boolean isError = false;
+
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(null);
+
+        ClaudeModelInvocation claudeModelInvocation = mockClaudeModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        claudeModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertFalse(attributes.containsKey("token_count"));
+        }
     }
 
     private ClaudeModelInvocation mockClaudeModelInvocation(String modelId, String requestBody, String responseBody, boolean isError) {
