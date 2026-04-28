@@ -40,7 +40,6 @@ public class SpringAiModelResponse implements ModelResponse {
     private int promptTokens = 0;
     private int completionTokens = 0;
     private int totalTokens = 0;
-    private int timeToFirstToken = 0;
     private String model = "";
     private String requestId = "";
     private String stopReason = "";
@@ -182,12 +181,6 @@ public class SpringAiModelResponse implements ModelResponse {
     @Override
     public Integer getResponseUsageCompletionTokens() {
         return completionTokens;
-    }
-
-    @Override
-    public Integer getTimeToFirstToken() {
-        // This only applies to streams
-        return timeToFirstToken;
     }
 
     @Override

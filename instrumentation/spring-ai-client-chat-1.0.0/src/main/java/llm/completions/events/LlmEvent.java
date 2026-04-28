@@ -179,8 +179,8 @@ public class LlmEvent {
             return this;
         }
 
-        public Builder timeToFirstToken(int time) {
-            timeToFirstToken = modelResponse.getTimeToFirstToken();
+        public Builder timeToFirstToken(int timeToFirstToken) {
+            this.timeToFirstToken = timeToFirstToken;
             return this;
         }
 

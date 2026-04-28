@@ -38,6 +38,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
     Map<String, Object> userAttributes;
     ModelRequest modelRequest;
     ModelResponse modelResponse;
+    int timeToFirstToken;
 
     /**
      *
@@ -63,10 +64,16 @@ public class SpringAiModelInvocation implements ModelInvocation {
      * @param list                 a list of ChatClientResponse from a client stream
      */
     public SpringAiModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes,
-            ChatClientRequest chatClientRequest, List<ChatClientResponse> list) {
+            ChatClientRequest chatClientRequest, List<ChatClientResponse> list, long timeToFirstToken) {
         this.linkingMetadata = linkingMetadata;
         this.userAttributes = userCustomAttributes;
         this.modelRequest = new SpringAiModelRequest(chatClientRequest);
+        try {
+            this.timeToFirstToken = Math.toIntExact(timeToFirstToken);
+        } catch (ArithmeticException e) {
+            this.timeToFirstToken = 0;
+            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: The time_to_first_token value overflowed the maximum int size. Setting to 0 instead.");
+        }
         int listSize = list.size();
         if (listSize > 0) {
             // pass in only the ChatClientResponse instance from the stream contents but with
@@ -175,7 +182,7 @@ public class SpringAiModelInvocation implements ModelInvocation {
                 .responseUsagePromptTokens()
                 .responseUsageCompletionTokens()
                 .responseUsageTotalTokens()
-                .timeToFirstToken(modelResponse.getTimeToFirstToken())
+                .timeToFirstToken(timeToFirstToken)
                 .error()
                 .duration(System.currentTimeMillis() - startTime)
                 .build();

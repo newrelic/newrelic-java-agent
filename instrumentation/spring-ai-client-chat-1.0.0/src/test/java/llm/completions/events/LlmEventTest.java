@@ -109,9 +109,10 @@ public class LlmEventTest {
                 .responseChoicesFinishReason() // attribute 12
                 .error() // not added
                 .duration(9000f) // attribute 13
+                .timeToFirstToken(1234) // attribute 14
                 .build();
 
-        // attributes 14 & 15 should be the two llm.* prefixed userAttributes
+        // attributes 15 & 16 should be the two llm.* prefixed userAttributes
 
         // Record LlmChatCompletionSummary event
         llmChatCompletionSummaryEvent.recordLlmChatCompletionSummaryEvent();

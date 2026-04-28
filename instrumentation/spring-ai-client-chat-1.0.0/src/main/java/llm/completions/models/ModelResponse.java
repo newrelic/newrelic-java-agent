@@ -112,13 +112,6 @@ public interface ModelResponse {
     Integer getResponseUsageCompletionTokens();
 
     /**
-     * Get the duration in milliseconds between when the request was issued and the first token was received.
-     *
-     * @return Integer representing duration in milliseconds
-     */
-    Integer getTimeToFirstToken();
-
-    /**
      * Indicates whether the message is from a user or AI assistant.
      *
      * @return boolean true if the message is from a user, else false

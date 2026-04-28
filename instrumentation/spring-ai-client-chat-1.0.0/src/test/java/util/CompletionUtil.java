@@ -100,6 +100,7 @@ public class CompletionUtil {
         assertEquals(Vendor.INGEST_SOURCE, attributes.get("ingest_source"));
         assertEquals(expectedTemp.floatValue(), attributes.get("request.temperature"));
         assertTrue(((Float) attributes.get("duration")) >= 0);
+        assertTrue(((Integer) attributes.get("time_to_first_token")) >= 0);
         assertEquals(finishReason, attributes.get("response.choices.finish_reason"));
         assertEquals(requestModelId, attributes.get("request.model"));
         assertEquals(Vendor.VENDOR, attributes.get("vendor"));

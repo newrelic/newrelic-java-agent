@@ -23,6 +23,8 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
@@ -95,41 +97,53 @@ public class DefaultChatClient_Instrumentation {
                             Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
 
                             try {
+                                AtomicBoolean isFirstStreamChunk = new AtomicBoolean(true);
+                                AtomicLong timeToFirstToken = new AtomicLong(0);
                                 // collect all chunks of the stream response into a list without blocking
                                 // must use anonymous classes instead of lambdas or else instrumentation won't apply
-                                chatClientResponseFlux.collectList().subscribe(
-                                        // onNext consumer
-                                        new Consumer<List<ChatClientResponse>>() {
+                                chatClientResponseFlux
+                                        .doOnNext(new Consumer<ChatClientResponse>() {
                                             @Override
-                                            public void accept(List<ChatClientResponse> chatClientResponseList) {
-                                                List<ChatClientResponse> list = chatClientResponseList != null ? chatClientResponseList : new ArrayList<>();
+                                            public void accept(ChatClientResponse chatClientResponse) {
+                                                // Capture time to first token when first stream chunk is received
+                                                if (isFirstStreamChunk.compareAndSet(true, false)) {
+                                                    timeToFirstToken.set(System.currentTimeMillis() - startTime);
+                                                }
+                                            }
+                                        })
+                                        .collectList().subscribe(
+                                                // onNext consumer
+                                                new Consumer<List<ChatClientResponse>>() {
+                                                    @Override
+                                                    public void accept(List<ChatClientResponse> chatClientResponseList) {
+                                                        List<ChatClientResponse> list = chatClientResponseList != null ? chatClientResponseList : new ArrayList<>();
 
-                                                // Create Spring AI model invocation
-                                                ModelInvocation springAiInvocation = new SpringAiModelInvocation(
-                                                        linkingMetadata, userAttributes, chatClientRequest, list);
-                                                springAiInvocation.setSegmentName(segment, "stream");
-                                                springAiInvocation.recordLlmEventsAsync(startTime, null);
-                                            }
-                                        },
-                                        // onError consumer
-                                        new Consumer<Throwable>() {
-                                            @Override
-                                            public void accept(Throwable error) {
-                                                if (segment != null) {
-                                                    segment.endAsync();
+                                                        // Create Spring AI model invocation
+                                                        ModelInvocation springAiInvocation = new SpringAiModelInvocation(
+                                                                linkingMetadata, userAttributes, chatClientRequest, list, timeToFirstToken.get());
+                                                        springAiInvocation.setSegmentName(segment, "stream");
+                                                        springAiInvocation.recordLlmEventsAsync(startTime, null);
+                                                    }
+                                                },
+                                                // onError consumer
+                                                new Consumer<Throwable>() {
+                                                    @Override
+                                                    public void accept(Throwable error) {
+                                                        if (segment != null) {
+                                                            segment.endAsync();
+                                                        }
+                                                    }
+                                                },
+                                                // onComplete consumer
+                                                new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        if (segment != null) {
+                                                            segment.endAsync();
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        // onComplete consumer
-                                        new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                if (segment != null) {
-                                                    segment.endAsync();
-                                                }
-                                            }
-                                        }
-                                );
+                                        );
                             } catch (Throwable t) {
                                 if (segment != null) {
                                     segment.endAsync();
