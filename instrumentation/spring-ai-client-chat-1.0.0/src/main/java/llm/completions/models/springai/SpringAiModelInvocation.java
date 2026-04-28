@@ -70,9 +70,9 @@ public class SpringAiModelInvocation implements ModelInvocation {
         this.modelRequest = new SpringAiModelRequest(chatClientRequest);
         try {
             this.timeToFirstToken = Math.toIntExact(timeToFirstToken);
-        } catch (ArithmeticException e) {
+        } catch (Exception e) {
             this.timeToFirstToken = 0;
-            NewRelic.getAgent().getLogger().log(Level.INFO, "AIM: The time_to_first_token value overflowed the maximum int size. Setting to 0 instead.");
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "AIM: The time_to_first_token value overflowed the maximum int size. Setting to 0 instead.");
         }
         int listSize = list.size();
         if (listSize > 0) {
