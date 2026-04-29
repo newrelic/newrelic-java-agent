@@ -19,9 +19,6 @@ class NextProcessor_Instrumentation<O> {
         if(ReactorConfig.errorsEnabled) {
             NewRelic.noticeError(t);
         }
-        if(ReactorConfig.errorsEnabled) {
-            NewRelic.noticeError(t);
-        }
         Weaver.callOriginal();
     }
 
