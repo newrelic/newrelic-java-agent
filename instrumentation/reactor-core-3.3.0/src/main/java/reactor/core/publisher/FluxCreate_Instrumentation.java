@@ -20,17 +20,7 @@ class FluxCreate_Instrumentation {
         protected Token token = null;
 
         BaseSink_Instrumentation(CoreSubscriber<? super T> actual) {
-            if(token == null) {
-                Token t = NewRelic.getAgent().getTransaction().getToken();
-                if(t != null) {
-                    if(!t.isActive()) {
-                        token = t;
-                    } else {
-                        t.expire();
-                        t = null;
-                    }
-                }
-            }
+            token = NewRelic.getAgent().getTransaction().getToken();
         }
 
         @Trace(async=true, excludeFromTransactionTrace = true)
@@ -51,6 +41,22 @@ class FluxCreate_Instrumentation {
             if (token != null) {
                 token.linkAndExpire();
                 token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        public void cancel() {
+            if (token != null) {
+                token.expire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void request(long n) {
+            if (token != null) {
+                token.link();
             }
             Weaver.callOriginal();
         }

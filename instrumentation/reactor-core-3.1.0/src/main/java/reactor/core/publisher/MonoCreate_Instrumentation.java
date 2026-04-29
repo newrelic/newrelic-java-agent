@@ -19,13 +19,7 @@ class MonoCreate_Instrumentation {
         private Token token = null;
 
         DefaultMonoSink_Instrumentation(CoreSubscriber<? super T> actual) {
-            Token t = NewRelic.getAgent().getTransaction().getToken();
-            if(t != null && t.isActive()) {
-                token = t;
-            } else if(t != null) {
-                t.expire();
-                t = null;
-            }
+            token = NewRelic.getAgent().getTransaction().getToken();
         }
 
         @Trace(async=true, excludeFromTransactionTrace = true)

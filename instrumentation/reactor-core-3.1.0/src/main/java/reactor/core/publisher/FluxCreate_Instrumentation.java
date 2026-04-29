@@ -20,17 +20,7 @@ class FluxCreate_Instrumentation {
         protected Token token = null;
 
         BaseSink_Instrumentation(CoreSubscriber<? super T> actual) {
-            if(token == null) {
-                Token t = NewRelic.getAgent().getTransaction().getToken();
-                if(t != null) {
-                    if(!t.isActive()) {
-                        token = t;
-                    } else {
-                        t.expire();
-                        t = null;
-                    }
-                }
-            }
+            token = NewRelic.getAgent().getTransaction().getToken();
         }
 
         @Trace(async=true, excludeFromTransactionTrace = true)
@@ -114,6 +104,86 @@ class FluxCreate_Instrumentation {
             }
             return Weaver.callOriginal();
         }
+    }
+
+    @Weave(originalName = "reactor.core.publisher.FluxCreate$SerializeOnRequestSink")
+    static class SerializeOnRequestSink_Instrumentation<T> {
+
+        @NewField
+        protected Token token;
+
+        SerializeOnRequestSink_Instrumentation(BaseSink_Instrumentation<T> sink) {
+            if(sink != null) {
+                token = sink.token;
+            }
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void complete() {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void error(Throwable t) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public FluxSink<T> next(T t) {
+            if (token != null) {
+                token.link();
+            }
+            return Weaver.callOriginal();
+        }
+
+    }
+
+    @Weave(originalName = "reactor.core.publisher.FluxCreate$SerializedSink")
+    static class SerializedSink_Instrumentation<T> {
+
+        @NewField
+        protected Token token;
+
+        SerializedSink_Instrumentation(BaseSink_Instrumentation<T> sink) {
+            if(sink != null) {
+                token = sink.token;
+            }
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void complete() {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void error(Throwable t) {
+            if (token != null) {
+                token.linkAndExpire();
+                token = null;
+            }
+            Weaver.callOriginal();
+        }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public FluxSink<T> next(T t) {
+            if (token != null) {
+                token.link();
+            }
+            return Weaver.callOriginal();
+        }
+
     }
 
 

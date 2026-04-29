@@ -8,7 +8,6 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.reactor.ReactorConfig;
 import reactor.core.CoreSubscriber;
-import reactor.util.annotation.Nullable;
 
 @Weave(originalName = "reactor.core.publisher.MonoCreate")
 class MonoCreate_Instrumentation {
@@ -20,13 +19,7 @@ class MonoCreate_Instrumentation {
         private Token token = null;
 
         DefaultMonoSink_Instrumentation(CoreSubscriber<? super T> actual) {
-            Token t = NewRelic.getAgent().getTransaction().getToken();
-            if(t != null && t.isActive()) {
-                token = t;
-            } else if(t != null) {
-                t.expire();
-                t = null;
-            }
+            token = NewRelic.getAgent().getTransaction().getToken();
         }
 
         @Trace(async=true, excludeFromTransactionTrace = true)
@@ -67,6 +60,15 @@ class MonoCreate_Instrumentation {
             }
             Weaver.callOriginal();
         }
+
+        @Trace(async = true, excludeFromTransactionTrace = true)
+        public void request(long n) {
+            if(token != null) {
+                token.link();
+            }
+            Weaver.callOriginal();
+        }
+
     }
 
 }
