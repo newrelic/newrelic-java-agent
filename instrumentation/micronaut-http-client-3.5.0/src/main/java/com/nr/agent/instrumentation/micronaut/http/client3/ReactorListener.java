@@ -30,6 +30,7 @@ public class ReactorListener implements Runnable, Consumer<Subscription> {
     public void run() {
         if (segment != null) {
             segment.end();
+            segment = null;
         }
     }
 
