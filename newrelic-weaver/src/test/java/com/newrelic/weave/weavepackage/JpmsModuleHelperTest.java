@@ -21,6 +21,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarFile;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -82,7 +84,7 @@ public class JpmsModuleHelperTest {
         Instrumentation inst = mock(Instrumentation.class);
         when(inst.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
 
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Foo", getClass().getClassLoader());
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test", getClass().getClassLoader());
 
         verify(inst, times(1)).getAllLoadedClasses();
     }
@@ -94,9 +96,9 @@ public class JpmsModuleHelperTest {
         when(inst.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
         ClassLoader cl = getClass().getClassLoader();
 
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Foo", cl);
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/api/Bar", cl);
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Baz", cl);
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test", cl);
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/api/Test2", cl);
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test3", cl);
 
         verify(inst, times(1)).getAllLoadedClasses();
     }
@@ -135,7 +137,7 @@ public class JpmsModuleHelperTest {
 
         DelegatingInstrumentation proxy = new DelegatingInstrumentation(real);
 
-        JpmsModuleHelper.addReadsToUnnamedModule(proxy, "org/mule/runtime/core/Foo", getClass().getClassLoader());
+        JpmsModuleHelper.addReadsToUnnamedModule(proxy, "org/mule/runtime/core/Test", getClass().getClassLoader());
 
         verify(real, times(1)).getAllLoadedClasses();
     }
@@ -149,16 +151,38 @@ public class JpmsModuleHelperTest {
         DelegatingInstrumentation proxy1 = new DelegatingInstrumentation(real);
         DelegatingInstrumentation proxy2 = new DelegatingInstrumentation(proxy1);
 
-        JpmsModuleHelper.addReadsToUnnamedModule(proxy2, "org/mule/runtime/core/Foo", getClass().getClassLoader());
+        JpmsModuleHelper.addReadsToUnnamedModule(proxy2, "org/mule/runtime/core/Test", getClass().getClassLoader());
 
         verify(real, times(1)).getAllLoadedClasses();
+    }
+
+    @Test
+    public void scanLoopSkipsUnnamedModuleClasses() {
+        requireJpms();
+        Instrumentation inst = mock(Instrumentation.class);
+        when(inst.getAllLoadedClasses()).thenReturn(new Class<?>[]{JpmsModuleHelperTest.class});
+
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test", getClass().getClassLoader());
+
+        verify(inst, times(1)).getAllLoadedClasses();
+    }
+
+    @Test
+    public void scanLoopAddsNamedModulesToReadsSet() {
+        requireJpms();
+        Instrumentation inst = mock(Instrumentation.class);
+        when(inst.getAllLoadedClasses()).thenReturn(new Class<?>[]{String.class});
+
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test", getClass().getClassLoader());
+
+        verify(inst, times(1)).getAllLoadedClasses();
     }
 
     @Test
     public void mulePatched_falseBeforeFirstCall() throws Exception {
         Field f = JpmsModuleHelper.class.getDeclaredField("mulePatched");
         f.setAccessible(true);
-        assertEquals(false, ((AtomicBoolean) f.get(null)).get());
+        assertFalse(((AtomicBoolean) f.get(null)).get());
     }
 
     @Test
@@ -167,21 +191,21 @@ public class JpmsModuleHelperTest {
         Instrumentation inst = mock(Instrumentation.class);
         when(inst.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
 
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Foo", getClass().getClassLoader());
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "org/mule/runtime/core/Test", getClass().getClassLoader());
 
         Field f = JpmsModuleHelper.class.getDeclaredField("mulePatched");
         f.setAccessible(true);
-        assertEquals(true, ((AtomicBoolean) f.get(null)).get());
+        assertTrue(((AtomicBoolean) f.get(null)).get());
     }
 
     @Test
     public void mulePatched_remainsFalseForNonMuleClass() throws Exception {
         Instrumentation inst = mock(Instrumentation.class);
-        JpmsModuleHelper.addReadsToUnnamedModule(inst, "com/example/Foo", getClass().getClassLoader());
+        JpmsModuleHelper.addReadsToUnnamedModule(inst, "com/example/Test", getClass().getClassLoader());
 
         Field f = JpmsModuleHelper.class.getDeclaredField("mulePatched");
         f.setAccessible(true);
-        assertEquals(false, ((AtomicBoolean) f.get(null)).get());
+        assertFalse(((AtomicBoolean) f.get(null)).get());
     }
 
     private static class DelegatingInstrumentation implements Instrumentation {
