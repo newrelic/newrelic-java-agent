@@ -12,7 +12,7 @@ jar {
 
 verifyInstrumentation {
 
-    passes('io.micronaut:micronaut-http-client:[2.0.0,3.0.0)')
+    passesOnly('io.micronaut:micronaut-http-client:[2.0.0,3.0.0)')
     excludeRegex 'io.micronaut:micronaut-http-client:.*(RC|M)[0-9]*$'
 }
 
