@@ -41,9 +41,9 @@ public class LicenseKeyUtilTest extends TestCase {
         String actualJsonPayload = LicenseKeyUtil.obfuscateLicenseKey(originalJsonPayload);
 
         // Then
-        String expectedRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=obfuscated&marshal_format=json&protocol_version=17";
+        String expectedRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=abcdefghij**************************&marshal_format=json&protocol_version=17";
 
-        String expectedJsonPayload = "[{\"license_key\":\"obfuscated\"}]";
+        String expectedJsonPayload = "[{\"license_key\":\"abcdefghij**************************\"}]";
 
         Assert.assertEquals(expectedRequestUrl, actualRequestUrl);
         Assert.assertEquals(expectedJsonPayload, actualJsonPayload);
@@ -68,7 +68,7 @@ public class LicenseKeyUtilTest extends TestCase {
 
         // Then
         String expectedJsonPayload = "[" +
-                "{\"license_key\":\"obfuscated\"}, {\"license_key\":\"obfuscated\"}, {\"license_key\":\"obfuscated\"}, {\"license_key\":\"obfuscated\"}]";
+                "{\"license_key\":\"abcdefghij**************************\"}, {\"license_key\":\"abcdefghij**************************\"}, {\"license_key\":\"abcdefghij**************************\"}, {\"license_key\":\"abcdefghij**************************\"}]";
 
         Assert.assertEquals(expectedJsonPayload, actualJsonPayload);
     }
@@ -115,5 +115,60 @@ public class LicenseKeyUtilTest extends TestCase {
         // Then
         Assert.assertEquals("", actualEmptyString);
         Assert.assertNull(actualNullString);
+    }
+
+    public void testObfuscatedLicenseKeyWithSmallLicenseKey() {
+        // License keys <= 10 chars are fully obfuscated with "*"
+        // Given
+        String originalRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=abcde&marshal_format=json&protocol_version=17";
+
+        String originalJsonPayload = "[{\"license_key\":\"abcde\"}]";
+
+        MockServiceManager serviceManager = new MockServiceManager();
+        ServiceFactory.setServiceManager(serviceManager);
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("license_key", "abcde");
+
+        AgentConfig config = AgentConfigImpl.createAgentConfig(configMap);
+        ConfigService configService = ConfigServiceFactory.createConfigService(config, configMap);
+        serviceManager.setConfigService(configService);
+
+        // When
+        String actualRequestUrl = LicenseKeyUtil.obfuscateLicenseKey(originalRequestUrl);
+        String actualJsonPayload = LicenseKeyUtil.obfuscateLicenseKey(originalJsonPayload);
+
+        // Then
+        String expectedRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=*****&marshal_format=json&protocol_version=17";
+        String expectedJsonPayload = "[{\"license_key\":\"*****\"}]";
+
+        Assert.assertEquals(expectedRequestUrl, actualRequestUrl);
+        Assert.assertEquals(expectedJsonPayload, actualJsonPayload);
+    }
+
+    public void testObfuscatedLicenseKeyIfOriginalLicenseKeyIsChanged() {
+        String originalRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=abcdefghijklmonpqrstuvwxyz1234567890&marshal_format=json&protocol_version=17";
+
+        String originalJsonPayload = "[{\"license_key\":\"abcdefghijklmonpqrstuvwxyz1234567890\"}]";
+
+        MockServiceManager serviceManager = new MockServiceManager();
+        ServiceFactory.setServiceManager(serviceManager);
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("license_key", "this_is_a_new_license_key1234567890");
+
+        AgentConfig config = AgentConfigImpl.createAgentConfig(configMap);
+        ConfigService configService = ConfigServiceFactory.createConfigService(config, configMap);
+        serviceManager.setConfigService(configService);
+
+        // When
+        String actualRequestUrl = LicenseKeyUtil.obfuscateLicenseKey(originalRequestUrl);
+        String actualJsonPayload = LicenseKeyUtil.obfuscateLicenseKey(originalJsonPayload);
+
+        // Then
+        String expectedRequestUrl = "https://staging-collector.newrelic.com:443/agent_listener/invoke_raw_method?method=connect&license_key=this_is_a_*************************&marshal_format=json&protocol_version=17";
+
+        String expectedJsonPayload = "[{\"license_key\":\"this_is_a_*************************\"}]";
+
+        Assert.assertEquals(expectedRequestUrl, actualRequestUrl);
+        Assert.assertEquals(expectedJsonPayload, actualJsonPayload);
     }
 }
