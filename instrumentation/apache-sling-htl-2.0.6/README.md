@@ -22,7 +22,7 @@ wrap the writer or output stream in a `NewRelicPrintWriterWrapper` or `NewRelicO
 - Once found, a flag is set so that the tag search is disabled and the wrapper simply acts as a pass though
 to the underlying writer or output stream.
 
-##  ## Additional Checks
+## Additional Checks
 - The instrumented methods check to make sure that the writer/output stream returned by the `Weaver.callOriginal`
 call isn't already a `NewRelicXXXXXXWrapper` instance, by doing a check on the class name. An `instanceof`
 check doesn't work because of the way OSGI class loading works.
