@@ -1,0 +1,25 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.camel:camel-core:3.9.0")
+}
+
+//java {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(17))
+//    }
+//}
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-camel-3.9.0',
+            'Implementation-Title-Alias': 'apache-camel'  }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.camel:camel-core:[3.9.0,)'
+}
+
+site {
+    title 'Azure Service Bus'
+    type 'Messaging'
+}
