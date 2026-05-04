@@ -218,10 +218,6 @@ class CoroutinesTest {
 
         val metrics = introspector.getMetricsForTransaction(txnName)
         assertNotNull(metrics)
-        println("metrics for testTokenLinkingInCoroutines")
-        for(metric in metrics.keys) {
-            println(metric)
-        }
         assertTrue(metrics.keys.any { it.contains(coroutine1) })
         assertTrue(metrics.keys.any { it.contains(coroutine2) })
         assertTrue(metrics.keys.any { it.contains(coroutine3) })

@@ -384,11 +384,6 @@ class CoroutinesTest {
         val traces = introspector.getTransactionTracesForTransaction(txnName)
         assertNotNull(traces)
 
-        println("traces for testChannelWithMultipleProducersConsumers")
-        val trace = traces.first()
-        val initialSegment = trace.initialTraceSegment
-        assertNotNull(initialSegment)
-        TestUtils.printTraceSegment(initialSegment,0)
     }
 
     @Test
