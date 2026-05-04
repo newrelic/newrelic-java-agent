@@ -1,6 +1,7 @@
 package coroutines
 
 import com.newrelic.agent.bridge.AgentBridge
+import com.newrelic.agent.deps.org.checkerframework.checker.units.qual.m
 import com.newrelic.agent.introspec.InstrumentationTestConfig
 import com.newrelic.agent.introspec.InstrumentationTestRunner
 import com.newrelic.agent.introspec.Introspector
@@ -116,7 +117,7 @@ class CoroutinesTest {
 
         // Check for call to async
         assertTrue("Call to async was not recorded", metrics.keys.any { it.contains("Custom/Builders/async") })
-        assertTrue("Async task was not recorded", metrics.keys.any { it.contains("Custom/Block/SuspendFunction/createCoroutineFromSuspendFunction") })
+        assertTrue("Async task was not recorded", metrics.keys.any { it.contains("Custom/Kotlin-Coroutines/Block/Async/createCoroutineFromSuspendFunction") })
 
         val traces = introspector.getTransactionTracesForTransaction(txnName)
         assertTrue(traces.isNotEmpty())
@@ -126,7 +127,7 @@ class CoroutinesTest {
 
     @Test
     fun testAsyncAwait() {
-        awaitAllTransaction()
+        asyncAwaitTransaction()
 
         assertEquals("Expected 1 finished transaction", 1, introspector.finishedTransactionCount)
 
@@ -134,25 +135,15 @@ class CoroutinesTest {
         val txnName = txnNames.first()
         val metrics = introspector.getMetricsForTransaction(txnName)
 
-        // because there are 5 submits we should see 5 calls to the following functions
-        val asyncMetric = metrics.get("Custom/Builders/async")
-        assertNotNull(asyncMetric)
-        val callCount = asyncMetric?.callCount
-        assertEquals("Expected 5 async calls", 5, callCount)
+        // Check for call to async
+        assertTrue("Call to async was not recorded", metrics.keys.any { it.contains("Custom/Builders/async") })
+        assertTrue("Async task was not recorded", metrics.keys.any { it.contains("Custom/Kotlin-Coroutines/Block/Async/createCoroutineFromSuspendFunction") })
 
-        val startMetric = metrics.get("Custom/Block/SuspendFunction/createCoroutineFromSuspendFunction")
-        assertNotNull(startMetric)
-        val callCount2 = startMetric?.callCount
-        assertEquals("Expected 5 calls to start the coroutine", 6, callCount2)
-
-        assertTrue(
-            "Should contain awaitAll metric",
-            metrics.keys.any { it.contains("AwaitAll") })
-
+        // because we are awaiting the result, we should see the metric for the await method
+        assertTrue("Await was not recorded", metrics.keys.any { it.contains("Java/kotlinx.coroutines.DeferredCoroutine/await") })
         val traces = introspector.getTransactionTracesForTransaction(txnName)
         assertTrue(traces.isNotEmpty())
         assertEquals("Expected 1 finished transaction", 1, traces.size)
-
     }
 
     @Test
@@ -171,10 +162,10 @@ class CoroutinesTest {
         val callCount = asyncMetric?.callCount
         assertEquals("Expected 5 async calls", 5, callCount)
 
-        val startMetric = metrics.get("Custom/Block/SuspendFunction/createCoroutineFromSuspendFunction")
+        val startMetric = metrics.get("Custom/Kotlin-Coroutines/Block/Async/createCoroutineFromSuspendFunction")
         assertNotNull(startMetric)
         val callCount2 = startMetric?.callCount
-        assertEquals("Expected 5 calls to start the coroutine", 6, callCount2)
+        assertEquals("Expected 5 calls to start the coroutine", 5, callCount2)
 
         assertTrue(
             "Should contain awaitAll metric",
@@ -222,9 +213,9 @@ class CoroutinesTest {
         assertTrue(traces.isNotEmpty())
         assertEquals("Expected 1 finished transaction", 1, traces.size)
 
-        val coroutine1 = "Custom/Builders/launch/Coroutine1"
-        val coroutine2 = "Custom/Builders/launch/Coroutine2"
-        val coroutine3 = "Custom/Builders/launch/Coroutine3"
+        val coroutine1 = "Custom/Kotlin-Coroutines/Block/Launch/Coroutine1"
+        val coroutine2 = "Custom/Kotlin-Coroutines/Block/Launch/Coroutine2"
+        val coroutine3 = "Custom/Kotlin-Coroutines/Block/Launch/Coroutine3"
 
         val metrics = introspector.getMetricsForTransaction(txnName)
         assertNotNull(metrics)
@@ -363,7 +354,7 @@ class CoroutinesTest {
         assertNotNull("Transaction metrics should exist", metrics)
 
         // should see 3 calls to launch Send coroutine
-        val sendCoroutineName = "Custom/Builders/launch/SendCoroutine"
+        val sendCoroutineName = "Custom/Kotlin-Coroutines/Block/Launch/SendCoroutine"
         val sendCoroutine = metrics.get(sendCoroutineName)
         assertNotNull("Transaction metrics should exist", sendCoroutine)
         assertEquals(3, sendCoroutine?.callCount)
@@ -377,13 +368,18 @@ class CoroutinesTest {
         assertNotNull(receiveMetric)
         assertEquals(10, receiveMetric?.callCount)
 
-        assertTrue(metrics.containsKey("Custom/Builders/launch/consumer1"))
-        assertTrue(metrics.containsKey("Custom/Builders/launch/consumer2"))
+        assertTrue(metrics.containsKey("Custom/Kotlin-Coroutines/Block/Launch/consumer1"))
+        assertTrue(metrics.containsKey("Custom/Kotlin-Coroutines/Block/Launch/consumer2"))
 
 
         val traces = introspector.getTransactionTracesForTransaction(txnName)
         assertNotNull(traces)
 
+        println("traces for testChannelWithMultipleProducersConsumers")
+        val trace = traces.first()
+        val initialSegment = trace.initialTraceSegment
+        assertNotNull(initialSegment)
+        TestUtils.printTraceSegment(initialSegment,0)
     }
 
     @Test
@@ -399,7 +395,7 @@ class CoroutinesTest {
         val metrics = introspector.getMetricsForTransaction(txnName)
         assertNotNull("Transaction metrics should exist", metrics)
         // Because an error is thrown, it should cause the coroutine to be canceled which is the following metric
-//        assertTrue("Task was not dispatched as expected", metrics.keys.any { it.contains("Java/kotlinx.coroutines.CancellableContinuationImpl/cancel") })
+        assertTrue("Task was not dispatched as expected", metrics.keys.any { it.contains("Java/kotlinx.coroutines.CancellableContinuationImpl/cancel") })
 
     }
 
@@ -447,9 +443,9 @@ class CoroutinesTest {
         assertNotNull("Transaction metrics should exist", metrics)
 
         // ensure that we see the launch of each of the three coroutines
-        assertTrue(metrics.keys.contains("Custom/Builders/launch/Root"))
-        assertTrue(metrics.keys.contains("Custom/Builders/launch/Child"))
-        assertTrue(metrics.keys.contains("Custom/Builders/launch/GrandChild"))
+        assertTrue(metrics.keys.contains("Custom/Kotlin-Coroutines/Block/Launch/Root"))
+        assertTrue(metrics.keys.contains("Custom/Kotlin-Coroutines/Block/Launch/Child"))
+        assertTrue(metrics.keys.contains("Custom/Kotlin-Coroutines/Block/Launch/GrandChild"))
     }
 
     @Test
@@ -468,9 +464,9 @@ class CoroutinesTest {
         val metrics = introspector.getMetricsForTransaction(txnName)
 
         assertNotNull("Transaction metrics should exist", metrics)
-        val rootName = "Custom/Builders/launch/Root"
-        val childName = "Custom/Builders/launch/Child"
-        val grandchildName = "Custom/Builders/launch/Child"
+        val rootName = "Custom/Kotlin-Coroutines/Block/Launch/Root"
+        val childName = "Custom/Kotlin-Coroutines/Block/Launch/Child"
+        val grandchildName = "Custom/Kotlin-Coroutines/Block/Launch/Child"
 
         // ensure that we see the launch of each of the three coroutines
         assertTrue(metrics.keys.contains(rootName))
@@ -591,7 +587,7 @@ class CoroutinesTest {
         /*
         When the task is dispatched, it should create an instance of NRRunnable to wrap the dispatched task.
          */
-//        assertTrue("Task was not dispatched as expected", metrics.keys.any { it.contains("Custom/DispatchedTask/") })
+        assertTrue("Task was not dispatched as expected", metrics.keys.any { it.contains("Custom/DispatchedTask/") })
 
         val traces = introspector.getTransactionTracesForTransaction(txnName)
         assertTrue(traces.isNotEmpty())
@@ -643,26 +639,24 @@ class CoroutinesTest {
             "Custom/DispatchedTask/DispatchedContinuation[Dispatchers.IO"
         )
 
-        if (task1Segment != null) {
-            val attributes1 = task1Segment.tracerAttributes
-            assertNotNull(attributes1)
-            val threadID1 = attributes1.get("thread.id")
-            // assert not execution on main thread
-            assertNotEquals(1, threadID1)
-            val task2Segment = TestUtils.getRequestedTraceSegmentStartsWith(
-                initialSegment,
-                "Custom/DispatchedTask/DispatchedContinuation[Dispatchers.Default"
-            )
+        val attributes1 = task1Segment.tracerAttributes
+        assertNotNull(attributes1)
+        val threadID1 = attributes1.get("thread.id")
+        // assert not execution on main thread
+        assertNotEquals(1, threadID1)
+        val task2Segment = TestUtils.getRequestedTraceSegmentStartsWith(
+            initialSegment,
+            "Custom/DispatchedTask/DispatchedContinuation[Dispatchers.Default"
+        )
 
-            val attributes2 = task2Segment.tracerAttributes
-            assertNotNull(attributes2)
-            val threadID2 = attributes2.get("thread.id")
-            // assert not execution on main thread
-            assertNotEquals(1, threadID2)
+        val attributes2 = task2Segment.tracerAttributes
+        assertNotNull(attributes2)
+        val threadID2 = attributes2.get("thread.id")
+        // assert not execution on main thread
+        assertNotEquals(1, threadID2)
 
-            // assert tasks executed on different threads
-            assertNotEquals(threadID1, threadID2)
-        }
+        // assert tasks executed on different threads
+        assertNotEquals("trace segment 1 was on $threadID1 and segment 2 was on $threadID2, should be different",threadID1, threadID2)
     }
 
     // Helper methods
