@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LicenseKeyUtil {
+    // Matches license_key= (URL) or "license_key":" (JSON) and captures the prefix (group 1) and key value (group 2) separately.
     private static final Pattern LICENSE_KEY_PATTERN = Pattern.compile("(.+?license_key(?:=|\":\"))([^&\"]+)");
     private static final int KEY_LENGTH_CUTOFF = 10;
 
@@ -44,8 +45,13 @@ public class LicenseKeyUtil {
             }
 
             // It's not clear this can happen in the real world, but there was a test against
-            // a String with multiple "license_key=" fields. This loop simply iterates over the matcher
+            // a String with multiple "license_key=" fields. This loop iterates over the matcher
             // and does the replacement for all matches.
+            // appendReplacement: copies text between matches into sb, then appends the replacement string.
+            // quoteReplacement: escapes $ and \ in the replacement so they're treated as literals, not regex tokens.
+            // group(1): returns the prefix captured by group 1 (everything up to and including the delimiter).
+            // find(): advances the matcher to the next occurrence of the pattern.
+            // appendTail: flushes any remaining text after the last match into sb.
             StringBuffer sb = new StringBuffer();
             do {
                 matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(1) + obfuscatedKey));
