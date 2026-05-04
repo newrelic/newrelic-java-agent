@@ -28,6 +28,11 @@ public class Utils implements CoroutineConfigListener {
 	public static final String CREATE_METHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
 	private static final String CONT_LOC = "Continuation at";
 	public static boolean DELAYED_ENABLED = true;
+	private static final Utils INSTANCE = new Utils();
+
+	public static Utils getInstance() {
+		return INSTANCE;
+	}
 
 	static {
 		/*
@@ -35,7 +40,7 @@ public class Utils implements CoroutineConfigListener {
 		 * the ignored items
 		 */
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
-		service.addCoroutineConfigListener(new Utils());
+		service.addCoroutineConfigListener(INSTANCE);
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
