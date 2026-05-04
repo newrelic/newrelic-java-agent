@@ -13,7 +13,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.channel.ChannelHandlerContext;
 
-@Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.websocket.NettyServerWebSocketHandler")
+@Weave(originalName = "io.micronaut.http.server.netty.websocket.NettyServerWebSocketHandler", type = MatchType.ExactClass)
 public abstract class NettyServerWebSocketHandler_Instrumentation {
 
     @Trace(dispatcher = true)
