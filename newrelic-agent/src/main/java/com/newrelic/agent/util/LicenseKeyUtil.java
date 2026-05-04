@@ -8,7 +8,6 @@
 package com.newrelic.agent.util;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.Collections;
 import java.util.regex.Matcher;
@@ -33,50 +32,38 @@ public class LicenseKeyUtil {
             Agent.LOG.finest("Unable to obfuscate the license_key in a null or empty string.");
             return originalString;
         }
-        String licenseKey = ServiceFactory.getConfigService().getDefaultAgentConfig().getLicenseKey();
-        if (licenseKey == null) {
-            Agent.LOG.finest("Unable to obfuscate a null license_key.");
+
+        Matcher matcher = LICENSE_KEY_PATTERN.matcher(originalString);
+        if (!matcher.find()) {
             return originalString;
-        } else {
-            String obfuscatedKey = partialObfuscation(licenseKey);
-            Matcher matcher = LICENSE_KEY_PATTERN.matcher(originalString);
-            if (!matcher.find()) {
-                return originalString;
-            }
-
-            // It's not clear this can happen in the real world, but there was a test against
-            // a String with multiple "license_key=" fields. This loop iterates over the matcher
-            // and does the replacement for all matches.
-            // appendReplacement: copies text between matches into sb, then appends the replacement string.
-            // quoteReplacement: escapes $ and \ in the replacement so they're treated as literals, not regex tokens.
-            // group(1): returns the prefix captured by group 1 (everything up to and including the delimiter).
-            // find(): advances the matcher to the next occurrence of the pattern.
-            // appendTail: flushes any remaining text after the last match into sb.
-            StringBuffer sb = new StringBuffer();
-            do {
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(1) + obfuscatedKey));
-            } while (matcher.find());
-            matcher.appendTail(sb);
-
-            return sb.toString();
         }
+
+        // appendReplacement: copies text between matches into sb, then appends the replacement string.
+        // quoteReplacement: escapes $ and \ in the replacement so they're treated as literals, not regex tokens.
+        // group(1): returns the prefix captured by group 1 (everything up to and including the delimiter).
+        // group(2): returns the license key value found in the string, used to drive the obfuscation.
+        // find(): advances the matcher to the next occurrence of the pattern.
+        // appendTail: flushes any remaining text after the last match into sb.
+        StringBuffer sb = new StringBuffer();
+        do {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(1) + partialObfuscation(matcher.group(2))));
+        } while (matcher.find());
+        matcher.appendTail(sb);
+
+        return sb.toString();
     }
 
     private static String partialObfuscation(String licenseKey) {
-        // Null / empty check has already occurred
-        int keyLength =  licenseKey.length();
-        String obfuscatedKey;
+        int keyLength = licenseKey.length();
 
         // Per the spec: If length is <= 10, replace the full key with "*"
         // Otherwise, keep the first 10 characters of the key and replace the
         // remaining key characters with "*"
         if (keyLength > KEY_LENGTH_CUTOFF) {
-            obfuscatedKey = licenseKey.substring(0, KEY_LENGTH_CUTOFF) +
+            return licenseKey.substring(0, KEY_LENGTH_CUTOFF) +
                     String.join("", Collections.nCopies(keyLength - KEY_LENGTH_CUTOFF, "*"));
         } else {
-            obfuscatedKey = String.join("", Collections.nCopies(keyLength, "*"));
+            return String.join("", Collections.nCopies(keyLength, "*"));
         }
-
-        return obfuscatedKey;
     }
 }
