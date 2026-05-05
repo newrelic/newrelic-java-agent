@@ -9,7 +9,7 @@ package com.newrelic.agent.util;
 
 import com.newrelic.agent.Agent;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +30,11 @@ public class LicenseKeyUtil {
     public static String obfuscateLicenseKey(String originalString) {
         if (originalString == null || originalString.isEmpty()) {
             Agent.LOG.finest("Unable to obfuscate the license_key in a null or empty string.");
+            return originalString;
+        }
+
+        // Avoid regex overhead if string doesn't contain "license_key"
+        if (!originalString.contains("license_key")) {
             return originalString;
         }
 
@@ -60,10 +65,15 @@ public class LicenseKeyUtil {
         // Otherwise, keep the first 10 characters of the key and replace the
         // remaining key characters with "*"
         if (keyLength > KEY_LENGTH_CUTOFF) {
-            return licenseKey.substring(0, KEY_LENGTH_CUTOFF) +
-                    String.join("", Collections.nCopies(keyLength - KEY_LENGTH_CUTOFF, "*"));
+            return licenseKey.substring(0, KEY_LENGTH_CUTOFF) + createAsterisks(keyLength - KEY_LENGTH_CUTOFF);
         } else {
-            return String.join("", Collections.nCopies(keyLength, "*"));
+            return createAsterisks(keyLength);
         }
+    }
+
+    private static String createAsterisks(int count) {
+        char[] asterisks = new char[count];
+        Arrays.fill(asterisks, '*');
+        return new String(asterisks);
     }
 }

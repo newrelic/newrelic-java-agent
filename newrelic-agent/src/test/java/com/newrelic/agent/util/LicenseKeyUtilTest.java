@@ -37,7 +37,9 @@ public class LicenseKeyUtilTest extends TestCase {
         serviceManager.setConfigService(configService);
 
         // When
+        long startTime = System.nanoTime();
         String actualRequestUrl = LicenseKeyUtil.obfuscateLicenseKey(originalRequestUrl);
+        System.out.println("Time (ns): " + (System.nanoTime() - startTime));
         String actualJsonPayload = LicenseKeyUtil.obfuscateLicenseKey(originalJsonPayload);
 
         // Then
