@@ -1,0 +1,33 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-ai-model-1.0.0', 'Implementation-Title-Alias': 'spring_ai' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'org.springframework.ai:spring-ai-model:1.0.0'
+
+    testImplementation 'org.springframework.ai:spring-ai-model:1.0.0'
+    testImplementation("org.mockito:mockito-core:5.23.0")
+}
+
+verifyInstrumentation {
+    passesOnly 'org.springframework.ai:spring-ai-model:[1.0.0-M7,)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Spring AI Embeddings'
+    type 'AI'
+}
