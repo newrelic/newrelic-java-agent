@@ -5,12 +5,10 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.TracedMethod;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.kotlin.coroutines_19.NRContinuationWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.NRFunction2SuspendWrapper;
 import com.newrelic.instrumentation.kotlin.coroutines_19.Utils;
 
 import kotlin.coroutines.Continuation;
-import kotlin.coroutines.jvm.internal.SuspendFunction;
 import kotlin.jvm.functions.Function2;
 import kotlinx.coroutines.internal.ScopeCoroutine;
 
@@ -21,11 +19,6 @@ public class UndispatchedKt_Instrumentation {
 	public static <R, T> void startCoroutineUndispatched(Function2<? super R, ? super Continuation<? super T>, ?> f, R receiver,
 			Continuation<? super T> cont) {
 		String continuationString = Utils.getContinuationString(cont);
-		if(!(cont instanceof SuspendFunction)) {
-			if(!(cont instanceof NRContinuationWrapper) && Utils.continueWithContinuation(cont)) {
-                cont = new NRContinuationWrapper<>(cont, continuationString);
-			}
-		}
 		TracedMethod traced = NewRelic.getAgent().getTracedMethod();
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		if(continuationString != null) {
@@ -33,7 +26,7 @@ public class UndispatchedKt_Instrumentation {
 		}
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+            f = new NRFunction2SuspendWrapper<>(null, "Undispatched", f);
 		}
 		Weaver.callOriginal();
 	}
@@ -45,7 +38,7 @@ public class UndispatchedKt_Instrumentation {
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+			f = new NRFunction2SuspendWrapper<>(null, "Undispatched", f);
 		}
 		return Weaver.callOriginal();
 	}
@@ -57,7 +50,7 @@ public class UndispatchedKt_Instrumentation {
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+			f = new NRFunction2SuspendWrapper<>(null, "Undispatched", f);
 		}
 		return Weaver.callOriginal();
 	}
