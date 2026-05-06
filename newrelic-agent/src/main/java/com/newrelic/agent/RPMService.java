@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -36,7 +37,6 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.ConnectionResponse;
@@ -57,9 +57,11 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -93,6 +95,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private final boolean isMainApp;
     private volatile boolean hasEverConnected = false;
     private volatile String entityGuid = "";
+    private volatile Map<String, String> serviceMetadata = Collections.emptyMap();
     private final DataSender dataSender;
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
@@ -288,6 +291,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             connected = true;
             hasEverConnected = true;
             entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
+            serviceMetadata = buildServiceMetadata(data);
 
             if (connectionListener != null) {
                 config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
@@ -342,6 +346,38 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public String getEntityGuid() {
         return entityGuid;
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        return serviceMetadata;
+    }
+
+    private Map<String, String> buildServiceMetadata(Map<String, Object> connectData) {
+        Map<String, String> metadata = new HashMap<>();
+
+        AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
+        Map<String, String> labels = config.getLabelsConfig().getLabels();
+        if (labels != null) {
+            // Add labels (aka tags) to service metadata
+            metadata.putAll(labels);
+        }
+
+        if (entityGuid != null && !entityGuid.isEmpty()) {
+            metadata.put("entity.guid", entityGuid);
+        }
+
+        // TODO Add attributes from connect response when they're implemented
+        // FIXME Just mock some fake data for proof of concept
+        metadata.put("k8s.clusterName", "my-cluster");
+        metadata.put("k8s.containerName", "my-container");
+        metadata.put("language", "java");
+        metadata.put("realAgentId", "12345");
+        // generate a random number attribute so that the data
+        // changes on each connect, and we can verify the update logic
+        metadata.put("randomNumber", String.valueOf(ThreadLocalRandom.current().nextInt(1, 11)));
+
+        return Collections.unmodifiableMap(metadata);
     }
 
     public String getApplicationLink() {
@@ -887,8 +923,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             try {
                 if (serverlessMode) {
                     Agent.LOG.log(Level.FINE, "Trying to re-establish connection for serverless mode.");
-                }
-                else {
+                } else {
                     Agent.LOG.fine("Trying to re-establish connection to New Relic.");
                 }
                 this.launch();
@@ -1020,11 +1055,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private static Integer toInt(Object o) {
-        if (o == null) return null;
+        if (o == null) {
+            return null;
+        }
         if (o instanceof Number) {
             return ((Number) o).intValue();
         }
-        return ((Double)Double.parseDouble((String)o)).intValue();
+        return ((Double) Double.parseDouble((String) o)).intValue();
     }
 
     @Override

@@ -10,6 +10,8 @@ package com.newrelic.agent.bridge;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.NewRelic;
 
+import java.util.Map;
+
 /**
  * The internal bridge version of the Agent API.
  */
@@ -96,5 +98,13 @@ public interface Agent extends com.newrelic.api.agent.Agent {
     Logs getLogSender();
 
     String getEntityGuid(boolean wait);
+
+    /**
+     * Returns service metadata from the most recent connect response.
+     * Values update on each agent reconnect.
+     *
+     * @return map of metadata key/value pairs (never null)
+     */
+    Map<String, String> getServiceMetadata();
 
 }

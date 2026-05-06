@@ -18,6 +18,7 @@ import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.InstrumentSelector;
 import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.metrics.View;
+import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
@@ -110,6 +111,13 @@ final class OpenTelemetrySDKCustomizer {
             builder.put("entity.guid", entityGuid);
         }
         return builder.build();
+    }
+
+    /**
+     * Wrap the metric exporter to inject updated service metadata into exported MetricData resources.
+     */
+    static MetricExporter wrapMetricExporter(MetricExporter exporter, ConfigProperties configProperties) {
+        return new NRMetricExporterWrapper(exporter);
     }
 
     /**
