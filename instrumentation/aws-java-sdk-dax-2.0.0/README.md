@@ -23,32 +23,30 @@ DAX only supports **data-plane operations** (not table management operations). T
 
 ## Instrumented Classes
 
-The module instruments both synchronous and asynchronous DAX clients:
+The module instruments the async client implementation class:
 
-- **Sync Client**: `software.amazon.dax.DelegateSyncClient` (used via `ClusterDaxClient`)
 - **Async Client**: `software.amazon.dax.MetricAsyncClient` (used via `ClusterDaxAsyncClient`)
+
+Both synchronous and asynchronous DAX operations are captured because the sync client (`DelegateSyncClient`)
+internally delegates all operations to the async client (`MetricAsyncClient`). This architecture means instrumenting
+only the async client captures all DAX operations regardless of which client type the application uses.
+
+```
+ClusterDaxClient (sync)                    ClusterDaxAsyncClient (async)
+  └─> DelegateSyncClient                     └─> MetricAsyncClient  ← instrumented
+        └─> delegates to MetricAsyncClient ──────┘
+```
 
 ## Configuration Capture
 
 Unlike the standard DynamoDB SDK client, DAX clients do not expose their `Configuration` object after construction.
 To capture endpoint and region information for metrics, this module uses a caching strategy:
 
-1. **Async Client Construction**: When `MetricAsyncClient` is constructed, it receives a `Configuration` object.
-   The instrumentation captures this configuration and stores it in a `WeakHashMap` cache keyed by the client instance.
+When `MetricAsyncClient` is constructed, it receives a `Configuration` object. The instrumentation captures this
+configuration and stores it in a `WeakHashMap` cache keyed by the client instance. This cached configuration is
+then used during operation instrumentation to extract host, port, region, and credentials for ARN construction.
 
-2. **Sync Client Lookup**: The sync client (`DelegateSyncClient`) internally wraps an async client. When sync
-   operations execute, the instrumentation retrieves the configuration from the cache using the underlying async
-   client reference.
-
-```
-ClusterDaxClient (sync)
-  └─> DelegateSyncClient
-        └─> holds reference to async client
-              └─> MetricAsyncClient (config cached here during construction)
-```
-
-This approach ensures both sync and async operations have access to the configuration needed for accurate metrics
-reporting (host, port, region, credentials for ARN construction).
+This approach ensures all DAX operations have access to the configuration needed for accurate metrics reporting.
 
 ## Metrics Reported
 
