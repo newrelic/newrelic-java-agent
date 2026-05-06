@@ -14,7 +14,9 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * This backports the functionality of the OpenTelemetry DelegatingMetricData, which
- * wasn't introduced until OTel version 1.50.0. This class delegates to the methods another MetricData, so that we can alter the MetricData that's exported.
+ * wasn't introduced until OTel version 1.50.0. This class is a MetricData that
+ * delegates to the methods of another MetricData. Extending this class allows
+ * for customization of the MetricData that will be exported.
  */
 public abstract class NrDelegatingMetricData implements MetricData {
 
