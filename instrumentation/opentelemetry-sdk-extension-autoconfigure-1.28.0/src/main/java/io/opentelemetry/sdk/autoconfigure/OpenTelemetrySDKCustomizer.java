@@ -106,6 +106,7 @@ final class OpenTelemetrySDKCustomizer {
             builder.put(SERVICE_INSTANCE_ID_ATTRIBUTE_KEY, UUID.randomUUID().toString());
         }
 
+        // This blocks for up to 1 minute to ensure that an entity guid is returned from a connect response
         final String entityGuid = agent.getEntityGuid(true);
         if (entityGuid != null) {
             builder.put("entity.guid", entityGuid);
