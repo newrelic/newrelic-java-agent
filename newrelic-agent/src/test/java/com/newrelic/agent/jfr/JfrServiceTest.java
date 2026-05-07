@@ -183,4 +183,50 @@ public class JfrServiceTest {
         spyJfr.configChanged("my-app", newAgentConfig);
         verify(spyJfr).doStop();
     }
+
+    @Test
+    public void getJfrHostnameOrDisplayName_UseDisplayNameFalse_ReturnsDefaultHostname() {
+        when(jfrConfig.useDisplayName()).thenReturn(false);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        when(spyJfr.getHostname()).thenReturn("test-hostname:8080");
+
+        String result = spyJfr.getJfrHostnameOrDisplayName();
+        assertEquals("test-hostname:8080", result);
+        verify(spyJfr).getHostname();
+    }
+
+    @Test
+    public void getJfrHostnameOrDisplayName_UseDisplayNameTrue_WithDisplayNameSet_ReturnsDisplayName() {
+        when(jfrConfig.useDisplayName()).thenReturn(true);
+        when(agentConfig.getValue("process_host.display_name", "test-hostname:8080"))
+                .thenReturn("my-custom-display-name");
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        when(spyJfr.getHostname()).thenReturn("test-hostname:8080");
+
+        String result = spyJfr.getJfrHostnameOrDisplayName();
+        assertEquals("my-custom-display-name", result);
+    }
+
+    @Test
+    public void getJfrHostnameOrDisplayName_UseDisplayNameTrue_WithDisplayNameEmpty_ReturnsDefaultHostname() {
+        when(jfrConfig.useDisplayName()).thenReturn(true);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        String defaultHostname = "test-hostname:8080";
+        when(spyJfr.getHostname()).thenReturn(defaultHostname);
+
+        when(agentConfig.getValue("process_host.display_name", defaultHostname))
+                .thenReturn(defaultHostname);
+
+        String result = spyJfr.getJfrHostnameOrDisplayName();
+        assertEquals(defaultHostname, result);
+    }
 }

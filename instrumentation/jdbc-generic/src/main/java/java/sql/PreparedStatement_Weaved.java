@@ -28,6 +28,14 @@ public abstract class PreparedStatement_Weaved {
     @NewField
     String preparedSql;
 
+    public void addBatch() throws SQLException {
+        // If we have SQL in our newfield but not in the shared map, store it
+        if (preparedSql != null && JdbcHelper.getSql((Statement) this) == null) {
+            JdbcHelper.putSql((Statement) this, preparedSql);
+        }
+        Weaver.callOriginal();
+    }
+
     @Trace(leaf = true)
     public ResultSet executeQuery() throws SQLException {
         if (preparedSql == null) {

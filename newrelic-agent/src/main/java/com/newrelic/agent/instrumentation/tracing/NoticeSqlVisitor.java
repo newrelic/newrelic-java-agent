@@ -34,8 +34,20 @@ public class NoticeSqlVisitor extends ClassVisitor {
             "setParams", Type.getType(Object[].class)
             );
 
+    // See comment above - this map is for batch SQL operations which contains a new field to store
+    // the batch size
+    private static final Map<String, Type> batchSetterNamesToTypes = ImmutableMap.of(
+            "provideConnection", Type.getType(Connection.class),
+            "setRawSql", Type.getType(String.class),
+            "setParams", Type.getType(Object[].class),
+            "setBatchSize", Type.INT_TYPE
+    );
+
     private static final Method noticeSqlMethod = new Method("noticeSql", Type.VOID_TYPE,
             setterNamesToTypes.values().toArray(new Type[setterNamesToTypes.size()]));
+
+    private static final Method noticeBatchSqlMethod = new Method("noticeBatchSql", Type.VOID_TYPE,
+            batchSetterNamesToTypes.values().toArray(new Type[batchSetterNamesToTypes.size()]));
 
     private final Set<Method> noticeSqlMethods;
 
@@ -53,6 +65,11 @@ public class NoticeSqlVisitor extends ClassVisitor {
                 if (isNoticeSqlMethod(owner, name, desc)) {
                     noticeSqlMethods.add(new Method(methodName, methodDesc));
                 }
+
+                if (isNoticeBatchSqlMethod(owner, name, desc)) {
+                    noticeSqlMethods.add(new Method(methodName, methodDesc));
+                }
+                
                 super.visitMethodInsn(opcode, owner, name, desc, itf);
             }
         };
@@ -68,6 +85,12 @@ public class NoticeSqlVisitor extends ClassVisitor {
                 && desc.equals(noticeSqlMethod.getDescriptor());
     }
 
+    public static boolean isNoticeBatchSqlMethod(String owner, String name, String desc) {
+        return owner.equals(BridgeUtils.DATASTORE_METRICS_TYPE.getInternalName())
+                && name.equals(noticeBatchSqlMethod.getName())
+                && desc.equals(noticeBatchSqlMethod.getDescriptor());
+    }
+
     public static int getSqlTracerSettersCount() {
         return setterNamesToTypes.size();
     }
@@ -76,6 +99,16 @@ public class NoticeSqlVisitor extends ClassVisitor {
         LinkedList<Map.Entry<String, Type>> entries = new LinkedList<>(
                 setterNamesToTypes.entrySet());
 
+        return entries.descendingIterator();
+    }
+
+    public static int getBatchSqlTracerSettersCount() {
+        return batchSetterNamesToTypes.size();
+    }
+
+    public static Iterator<Map.Entry<String, Type>> getBatchSqlTracerSettersInReverseOrder() {
+        LinkedList<Map.Entry<String, Type>> entries = new LinkedList<>(
+                batchSetterNamesToTypes.entrySet());
         return entries.descendingIterator();
     }
 }

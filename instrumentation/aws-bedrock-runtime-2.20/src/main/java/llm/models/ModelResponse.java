@@ -101,4 +101,25 @@ public interface ModelResponse {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "AIM: Unable to parse empty/null " + fieldBeingParsed + " from ModelResponse");
         }
     }
+
+    /**
+     * Get the number of tokens in the prompt/request from the LLM response usage metadata.
+     *
+     * @return Integer representing the prompt token count or null if not provided by the model
+     */
+    Integer getResponseUsagePromptTokens();
+
+    /**
+     * Get the number of tokens in the completion/response from the LLM response usage metadata.
+     *
+     * @return Integer representing the completion token count or null if not provided by the model
+     */
+    Integer getResponseUsageCompletionTokens();
+
+    /**
+     * Get the total number of tokens (prompt + completion) from the LLM response usage metadata.
+     *
+     * @return Integer representing the total token count or null if not provided by the model
+     */
+    Integer getResponseUsageTotalTokens();
 }

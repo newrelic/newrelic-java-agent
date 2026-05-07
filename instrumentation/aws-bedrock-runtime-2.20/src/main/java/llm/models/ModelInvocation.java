@@ -178,19 +178,4 @@ public interface ModelInvocation {
         return UUID.randomUUID().toString();
     }
 
-    /**
-     * Calculates the tokenCount based on a user provided callback
-     *
-     * @param model   String representation of the LLM model
-     * @param content String representation of the message content or prompt
-     * @return int representing the tokenCount
-     */
-    static int getTokenCount(String model, String content) {
-        if (LlmTokenCountCallbackHolder.getLlmTokenCountCallback() == null || Objects.equals(content, "")) {
-            return 0;
-        }
-        return LlmTokenCountCallbackHolder
-                .getLlmTokenCountCallback()
-                .calculateLlmTokenCount(model, content);
-    }
 }

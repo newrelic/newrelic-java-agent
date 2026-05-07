@@ -51,7 +51,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 
     @Trace
     public <I> Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> exchangeStream(io.micronaut.http.HttpRequest<I> request) {
-        MicronautHeaders headers = new MicronautHeaders(request);
+            MicronautHeaders headers = new MicronautHeaders(request);
         NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
         Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> result = Weaver.callOriginal();
