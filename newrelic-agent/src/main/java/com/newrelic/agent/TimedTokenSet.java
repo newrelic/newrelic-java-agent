@@ -7,10 +7,9 @@
 
 package com.newrelic.agent;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.RemovalCause;
-import com.github.benmanes.caffeine.cache.RemovalListener;
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.CacheRemovalListener;
+import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.util.TimeConversion;
 
@@ -27,7 +26,7 @@ import java.util.logging.Level;
 public class TimedTokenSet implements TimedSet<TokenImpl> {
 
     private final AtomicInteger timedOutTokens;
-    private final Cache<TokenImpl, TokenImpl> activeTokens;
+    private final CleanableMap<TokenImpl, TokenImpl> activeTokens;
 
     public TimedTokenSet(int timeOut, TimeUnit unit, final ExpirationService expirationService) {
         timedOutTokens = new AtomicInteger(0);
@@ -35,46 +34,40 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
         // async timeout is given in seconds, but passing in 0 causes strange behavior, especially in tests, because
         // onRemoval happens immediately after put, so we can hit onRemoval logic before getToken() even finishes
         long timeOutMilli = TimeConversion.convertToMilliWithLowerBound(timeOut, unit, 250L);
+        activeTokens = AgentBridge.collectionFactory.createCacheWithAccessExpirationAndRemovalListener(
+                timeOutMilli, TimeUnit.MILLISECONDS, 8,
+                (TokenImpl token, TokenImpl value, CacheRemovalListener.RemovalReason cause) -> {
+                    Transaction tx = token.getTransaction().getTransactionIfExists();
 
-        activeTokens = Caffeine.newBuilder()
-                .initialCapacity(8)
-                .expireAfterAccess(timeOutMilli, TimeUnit.MILLISECONDS)
-                .executor(Runnable::run)
-                .removalListener(new RemovalListener<TokenImpl, TokenImpl>() {
-                    @Override
-                    public void onRemoval(TokenImpl token, TokenImpl value, RemovalCause cause) {
-                        Transaction tx = token.getTransaction().getTransactionIfExists();
+                    try {
+                        if (cause == CacheRemovalListener.RemovalReason.EXPIRED) { // time out case
+                            Agent.LOG.log(Level.FINEST, "Timing out token {0} on transaction {1}", token, tx);
+                            timedOutTokens.incrementAndGet();
+                            token.setTruncated();
 
-                        try {
-                            if (cause == RemovalCause.EXPIRED) { // time out case
-                                Agent.LOG.log(Level.FINEST, "Timing out token {0} on transaction {1}", token, tx);
-                                timedOutTokens.incrementAndGet();
-                                token.setTruncated();
-
-                                if (tx != null) {
-                                    tx.setTimeoutCause(TimeoutCause.TOKEN);
-                                }
-                            } else if (cause == RemovalCause.EXPLICIT) { // remove and removeAll case
-                                Agent.LOG.log(Level.FINEST, "Expiring token {0} on transaction {1}", token, tx);
-                            } else { // should never happen
-                                Agent.LOG.log(Level.FINEST, "Token {0} on transaction {1} removed due to cause {2}", token, tx, cause);
+                            if (tx != null) {
+                                tx.setTimeoutCause(TimeoutCause.TOKEN);
                             }
-                        } catch (Exception e) {
-                            Agent.LOG.log(Level.FINEST, "Token {0} on transaction {1} threw exception: {2}", token, tx, e);
-                        } finally {
-                            // The expire all tokens code path doesn't iterate over, and call expire on, all the tokens
-                            // because that would make it look like the user explicitly did it. However, the on removal
-                            // cause for expiring one is the same as for expiring all (EXPLICIT). So markExpire needs to be
-                            // called in either case, since it doesn't hurt to null out the tracer again, and it still needs
-                            // to happen in the expire all case.
-                            //
-                            // In the case of a token being expired we *must* spin off the work on to a
-                            // second thread in order to prevent a possible deadlock between the expire code
-                            // and other tx usages.
-                            expirationService.expireToken(token::markExpired);
+                        } else if (cause == CacheRemovalListener.RemovalReason.EXPLICIT) { // remove and removeAll case
+                            Agent.LOG.log(Level.FINEST, "Expiring token {0} on transaction {1}", token, tx);
+                        } else { // should never happen
+                            Agent.LOG.log(Level.FINEST, "Token {0} on transaction {1} removed due to cause {2}", token, tx, cause);
                         }
+                    } catch (Exception e) {
+                        Agent.LOG.log(Level.FINEST, "Token {0} on transaction {1} threw exception: {2}", token, tx, e);
+                    } finally {
+                        // The expire all tokens code path doesn't iterate over, and call expire on, all the tokens
+                        // because that would make it look like the user explicitly did it. However, the on removal
+                        // cause for expiring one is the same as for expiring all (EXPLICIT). So markExpire needs to be
+                        // called in either case, since it doesn't hurt to null out the tracer again, and it still needs
+                        // to happen in the expire all case.
+                        //
+                        // In the case of a token being expired we *must* spin off the work on to a
+                        // second thread in order to prevent a possible deadlock between the expire code
+                        // and other tx usages.
+                        expirationService.expireToken(token::markExpired);
                     }
-                }).build();
+                });
     }
 
     /**
@@ -90,7 +83,7 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
      */
     @Override
     public boolean remove(TokenImpl token) {
-        return activeTokens.asMap().remove(token) != null;
+        return activeTokens.remove(token) != null;
     }
 
     /**
@@ -98,7 +91,7 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
      */
     @Override
     public void removeAll() {
-        activeTokens.invalidateAll();
+        activeTokens.clear();
     }
 
     @Override
@@ -113,7 +106,7 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
 
     @Override
     public void refresh(TokenImpl token) {
-        activeTokens.getIfPresent(token);
+        activeTokens.get(token);
     }
 
 }

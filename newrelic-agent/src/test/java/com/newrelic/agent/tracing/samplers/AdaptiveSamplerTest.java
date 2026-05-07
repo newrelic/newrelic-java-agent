@@ -1,17 +1,22 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 package com.newrelic.agent.tracing.samplers;
 
 import com.newrelic.agent.DistributedTracingTestUtil;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.Transaction;
-import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.tracing.Granularity;
-import org.mockito.Mockito;
 import com.newrelic.test.marker.Flaky;
+import org.junit.experimental.categories.Category;
+import org.mockito.Mockito;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,10 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.newrelic.agent.config.coretracing.SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -63,10 +65,11 @@ public class AdaptiveSamplerTest {
     public void testCalculatePriorityDefaultVals() throws InterruptedException{
         int DEFAULT_TARGET = 120;
         int DEFAULT_REPORT_PERIOD = 60;
+        boolean DEFAULT_IS_SHARED = true;
         int numPeriods = 5;
         long testLengthMillis = DEFAULT_REPORT_PERIOD * numPeriods * 1000;
 
-        AdaptiveSampler defaultSampler = AdaptiveSampler.getSharedInstance();
+        AdaptiveSampler defaultSampler = new AdaptiveSampler(DEFAULT_TARGET, DEFAULT_REPORT_PERIOD, DEFAULT_IS_SHARED);
         int totalSampled = runSamplerAndGetSampled(defaultSampler, testLengthMillis, DEFAULT_REQUESTS_PER_SEC);
 
         int expectedSampled = DEFAULT_TARGET * numPeriods;
@@ -202,53 +205,6 @@ public class AdaptiveSamplerTest {
     }
 
     @Test
-    public void testGetAdaptiveSamplerInstanceFulfillsSingleton() throws InterruptedException, ExecutionException {
-        //The sampler is REQUIRED to be a singleton instance.
-        //This test verifies that access to the sampler always returns the same instance.
-        ExecutorService executor = Executors.newFixedThreadPool(5);
-        List<Future<?>> samplerArray = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            Future<?> fut = executor.submit(AdaptiveSampler::getSharedInstance);
-            samplerArray.add(fut);
-        }
-        AdaptiveSampler baseSampler = AdaptiveSampler.getSharedInstance();
-        Assert.assertNotNull(baseSampler);
-        for (Future<?> f : samplerArray) {
-            assertEquals("All sampler instances retrieved by .getSharedInstance should be equal, but they were not", baseSampler, f.get());
-        }
-    }
-
-    @Test
-    public void testSamplerConfigSetsUpCorrectAdaptiveSamplers() {
-        //both of these should use shared sampler instance, since sampling target is not specified
-        SamplerConfig samplerConfig1 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig1.getSamplingTarget()).thenReturn(null);//should use shared sampler instance
-        SamplerConfig samplerConfig2 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig2.getSamplingTarget()).thenReturn(null);
-        //should use its own instance, even though the sampling target is the default
-        SamplerConfig samplerConfig3 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig3.getSamplingTarget()).thenReturn(DEFAULT_ADAPTIVE_SAMPLING_TARGET);
-        //should use their own instances, even though they have the same target
-        SamplerConfig samplerConfig4 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig4.getSamplingTarget()).thenReturn(12);
-        SamplerConfig samplerConfig5 = Mockito.mock(SamplerConfig.class);
-        when(samplerConfig5.getSamplingTarget()).thenReturn(12);
-
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig1));
-        assertSame(AdaptiveSampler.getSharedInstance(), AdaptiveSampler.getAdaptiveSampler(samplerConfig2));
-
-        AdaptiveSampler sampler3 = AdaptiveSampler.getAdaptiveSampler(samplerConfig3);
-        assertNotSame(AdaptiveSampler.getSharedInstance(), sampler3);
-        assertEquals(120, sampler3.getTarget());
-
-        AdaptiveSampler sampler4 = AdaptiveSampler.getAdaptiveSampler(samplerConfig4);
-        AdaptiveSampler sampler5 = AdaptiveSampler.getAdaptiveSampler(samplerConfig5);
-        assertEquals(12, sampler4.getTarget());
-        assertEquals(12, sampler5.getTarget());
-        assertNotSame(sampler4, sampler5);
-    }
-
-    @Test
     public void testExpectedPriorityGeneratedForGranularities(){
         AdaptiveSampler sampler = new AdaptiveSampler(100, 5);
 
@@ -290,6 +246,91 @@ public class AdaptiveSamplerTest {
         when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(0.0234f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.FULL), 0.0001f);
         assertEquals(0.0234f, sampler.calculatePriority(tx, Granularity.PARTIAL), 0.0001f);
+    }
+
+    @Test
+    public void testLazyStartSamplerPeriodAnchorsToFirstTransaction() {
+        AdaptiveSampler sampler = new AdaptiveSampler(10, 60, false, true);
+
+        assertEquals("startTimeMillis should be 0 (unstarted) before first transaction in lazy-start mode", 0L, sampler.getStartTimeMillis());
+
+        long beforeFirstTx = System.currentTimeMillis();
+        Transaction tx = Mockito.mock(Transaction.class);
+        when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+        sampler.calculatePriority(tx, Granularity.FULL);
+        long afterFirstTx = System.currentTimeMillis();
+
+        long startTime = sampler.getStartTimeMillis();
+        assertTrue("startTimeMillis should be set after first transaction", startTime >= beforeFirstTx);
+        assertTrue("startTimeMillis should be set after first transaction", startTime <= afterFirstTx);
+        assertTrue("startTimeMillis should be set (non-zero) after period is anchored", sampler.getStartTimeMillis() != 0L);
+    }
+
+    @Test
+    public void testLazyStartFirstPeriodSamplesExactlyTarget() {
+        int target = 10;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, 60, false, true);
+
+        int sampledCount = 0;
+        for (int i = 0; i < target + 5; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                sampledCount++;
+            }
+        }
+
+        assertEquals("First period in lazy-start mode should sample exactly target transactions", target, sampledCount);
+    }
+
+    @Test
+    public void testLazyStartSamplerTransactionsLapsingPastFirstPeriod() throws InterruptedException {
+        int target = 10;
+        int reportPeriodSeconds = 3;
+        int firstBurstCount = 5;
+        AdaptiveSampler sampler = new AdaptiveSampler(target, reportPeriodSeconds, false, true);
+
+        int firstPeriodSampled = 0;
+        for (int i = 0; i < firstBurstCount; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                firstPeriodSampled++;
+            }
+        }
+        assertEquals("All partial-burst transactions should be sampled in the first period",
+                firstBurstCount, firstPeriodSampled);
+
+        // Delay past the period boundary, simulating an idle serverless function.
+        Thread.sleep(reportPeriodSeconds * 3000L);
+
+        int secondBurstSampled = 0;
+        for (int i = 0; i < target; i++) {
+            Transaction tx = Mockito.mock(Transaction.class);
+            when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+            float priority = sampler.calculatePriority(tx, Granularity.FULL);
+            if (DistributedTraceUtil.isSampledPriority(priority)) {
+                secondBurstSampled++;
+            }
+        }
+
+        assertEquals("First period stats should roll over into sampledCountLast",
+                firstBurstCount, sampler.getSampledCountLastPeriod());
+        assertEquals("Second period should sample all transactions when seenLast is smaller than target",
+                target, secondBurstSampled);
+    }
+
+    @Test
+    public void testSamplerStartTimeSetAtConstruction() {
+        long beforeConstruction = System.currentTimeMillis();
+        AdaptiveSampler sampler = new AdaptiveSampler(10, 60);
+        long afterConstruction = System.currentTimeMillis();
+
+        long startTime = sampler.getStartTimeMillis();
+        assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime >= beforeConstruction);
+        assertTrue("Non-lazy sampler should have startTimeMillis set at construction", startTime <= afterConstruction);
     }
 
     private int runSamplerAndGetSampled(AdaptiveSampler sampler, long testLengthMillis, int requestsPerSecond) throws InterruptedException {

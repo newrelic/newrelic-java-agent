@@ -23,7 +23,6 @@ import com.newrelic.agent.environment.EnvironmentServiceImpl;
 import com.newrelic.agent.extension.ExtensionService;
 import com.newrelic.agent.extension.ExtensionsLoadedListener;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
@@ -34,6 +33,8 @@ import com.newrelic.agent.profile.ProfilerService;
 import com.newrelic.agent.reinstrument.RemoteInstrumentationService;
 import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.samplers.SamplerService;
+import com.newrelic.agent.serverless.ServerlessService;
+import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.Service;
 import com.newrelic.agent.service.ServiceFactory;
@@ -62,6 +63,7 @@ import java.util.Map;
 public class MockServiceManager extends AbstractService implements ServiceManager {
 
     private volatile RPMServiceManager rpmServiceManager = Mockito.mock(RPMServiceManager.class);
+    private final ServerlessService serverlessService = new ServerlessServiceImpl();
     private volatile CoreService coreService;
     private volatile ConfigService configService;
     private volatile ThreadService threadService;
@@ -209,6 +211,11 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     @Override
     public RPMServiceManager getRPMServiceManager() {
         return rpmServiceManager;
+    }
+
+    @Override
+    public ServerlessService getServerlessService() {
+        return serverlessService;
     }
 
     public void setHarvestService(HarvestService harvestService) {

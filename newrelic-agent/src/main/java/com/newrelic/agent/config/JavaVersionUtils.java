@@ -13,15 +13,30 @@ import java.util.regex.Pattern;
  * Simple set of utilities to help us validate that the agent is being run on a supported version of Java.
  */
 public class JavaVersionUtils {
-    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-9]|2[0-5])$");
+    private static final Pattern SUPPORTED_JAVA_VERSION_PATTERN = Pattern.compile("^(1\\.8|9|1[0-9]|2[0-6])$");
     private static final Pattern EXCLUSIVE_MIN_JAVA_VERSION_PATTERN = Pattern.compile("^1\\.7$");
-    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^26$");
-    private static final String MAX_SUPPORTED_VERSION = "25";
-
-
+    private static final Pattern EXCLUSIVE_MAX_JAVA_VERSION_PATTERN = Pattern.compile("^27$");
+    private static final String MAX_SUPPORTED_VERSION = "26";
 
     public static String getJavaSpecificationVersion() {
         return System.getProperty("java.specification.version", "");
+    }
+
+    /**
+     * Returns the major Java version as an integer.
+     * Examples: "1.8" returns 8, "11" returns 11, "17" returns 17
+     *
+     * @return the major Java version (e.g., 8, 11, 17, 21)
+     */
+    public static int getMajorVersion() {
+        String version = getJavaSpecificationVersion();
+        if (version.startsWith("1.")) {
+            // Java 8 or earlier: "1.8" -> 8
+            return Integer.parseInt(version.substring(2));
+        } else {
+            // Java 9+: "11", "17", "21" -> parse directly
+            return Integer.parseInt(version);
+        }
     }
 
     public static boolean isAgentSupportedJavaSpecVersion(String javaSpecificationVersion) {

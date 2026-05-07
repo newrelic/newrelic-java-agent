@@ -17,6 +17,7 @@ import com.newrelic.agent.config.DataSenderConfig;
 import com.newrelic.agent.config.ErrorCollectorConfig;
 import com.newrelic.agent.config.LabelsConfig;
 import com.newrelic.agent.config.NormalizationRuleConfig;
+import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.database.DatabaseService;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.environment.EnvironmentServiceImpl;
@@ -24,6 +25,7 @@ import com.newrelic.agent.errors.DeadlockTraceError;
 import com.newrelic.agent.errors.ErrorMessageReplacer;
 import com.newrelic.agent.errors.ErrorServiceImpl;
 import com.newrelic.agent.errors.ThrowableError;
+import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
@@ -36,6 +38,7 @@ import com.newrelic.agent.profile.ProfilerParameters;
 import com.newrelic.agent.profile.ProfilerService;
 import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.rpm.RPMConnectionServiceImpl;
+import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
@@ -62,6 +65,10 @@ import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.DataSenderWriter;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.IDataSenderFactory;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.transport.serverless.DataSenderServerlessImpl;
+import com.newrelic.agent.transport.serverless.ServerlessWriter;
+import com.newrelic.agent.transport.serverless.ServerlessWriterImpl;
 import com.newrelic.agent.utilization.UtilizationService;
 import org.junit.After;
 import org.junit.Before;
@@ -117,6 +124,10 @@ public class RPMServiceTest {
     }
 
     public static Map<String, Object> createStagingMap(boolean https, boolean isHighSec, boolean putForDataSend) {
+        return createStagingMap(https, isHighSec, putForDataSend, false);
+    }
+
+    public static Map<String, Object> createStagingMap(boolean https, boolean isHighSec, boolean putForDataSend, boolean serverlessMode) {
         Map<String, Object> map = new HashMap<>();
         map.put("host", "localhost");
         map.put("port", MOCK_COLLECTOR_HTTPS_PORT);
@@ -124,6 +135,9 @@ public class RPMServiceTest {
         map.put("ca_bundle_path", "src/test/resources/server.cer");
         map.put(AgentConfigImpl.APP_NAME, "MyApplication");
         map.put(AgentConfigImpl.LABELS, "one:two;three:four");
+        if (serverlessMode) {
+            map.put("serverless_mode", Collections.singletonMap("enabled", true));
+        }
         if (isHighSec) {
             map.put("high_security", true);
         }
@@ -410,6 +424,12 @@ public class RPMServiceTest {
 
         IDataSenderFactory dataSenderFactory = new IDataSenderFactory() {
             @Override
+            public DataSender createServerless(DataSenderServerlessConfig config, IAgentLogger logger, ServerlessService serverlessService, ServerlessConfig serverlessConfig) {
+                ServerlessWriter serverlessWriter = new ServerlessWriterImpl(logger, serverlessConfig.filePath());
+                return new DataSenderServerlessImpl(config, logger, serverlessService, serverlessWriter);
+            }
+
+            @Override
             public DataSender create(DataSenderConfig config) {
                 return createMockDataSender(config);
             }
@@ -470,6 +490,13 @@ public class RPMServiceTest {
         doTestLaunchAndRestart();
     }
 
+    @Test(timeout = 30000)
+    public void testLaunchAndRestartServerless() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false, true, true);
+        createServiceManager(config);
+        doTestLaunchAndRestart();
+    }
+
     private void doTestLaunchAndRestart() throws Exception {
         List<String> appNames = singletonList("MyApplication");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
@@ -495,6 +522,13 @@ public class RPMServiceTest {
     @Test(timeout = 30000)
     public void harvestWithPut() throws Exception {
         Map<String, Object> config = createStagingMap(true, false, true);
+        createServiceManager(config);
+        doHarvest();
+    }
+
+    @Test(timeout = 30000)
+    public void harvestServerless() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false, false, true);
         createServiceManager(config);
         doHarvest();
     }
@@ -1223,6 +1257,154 @@ public class RPMServiceTest {
         Map<String, Object> config = createStagingMap(false, false, true);
         createServiceManager(config);
         doForceRestartException();
+    }
+
+    @Test(timeout = 15000)
+    public void concurrentHarvestAndShutdown_willNotDeadlock() throws Exception {
+        final RPMService rmpService = createAndLaunchRPMService();
+
+        final AtomicReference<Throwable> harvestError = new AtomicReference<>();
+        final AtomicReference<Throwable> shutdownError = new AtomicReference<>();
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(2);
+
+        // This thread calls harvestNow()
+        Thread harvestThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                rmpService.harvestNow();
+            } catch (Throwable t) {
+                harvestError.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "harvest");
+
+        // This one calls shutdown()
+        Thread shutdownThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                rmpService.shutdown();
+            } catch (Throwable t) {
+                shutdownError.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "shutdown");
+
+        // Fire off both threads and start them both simultaneously by triggering the startLatch instance
+        harvestThread.start();
+        shutdownThread.start();
+        startLatch.countDown();
+
+        // Wait for both to complete (or timeout after 15 seconds)
+        boolean completed = doneLatch.await(15, TimeUnit.SECONDS);
+
+        assertTrue("harvest() and shutdown() should both complete without timeout (no deadlock)", completed);
+
+        // Verify no unexpected exceptions (IllegalMonitorStateException should not occur)
+        if (harvestError.get() != null && !(harvestError.get() instanceof InterruptedException)) {
+            assertFalse("harvest() should not throw IllegalMonitorStateException",
+                    harvestError.get() instanceof IllegalMonitorStateException);
+        }
+        if (shutdownError.get() != null) {
+            assertFalse("shutdown() should not throw IllegalMonitorStateException",
+                    shutdownError.get() instanceof IllegalMonitorStateException);
+        }
+    }
+
+    @Test(timeout = 10000)
+    public void multipleConcurrentShutdownCalls_doNotDeadlock() throws Exception {
+        final RPMService rpmService = createAndLaunchRPMService();
+
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(3);
+        final AtomicInteger successCount = new AtomicInteger(0);
+
+        // 3 threads all try to shutdown() simultaneously
+        for (int i = 0; i < 3; i++) {
+            new Thread(() -> {
+                try {
+                    startLatch.await();
+                    rpmService.shutdown();
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    // Expected that some may fail, but should not deadlock
+                } finally {
+                    doneLatch.countDown();
+                }
+            }, "shutdown-" + i).start();
+        }
+
+        startLatch.countDown();
+        boolean completed = doneLatch.await(10, TimeUnit.SECONDS);
+
+        assertTrue("All shutdown() calls should complete without deadlock", completed);
+        assertTrue("At least one shutdown should succeed", successCount.get() >= 1);
+    }
+
+    @Test(timeout = 15000)
+    public void reconnect_duringHarvest_shouldNotDeadlock() throws Exception {
+        final RPMService rpmService = createAndLaunchRPMService();
+
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch doneLatch = new CountDownLatch(2);
+        final AtomicReference<Throwable> error = new AtomicReference<>();
+
+        // Simulate harvest cycle
+        Thread harvestThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                for (int i = 0; i < 5 && !Thread.interrupted(); i++) {
+                    Thread.sleep(100);
+                }
+                rpmService.harvestNow();
+            } catch (Throwable t) {
+                if (!(t instanceof InterruptedException)) {
+                    error.set(t);
+                }
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "harvest");
+
+        // Reconnect call
+        Thread reconnectThread = new Thread(() -> {
+            try {
+                startLatch.await();
+                Thread.sleep(50); // Let harvest start first
+                rpmService.reconnect();
+            } catch (Throwable t) {
+                error.set(t);
+            } finally {
+                doneLatch.countDown();
+            }
+        }, "reconnect");
+
+        harvestThread.start();
+        reconnectThread.start();
+
+        startLatch.countDown();
+
+        boolean completed = doneLatch.await(15, TimeUnit.SECONDS);
+        assertTrue("Operations should complete without deadlock", completed);
+
+        if (error.get() != null) {
+            assertFalse("Should not throw IllegalMonitorStateException",
+                    error.get() instanceof IllegalMonitorStateException);
+        }
+
+        rpmService.shutdown();
+    }
+
+    private RPMService createAndLaunchRPMService() throws Exception {
+        Map<String, Object> config = createStagingMap(true, false);
+        createServiceManager(config);
+
+        List<String> appNames = singletonList("MyApplication");
+        RPMService rpmService = new RPMService(appNames, null, null, Collections.emptyList());
+        rpmService.launch();
+        return rpmService;
     }
 
     private void doForceRestartException() throws Exception {

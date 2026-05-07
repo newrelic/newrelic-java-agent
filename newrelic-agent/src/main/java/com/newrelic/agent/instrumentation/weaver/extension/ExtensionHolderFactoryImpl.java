@@ -7,12 +7,11 @@
 
 package com.newrelic.agent.instrumentation.weaver.extension;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExtensionHolder;
 import com.newrelic.agent.bridge.ExtensionHolderFactory;
 
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 
@@ -32,22 +31,18 @@ public class ExtensionHolderFactoryImpl implements ExtensionHolderFactory {
      */
     public static class ExtensionHolderImpl<T> implements ExtensionHolder<T> {
         // @formatter:off
-        private final Cache<Object, T> instanceCache = Caffeine.newBuilder()
-                .initialCapacity(32)
-                .weakKeys()
-                .executor(Runnable::run)
-                .build();
+        private final Map<Object, T> instanceCache = AgentBridge.collectionFactory.createWeakKeyedCacheWithInitialCapacity(32);
         // @formatter:on
 
         @Override
         public T getAndRemoveExtension(Object instance) {
-            return instanceCache.asMap().remove(instance);
+            return instanceCache.remove(instance);
         }
 
         @Override
         public T getExtension(Object instance, Supplier<T> valueLoader) {
             try {
-                return instanceCache.get(instance, k -> valueLoader.get());
+                return instanceCache.computeIfAbsent(instance, k -> valueLoader.get());
             } catch (RuntimeException e) {
                 AgentBridge.getAgent().getLogger().log(Level.FINE, e, "Unable to load extension class for {0}",
                         instance.getClass().getName());

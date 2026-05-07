@@ -13,6 +13,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.PrivateApi;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.jmx.JmxApiImpl;
+import com.newrelic.agent.serverless.ServerlessApiImpl;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.api.agent.Logger;
@@ -29,10 +30,10 @@ public class PrivateApiImpl implements PrivateApi {
     }
 
     public static void initialize(Logger logger) {
-        PrivateApiImpl api = new PrivateApiImpl();
-        AgentBridge.privateApi = api;
+        AgentBridge.privateApi = new PrivateApiImpl();
         AgentBridge.asyncApi = new AsyncApiImpl(logger);
         AgentBridge.jmxApi = new JmxApiImpl();
+        AgentBridge.serverlessApi = new ServerlessApiImpl();
         AgentBridge.collectionFactory = new AgentCollectionFactory();
         AgentBridge.agent = new AgentImpl(logger);
     }
@@ -75,6 +76,11 @@ public class PrivateApiImpl implements PrivateApi {
     @Override
     public void addCustomAttribute(String key, Map<String, String> values) {
         attributeSender.addAttribute(key, values, "addCustomAttribute");
+    }
+
+    @Override
+    public void addCustomAttribute(String key, boolean value) {
+        attributeSender.addAttribute(key, value, "addCustomAttribute");
     }
 
     @Override

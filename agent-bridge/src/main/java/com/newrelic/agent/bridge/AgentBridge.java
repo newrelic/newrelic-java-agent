@@ -27,7 +27,7 @@ public final class AgentBridge {
      * Calls to methods on these classes will automatically be logged at FINEST.
      */
     public static final Class<?>[] API_CLASSES = new Class<?>[] { PrivateApi.class, TracedMethod.class,
-            Instrumentation.class, AsyncApi.class, Transaction.class, JmxApi.class, MetricAggregator.class };
+            Instrumentation.class, AsyncApi.class, Transaction.class, JmxApi.class, MetricAggregator.class, ServerlessApi.class };
 
     /**
      * The agent sets the actual api implementation when it starts up.
@@ -37,6 +37,8 @@ public final class AgentBridge {
     public static volatile PrivateApi privateApi = new NoOpPrivateApi();
 
     public static volatile JmxApi jmxApi = new NoOpJmxApi();
+
+    public static volatile ServerlessApi serverlessApi = new NoOpServerlessApi();
 
     public static volatile Instrumentation instrumentation = new NoOpInstrumentation();
 

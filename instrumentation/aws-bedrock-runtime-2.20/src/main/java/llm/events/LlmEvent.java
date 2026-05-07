@@ -52,6 +52,9 @@ public class LlmEvent {
     private final String requestModel;
     private final Integer tokenCount;
     private final String responseChoicesFinishReason;
+    private final Integer responseUsagePromptTokens;
+    private final Integer responseUsageCompletionTokens;
+    private final Integer responseUsageTotalTokens;
 
     public static class Builder {
         // Required builder parameters
@@ -90,6 +93,9 @@ public class LlmEvent {
         private String requestModel = null;
         private Integer tokenCount = null;
         private String responseChoicesFinishReason = null;
+        private Integer responseUsagePromptTokens = null;
+        private Integer responseUsageCompletionTokens = null;
+        private Integer responseUsageTotalTokens = null;
 
         public Builder(ModelInvocation modelInvocation) {
             userAttributes = modelInvocation.getUserAttributes();
@@ -207,6 +213,21 @@ public class LlmEvent {
             return this;
         }
 
+        public Builder responseUsagePromptTokens() {
+            responseUsagePromptTokens = modelResponse.getResponseUsagePromptTokens();
+            return this;
+        }
+
+        public Builder responseUsageCompletionTokens() {
+            responseUsageCompletionTokens = modelResponse.getResponseUsageCompletionTokens();
+            return this;
+        }
+
+        public Builder responseUsageTotalTokens() {
+            responseUsageTotalTokens = modelResponse.getResponseUsageTotalTokens();
+            return this;
+        }
+
         public LlmEvent build() {
             return new LlmEvent(this);
         }
@@ -316,13 +337,28 @@ public class LlmEvent {
         }
 
         tokenCount = builder.tokenCount;
-        if (tokenCount != null && tokenCount > 0) {
+        if (tokenCount != null && tokenCount >= 0) {
             eventAttributes.put("token_count", tokenCount);
         }
 
         responseChoicesFinishReason = builder.responseChoicesFinishReason;
         if (responseChoicesFinishReason != null && !responseChoicesFinishReason.isEmpty()) {
             eventAttributes.put("response.choices.finish_reason", responseChoicesFinishReason);
+        }
+
+        responseUsagePromptTokens = builder.responseUsagePromptTokens;
+        if (responseUsagePromptTokens != null && responseUsagePromptTokens >= 0) {
+            eventAttributes.put("response.usage.prompt_tokens", responseUsagePromptTokens);
+        }
+
+        responseUsageCompletionTokens = builder.responseUsageCompletionTokens;
+        if (responseUsageCompletionTokens != null && responseUsageCompletionTokens >= 0) {
+            eventAttributes.put("response.usage.completion_tokens", responseUsageCompletionTokens);
+        }
+
+        responseUsageTotalTokens = builder.responseUsageTotalTokens;
+        if (responseUsageTotalTokens != null && responseUsageTotalTokens >= 0) {
+            eventAttributes.put("response.usage.total_tokens", responseUsageTotalTokens);
         }
     }
 

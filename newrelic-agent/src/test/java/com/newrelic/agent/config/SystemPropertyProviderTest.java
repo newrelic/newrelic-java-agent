@@ -60,6 +60,7 @@ public class SystemPropertyProviderTest {
         envs.put("NEW_RELIC_APP_NAME", "people");
         envs.put("KUBERNETES_SERVICE_HOST", "10.96.0.1");
         envs.put("newrelic.config.distributed_tracing.enabled", "true");
+        envs.put("NEW_RELIC_APM_LAMBDA_MODE", "true");
 
         SystemPropertyProvider provider = new SystemPropertyProvider(
                 new SaveSystemPropertyProviderRule.TestSystemProps(),
@@ -71,6 +72,7 @@ public class SystemPropertyProviderTest {
         assertEquals("hello", provider.getEnvironmentVariable("NEW_RELIC_PROCESS_HOST_DISPLAY_NAME"));
         assertEquals("people", provider.getEnvironmentVariable("NEW_RELIC_APP_NAME"));
         assertEquals("10.96.0.1", provider.getEnvironmentVariable("KUBERNETES_SERVICE_HOST"));
+        assertEquals("true", provider.getEnvironmentVariable("NEW_RELIC_APM_LAMBDA_MODE"));
         // Environment variables with system property style dot notation should not be read by the agent
         assertNull(provider.getNewRelicEnvVarsWithoutPrefix().get("distributed_tracing.enabled"));
     }

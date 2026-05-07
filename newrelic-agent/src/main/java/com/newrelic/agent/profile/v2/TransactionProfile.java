@@ -7,11 +7,10 @@
 
 package com.newrelic.agent.profile.v2;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionData;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
@@ -35,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Profile information for a specific transaction.
@@ -42,27 +42,39 @@ import java.util.concurrent.TimeUnit;
 class TransactionProfile implements JSONStreamAware {
 
     private final ThreadMXBean threadMXBean;
+
+    private final Map<String, ProfileTree> threadProfiles;
+    private final Map<String, TransactionActivityTree> threadActivityProfiles;
+
     /**
      * Thread name to profile tree.
      */
-    private final LoadingCache<String, ProfileTree> threadProfiles;
+    private final Function<String, ProfileTree> threadProfileLoader;
+
     /**
      * Thread name to transaction activity tree (tracers).
      */
-    private final LoadingCache<String, TransactionActivityTree> threadActivityProfiles;
-    private final ThreadNameNormalizer threadNameNormalizer;        
+    private final Function<String, TransactionActivityTree> threadActivityLoader;
+
+    private final ThreadNameNormalizer threadNameNormalizer;
 
     public TransactionProfile(final Profile profile, final ThreadNameNormalizer threadNameNormalizer) {
         this.threadMXBean = ManagementFactory.getThreadMXBean();
         this.threadNameNormalizer = threadNameNormalizer;
-        threadProfiles = Caffeine.newBuilder().executor(Runnable::run).build(profile.createCacheLoader(false));
-        threadActivityProfiles = Caffeine.newBuilder().executor(Runnable::run).build(
-                threadName -> new TransactionActivityTree(profile));
+
+        this.threadProfileLoader = profile.createCacheLoader(false);
+        this.threadActivityLoader = threadName -> new TransactionActivityTree(profile);
+
+        this.threadProfiles = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
+        this.threadActivityProfiles = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
     }
 
     public void addStackTrace(List<StackTraceElement> stackTraceList) {
         String threadName = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(Thread.currentThread()));
-        threadProfiles.getIfPresent(threadName).addStackTrace(stackTraceList, true);
+        ProfileTree tree = threadProfiles.get(threadName);
+        if (tree != null) {
+            tree.addStackTrace(stackTraceList, true);
+        }
     }
 
     public void transactionFinished(TransactionData transactionData) {
@@ -75,15 +87,15 @@ class TransactionProfile implements JSONStreamAware {
                 Map<Tracer, Collection<Tracer>> tracerTree = buildChildren(activity.getTracers(), backtraces);
                 
                 String threadName = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(threadInfo));
-                threadActivityProfiles.get(threadName).add(activity, tracerTree);
+                threadActivityProfiles.computeIfAbsent(threadName, threadActivityLoader).add(activity, tracerTree);
                 
                 if (!backtraces.isEmpty()) {
-                    ProfileTree tree = threadProfiles.get(threadName);
-                    
+                    ProfileTree tree = threadProfiles.computeIfAbsent(threadName, threadProfileLoader);
+
                     for (List<StackTraceElement> stack : backtraces) {
                         stack = DiscoveryProfile.getScrubbedStackTrace(stack);
                         Collections.reverse(stack);
-                        
+
                         tree.addStackTrace(stack, true);
                     }
                 }
@@ -144,8 +156,8 @@ class TransactionProfile implements JSONStreamAware {
     @Override
     public void writeJSONString(Writer out) throws IOException {
         Map<String, Object> map = ImmutableMap.<String, Object>of(
-                "stack_traces", threadProfiles.asMap(),
-                "activity_traces", threadActivityProfiles.asMap());
+                "stack_traces", threadProfiles,
+                "activity_traces", threadActivityProfiles);
         JSONObject.writeJSONString(map, out);
     }
     

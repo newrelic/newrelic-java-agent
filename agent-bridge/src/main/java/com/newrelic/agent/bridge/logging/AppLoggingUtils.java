@@ -43,7 +43,7 @@ public class AppLoggingUtils {
     private static final boolean APP_LOGGING_METRICS_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_FORWARDING_DEFAULT_ENABLED = true;
     private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
-    private static final boolean APP_LOGGING_FORWARDING_INCLUDE_CONTEXT_DATA_DEFAULT_ENABLED = false;
+    private static final boolean APP_LOGGING_FORWARDING_CONTEXT_DATA_DEFAULT_ENABLED = false;
 
     /**
      * Gets a String representing the agent linking metadata in blob format:
@@ -150,12 +150,12 @@ public class AppLoggingUtils {
     }
 
     /**
-     * Check if the application_logging forwarding include_context_data feature is enabled.
+     * Check if the application_logging forwarding context_data feature is enabled.
      *
      * @return true if enabled, else false
      */
     public static boolean isAppLoggingContextDataEnabled() {
         return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.context_data.enabled",
-                APP_LOGGING_FORWARDING_INCLUDE_CONTEXT_DATA_DEFAULT_ENABLED);
+                APP_LOGGING_FORWARDING_CONTEXT_DATA_DEFAULT_ENABLED);
     }
 }

@@ -101,4 +101,18 @@ public interface SqlTracer extends SqlTracerExplainInfo, Tracer {
      */
     Integer getPort();
 
+    /**
+     * Returns the batch size for this SQL operation if it was executed as a batch.
+     *
+     * @return the number of operations in the batch, or 0 if not a batch operation
+     */
+    int getBatchSize();
+
+    /**
+     * Store the batch size for this SQL operation.
+     * The call to this method is automatically wired up in {@link com.newrelic.agent.instrumentation.tracing.NoticeSqlVisitor}
+     *
+     * @param batchSize the number of operations in the batch
+     */
+    void setBatchSize(int batchSize);
 }

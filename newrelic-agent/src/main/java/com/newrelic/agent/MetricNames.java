@@ -205,6 +205,8 @@ public class MetricNames {
 
     public static final String TIMEOUT_ASYNC = "Java/Timeout/asyncActivityNotStarted";
 
+    public static final String SUPPORTABILITY_AUTO_APP_NAMING_REPORTING_TO = "Supportability/AutoAppNaming/ReportingTo/{0}";
+
     public static final String SUPPORTABILITY_AZURE_SITE_EXT_INSTALL_TYPE = "Supportability/Java/InstallType";
 
     public static final String SUPPORTABILITY_JAVA_AGENTVERSION = "Supportability/Java/AgentVersion/{0}";
@@ -228,6 +230,7 @@ public class MetricNames {
     public static final String SUPPORTABILITY_LOGGING_METRICS_JAVA_DISABLED = "Supportability/Logging/Metrics/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_ENABLED = "Supportability/Logging/Forwarding/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_FORWARDING_JAVA_DISABLED = "Supportability/Logging/Forwarding/Java/disabled";
+    public static final String SUPPORTABILITY_LOGGING_FORWARDING_DENYLIST = "Supportability/Logging/Forwarding/Denylist";
     public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_ENABLED = "Supportability/Logging/Labels/Java/enabled";
     public static final String SUPPORTABILITY_LOGGING_LABELS_JAVA_DISABLED = "Supportability/Logging/Labels/Java/disabled";
     public static final String SUPPORTABILITY_LOGGING_LOCAL_DECORATING_JAVA_ENABLED = "Supportability/Logging/LocalDecorating/Java/enabled";
@@ -445,8 +448,8 @@ public class MetricNames {
     public static final String SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception";
     public static final String SUPPORTABILITY_PARTIAL_GRANULARITY_TYPE = "Supportability/Java/PartialGranularity/{0}";
 
-    //Sampler stats - to be used as Supportability/Java/Sampler/{granularity}/{case}/{type}
-    public static final String SUPPORTABILITY_SAMPLER = "Supportability/Java/Sampler/{0}/{1}/{2}";
+    //Sampler stats - to be used as Supportability/Java/{granularity}/{case}/{type}
+    public static final String SUPPORTABILITY_SAMPLER = "Supportability/Java/{0}/{1}/{2}";
     public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_SERVER_VALUE = "Supportability/Trace/SamplingTarget/Server/Value";
     public static final String SUPPORTABILITY_TRACE_SAMPLING_TARGET_APPLIED_VALUE = "Supportability/Trace/SamplingTarget/Applied/Value";
 

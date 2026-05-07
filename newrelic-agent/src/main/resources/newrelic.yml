@@ -114,6 +114,11 @@ common: &default_settings
       # When true, application logs will be forwarded to New Relic. The default is true.
       enabled: true
 
+      # When true and "enable_auto_app_naming" is also true, log events will be sent
+      # to their corresponding named entity rather than the roll up entity.
+      # Default is false.
+      auto_app_naming_association: false
+
       # Application log events are collected up to the configured amount. Afterwards,
       # events are sampled to maintain an even distribution across the harvest cycle.
       # Default is 10000. Setting to 0 will disable.
@@ -130,7 +135,7 @@ common: &default_settings
         # A comma separated list of label keys that should NOT be added to application logs.
         # Example:
         #   exclude: label_name1,label_name2
-        exclude:
+        #exclude:
 
       # Whether the log events should include context from loggers with support for that.
       context_data:
@@ -143,6 +148,10 @@ common: &default_settings
 
         # A comma separated list of attribute keys whose values should not be sent to New Relic.
         #exclude:
+
+      # A comma separated list of strings representing log levels that should not be forwarded. Log level names are case-insensitive but otherwise must be an exact match.
+      # Example values: "info, debug"
+      #log_level_denylist:
 
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
@@ -178,6 +187,14 @@ common: &default_settings
   #proxy_user: username
   #proxy_password: password
   #proxy_scheme: https
+
+  # Cloud environment settings for container metadata collection:
+  # When running in containerized environments (like AWS Fargate) with a proxy,
+  # metadata endpoints may need to bypass the proxy to be accessible.
+  #cloud:
+    # Set to true to bypass proxy for cloud metadata endpoint access.
+    # Default is false.
+    #metadata_bypass_proxy: false
 
   # Limits the number of lines to capture for each stack trace.
   # Default is 30
@@ -224,6 +241,16 @@ common: &default_settings
     # (greater than four times the apdex_t value).
     # Default is apdex_f.
     transaction_threshold: apdex_f
+
+    # Controls the addition of comments to the beginning of executed SQL
+    # statements to be used by the New Relic Query Performance Monitoring
+    # product for entity linking. An empty String disables SQL comments
+    # (default setting).
+    # Allowed options are:
+    # nr_service_guid - The GUID of the New Relic entity this agent is instrumenting
+    # A resulting comment would resemble this:
+    # /*nr_service_guid=MTE3NDc2MDB8QVBNfEFQUExJQ0FUSU9OfDI4MTc5NDEIEA*/
+    sql_metadata_comments:
 
     # For large SQL statements, executing the regular expressions that attempt to parse exec and
     # call statements can take a significant amount of time. Setting this to true will disable the
@@ -463,11 +490,23 @@ common: &default_settings
     # Default is false.
     name_actuator_endpoints: false
 
+  # Metric ingest URI. Determines where dimensional metric data is sent for
+  # JFR profiling. If not explicitly configured, the metric_ingest_uri
+  # will be automatically derived from the license_key (recommended).
+  #
+  # The default URI is for the US region.
+  # metric_ingest_uri: https://metric-api.newrelic.com/metric/v1
+
+  # Event ingest URI. Determines where event data is sent for
+  # JFR profiling. If not explicitly configured, the event_ingest_uri
+  # will be automatically derived from the license_key (recommended).
+  #
+  # The default URI is for the US region.
+  # event_ingest_uri: https://insights-collector.newrelic.com/v1/accounts/events
+
   # Real-time profiling using Java Flight Recorder (JFR).
-  # This feature reports dimensional metrics to the ingest endpoint configured by
-  # metric_ingest_uri and events to the ingest endpoint configured by event_ingest_uri.
-  # Both ingest endpoints default to US production but they will be automatically set to EU
-  # production when using an EU license key. Other ingest endpoints can be configured manually.
+  # This feature reports dimensional metric and event data to the endpoints
+  # configured by metric_ingest_uri and event_ingest_uri, respectively.
   # Requires a JVM that provides the JFR library.
   jfr:
 
@@ -492,6 +531,11 @@ common: &default_settings
     # Default is 250000
     queue_size: 250000
 
+    # If true, the JFR host name will be set to the value in the process_host.display_name config.
+    # Note that if the process_host.display_name value is empty/null, the default hostname
+    # resolution logic will be used. Default is false.
+    use_display_name: false
+
   # User-configurable custom labels for this agent.  Labels are name-value pairs.
   # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.
   # Names and values may not contain colons (:) or semicolons (;).
@@ -512,15 +556,15 @@ common: &default_settings
     logs:
 
       # Set to true to enable OpenTelemetry Logs signals.
-      # Default is false.
-      enabled: false
+      # Default is true.
+      enabled: true
 
     # OpenTelemetry Metrics signals.
     metrics:
 
       # Set to true to enable OpenTelemetry Metrics signals.
-      # Default is false.
-      enabled: false
+      # Default is true.
+      enabled: true
 
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName1,MeterName2") whose signals should be included.
       # By default, all Meters are included. This will override any default Meter excludes in the agent, effectively re-enabling them.
@@ -534,8 +578,8 @@ common: &default_settings
     traces:
 
       # Set to true to enable OpenTelemetry Traces signals.
-      # Default is false.
-      enabled: false
+      # Default is true.
+      enabled: true
 
       # A comma-delimited string of OpenTelemetry Tracers (e.g. "TracerName1,TracerName2") whose signals should be included.
       # By default, all Tracers are included. This will override any default Tracer excludes in the agent, effectively re-enabling them.

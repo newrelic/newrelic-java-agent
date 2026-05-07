@@ -51,6 +51,11 @@ public class PrivateApiStub implements PrivateApi {
     }
 
     @Override
+    public void addCustomAttribute(String key, boolean value) {
+
+    }
+
+    @Override
     public void addTracerParameter(String key, Number value) {
 
     }

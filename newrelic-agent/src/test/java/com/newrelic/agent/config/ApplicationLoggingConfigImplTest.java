@@ -27,13 +27,13 @@ public class ApplicationLoggingConfigImplTest {
 
     @Test
     public void testShouldBeEnabled() {
-        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, false);
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, false, false);
         assertTrue(config.isEnabled());
     }
 
     @Test
     public void testDisabledOrNotWithHighSecurity() {
-        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, true);
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, true, false);
         assertTrue(config.isEnabled());
         assertTrue(config.isMetricsEnabled());
 
@@ -54,7 +54,7 @@ public class ApplicationLoggingConfigImplTest {
 
         ));
 
-        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(Collections.emptyMap(), false);
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(Collections.emptyMap(), false, false);
         assertFalse(config.isEnabled());
 
     }
@@ -68,7 +68,7 @@ public class ApplicationLoggingConfigImplTest {
                 new SaveSystemPropertyProviderRule.TestEnvironmentFacade(Collections.singletonMap("NEW_RELIC_APPLICATION_LOGGING_FORWARDING_ENABLED", "true"))
         ));
 
-        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(Collections.emptyMap(), false);
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(Collections.emptyMap(), false, false);
 
         assertTrue(config.isForwardingEnabled());
 

@@ -107,6 +107,9 @@ public @interface Trace {
 
     /**
      * Excludes this traced method from transaction traces. Metric data is still generated.
+     * Note: This setting is overridden by async=true if the Tracer is executing on an
+     * entirely new thread.  However, if the Tracer is started on an existing Thread, this
+     * exclude should still function properly.
      * 
      * @return True if this traced method should be excluded from transaction traces, else false.
      * @since 3.1.0

@@ -36,6 +36,10 @@ public class NoOpPrivateApi implements PrivateApi {
     }
 
     @Override
+    public void addCustomAttribute(String key, boolean value) {
+    }
+
+    @Override
     public void addMBeanServer(MBeanServer server) {
     }
 

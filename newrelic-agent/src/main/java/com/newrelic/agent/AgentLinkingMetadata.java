@@ -90,7 +90,7 @@ public class AgentLinkingMetadata {
             logEventLinkingMetadata.put(HOSTNAME, hostname);
         }
 
-        String entityName = getEntityName(agentConfig);
+        String entityName = rpmService.getApplicationName();
         if (!entityName.isEmpty()) {
             logEventLinkingMetadata.put(ENTITY_NAME, entityName);
         }

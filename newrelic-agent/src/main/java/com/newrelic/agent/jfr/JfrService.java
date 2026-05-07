@@ -13,6 +13,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.JfrConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -63,7 +64,7 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
                 Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
                 commonAttrs.put(ENTITY_GUID, entityGuid);
-                final String hostname = getHostname();
+                final String hostname = getJfrHostnameOrDisplayName();
                 commonAttrs.put(HOSTNAME, hostname);
                 final JFRUploader uploader = buildUploader(daemonConfig);
                 String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
@@ -97,12 +98,15 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     public final boolean isEnabled() {
         final boolean enabled = jfrConfig.isEnabled();
         boolean isHighSecurity = defaultAgentConfig.isHighSecurity();
+        boolean isServerless = defaultAgentConfig.getServerlessConfig().isEnabled();
         if (!enabled) {
             Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is disabled: JFR config has not been enabled in the Java agent.");
         } else if (isHighSecurity) {
             Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is enabled but High Security mode is also enabled; JFR will not be activated.");
+        } else if (isServerless) {
+            Agent.LOG.log(Level.INFO, "New Relic JFR Monitor is enabled but Serverless mode is also enabled; JFR will not be activated.");
         }
-        return enabled && !isHighSecurity;
+        return enabled && !isHighSecurity && !isServerless;
     }
 
     @Override
@@ -126,7 +130,21 @@ public class JfrService extends AbstractService implements AgentConfigListener {
         return true;
     }
 
-    private String getHostname() {
+    /**
+     * This will return the configured "process_host.display_name" config property if
+     * jfr.use_display_name is true; otherwise it will utilize the standard hostname resolution logic.
+     *
+     * @return the configured display name String or host name from the environment
+     */
+    @VisibleForTesting
+    String getJfrHostnameOrDisplayName() {
+        String hostnameFromEnvironment = getHostname();
+        return jfrConfig.useDisplayName() ?
+                Hostname.getDisplayHostname(defaultAgentConfig, hostnameFromEnvironment) : hostnameFromEnvironment;
+    }
+
+    @VisibleForTesting
+    String getHostname() {
         String host;
         Integer appPort = ServiceFactory
             .getEnvironmentService()

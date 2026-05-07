@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
+import com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.metrics.Aggregation;
@@ -36,6 +37,8 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getO
 final class OpenTelemetrySDKCustomizer {
     static final AttributeKey<String> SERVICE_INSTANCE_ID_ATTRIBUTE_KEY = AttributeKey.stringKey("service.instance.id");
 
+    private static final String DEFAULT_COLLECTOR_HOST = "collector.newrelic.com";
+
     static Map<String, String> applyProperties(ConfigProperties configProperties) {
         return applyProperties(configProperties, NewRelic.getAgent());
     }
@@ -47,7 +50,13 @@ final class OpenTelemetrySDKCustomizer {
         final String existingEndpoint = configProperties.getString("otel.exporter.otlp.endpoint");
         if (existingEndpoint == null) {
             agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
-            final String host = agent.getConfig().getValue("host");
+            String host = agent.getConfig().getValue("host");
+            if (host == null) {
+                host = DEFAULT_COLLECTOR_HOST;
+                agent.getLogger().log(Level.WARNING,
+                        "No host was configured for the OpenTelemetry metrics exporter endpoint. The exporter will use the default host for the New Relic US Production region: {0}",
+                        DEFAULT_COLLECTOR_HOST);
+            }
             final String endpoint = "https://" + host + ":443";
             final String licenseKey = agent.getConfig().getValue("license_key");
             final Map<String, String> properties = new HashMap<>();
@@ -56,6 +65,11 @@ final class OpenTelemetrySDKCustomizer {
             properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
             properties.put("otel.traces.exporter", "none"); // disable default traces exporter
             properties.put("otel.logs.exporter", "none"); // disable default logs exporter
+            // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
+            properties.put("otel.metric.export.interval",
+                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
+            properties.put("otel.exporter.otlp.metrics.timeout",
+                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
             properties.put("otel.exporter.otlp.protocol", "http/protobuf");
             properties.put("otel.span.attribute.value.length.limit", "4095");
             properties.put("otel.exporter.otlp.compression", "gzip");

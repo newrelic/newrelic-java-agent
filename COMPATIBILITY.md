@@ -2,7 +2,7 @@
 
 ## JVMs
 
-This version of the Java Agent supports Java versions 8 - 25.
+This version of the Java Agent supports Java versions 8 - 26.
 
   ## App/Web severs
   The agent automatically instruments the following app/web servers.
@@ -13,13 +13,17 @@ This version of the Java Agent supports Java versions 8 - 25.
   * Mule 3.4.0 to latest
   * Netty 3.3.0.Alpha1 to 5.0.0.Alpha1 (exclusive)
   * Netty Reactor 0.7.0.RELEASE to latest
+  * Netty Reactor HTTP 1.0.0 to latest
   * Open Liberty 21.0.0.12 to latest
   * Play 2.4.0-M3 to latest
   * Resin 3.1.9 to latest
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
+    * Tomcat v7.0.0 - v7.0.69 are only supported by Java agents prior to v3.43.0
+    * Tomcat v7.0.70 - v7.0.75 and v8.0.0 - v8.0.41 are only supported by Java agents prior to v3.43.0
+    * Tomcat v8.5.0 - v8.5.11 are only supported by Java agents prior to v3.43.0; 
   * Undertow 1.1.0.Final to latest
-  * WebLogic 12.1.2.1 to 14.1.1
+  * WebLogic 12.1.2.1 to 14.1.x
   * WebSphere 8 to 9 (exclusive)
   * WebSphere Liberty 8.5 to latest
   * Wildfly 8.0.0.Final to latest
@@ -31,6 +35,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * AWS Firehose 2.1.0 to latest
   * AWS Kinesis 1.11.106 to latest
   * AWS Lambda 1.11.280 to latest
+  * AWS Lambda Core 1.1.0 to latest
   * AWS S3 1.9.0 to latest
   * AWS SNS 1.11.12 to latest
   * AWS SQS 1.10.44 to latest
@@ -48,7 +53,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * GraphQL Java 21.0 to latest
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
-  * JAX-RS 1.0 to 4.0 (exclusive)
+  * JAX-RS 1.0 to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
@@ -57,6 +62,7 @@ This version of the Java Agent supports Java versions 8 - 25.
     * Scala 2.12: 2.0.6 to latest
     * Scala 2.13: 3.0.0 to latest
     * Scala 3: 3.4.0 to latest
+  * OpenTelemetry 1.26.0-alpha to latest
   * Pekko 1.0.0 to latest
   * Pekko Http 1.0.0 to latest
     * Scala 2.13: 1.0.0 to latest
@@ -106,6 +112,7 @@ This version of the Java Agent supports Java versions 8 - 25.
     * Scala 2.13: 2.7.3 to latest
     * Scala 2.12: 2.6.0 to latest
   * Spray 1.3.1 to latest
+  * Spring RestTemplate 6.0.0 to 7.0.0 (exclusive)
   * Spring Webclient 5.0.0.RELEASE to latest
   * Spring Webflux 5.0.0.RELEASE to latest
   * STTP 2.2.3 to latest
@@ -182,7 +189,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   * PostgreSQL 8.0-312.jdbc3 to latest
   * PostgreSQL R2DBC 0.9.0 to latest
   * Slick 3.0.0 to latest
-  * Solr 5.1.0 to latest
+  * Solr 5.1.0 to 10.0.0 (exclusive)
   * Spymemcached 2.11 to latest
   * SQLServer jdk6 to latest
   * Vertx Sql Client 4.4.2 to 5.0.0 (exclusive)
@@ -206,6 +213,7 @@ This version of the Java Agent supports Java versions 8 - 25.
   ## Other instrumented features
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
+  * Java XML RPC 8 to latest
   * JSP 2.0 to latest
   * OpenEJB 3.0 to latest
   * OpenJPA 1.0 to latest

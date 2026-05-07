@@ -48,4 +48,13 @@ public interface JfrConfig {
      * @return <code>true</code> is use_license_key is enabled for the JFR service is enabled, else <code>false</code>.
      */
     boolean useLicenseKey();
+
+    /**
+     * If true, the JFR host name will be set to the value in the <code>process_host.display_name</code> config.
+     * Note that if the <code>process_host.display_name</code> value is empty/null, the default hostname
+     * resolution logic will be used.
+     *
+     * @return <code>true</code> if the configured display name should be used for the JFR host name, else <code>false</code>.
+     */
+    boolean useDisplayName();
 }

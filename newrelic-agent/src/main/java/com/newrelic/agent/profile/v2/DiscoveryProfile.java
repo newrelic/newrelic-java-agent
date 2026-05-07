@@ -14,12 +14,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONStreamAware;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.threads.BasicThreadInfo;
 import com.newrelic.agent.threads.ThreadNameNormalizer;
 
@@ -32,24 +33,24 @@ public class DiscoveryProfile implements JSONStreamAware {
     /**
      * Thread name (string map key) to a discovery profile tree.
      */
-    private final LoadingCache<Object, ProfileTree> discoveryProfileTrees;
+    private final Map<Object, ProfileTree> discoveryProfileTrees;
+    private final Function<Object, ProfileTree> discoveryProfileTreeLoader;
     private final ThreadNameNormalizer threadNameNormalizer;
     private final Profile profile;
     
     public DiscoveryProfile(Profile profile, ThreadNameNormalizer threadNameNormalizer) {
         this.threadNameNormalizer = threadNameNormalizer;
         this.profile = profile;
-        discoveryProfileTrees = 
-            Caffeine.newBuilder().executor(Runnable::run).build(
-                    threadNameKey -> new ProfileTree(DiscoveryProfile.this.profile, false));
+        this.discoveryProfileTreeLoader = threadNameKey -> new ProfileTree(this.profile, false);
+        discoveryProfileTrees = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
     }
 
     public void noticeStartTracer(int signatureId) {
         
         String threadName = threadNameNormalizer.getNormalizedThreadName(new BasicThreadInfo(Thread.currentThread()));
         Object key = profile.getStringMap().addString(threadName);
-        
-        discoveryProfileTrees.get(key).addStackTrace(getScrubbedCurrentThreadStackTrace(), true);
+
+        discoveryProfileTrees.computeIfAbsent(key, discoveryProfileTreeLoader).addStackTrace(getScrubbedCurrentThreadStackTrace(), true);
     }
     
     static List<StackTraceElement> getScrubbedCurrentThreadStackTrace() {
@@ -87,7 +88,7 @@ public class DiscoveryProfile implements JSONStreamAware {
 
     @Override
     public void writeJSONString(Writer out) throws IOException {
-        JSONObject.writeJSONString(discoveryProfileTrees.asMap(), out);
+        JSONObject.writeJSONString(discoveryProfileTrees, out);
     }
 
     

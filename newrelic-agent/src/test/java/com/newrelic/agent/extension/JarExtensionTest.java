@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.objectweb.asm.Type;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.newrelic.agent.deps.caffeine2.com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.AgentBridge;

@@ -7,11 +7,8 @@
 
 package com.newrelic.agent.profile.v2;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.instrumentation.InstrumentedClass;
 import com.newrelic.agent.instrumentation.InstrumentedMethod;
 import com.newrelic.agent.profile.ProfilerParameters;
@@ -42,6 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.zip.Deflater;
 
@@ -81,21 +79,22 @@ public class Profile implements IProfile {
     private int totalThreadCount = 0;
     private int runnableThreadCount = 0;
     private final ThreadMXBean threadMXBean;
-    private final LoadingCache<Long, Long> startThreadCpuTimes = 
-        Caffeine.newBuilder().executor(Runnable::run).build(
-            new CacheLoader<Long, Long>() {
 
-                @Override
-                public Long load(Long threadId) throws Exception {
-                    return threadMXBean.getThreadCpuTime(threadId);
-                }
-                
-            });
+    /**
+     * Cache for thread CPU times. Initialized in constructor after threadMXBean is assigned.
+     */
+    private final Map<Long, Long> startThreadCpuTimes;
+    private final Function<Long, Long> startThreadCpuTimeLoader;
+
     private final ProfilerParameters profilerParameters;
-    
+
     private final Map<Long, ProfileTree> threadIdToProfileTrees = new HashMap<>();
-    private final LoadingCache<String, ProfileTree> profileTrees =
-            Caffeine.newBuilder().executor(Runnable::run).build(createCacheLoader(true));
+
+    /**
+     * Cache for profile trees. Initialized in constructor after threadMXBean is assigned.
+     */
+    private final Map<String, ProfileTree> profileTrees;
+    private final Function<String, ProfileTree> profileTreeLoader;
     
     private final StringMap stringMap = new Murmur3StringMap();
     private final ProfiledMethodFactory profiledMethodFactory;
@@ -111,18 +110,28 @@ public class Profile implements IProfile {
     Profile(ProfilerParameters parameters, String sessionId, ThreadNameNormalizer threadNameNormalizer, ThreadMXBean threadMXBean) {
         this.profilerParameters = parameters;
         this.sessionId = sessionId;
-
         this.threadNameNormalizer = threadNameNormalizer;
+
+        // Initialize threadMXBean FIRST before creating loaders that reference it
+        this.threadMXBean = threadMXBean;
+
+        // THEN create loaders that safely reference threadMXBean
+        this.startThreadCpuTimeLoader = threadId -> this.threadMXBean.getThreadCpuTime(threadId);
+        this.profileTreeLoader = createCacheLoader(true);
+
+        // THEN create caches using the factory
+        this.startThreadCpuTimes = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
+        this.profileTrees = AgentBridge.collectionFactory.createCacheWithInitialCapacity(16);
+
         profiledMethodFactory = new ProfiledMethodFactory(this);
         if (parameters.isProfileInstrumentation()) {
             transactionProfileSession = new TransactionProfileSessionImpl(this, threadNameNormalizer);
         } else {
             transactionProfileSession = TransactionProfileSessionImpl.NO_OP_TRANSACTION_PROFILE_SESSION;
         }
-        this.threadMXBean = threadMXBean;
     }
     
-    CacheLoader<String, ProfileTree> createCacheLoader(final boolean reportCpu) {
+    Function<String, ProfileTree> createCacheLoader(final boolean reportCpu) {
         return key -> new ProfileTree(Profile.this, reportCpu);
     }
 
@@ -140,7 +149,7 @@ public class Profile implements IProfile {
 
     @Override
     public ProfileTree getProfileTree(String normalizedThreadName) {
-        return profileTrees.get(normalizedThreadName);
+        return profileTrees.computeIfAbsent(normalizedThreadName, profileTreeLoader);
     }
 
     /**
@@ -157,7 +166,7 @@ public class Profile implements IProfile {
         } else if (!threadMXBean.isThreadCpuTimeEnabled()) {
             Agent.LOG.info("Profile unable to record CPU time: Thread CPU time measurement is not enabled");
         } else {
-            startThreadCpuTimes.asMap().putAll(getThreadCpuTimes());
+            startThreadCpuTimes.putAll(getThreadCpuTimes());
         }
     }
 
@@ -260,7 +269,7 @@ public class Profile implements IProfile {
     private ProfileSegmentSort[] getSortedSegments(int stackCount) {
         ProfileSegmentSort[] segments = new ProfileSegmentSort[stackCount];
         int index = 0;
-        for (ProfileTree profileTree : profileTrees.asMap().values()) {
+        for (ProfileTree profileTree : profileTrees.values()) {
             for (ProfileSegment rootSegment : profileTree.getRootSegments()) {
                 index = addSegment(rootSegment, null, 1, segments, index);
             }
@@ -284,7 +293,7 @@ public class Profile implements IProfile {
      */
     private int getCallSiteCount() {
         int count = 0;
-        for (ProfileTree profileTree : profileTrees.asMap().values()) {
+        for (ProfileTree profileTree : profileTrees.values()) {
             count += profileTree.getCallSiteCount();
         }
         return count;
@@ -346,7 +355,7 @@ public class Profile implements IProfile {
         Map<String, Object> data = new HashMap<>();
         data.put(PROFILE_ARGUMENTS_KEY, this.profilerParameters);
         data.put(VERSION_KEY, JSON_VERSION);
-        data.put(THREADS_KEY, profileTrees.asMap());
+        data.put(THREADS_KEY, profileTrees);
         data.put(INSTRUMENTATION_KEY, transactionProfileSession);
         data.put(AGENT_THREAD_NAMES_KEY, getAgentThreadNames());
         data.put(METHODS_KEY, profiledMethodFactory.getMethods());
@@ -420,9 +429,9 @@ public class Profile implements IProfile {
         if (stackTrace.length < 2) {
             return;
         }
-        
-        // make sure this thread is in our start time cache
-        startThreadCpuTimes.get(threadInfo.getId());
+
+        // make sure this thread is in our start time cache (auto-load if not present)
+        startThreadCpuTimes.computeIfAbsent(threadInfo.getId(), startThreadCpuTimeLoader);
 
         incrementThreadCounts(runnable);
 

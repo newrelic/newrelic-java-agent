@@ -285,23 +285,23 @@ public class W3CTraceContextCrossAgentTest {
         if (forceSampledTrue != null) {
             Sampler forceSampler = getDefaultForceSampledAdaptiveSampler(forceSampledTrue);
             //correct the full granularity samplers, if applicable.
-            if (distributedTraceService.getFullGranularitySamplers().get(ROOT).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.FULL, ROOT).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.FULL, ROOT, forceSampler);
             }
-            if (distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.FULL, REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_SAMPLED, forceSampler);
             }
-            if (distributedTraceService.getFullGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.FULL, REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.FULL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
             }
             //correct the partial granularity samplers, if applicable.
-            if (distributedTraceService.getPartialGranularitySamplers().get(ROOT).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, ROOT).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.PARTIAL, ROOT, forceSampler);
             }
-            if (distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, REMOTE_PARENT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_SAMPLED, forceSampler);
             }
-            if (distributedTraceService.getPartialGranularitySamplers().get(REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
+            if (distributedTraceService.getSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED).getType() == SamplerType.ADAPTIVE) {
                 distributedTraceService.setSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED, forceSampler);
             }
         }

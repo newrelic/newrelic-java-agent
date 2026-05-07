@@ -72,6 +72,11 @@ class NoOpAgent implements Agent {
         }
 
         @Override
+        public String getTransactionName() {
+            return "";
+        }
+
+        @Override
         public void ignore() {
         }
 

@@ -41,6 +41,7 @@ import com.newrelic.agent.tracing.DistributedTraceUtil;
 import com.newrelic.agent.tracing.Granularity;
 import com.newrelic.agent.transaction.PriorityTransactionName;
 import com.newrelic.agent.transaction.SegmentTest;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import com.newrelic.agent.util.Obfuscator;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.InboundHeaders;
@@ -98,6 +99,9 @@ public class TransactionTest {
     }
 
     private static void createServiceManager(Map<String, Object> map) throws Exception {
+        // Initialize AgentBridge with real Caffeine factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
+
         serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);
         serviceManager.start();

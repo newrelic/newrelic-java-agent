@@ -50,13 +50,15 @@ public class PartialGranularityConfig extends CoreTracingConfig {
                                     "Added to full granularity ratio={2} and set effective ratio={3}",
                             samplerCase, originalRatio, fullSampler.getSamplerRatio(), sampler.getSamplerRatio());
         }
-        NewRelic.getAgent()
-                .getLogger()
-                .log(Level.INFO,
-                        "The partial granularity " + samplerCase + " sampler was configured to use the " +
-                                sampler.getSamplerType() + " sampler type" +
-                                (sampler.getSamplerRatio() != null ? " with a ratio of " + sampler.getSamplerRatio() : "") +
-                                (sampler.getSamplingTarget() != null ? " with a target of " + sampler.getSamplingTarget() : "") + ".");
+        if (isEnabled()){
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.INFO,
+                            "The partial granularity " + samplerCase + " sampler was configured to use the " +
+                                    sampler.getSamplerType() + " sampler type" +
+                                    (sampler.getSamplerRatio() != null ? " with a ratio of " + sampler.getSamplerRatio() : "") +
+                                    (sampler.getSamplingTarget() != null ? " with a target of " + sampler.getSamplingTarget() : "") + ".");
+        }
         return sampler;
     }
 

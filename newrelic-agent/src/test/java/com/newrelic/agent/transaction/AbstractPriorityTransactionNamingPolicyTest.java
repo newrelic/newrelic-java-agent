@@ -17,6 +17,7 @@ import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.attributes.AttributesService;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -35,6 +36,7 @@ import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.tracers.servlet.BasicRequestRootTracer;
 import com.newrelic.agent.tracers.servlet.MockHttpRequest;
 import com.newrelic.agent.tracers.servlet.MockHttpResponse;
+import com.newrelic.agent.util.AgentCollectionFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +54,8 @@ public class AbstractPriorityTransactionNamingPolicyTest {
     }
 
     private MockServiceManager createServiceManager() throws Exception {
+        // Initialize AgentBridge with real Caffeine factory for tests
+        AgentBridge.collectionFactory = new AgentCollectionFactory();
 
         MockServiceManager serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);

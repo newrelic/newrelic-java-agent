@@ -254,6 +254,11 @@ public class MockRPMService extends BaseRPMService {
         return null;
     }
 
+    @Override
+    public void commitAndFlush() {
+
+    }
+
     // Mock only
     public void setSendAnalyticsEventsException(Exception e) {
         this.ex = e;

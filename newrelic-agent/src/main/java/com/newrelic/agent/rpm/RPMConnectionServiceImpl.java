@@ -135,13 +135,13 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
         /**
          * Runs until a connection to New Relic is established.
          *
-         * If the RPM service is not for the main application, or the 'sync_startup' configuration setting is true, then
-         * don't wait for the application server port.
+         * If the RPM service is not for the main application, the 'sync_startup' configuration setting is true, or serverless mode is enabled,
+         * then don't wait for the application server port.
          */
         private void start() {
             if (!rpmService.isMainApp()) {
                 startImmediate();
-            } else if (isSyncStartup() || isLaspEnabled() || isHighSecurityEnabled()) {
+            } else if (isSyncStartup() || isLaspEnabled() || isHighSecurityEnabled() || isServerlessModeEnabled()) {
                 getLogger().log(Level.FINER, "Not waiting for application server port");
                 startSync();
             } else {
@@ -294,6 +294,12 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
             ConfigService configService = ServiceFactory.getConfigService();
             AgentConfig config = configService.getAgentConfig(rpmService.getApplicationName());
             return config.isSyncStartup();
+        }
+
+        private boolean isServerlessModeEnabled() {
+            ConfigService configService = ServiceFactory.getConfigService();
+            AgentConfig config = configService.getAgentConfig(rpmService.getApplicationName());
+            return config.getServerlessConfig().isEnabled();
         }
 
         private boolean isLaspEnabled() {

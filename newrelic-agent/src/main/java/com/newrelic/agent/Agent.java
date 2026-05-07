@@ -312,7 +312,7 @@ public final class Agent {
             ServiceFactory.setServiceManager(serviceManager);
 
             AgentConfig agentConfig = serviceManager.getConfigService().getDefaultAgentConfig();
-            if (isLicenseKeyEmpty(agentConfig.getLicenseKey())) {
+            if (isLicenseKeyEmpty(agentConfig.getLicenseKey()) && !agentConfig.getServerlessConfig().isEnabled()) {
                 AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(agentConfig, AgentHealth.Status.MISSING_LICENSE);
                 LOG.error("license_key is empty in the config. Not starting New Relic Agent.");
                 return false;
