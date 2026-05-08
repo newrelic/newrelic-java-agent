@@ -13,11 +13,6 @@ import java.util.List;
 public class DefaultExchangeProcessor implements ExchangeProcessor {
 
     @Override
-    public void processInbound(Transaction transaction, Exchange exchange) {
-        transaction.provideHeaders(new ExchangeInboundWrapper(exchange));
-    }
-
-    @Override
     public void nameTransaction(Transaction transaction, Exchange exchange) {
         String operation = CamelUtil.endpointOperation(exchange.getFromEndpoint());
         if (operation == null || operation.isEmpty()) {

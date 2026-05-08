@@ -1,11 +1,8 @@
 package com.nr.instrumentation.apache.camel.processors;
 
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.Headers;
-import com.newrelic.api.agent.MessageConsumeParameters;
-import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
@@ -22,33 +19,19 @@ import static java.util.Collections.emptyMap;
 public class KafkaExchangeProcessor implements ExchangeProcessor {
 
     private static final String TOPIC = "kafka.TOPIC";
-    private static final String KAFKA = "Kafka";
-    public static String APACHE_CAMEL = "ApacheCamel";
-
-    @Override
-    public void processInbound(Transaction transaction, Exchange exchange) {
-        if (transaction != null) {
-            NewRelic.getAgent().getTracedMethod().reportAsExternal(MessageConsumeParameters
-                    .library(APACHE_CAMEL + KAFKA)
-                    .destinationType(DestinationType.NAMED_TOPIC)
-                    .destinationName(getTopic(exchange))
-                    .inboundHeaders(new KafkaInboundWrapper(exchange))
-                    .build());
-        }
-    }
+    public static final String CATEGORY = "Message";
 
     @Override
     public void nameTransaction(Transaction transaction, Exchange exchange) {
         if (transaction == null) {
             return;
         }
-        String operation = KAFKA;
-        String topic = getTopic(exchange);
-        if (topic != null) {
-            operation = operation + "/" + topic;
+        String operation = "Kafka/Topic/Consume/Named";
+        String topicName = getTopic(exchange);
+        if (topicName != null) {
+            operation = operation + "/" + topicName;
         }
-        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, APACHE_CAMEL, operation);
-        transaction.getTracedMethod().setMetricName(APACHE_CAMEL, operation);
+        transaction.setTransactionName(TransactionNamePriority.FRAMEWORK_LOW, false, CATEGORY, operation);
     }
 
     private static String getTopic(Exchange exchange) {

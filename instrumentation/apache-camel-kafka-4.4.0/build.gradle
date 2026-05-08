@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.camel:camel-kafka:4.4.0")
+    implementation("org.apache.camel:camel-support:4.4.0")
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-camel-kafka-4.4.0',
+            'Implementation-Title-Alias': 'apache-camel-kafka'  }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.camel:camel-kafka:[4.4.0,)'
+}

@@ -37,7 +37,6 @@ final class NrCamelEventNotifier extends EventNotifierSupport {
                 if (txn != null && ((Exchange_Instrumentation) exchange).consumerTxnStarted) {
                     ExchangeProcessor exchangeProcessor = CamelUtil.getExchangeProcessor(exchange.getFromEndpoint());
                     exchangeProcessor.nameTransaction(txn, exchange);
-                    exchangeProcessor.processInbound(txn, exchange);
                 }
             }
         }
