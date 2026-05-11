@@ -52,9 +52,9 @@ public class DAXUtilTest {
     }
 
     @Test
-    public void testFindRegion_default() {
-        // null region defaults to us-east-1
-        configuration = createConfigurationWithNullRegion();
+    public void testFindRegion_usEast1() {
+        // Test that findRegion correctly returns the region ID for US_EAST_1
+        configuration = createConfigurationWithRegion(Region.US_EAST_1);
         assertEquals("us-east-1", DAXUtil.findRegion(configuration));
     }
 
@@ -105,10 +105,10 @@ public class DAXUtilTest {
     }
 
     @Test
-    public void testGetArn_withoutRegion() {
-        // null region defaults to us-east-1
+    public void testGetArn_withUsEast1Region() {
+        // Test ARN generation with US_EAST_1 region
         Object sdkClient = new Object();
-        configuration = createConfigurationWithNullRegion();
+        configuration = createConfigurationWithRegion(Region.US_EAST_1);
         when(AgentBridge.cloud.getAccountInfo(eq(sdkClient), eq(CloudAccountInfo.AWS_ACCOUNT_ID)))
                 .thenReturn("123456789");
         String table = "test";
@@ -184,10 +184,10 @@ public class DAXUtilTest {
     }
 
     @Test
-    public void testRecordExternal_nullCredentialsProvider() {
+    public void testRecordExternal_nullAccessKey() {
         Object sdkClient = new Object();
-        // No cloud account info and no credentials provider
-        Configuration config = createConfigurationWithNullCredentials();
+        // No cloud account info and credentials with null accessKeyId
+        Configuration config = createConfigurationWithNullAccessKey();
         TracedMethod tracedMethod = mock(TracedMethod.class);
 
         DAXUtil.recordExternal(tracedMethod, "getItem", "test", sdkClient, config);
@@ -292,26 +292,18 @@ public class DAXUtilTest {
                 .build();
     }
 
-    private Configuration createConfigurationWithNullCredentials() {
-        // Mock the Configuration to avoid AWS SDK trying to use the default credentials chain
-        // which fails in CI environments without AWS credentials
-        Configuration config = mock(Configuration.class);
-        when(config.region()).thenReturn(Region.US_EAST_2);
-        when(config.url()).thenReturn("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com");
-        when(config.credentialsProvider()).thenReturn(null);
-        return config;
-    }
-
-    private Configuration createConfigurationWithNullRegion() {
-        // Mock the Configuration to simulate SDK's default behavior without triggering
-        // AWS SDK's region auto-detection which fails in CI environments.
-        // When null region is passed to Configuration.builder(), the SDK defaults to US_EAST_1.
-        Configuration config = mock(Configuration.class);
-        when(config.region()).thenReturn(Region.US_EAST_1);
-        when(config.url()).thenReturn("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com");
+    private Configuration createConfigurationWithNullAccessKey() {
+        // Create a Configuration with credentials that have null accessKeyId.
+        // This tests the code path where account ID cannot be determined from credentials.
         AwsCredentialsProvider credentialsProvider = mock(AwsCredentialsProvider.class, RETURNS_DEEP_STUBS);
-        when(credentialsProvider.resolveCredentials().accessKeyId()).thenReturn("accessKey");
-        when(config.credentialsProvider()).thenReturn(credentialsProvider);
-        return config;
+        when(credentialsProvider.resolveCredentials().accessKeyId()).thenReturn(null);
+        // secretAccessKey is required for SDK validation
+        when(credentialsProvider.resolveCredentials().secretAccessKey()).thenReturn("secretKey");
+
+        return Configuration.builder()
+                .region(Region.US_EAST_2)
+                .credentialsProvider(credentialsProvider)
+                .url("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com")
+                .build();
     }
 }
