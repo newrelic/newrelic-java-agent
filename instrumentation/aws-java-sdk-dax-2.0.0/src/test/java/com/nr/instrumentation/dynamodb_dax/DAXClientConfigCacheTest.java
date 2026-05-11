@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.dynamodb_v2;
+package com.nr.instrumentation.dynamodb_dax;
 
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;

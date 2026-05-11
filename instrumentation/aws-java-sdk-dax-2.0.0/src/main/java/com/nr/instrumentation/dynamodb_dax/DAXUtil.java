@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.nr.instrumentation.dynamodb_v2;
+package com.nr.instrumentation.dynamodb_dax;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;

@@ -11,8 +11,8 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.nr.instrumentation.dynamodb_v2.DAXClientConfigCache;
-import com.nr.instrumentation.dynamodb_v2.DAXUtil;
+import com.nr.instrumentation.dynamodb_dax.DAXClientConfigCache;
+import com.nr.instrumentation.dynamodb_dax.DAXUtil;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.concurrent.CompletableFuture;

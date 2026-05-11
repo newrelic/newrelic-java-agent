@@ -5,7 +5,7 @@
  *
  */
 
-package com.nr.instrumentation.dynamodb_v2;
+package com.nr.instrumentation.dynamodb_dax;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.CloudApi;
@@ -54,7 +54,7 @@ public class DAXUtilTest {
     @Test
     public void testFindRegion_default() {
         // null region defaults to us-east-1
-        configuration = createConfigurationWithRegion(null);
+        configuration = createConfigurationWithNullRegion();
         assertEquals("us-east-1", DAXUtil.findRegion(configuration));
     }
 
@@ -108,7 +108,7 @@ public class DAXUtilTest {
     public void testGetArn_withoutRegion() {
         // null region defaults to us-east-1
         Object sdkClient = new Object();
-        configuration = createConfigurationWithRegion(null);
+        configuration = createConfigurationWithNullRegion();
         when(AgentBridge.cloud.getAccountInfo(eq(sdkClient), eq(CloudAccountInfo.AWS_ACCOUNT_ID)))
                 .thenReturn("123456789");
         String table = "test";
@@ -293,9 +293,25 @@ public class DAXUtilTest {
     }
 
     private Configuration createConfigurationWithNullCredentials() {
-        return Configuration.builder()
-                .region(Region.US_EAST_2)
-                .url("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com")
-                .build();
+        // Mock the Configuration to avoid AWS SDK trying to use the default credentials chain
+        // which fails in CI environments without AWS credentials
+        Configuration config = mock(Configuration.class);
+        when(config.region()).thenReturn(Region.US_EAST_2);
+        when(config.url()).thenReturn("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com");
+        when(config.credentialsProvider()).thenReturn(null);
+        return config;
+    }
+
+    private Configuration createConfigurationWithNullRegion() {
+        // Mock the Configuration to simulate SDK's default behavior without triggering
+        // AWS SDK's region auto-detection which fails in CI environments.
+        // When null region is passed to Configuration.builder(), the SDK defaults to US_EAST_1.
+        Configuration config = mock(Configuration.class);
+        when(config.region()).thenReturn(Region.US_EAST_1);
+        when(config.url()).thenReturn("dax://my-cluster.l6fzcv.dax-clusters.us-east-2.amazonaws.com");
+        AwsCredentialsProvider credentialsProvider = mock(AwsCredentialsProvider.class, RETURNS_DEEP_STUBS);
+        when(credentialsProvider.resolveCredentials().accessKeyId()).thenReturn("accessKey");
+        when(config.credentialsProvider()).thenReturn(credentialsProvider);
+        return config;
     }
 }
