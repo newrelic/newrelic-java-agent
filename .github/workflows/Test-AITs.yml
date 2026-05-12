@@ -342,6 +342,19 @@ jobs:
 
       ## End JDK Install
 
+      ## Cache SBT/Ivy/Maven dependencies to avoid 429 rate limiting
+      - name: Cache SBT and Maven dependencies
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.2.0
+        with:
+          path: |
+            ~/.ivy2/cache
+            ~/.sbt
+            ~/.cache/coursier
+            ~/.m2/repository
+          key: ${{ runner.os }}-sbt-maven-${{ hashFiles('**/build.sbt', '**/plugins.sbt', '**/build.properties', '**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-sbt-maven-
+
       ## TESTING SECTION
 
       # Replication of steps from ait README
