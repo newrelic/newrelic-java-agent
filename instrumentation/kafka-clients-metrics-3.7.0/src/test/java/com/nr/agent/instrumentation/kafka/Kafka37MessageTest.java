@@ -40,7 +40,6 @@ import org.junit.runner.RunWith;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@Ignore("This test is flaky on GHA")
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
 public class Kafka37MessageTest {

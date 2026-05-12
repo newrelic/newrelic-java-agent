@@ -1,6 +1,9 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.apache.camel:camel-core:3.9.0")
+
+    testImplementation("org.apache.camel:camel-kafka:3.9.0")
+    testImplementation("org.testcontainers:kafka:1.21.3")
 }
 
 
