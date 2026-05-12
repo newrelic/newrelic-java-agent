@@ -75,6 +75,8 @@ public abstract class DAXUtil {
             NewRelic.getAgent().getLogger().log(Level.FINEST, "AWSDAX: Unable to assemble ARN. Unable to retrieve account information.");
             return null;
         }
+
+        // DAX tables are DynamoDB tables, so the ARN format uses `dynamodb` in the service portion:
         // arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}
         NewRelic.getAgent().getLogger().log(Level.FINEST, "AWSDAX: Returning arn");
         return "arn:aws:dynamodb:" + region + ":" + accountId + ":table/" + tableName;

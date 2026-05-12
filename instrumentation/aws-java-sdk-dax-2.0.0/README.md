@@ -101,3 +101,4 @@ For example:
 - DAX tables are DynamoDB tables, so the ARN format uses `dynamodb` in the service portion: `arn:aws:dynamodb:{region}:{account}:table/{tableName}`
 - If configuration information is unavailable, the module gracefully falls back to default values (host: `amazon`, no ARN)
 - The module captures configuration during client construction for later use in metrics reporting
+- A sample DAX app lives in the [newrelic-java-examples](https://github.com/newrelic/newrelic-java-examples) repo
