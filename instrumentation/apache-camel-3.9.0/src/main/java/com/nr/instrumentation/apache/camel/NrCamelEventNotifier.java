@@ -31,13 +31,6 @@ final class NrCamelEventNotifier extends EventNotifierSupport {
             if (exchangeInstrumentation.token != null) {
                 exchangeInstrumentation.token.linkAndExpire();
                 exchangeInstrumentation.token = null;
-                Transaction txn = AgentBridge.getAgent().getTransaction(false);
-                // For exchanges that began when camel consumed messages, inbound headers need to be processed and the transaction is named.
-                // We do these actions here because the exchange contents (such as headers) are guaranteed to be available by the time it is completed.
-                if (txn != null && ((Exchange_Instrumentation) exchange).consumerTxnStarted) {
-                    ExchangeProcessor exchangeProcessor = CamelUtil.getExchangeProcessor(exchange.getFromEndpoint());
-                    exchangeProcessor.nameTransaction(txn, exchange);
-                }
             }
         }
     }

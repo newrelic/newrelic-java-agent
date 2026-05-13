@@ -6,4 +6,5 @@ import org.apache.camel.Exchange;
 public interface ExchangeProcessor {
     void nameTransaction(Transaction transaction, Exchange exchange);
     boolean shouldStartTransaction();
+    void processInbound(Transaction txn, Exchange exchange);
 }

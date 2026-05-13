@@ -1,15 +1,18 @@
 package com.nr.instrumentation.apache.camel.processors;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.api.agent.HeaderType;
-import com.newrelic.api.agent.Headers;
+import com.newrelic.api.agent.DestinationType;
+import com.newrelic.api.agent.MessageConsumeParameters;
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TransactionNamePriority;
+import com.newrelic.api.agent.TransportType;
+import com.nr.instrumentation.apache.camel.CamelUtil;
+import com.nr.instrumentation.apache.camel.ExchangeHeadersWrapper;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.util.StringHelper;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,12 +23,28 @@ public class KafkaExchangeProcessor implements ExchangeProcessor {
 
     private static final String TOPIC = "kafka.TOPIC";
     public static final String CATEGORY = "Message";
+    public static final boolean DT_CONSUMER_BATCH_ENABLED = NewRelic.getAgent().getConfig()
+            .getValue("kafka.spans.distributed_trace.consume_many.enabled", false);
+    public static String LIBRARY_NAME = "ApacheCamelKafka";
 
     @Override
     public void nameTransaction(Transaction transaction, Exchange exchange) {
         if (transaction == null) {
             return;
         }
+        if (exchange.getIn().getBody() instanceof List) {
+            for (Object item : exchange.getIn().getBody(List.class)) {
+                if (item instanceof Exchange) {
+                    nameTxnPerExchange(transaction, (Exchange) item);
+                    return;
+                }
+            }
+        } else {
+            nameTxnPerExchange(transaction, exchange);
+        }
+    }
+
+    private static void nameTxnPerExchange(Transaction transaction, Exchange exchange) {
         String operation = "Kafka/Topic/Consume/Named";
         String topicName = getTopic(exchange);
         if (topicName != null) {
@@ -37,18 +56,25 @@ public class KafkaExchangeProcessor implements ExchangeProcessor {
     private static String getTopic(Exchange exchange) {
         String topic = (String) exchange.getIn().getHeader(TOPIC);
         if (topic == null) {
-            Map<String, String> queryParameters = toQueryParameters(exchange.getFromEndpoint().getEndpointUri());
-            topic = queryParameters.get("topic");
+            Endpoint endpoint = CamelUtil.getEndpoint(exchange);
+            if (endpoint != null) {
+                Map<String, String> queryParameters = toQueryParameters(endpoint.getEndpointUri());
+                topic = queryParameters.get("topic");
+            }
+
         }
 
         if (topic == null) {
-            topic = endpointPath(exchange.getFromEndpoint());
+            topic = endpointPath(CamelUtil.getEndpoint(exchange));
         }
         return topic;
     }
 
     private static String endpointPath(Endpoint endpoint) {
         String component = "";
+        if (endpoint == null) {
+            return component;
+        }
         String uri = endpoint.getEndpointUri();
         String[] splitUri = StringHelper.splitOnCharacter(uri, ":", 2);
         if (splitUri[1] != null) {
@@ -85,54 +111,30 @@ public class KafkaExchangeProcessor implements ExchangeProcessor {
         return true;
     }
 
-    private static class KafkaInboundWrapper implements Headers {
-        private final Map<String, String> headers;
-
-        public KafkaInboundWrapper(Exchange exchange) {
-            Map<String, String> headers = new HashMap<>();
-            for (String header : exchange.getIn().getHeaders().keySet()) {
-                String value = exchange.getIn().getHeader(header, String.class);
-                if (value != null) {
-                    headers.put(header, value);
+    @Override
+    public void processInbound(Transaction txn, Exchange exchange) {
+        if (txn == null) {
+            return;
+        }
+        if (exchange.getIn().getBody() instanceof List && DT_CONSUMER_BATCH_ENABLED) {
+            for (Object item : exchange.getIn().getBody(List.class)) {
+                if (item instanceof Exchange) {
+                    doProcessInbound(txn, (Exchange) item);
                 }
             }
-            this.headers = headers;
+        } else {
+            doProcessInbound(txn, exchange);
         }
+    }
 
-        @Override
-        public HeaderType getHeaderType() {
-            return HeaderType.MESSAGE;
+    private static void doProcessInbound(Transaction txn, Exchange exchange) {
+        if (txn != null) {
+            txn.acceptDistributedTraceHeaders(TransportType.Kafka, new ExchangeHeadersWrapper(exchange));
         }
-
-        @Override
-        public String getHeader(String name) {
-            return headers.get(name);
-        }
-
-        @Override
-        public List<String> getHeaders(String name) {
-            String header = headers.get(name);
-            return Collections.singletonList(header);
-        }
-
-        @Override
-        public void setHeader(String name, String value) {
-            // No-Op
-        }
-
-        @Override
-        public void addHeader(String name, String value) {
-            // No-Op
-        }
-
-        @Override
-        public Collection<String> getHeaderNames() {
-            return headers.keySet();
-        }
-
-        @Override
-        public boolean containsHeader(String name) {
-            return headers.containsKey(name);
-        }
+        NewRelic.getAgent().getTracedMethod().reportAsExternal(MessageConsumeParameters.library(LIBRARY_NAME)
+                .destinationType(DestinationType.NAMED_TOPIC)
+                .destinationName(getTopic(exchange))
+                .inboundHeaders(null)
+                .build());
     }
 }

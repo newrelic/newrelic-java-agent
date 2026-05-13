@@ -13,5 +13,5 @@ public abstract class Exchange_Instrumentation {
     @NewField
     public Segment outboundSegment = null;
     @NewField
-    public boolean consumerTxnStarted = false;
+    public boolean fromConsumer = false;
 }

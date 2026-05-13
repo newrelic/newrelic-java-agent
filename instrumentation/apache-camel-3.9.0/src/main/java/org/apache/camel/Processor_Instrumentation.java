@@ -1,12 +1,11 @@
 package org.apache.camel;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-
-import java.util.logging.Level;
+import com.nr.instrumentation.apache.camel.CamelUtil;
+import com.nr.instrumentation.apache.camel.processors.ExchangeProcessor;
 
 @Weave(type = MatchType.Interface, originalName = "org.apache.camel.Processor")
 public class Processor_Instrumentation {
@@ -14,10 +13,13 @@ public class Processor_Instrumentation {
     @Trace(async = true, excludeFromTransactionTrace = true)
     public void process(Exchange exchange) {
         if (exchange instanceof Exchange_Instrumentation) {
-            if (((Exchange_Instrumentation) exchange).token != null) {
-                ((Exchange_Instrumentation) exchange).token.link();
+            Exchange_Instrumentation exchangeInstrumentation = (Exchange_Instrumentation) exchange;
+            if (exchangeInstrumentation.token != null) {
+                exchangeInstrumentation.token.link();
+            } else if (exchangeInstrumentation.fromConsumer) {
+                ExchangeProcessor exchangeProcessor = CamelUtil.getExchangeProcessor(CamelUtil.getEndpoint(exchange));
+                CamelUtil.startTxn(exchange, exchangeProcessor);
             }
-            AgentBridge.getAgent().getLogger().log(Level.INFO, "Processor_Instrumentation Exchange token value is {}", ((Exchange_Instrumentation) exchange).token);
         }
 
 

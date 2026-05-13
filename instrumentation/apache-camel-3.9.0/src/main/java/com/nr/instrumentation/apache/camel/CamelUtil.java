@@ -1,5 +1,7 @@
 package com.nr.instrumentation.apache.camel;
 
+import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.nr.instrumentation.apache.camel.processors.DefaultExchangeProcessor;
@@ -12,6 +14,7 @@ import org.apache.camel.Exchange_Instrumentation;
 import org.apache.camel.util.StringHelper;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CamelUtil {
@@ -32,16 +35,6 @@ public class CamelUtil {
         return result;
     }
 
-    public static String endpointOperation(Endpoint endpoint) {
-        String component = "";
-        String uri = endpoint.getEndpointUri();
-        String[] splitUri = StringHelper.splitOnCharacter(uri, ":", 2);
-        if (splitUri[1] != null) {
-            component = splitUri[0];
-        }
-        return component;
-    }
-
     public static ExchangeProcessor getExchangeProcessor(Endpoint endpoint) {
         String component = endpointOperation(endpoint);
         return EXCHANGE_PROCESSORS.getOrDefault(component, DEFAULT_EXCHANGE_PROCESSOR);
@@ -55,7 +48,46 @@ public class CamelUtil {
             if (exchangeInstrumentation.token == null) {
                 exchangeInstrumentation.token = NewRelic.getAgent().getTransaction().getToken();
             }
-            exchangeInstrumentation.consumerTxnStarted = true;
+
+            Transaction txn = AgentBridge.getAgent().getTransaction(false);
+            // For exchanges that began when camel consumed messages, inbound headers need to be processed and the transaction is named.
+            // We do these actions here because the exchange contents (such as headers) are guaranteed to be available by the time it is completed.
+            if (txn != null) {
+                exchangeProcessor.nameTransaction(txn, exchange);
+                exchangeProcessor.processInbound(txn, exchange);
+            }
         }
+    }
+
+    public static Endpoint getEndpoint(Exchange exchange) {
+        if (exchange == null) {
+            return null;
+        }
+        Endpoint endpoint = exchange.getFromEndpoint();
+        if (endpoint != null) {
+            return endpoint;
+        }
+        if (exchange.getIn().getBody() instanceof List<?>) {
+            for (Object item : exchange.getIn().getBody(List.class)) {
+                if (item instanceof Exchange) {
+                    Exchange childExchange = (Exchange) item;
+                    return childExchange.getFromEndpoint();
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String endpointOperation(Endpoint endpoint) {
+        String component = "";
+        if (endpoint == null) {
+            return component;
+        }
+        String uri = endpoint.getEndpointUri();
+        String[] splitUri = StringHelper.splitOnCharacter(uri, ":", 2);
+        if (splitUri[1] != null) {
+            component = splitUri[0];
+        }
+        return component;
     }
 }

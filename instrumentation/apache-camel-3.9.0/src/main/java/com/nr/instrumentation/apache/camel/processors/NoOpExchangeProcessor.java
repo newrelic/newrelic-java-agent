@@ -14,4 +14,9 @@ public class NoOpExchangeProcessor implements ExchangeProcessor {
     public boolean shouldStartTransaction() {
         return false;
     }
+
+    @Override
+    public void processInbound(Transaction txn, Exchange exchange) {
+
+    }
 }
