@@ -368,14 +368,19 @@ public class JdbcHelper {
         StringBuilder comment = new StringBuilder(64);
         String guid = getEntityGuid();
 
+        // Prevent SQL comment injection if GUID contains comment-closing sequence
+        if (guid != null && guid.contains("*/")) {
+            return "";
+        }
+
         if ((guid != null) && (!guid.isEmpty())) {
             comment.append("/*");
             comment.append(SQL_METADATA_COMMENTS_SVC_GUID).append("=\"").append(guid).append("\"");
         }
 
         // Only return comment if metadata was added
-        if (comment.length() > 2) {
-            comment.append("*/");
+        if (comment.length() > 0) {
+            comment.append("*/ ");
 
             Logger logger = AgentBridge.getAgent().getLogger();
             if (logger.isLoggable(Level.FINEST)) {
