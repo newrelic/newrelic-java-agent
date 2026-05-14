@@ -77,7 +77,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Transaction.PartialSampleType partialSampleType = transactionData.getPartialSampleType();
             if (Agent.isDebugEnabled()) {
-                NewRelic.getAgent().getLogger().log(Level.FINEST, "Creating spans for tx {0} using partialSampleType {1}",
+                Agent.LOG.log(Level.FINEST, "Creating spans for tx {0} using partialSampleType {1}",
                         transactionData.getTraceId(), partialSampleType);
             }
 
@@ -127,7 +127,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                     if (span != null) {
                         droppedSpansById.put(span.getGuid(), span);
                     }
-                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Dropping {0} span {1} named {2} for trace id {3}",
+                    Agent.LOG.log(Level.FINEST, "Dropping {0} span {1} named {2} for trace id {3}",
                             span.getType(), span.getGuid(), span.getName(), transactionData.getTraceId());
                     continue; // don't add it to the list
                 }
@@ -136,7 +136,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 if (groupExternals) {
                     // mode is COMPACT, everything will be re-parented to the root span
                     if (Agent.isDebugEnabled()) {
-                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
+                        Agent.LOG.log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
                                 span.getGuid(), span.getParentId(), rootSpan.getGuid());
                     }
                     span.updateParentSpanId(rootSpan.getGuid());
@@ -175,7 +175,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             if (droppedSpansById.containsKey(span.getParentId())) {
                 String newParentId = getClosestKeptAncestorSpan(span, spans, droppedSpansById);
                 if (Agent.isDebugEnabled()) {
-                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
+                    Agent.LOG.log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
                             span.getGuid(), span.getParentId(), newParentId);
                 }
                 span.updateParentSpanId(newParentId);
@@ -190,7 +190,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             // clear everything after the max and report the metric
             span.getLinkOnSpanEvents().subList(MAX_LINKS_ON_SPAN, oldSize).clear();
             if (Agent.isDebugEnabled()) {
-                NewRelic.getAgent().getLogger().log(Level.FINEST, "Span: {0} had too many Span Links: {1}, trimmed to: {2}",
+                Agent.LOG.log(Level.FINEST, "Span: {0} had too many Span Links: {1}, trimmed to: {2}",
                         span.getGuid(), oldSize, span.getLinkOnSpanEvents().size());
             }
             NewRelic.incrementCounter(
@@ -206,7 +206,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
             String newParentId = getClosestKeptAncestorSpan(droppedSpan, keptSpans, droppedSpansById);
             if (Agent.isDebugEnabled()) {
-                NewRelic.getAgent().getLogger().log(Level.FINEST, "Span: {0} had {1} Span Link(s) to re-parent to span: {2}",
+                Agent.LOG.log(Level.FINEST, "Span: {0} had {1} Span Link(s) to re-parent to span: {2}",
                         droppedSpan.getGuid(), links.size(), newParentId);
             }
             for (SpanEvent keptSpan : keptSpans) {
@@ -229,7 +229,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         }
         if (droppedSpansById.containsKey(parentId)) {
             // with a properly constructed span chain, this should really never happen, but log it if it does
-            NewRelic.getAgent().getLogger().log(Level.FINE, "Unable to find a kept ancestor for span {0} on trace id {1}, using original parent id",
+            Agent.LOG.log(Level.FINE, "Unable to find a kept ancestor for span {0} on trace id {1}, using original parent id",
                     span.getGuid(), span.getTraceId());
             parentId = origParentId;
         }
