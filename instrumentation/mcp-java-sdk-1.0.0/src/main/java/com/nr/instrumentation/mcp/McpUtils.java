@@ -19,22 +19,7 @@ import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonit
 
 public class McpUtils {
 
-    /**
-     * Boolean set by the McpSyncClient_Instrumentation before calling Weaver.callOriginal() so the
-     * async delegate (McpAsyncClient_Instrumentation) skips startSegment() and avoids double reporting.
-     */
-    public static final ThreadLocal<Boolean> IN_SYNC_MCP_CALL = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    };
-
     public static Segment startMcpSegment(String category, String name) {
-        if (IN_SYNC_MCP_CALL.get()) {
-            return null;
-        }
-
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         if (!isAiMonitoringEnabled() || txn == null) {
             return null;

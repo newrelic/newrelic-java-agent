@@ -27,9 +27,5 @@ For resources, only the URI scheme is captured (e.g. `https`, `file`) — not th
 
 ### Sync vs Async
 
-`McpSyncClient` is a blocking wrapper around `McpAsyncClient`. A sync call delegates
-to the async client internally so both instrumentation classes would fire for a single
-sync call and would incorrectly create two segments. The sync instrumentation sets `McpUtils.IN_SYNC_MCP_CALL`, a `ThreadLocal` flag,
-before delegating to the async client. The async instrumentation checks this flag on entry
-and skips segment creation if it is set, preventing a duplicate segment from being reported
-for the same call.
+`McpSyncClient` is a blocking wrapper around `McpAsyncClient`. Only `McpAsyncClient` is instrumented, but sync calls are still covered since `McpSyncClient`
+delegates internally to `McpAsyncClient`. 
