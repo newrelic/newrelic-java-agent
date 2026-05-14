@@ -3,6 +3,11 @@
 # The XML file can be analyzed inside the Spotbugs GUI: https://spotbugs.readthedocs.io/en/stable/running.html
 name: Execute Spotbugs
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,7 +24,7 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-24.04
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
@@ -84,7 +89,7 @@ jobs:
     env:
       BRANCH_NAME: ${{ inputs.agent-ref || 'main' }}
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout GhPages branch
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:

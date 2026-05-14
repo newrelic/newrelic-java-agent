@@ -1,5 +1,9 @@
 name: Scala Functional Tests
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
 on:
   workflow_dispatch:
     inputs:
@@ -27,7 +31,7 @@ jobs:
       matrix:
         java-version: [ 8, 11 ]
     steps:
-      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
