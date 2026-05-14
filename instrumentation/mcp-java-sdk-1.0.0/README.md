@@ -8,7 +8,6 @@ Both the synchronous and asynchronous MCP client APIs are instrumented:
 
 | Class | Methods |
 |-------|---------|
-| `McpSyncClient` | `callTool`, `readResource`, `getPrompt` |
 | `McpAsyncClient` | `callTool`, `readResource`, `getPrompt` |
 
 Segments are only created when:
