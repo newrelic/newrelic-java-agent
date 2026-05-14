@@ -13,6 +13,7 @@ jobs:
     name: Run Repolinter
     runs-on: ubuntu-24.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Test Default Branch
         id: default-branch
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # pin@v7

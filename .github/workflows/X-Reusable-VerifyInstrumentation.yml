@@ -26,6 +26,7 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.ref }}
@@ -56,6 +57,7 @@ jobs:
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           ref: ${{ inputs.ref }}

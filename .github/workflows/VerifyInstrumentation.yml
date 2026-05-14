@@ -56,6 +56,7 @@ jobs:
     if: ${{ failure() }}
     runs-on: ubuntu-24.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Send failure message to Slack
         id: slack
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # pin@v1.25.0
