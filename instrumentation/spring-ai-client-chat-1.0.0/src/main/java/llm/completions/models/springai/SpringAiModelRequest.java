@@ -52,7 +52,7 @@ public class SpringAiModelRequest implements ModelRequest {
                 }
 
                 promptUserMessages.addAll(prompt.getUserMessages());
-                if (promptUserMessages != null) {
+                if (!promptUserMessages.isEmpty()) {
                     numberOfRequestMessages = promptUserMessages.size();
                 }
 
