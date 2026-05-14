@@ -30,14 +30,6 @@ public class McpUtils {
         }
     };
 
-    /**
-     * Helper method to start a Segment for an MCP client call with the provided category and name. If
-     * AI Monitoring is disabled or there is no active transaction then it will return null.
-     *
-     * @param category is the category of the segment, e.g. "Llm/tool/MCP/call_tool"
-     * @param name is the specific tool being called, resource scheme, or prompt name
-     * @return the started Segment or null
-     */
     public static Segment startMcpSegment(String category, String name) {
         if (IN_SYNC_MCP_CALL.get()) {
             return null;
@@ -51,16 +43,6 @@ public class McpUtils {
         return txn.startSegment(category, name);
     }
 
-    /**
-     * Helper method to end a Segment when a Mono terminates, regardless of whether it completed successfully, errored out or was canceled.
-     * If the segment is null then the Mono will be returned unmodified.
-     * If the received Mono is null the segment will immediately be ended and null is returned.
-     *
-     * @param mono is the Mono to attach the doFinally callback to.
-     * @param segment is the Segment to end when the Mono completes.
-     * @return the original Mono with a doFinally callback to end the segment or null
-     * @param <T> is the type of Mono
-     */
     public static <T> Mono<T> endSegmentOnFinally(Mono<T> mono, Segment segment) {
         if (segment == null) {
             return mono;
@@ -79,13 +61,6 @@ public class McpUtils {
         });
     }
 
-    /**
-     * Helper method to extract the scheme from an MCP resource URI. If the URI is null, empty or doesn't contain a colon
-     * then "resource" will be returned.
-     *
-     * @param uri is the URI to extract the scheme from
-     * @return the scheme of the URI or "resource"
-     */
     public static String extractScheme(String uri) {
         if (uri == null || uri.isEmpty()) {
             return "resource";
