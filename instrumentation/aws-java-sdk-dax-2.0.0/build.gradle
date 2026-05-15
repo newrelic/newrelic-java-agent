@@ -1,0 +1,26 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+
+    implementation platform('software.amazon.awssdk:bom:2.16.81')
+    implementation("software.amazon.dax:amazon-dax-client:2.0.0")
+}
+
+repositories {
+    maven {
+        url 'https://s3-us-west-2.amazonaws.com/dynamodb-local/release'
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-java-sdk-dax-2.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly 'software.amazon.dax:amazon-dax-client:[2.0.0,)'
+}
+
+site {
+    title 'AWS v2 DAX'
+    type 'Datastore, InstanceLevelDB'
+}
