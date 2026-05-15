@@ -19,8 +19,8 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Resin 3.1.9 to latest
   * Spray 1.3.1 to latest
   * Tomcat 7.0.0 to latest
-    * Tomcat v7.0.0 - v7.0.69 are only supported by Java agents prior to v3.43.0
     * Tomcat v7.0.70 - v7.0.75 and v8.0.0 - v8.0.41 are only supported by Java agents prior to v3.43.0
+    * Tomcat v7.0.0 - v7.0.69 are only supported by Java agents prior to v3.43.0
     * Tomcat v8.5.0 - v8.5.11 are only supported by Java agents prior to v3.43.0; 
   * Undertow 1.1.0.Final to latest
   * WebLogic 12.1.2.1 to 14.1.x
