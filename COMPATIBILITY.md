@@ -211,6 +211,8 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## AI Monitoring
   If you have version 8.12.0 or higher of Java agent, you can collect AI data from certain AI libraries and frameworks.
   * AWS Bedrock 2.20.157 to latest
+  * Spring AI Chat Completions 1.0.0-RC1 to latest
+  * Spring AI Embeddings 1.0.0-M7 to latest
 
   ## Other instrumented features
   * Java Completable futures 8 to latest
