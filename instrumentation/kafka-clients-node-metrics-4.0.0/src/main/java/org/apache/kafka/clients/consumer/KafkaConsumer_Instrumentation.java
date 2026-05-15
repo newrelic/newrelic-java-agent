@@ -1,6 +1,11 @@
-package org.apache.kafka.clients.consumer;
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
 
-import org.apache.kafka.clients.consumer.SubscriptionPattern;
+package org.apache.kafka.clients.consumer;
 
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;

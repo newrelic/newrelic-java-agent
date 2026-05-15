@@ -1,6 +1,12 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.nr.instrumentation.apache.camel.processors;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.MessageConsumeParameters;
