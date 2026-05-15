@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -23,9 +23,9 @@ import io.netty.channel.NRNettyChannelHandler;
 @Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectDecoder")
 public class HttpObjectDecoder_Instrumentation {
 
-	// heading upstream
-	protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
-		Weaver.callOriginal();
+    // heading upstream
+    protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
+        Weaver.callOriginal();
 		ChannelPipeline pipeline = ctx.pipeline();
 		Token token = ((DefaultChannelPipeline_Instrumentation)pipeline).nettyToken;
 		for (Object msg : out) {
@@ -36,5 +36,5 @@ public class HttpObjectDecoder_Instrumentation {
 				}
 			}
 		}
-	}
+    }
 }
