@@ -11,12 +11,13 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import static com.newrelic.agent.introspec.MetricsHelper.getUnscopedMetricCount;
 
-import com.newrelic.agent.introspec.TracedMetricData;
 import com.newrelic.api.agent.Trace;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -43,7 +44,7 @@ import org.testcontainers.utility.DockerImageName;
 @Ignore("This test is flaky on GHA")
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
-public class Kafka37MessageTest {
+public class Kafka40MessageTest {
     @Rule
     public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));
 
@@ -90,7 +91,7 @@ public class Kafka37MessageTest {
             // setting a timeout so this does not drag forever if something goes wrong.
             long waitUntil = System.currentTimeMillis() + 15000L;
             while (waitUntil > System.currentTimeMillis()) {
-                ConsumerRecords<String, String> records = consumer.poll(1000);
+                ConsumerRecords<String, String> records = consumer.poll(Duration.of(1000, ChronoUnit.MILLIS));
                 messagesRead += records.count();
                 if (messagesRead == 2) {
                     // Sleep for a minute before closing the consumer so MetricsScheduler runs
