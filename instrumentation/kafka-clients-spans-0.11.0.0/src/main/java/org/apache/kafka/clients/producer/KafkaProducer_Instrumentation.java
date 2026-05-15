@@ -27,7 +27,10 @@ public class KafkaProducer_Instrumentation<K, V> {
         if (transaction != null) {
             Headers dtHeaders = new HeadersWrapper(record.headers());
             NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(dtHeaders);
-            String appName = NewRelic.getAgent().getApplicationName();
+            String appName = NewRelic.getAgent().getConfig().getValue("app_name", null);
+            if (appName == null || appName.isEmpty()) {
+                appName = System.getenv("NEW_RELIC_APP_NAME");
+            }
             if (appName != null && !appName.isEmpty()) {
                 dtHeaders.addHeader("producerServiceName", appName);
             }
