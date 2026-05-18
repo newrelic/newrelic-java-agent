@@ -18,6 +18,7 @@ import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.SpanEventsConfig;
 import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
@@ -27,8 +28,6 @@ import com.newrelic.agent.stats.StatsWork;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.util.SpanEventMerger;
-import com.newrelic.api.agent.DatastoreParameters;
-import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 
 import java.util.ArrayList;
@@ -59,6 +58,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
 
     private volatile SpanEventsConfig spanEventsConfig;
 
+    private static final int MAX_LINKS_ON_SPAN = 100;
+
     public SpanEventsServiceImpl(Builder builder) {
         super(SpanEventsServiceImpl.class.getSimpleName());
         this.reservoirManager = builder.reservoirManager;
@@ -75,6 +76,10 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         if (isSpanEventsEnabled() && spanEventCreationDecider.shouldCreateSpans(transactionData)) {
             // This is where all Transaction Segment Spans gets created. To only send specific types of Span Events, handle that here.
             Transaction.PartialSampleType partialSampleType = transactionData.getPartialSampleType();
+            if (Agent.isDebugEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Creating spans for tx {0} using partialSampleType {1}",
+                        transactionData.getTraceId(), partialSampleType);
+            }
 
             List<SpanEvent> spans = partialSampleType != null ?
                     createPartialGranularitySpanEvents(transactionData, transactionStats, partialSampleType) :
@@ -89,10 +94,6 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         boolean removeNonEssentialAttrs = Transaction.PartialSampleType.COMPACT.equals(partialSampleType) || Transaction.PartialSampleType.ESSENTIAL.equals(partialSampleType);
         boolean groupExternals = Transaction.PartialSampleType.COMPACT.equals(partialSampleType);
         boolean ignoreErrorPriority = transactionData.isIgnoreErrorPriority(); // if ignore, then report the last exception, otherwise the first
-        if (Agent.isDebugEnabled()) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "Creating partial granularity spans for tx {0} using partialSampleType {1}",
-                    transactionData.getTraceId(), partialSampleType);
-        }
         List<SpanEvent> spans = new ArrayList<>();
 
         Tracer rootTracer = transactionData.getRootTracer();
@@ -105,6 +106,7 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
             return spans;
         }
 
+        rootSpan.clearEventOnSpanEvents();
         rootSpan.getIntrinsics().put("nr.pg", true);
 
         float txDurationSeconds = transactionData.getDurationInMillis() / 1000.0f;
@@ -116,19 +118,17 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
         int spanCountIfThisHadBeenFullGranularity = 1; // count the root span created above
 
         Collection<Tracer> tracers = transactionData.getTracers();
-        Map<String, String> droppedSpanToParent = groupExternals ? null : new HashMap<>(); // we only need this map if we are not grouping externals
+        Map<String, SpanEvent> droppedSpansById = new HashMap<>();
         for (Tracer tracer : tracers) {
             if (tracer.isTransactionSegment()) {
                 spanCountIfThisHadBeenFullGranularity++;
                 SpanEvent span = createSafely(transactionData, tracer, false, transactionStats, removeNonEssentialAttrs);
                 if (span == null || !span.shouldBeKeptForPartialGranularity()) {
-                    if (span != null && !groupExternals) {
-                        droppedSpanToParent.put(span.getGuid(), span.getParentId());
+                    if (span != null) {
+                        droppedSpansById.put(span.getGuid(), span);
                     }
-                    if (Agent.isDebugEnabled()) {
-                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Dropping span {0} named {1} for trace id {2}",
-                                span.getGuid(), span.getName(), transactionData.getTraceId());
-                    }
+                    Agent.LOG.log(Level.FINEST, "Dropping {0} span {1} named {2} for trace id {3}",
+                            span.getType(), span.getGuid(), span.getName(), transactionData.getTraceId());
                     continue; // don't add it to the list
                 }
                 // we have a valid span for partial granularity
@@ -136,54 +136,105 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                 if (groupExternals) {
                     // mode is COMPACT, everything will be re-parented to the root span
                     if (Agent.isDebugEnabled()) {
-                        NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
+                        Agent.LOG.log(Level.FINEST, "Re-parenting span: {0} from parent {1} to root span {2}",
                                 span.getGuid(), span.getParentId(), rootSpan.getGuid());
                     }
                     span.updateParentSpanId(rootSpan.getGuid());
                 }
+                span.clearEventOnSpanEvents();
                 spans.add(span);
             }
-        }
-
-        if (groupExternals) {
-            spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
-        } else {
-            reparentSpans(spans, droppedSpanToParent);
         }
 
         // don't forget the root span!
         spans.add(rootSpan);
 
-        NewRelic.recordMetric(
+        reparentLinksFromDroppedSpans(spans, droppedSpansById);
+        if (groupExternals) {
+            spans = SpanEventMerger.findGroupsAndMergeSpans(spans, ignoreErrorPriority);
+        } else {
+            reparentSpans(spans, droppedSpansById);
+        }
+
+        trimLinkOnSpanEvents(spans);
+
+        NewRelic.incrementCounter(
                 "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Instrumented",
                 spanCountIfThisHadBeenFullGranularity);
-        NewRelic.recordMetric(
+        NewRelic.incrementCounter(
                 "Supportability/DistributedTrace/PartialGranularity/"+partialSampleType+"/Span/Kept",
                 spans.size());
 
         return spans;
     }
 
-    private void reparentSpans(List<SpanEvent> spans, Map<String, String> droppedSpanToParent) {
-        if (droppedSpanToParent == null) return;
+    private void reparentSpans(List<SpanEvent> spans, Map<String, SpanEvent> droppedSpansById) {
+        if (droppedSpansById == null) return;
         for (SpanEvent span : spans) {
             // if this span's parent was dropped, we need to re-parent it
-            if (droppedSpanToParent.containsKey(span.getParentId())) {
-                String parentId = span.getParentId();
-                // should never really need this counter if the tracer/span tree was constructed
-                // correctly, but just in case, let's not go into an infinite loop
-                int count = 0;
-                while (droppedSpanToParent.containsKey(parentId) && count < droppedSpanToParent.size()) {
-                    parentId = droppedSpanToParent.get(parentId);
-                    count++;
-                }
+            if (droppedSpansById.containsKey(span.getParentId())) {
+                String newParentId = getClosestKeptAncestorSpan(span, spans, droppedSpansById);
                 if (Agent.isDebugEnabled()) {
-                    NewRelic.getAgent().getLogger().log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
-                            span.getGuid(), span.getParentId(), parentId);
+                    Agent.LOG.log(Level.FINEST, "Re-parenting span: {0} from parent {1} to {2}",
+                            span.getGuid(), span.getParentId(), newParentId);
                 }
-                span.updateParentSpanId(parentId);
+                span.updateParentSpanId(newParentId);
             }
         }
+    }
+
+    private void trimLinkOnSpanEvents(List<SpanEvent> spans) {
+        for (SpanEvent span : spans) {
+            if (span.getLinkOnSpanEvents() == null || span.getLinkOnSpanEvents().size() <= MAX_LINKS_ON_SPAN) continue;
+            int oldSize = span.getLinkOnSpanEvents().size();
+            // clear everything after the max and report the metric
+            span.getLinkOnSpanEvents().subList(MAX_LINKS_ON_SPAN, oldSize).clear();
+            if (Agent.isDebugEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Span: {0} had too many Span Links: {1}, trimmed to: {2}",
+                        span.getGuid(), oldSize, span.getLinkOnSpanEvents().size());
+            }
+            NewRelic.incrementCounter(
+                    "Supportability/Java/SpanEvent/Links/Dropped",
+                    (oldSize-MAX_LINKS_ON_SPAN));
+        }
+    }
+
+    private void reparentLinksFromDroppedSpans(List<SpanEvent> keptSpans, Map<String, SpanEvent> droppedSpansById) {
+        for (SpanEvent droppedSpan : droppedSpansById.values()) {
+            List<LinkOnSpan> links = droppedSpan.getLinkOnSpanEvents();
+            if (links == null || links.size() == 0) continue;
+
+            String newParentId = getClosestKeptAncestorSpan(droppedSpan, keptSpans, droppedSpansById);
+            if (Agent.isDebugEnabled()) {
+                Agent.LOG.log(Level.FINEST, "Span: {0} had {1} Span Link(s) to re-parent to span: {2}",
+                        droppedSpan.getGuid(), links.size(), newParentId);
+            }
+            for (SpanEvent keptSpan : keptSpans) {
+                if (newParentId.equals(keptSpan.getGuid())) {
+                    keptSpan.reparentLinksOnSpansToThisSpan(links);
+                }
+            }
+        }
+    }
+
+    private String getClosestKeptAncestorSpan(SpanEvent span, List<SpanEvent> keptSpans, Map<String, SpanEvent> droppedSpansById) {
+        String origParentId = span.getParentId();
+        String parentId = origParentId;
+        // should never really need this counter if the tracer/span tree was constructed
+        // correctly, but just in case, let's not go into an infinite loop
+        int count = 0;
+        while (droppedSpansById.containsKey(parentId) && count < droppedSpansById.size()) {
+            parentId = droppedSpansById.get(parentId).getParentId();
+            count++;
+        }
+        if (droppedSpansById.containsKey(parentId)) {
+            // with a properly constructed span chain, this should really never happen, but log it if it does
+            Agent.LOG.log(Level.FINE, "Unable to find a kept ancestor for span {0} on trace id {1}, using original parent id",
+                    span.getGuid(), span.getTraceId());
+            parentId = origParentId;
+        }
+
+        return parentId;
     }
 
     private List<SpanEvent> createFullGranularitySpanEvents(TransactionData transactionData, TransactionStats transactionStats) {

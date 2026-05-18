@@ -48,8 +48,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             "messaging.system",
             "peer.hostname",
             "server.address",
-            "server.port",
-            "span.kind")));
+            "server.port")));
 
     // these should also be kept during partial granularity sampling,
     // but only if at least 1 entity synthesis attr is present
@@ -62,7 +61,7 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
             Stream.concat(ENTITY_SYNTHESIS_ATTRS.stream(), ERROR_ATTRS.stream())
             .collect(Collectors.toSet()));
 
-    private final List<LinkOnSpan> linkOnSpanEvents;
+    private List<LinkOnSpan> linkOnSpanEvents;
     private final List<EventOnSpan> eventOnSpanEvents;
 
     private SpanEvent(Builder builder) {
@@ -110,8 +109,21 @@ public class SpanEvent extends AnalyticsEvent implements JSONStreamAware {
         return linkOnSpanEvents;
     }
 
+    public void reparentLinksOnSpansToThisSpan(List<LinkOnSpan> newLinks) {
+        if (newLinks == null || newLinks.isEmpty()) return;
+        for (LinkOnSpan link : newLinks) {
+            link.getIntrinsics().put("id", this.getGuid());
+        }
+        if (linkOnSpanEvents == null || linkOnSpanEvents == Collections.EMPTY_LIST) linkOnSpanEvents = new ArrayList<>(newLinks.size());
+        linkOnSpanEvents.addAll(newLinks);
+    }
+
     public List<EventOnSpan> getEventOnSpanEvents() {
         return eventOnSpanEvents;
+    }
+
+    public void clearEventOnSpanEvents() {
+        eventOnSpanEvents.clear();
     }
 
     public String getTraceId() {
