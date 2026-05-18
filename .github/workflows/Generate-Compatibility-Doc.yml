@@ -76,7 +76,7 @@ jobs:
 
       - name: Create PR for internal doc
         id: create-pr-internal
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # pin@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: ${{ env.INTERNAL_FILEPATH }}
@@ -122,7 +122,7 @@ jobs:
 
       - name: Create PR for site doc
         id: create-pr-docs-site
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # pin@v8
         with:
           token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
           path: docs-website
