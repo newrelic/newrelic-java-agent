@@ -88,8 +88,7 @@ class JpmsModuleHelper {
             if (!delegatingCls.isInstance(inst)) return inst;
             Field field = delegatingCls.getDeclaredField("delegate");
             field.setAccessible(true);
-            Object delegate = field.get(inst);
-            return delegate instanceof Instrumentation ? unwrap((Instrumentation) delegate) : inst;
+            return (Instrumentation) field.get(inst);
         } catch (Throwable t) {
             return inst;
         }
