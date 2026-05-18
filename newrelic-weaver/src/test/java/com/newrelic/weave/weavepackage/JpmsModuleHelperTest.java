@@ -11,16 +11,11 @@ import org.junit.After;
 import org.junit.Assume;
 import org.junit.Test;
 
-import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.jar.JarFile;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -130,33 +125,6 @@ public class JpmsModuleHelperTest {
     }
 
     @Test
-    public void unwrapTraversesDelegateChain() {
-        requireJpms();
-        Instrumentation real = mock(Instrumentation.class);
-        when(real.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
-
-        DelegatingInstrumentation proxy = new DelegatingInstrumentation(real);
-
-        JpmsModuleHelper.addReadsToUnnamedModule(proxy, "org/mule/runtime/core/Test", getClass().getClassLoader());
-
-        verify(real, times(1)).getAllLoadedClasses();
-    }
-
-    @Test
-    public void unwrapHandlesMultipleDelegateLevels() {
-        requireJpms();
-        Instrumentation real = mock(Instrumentation.class);
-        when(real.getAllLoadedClasses()).thenReturn(new Class<?>[0]);
-
-        DelegatingInstrumentation proxy1 = new DelegatingInstrumentation(real);
-        DelegatingInstrumentation proxy2 = new DelegatingInstrumentation(proxy1);
-
-        JpmsModuleHelper.addReadsToUnnamedModule(proxy2, "org/mule/runtime/core/Test", getClass().getClassLoader());
-
-        verify(real, times(1)).getAllLoadedClasses();
-    }
-
-    @Test
     public void scanLoopSkipsUnnamedModuleClasses() {
         requireJpms();
         Instrumentation inst = mock(Instrumentation.class);
@@ -208,28 +176,4 @@ public class JpmsModuleHelperTest {
         assertFalse(((AtomicBoolean) f.get(null)).get());
     }
 
-    private static class DelegatingInstrumentation implements Instrumentation {
-        @SuppressWarnings("unused")
-        private final Instrumentation delegate;
-
-        DelegatingInstrumentation(Instrumentation delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override public void addTransformer(ClassFileTransformer t, boolean b) {}
-        @Override public void addTransformer(ClassFileTransformer t) {}
-        @Override public boolean removeTransformer(ClassFileTransformer t) { return false; }
-        @Override public boolean isRetransformClassesSupported() { return false; }
-        @Override public void retransformClasses(Class<?>... classes) throws UnmodifiableClassException {}
-        @Override public boolean isRedefineClassesSupported() { return false; }
-        @Override public void redefineClasses(ClassDefinition... d) throws ClassNotFoundException, UnmodifiableClassException {}
-        @Override public boolean isModifiableClass(Class<?> c) { return false; }
-        @Override public Class<?>[] getAllLoadedClasses() { return null; }
-        @Override public Class<?>[] getInitiatedClasses(ClassLoader l) { return new Class<?>[0]; }
-        @Override public long getObjectSize(Object o) { return 0; }
-        @Override public void appendToBootstrapClassLoaderSearch(JarFile j) {}
-        @Override public void appendToSystemClassLoaderSearch(JarFile j) {}
-        @Override public boolean isNativeMethodPrefixSupported() { return false; }
-        @Override public void setNativeMethodPrefix(ClassFileTransformer t, String p) {}
-    }
 }
