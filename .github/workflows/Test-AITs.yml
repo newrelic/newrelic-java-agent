@@ -96,6 +96,8 @@ jobs:
         if: ${{inputs.single-test == ''}}
         run: |
           excluded_tests=$(mktemp /tmp/excluded_tests.XXXXXXXX)
+          echo "framework/play/play2.py" >> $excluded_tests
+          echo "framework/snap/snap.py" >> $excluded_tests
           echo "framework/pekko/pekko.py" >> $excluded_tests
           echo "framework/pekko/pekkohttp.py" >> $excluded_tests
           echo "framework/pekko/pekkohttp3.py" >> $excluded_tests

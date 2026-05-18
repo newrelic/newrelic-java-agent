@@ -8,6 +8,7 @@
 package com.newrelic.agent.util;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.model.LinkOnSpan;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.api.agent.NewRelic;
 
@@ -82,6 +83,10 @@ public class SpanEventMerger {
             }
             addTimeFrameEventsForSpan(timeFrameEvents, otherSpan);
             errorSpanToUse = checkForErrorSpanToUse(errorSpanToUse, otherSpan, ignoreErrorPriority);
+            List<LinkOnSpan> links = otherSpan.getLinkOnSpanEvents();
+            if (links != null && links.size() > 0) {
+                mergedSpan.reparentLinksOnSpansToThisSpan(links);
+            }
         }
 
         if (countIdsNotAddedToNRIds > 0) {
