@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # pin@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: 'main'
 
@@ -39,7 +39,7 @@ jobs:
           java-version: '11'
 
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@d156388eb19639ec20ade50009f3d199ce1e2808 # pin@v4
+        uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # pin@v6
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"

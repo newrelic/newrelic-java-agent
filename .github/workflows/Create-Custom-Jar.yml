@@ -45,7 +45,7 @@ jobs:
           echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.agent-ref }}." >> $GITHUB_STEP_SUMMARY
 
       - name: Capture custom jar
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: custom-newrelic-jar
           path: |
