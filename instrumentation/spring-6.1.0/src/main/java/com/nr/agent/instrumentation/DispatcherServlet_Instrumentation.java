@@ -13,9 +13,9 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.lang.Nullable;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -49,7 +49,7 @@ public class DispatcherServlet_Instrumentation {
         return Weaver.callOriginal();
     }
 
-    private void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response,
+    private static void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response,
             HandlerExecutionChain mappedHandler, Exception ex) throws Exception {
         NewRelic.noticeError(ex);
         Weaver.callOriginal();
