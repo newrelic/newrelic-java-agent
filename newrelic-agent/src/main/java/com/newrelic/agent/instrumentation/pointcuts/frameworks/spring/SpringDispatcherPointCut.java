@@ -26,7 +26,7 @@ import com.newrelic.agent.tracers.metricname.ClassMethodMetricNameFormat;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
 import com.newrelic.agent.transaction.TransactionNamingPolicy;
 
-@PointCut
+//@PointCut
 public class SpringDispatcherPointCut extends TracerFactoryPointCut {
     static final String DISPATCHER_SERVLET_CLASS_NAME = "org/springframework/web/servlet/DispatcherServlet";
     private static final String RENDER_METHOD_NAME = "render";
