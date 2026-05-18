@@ -61,18 +61,16 @@ class JpmsModuleHelper {
         } catch (Throwable ignored) {}
     }
 
-    // Single-pass scan: adds reads(unnamed + all named modules) to every named org.mule.runtime.* module.
+    // Single-pass scan: grants reads(unnamed) to every named org.mule.runtime.* module.
     private static void patchMuleModules(Instrumentation inst, ClassLoader cl) throws Exception {
         Object unnamed = GET_UNNAMED.invoke(cl);
-        Set<Object> reads = new HashSet<>(Collections.singleton(unnamed));
+        Set<Object> reads = Collections.singleton(unnamed);
         Set<Object> muleModules = new HashSet<>();
 
         for (Class<?> cls : loadedClasses(inst)) {
+            if (!cls.getName().startsWith("org.mule.runtime.")) continue;
             Object module = moduleOf(cls);
-            if (!isNamed(module)) continue;
-
-            reads.add(module);
-            if (cls.getName().startsWith("org.mule.runtime.")) {
+            if (isNamed(module)) {
                 muleModules.add(module);
             }
         }
@@ -85,16 +83,16 @@ class JpmsModuleHelper {
     }
 
     private static Instrumentation unwrap(Instrumentation inst) {
-        for (Class<?> cls = inst.getClass(); cls != null && cls != Object.class; cls = cls.getSuperclass()) {
-            try {
-                Field field = cls.getDeclaredField("delegate");
-                field.setAccessible(true);
-                Object delegate = field.get(inst);
-                return delegate instanceof Instrumentation ? unwrap((Instrumentation) delegate) : inst;
-            } catch (NoSuchFieldException ignored) {
-            } catch (Throwable t) { break; }
+        try {
+            Class<?> delegatingCls = Class.forName("com.newrelic.agent.util.DelegatingInstrumentation");
+            if (!delegatingCls.isInstance(inst)) return inst;
+            Field field = delegatingCls.getDeclaredField("delegate");
+            field.setAccessible(true);
+            Object delegate = field.get(inst);
+            return delegate instanceof Instrumentation ? unwrap((Instrumentation) delegate) : inst;
+        } catch (Throwable t) {
+            return inst;
         }
-        return inst;
     }
 
     private static Class<?>[] loadedClasses(Instrumentation inst) throws Exception {
