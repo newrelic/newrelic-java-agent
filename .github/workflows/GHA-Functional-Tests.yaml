@@ -31,13 +31,13 @@ jobs:
         java-version: [ 8, 11, 17, 21, 25, 26 ]
     steps:
       - name: Checkout Java agent
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -84,7 +84,7 @@ jobs:
       tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
       - name: Checkout AIT repo test
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-agent-integration-tests
           ref: ${{ inputs.ait-ref || 'main' }}
@@ -168,7 +168,7 @@ jobs:
 
       ## Ongoing tests with artifactory dependencies
       - name: Checkout AIT repo test
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-agent-integration-tests
           ref: ${{ inputs.ait-ref }}
@@ -177,7 +177,7 @@ jobs:
 
       # Apps repos/caches - this process could be a candidate for custom action
       - name: Checkout Cache 1
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-ait-cache-1
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -186,7 +186,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 2
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-ait-cache-2
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -195,7 +195,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 3
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-ait-cache-3
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -204,7 +204,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 4
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-ait-cache-4
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -213,7 +213,7 @@ jobs:
           lfs: true
 
       - name: Checkout Cache 5
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: newrelic/java-ait-cache-5
           ref: ${{ inputs.cache-ref || 'main' }}
@@ -520,7 +520,7 @@ jobs:
 
       - name: Checkout wiki repository
         if: ${{ inputs.wiki-report-desc != '' }}
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
@@ -560,7 +560,7 @@ jobs:
 
     steps:
       - name: Checkout repository for scripts
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
 
       - name: Download all AIT performance files
         uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
@@ -578,7 +578,7 @@ jobs:
             "${{ inputs.wiki-report-desc }}"
 
       - name: Checkout wiki repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
