@@ -13,11 +13,12 @@ public class KtorService extends AbstractService {
     @Override
     protected void doStart() throws Exception {
         KotlinCoroutinesService kotlinCoroutinesService = ServiceFactory.getKotlinCoroutinesService();
-        kotlinCoroutinesService.addIgnoredRegexSuspends(".*io\\.ktor\\.*");
+        kotlinCoroutinesService.addIgnoredFramework("io.ktor");
     }
 
     @Override
     protected void doStop() throws Exception {
+        KotlinCoroutinesService kotlinCoroutinesService = ServiceFactory.getKotlinCoroutinesService();
 
     }
 
