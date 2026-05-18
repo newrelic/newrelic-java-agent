@@ -4,6 +4,10 @@ import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 
+/**
+ * Simple service that informs the Kotlin Coroutine instrumentation to ignore Suspend functions and Continuations
+ * associated with Ktor
+ */
 public class KtorService extends AbstractService {
 
     public KtorService() {
