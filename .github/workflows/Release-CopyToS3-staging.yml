@@ -17,6 +17,7 @@ jobs:
     name: Copy ${{ inputs.version_number }} to S3 (Staging)
     runs-on: ubuntu-24.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Self
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         # This always checkouts main. So the script will be run from main.

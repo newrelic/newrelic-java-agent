@@ -19,6 +19,7 @@ jobs:
   dependency-submission:
     runs-on: ubuntu-latest
     steps:
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout sources
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # pin@v4
         with:
