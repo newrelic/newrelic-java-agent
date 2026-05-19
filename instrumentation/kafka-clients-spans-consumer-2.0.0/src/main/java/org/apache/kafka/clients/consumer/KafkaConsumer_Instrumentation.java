@@ -15,8 +15,9 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.instrumentation.kafka.HeadersWrapper;
 import com.nr.instrumentation.kafka.Utils;
-
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import org.apache.kafka.common.header.Header;
 
 @Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
 public class KafkaConsumer_Instrumentation<K, V> {
@@ -34,12 +35,28 @@ public class KafkaConsumer_Instrumentation<K, V> {
     }
 
     private void nrAcceptDtHeaders(ConsumerRecords<K, V> records) {
-        if (Utils.DT_CONSUMER_ENABLED && AgentBridge.getAgent().getTransaction(false) != null) {
-            for (ConsumerRecord<?, ?> record : records) {
+        if (AgentBridge.getAgent().getTransaction(false) == null) {
+            return;
+        }
+        for (ConsumerRecord<?, ?> record : records) {
+            if (Utils.DT_CONSUMER_ENABLED) {
                 Headers dtHeaders = new HeadersWrapper(record.headers());
-                NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(TransportType.Kafka, dtHeaders);
-                break;
+                NewRelic.getAgent().getTransaction().acceptDistributedTraceHeaders(
+                        TransportType.Kafka, dtHeaders);
             }
+            Header psnHeader = record.headers().lastHeader("producerServiceName");
+            if (psnHeader != null) {
+                String producerServiceName = new String(psnHeader.value(), StandardCharsets.UTF_8);
+                NewRelic.addCustomParameter("kafka.producer.serviceName", producerServiceName);
+                NewRelic.addCustomParameter("messaging.destination.name", record.topic());
+                NewRelic.recordMetric(
+                        "Message/Kafka/Topic/Named/"
+                                + record.topic()
+                                + "/Producer/"
+                                + producerServiceName,
+                        1.0f);
+            }
+            break;
         }
     }
 }
