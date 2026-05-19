@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.ktor.client;
 
 import com.newrelic.agent.bridge.ExitTracer;
@@ -14,6 +21,10 @@ import kotlin.coroutines.Continuation;
 @Weave(originalName = "io.ktor.client.HttpClient")
 public class HttpClient_Instrumentation {
 
+    /**
+     * Some implementations require that we do not trace downstream methods.  this is usually in the case where there isn't a instrumented
+     * framework in the agent that handles the external call.  It this case we handle the external call here.
+     */
     @NewField
     private boolean needsLeaf = false;
 

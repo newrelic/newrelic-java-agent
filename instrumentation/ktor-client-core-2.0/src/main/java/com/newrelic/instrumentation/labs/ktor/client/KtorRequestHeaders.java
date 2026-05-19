@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.instrumentation.labs.ktor.client;
 
 import com.newrelic.api.agent.HeaderType;
@@ -9,7 +16,7 @@ import java.util.Collection;
 
 public class KtorRequestHeaders implements Headers {
 
-    private HttpRequestBuilder requestBuilder;
+    private final HttpRequestBuilder requestBuilder;
 
     public KtorRequestHeaders(HttpRequestBuilder requestBuilder) {
         this.requestBuilder = requestBuilder;

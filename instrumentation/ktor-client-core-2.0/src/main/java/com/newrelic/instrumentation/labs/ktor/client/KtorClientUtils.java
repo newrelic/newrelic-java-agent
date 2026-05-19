@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package com.newrelic.instrumentation.labs.ktor.client;
 
 import com.newrelic.agent.bridge.AgentBridge;
@@ -17,7 +24,6 @@ public class KtorClientUtils {
 
     private static final Set<String> LEAF_CLIENTS = new HashSet<>();
     private static final String METRIC_PREFIX = "Custom/Ktor/Client/HttpClient";
-    private static final String METRIC_PREFIX2 = "Custom/Ktor/Client/HttpStatement/";
 
     static {
         LEAF_CLIENTS.add("CIOEngine");

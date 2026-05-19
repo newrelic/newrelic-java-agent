@@ -19,13 +19,13 @@ dependencies {
 tasks.jar {
   manifest {
       attributes(
-          "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-client--2.0"
+          "Implementation-Title" to "com.newrelic.instrumentation.ktor-client-2.0"
       )
   }
 }
 
 verifyInstrumentation {
-    passesOnly("io.ktor:ktor-client-jetty-jvm:[2.0.0,)")
+    passesOnly("io.ktor:ktor-client-jetty-jvm:[2.0.0,3.0.0)")
     excludeRegex(".*beta.*")
     excludeRegex(".*rc.*")
 }
