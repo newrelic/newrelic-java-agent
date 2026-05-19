@@ -9,4 +9,6 @@ public interface CoroutineConfigListener {
     void configureDispatchedTasksIgnores(String[] ignores, String[] ignoresRegExs);
 
     void configureDelay(boolean enabled);
+
+    void configureIgnoredFrameworks(String[] ignores);
 }
