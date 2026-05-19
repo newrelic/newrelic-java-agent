@@ -13,6 +13,7 @@ jobs:
     name: Set java_agent_version to ${{ inputs.version_number }} in system config
     runs-on: ubuntu-24.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Update system configuration page
         run: |
           PAYLOAD="{

@@ -1,7 +1,7 @@
-# spring-4.3.0 Instrumentation Module
+# spring-6.1.0 Instrumentation Module
 
-This module provides instrumentation for Spring Controllers utilizing Spring Web-MVC v4.3.0 up to but not including v6.0.0.
-(v6.0.0 instrumentation is provided by another module).
+This module provides instrumentation for Spring Controllers utilizing Spring Web-MVC v6.0.0 to latest. It is identical to the spring-4.3.0
+module aside from the `javax` to `jakarta` namespace change.
 
 ### Traditional Spring Controllers
 The module will name transactions based on the controller mapping and HTTP method under the following scenarios:
@@ -52,8 +52,8 @@ public class MyController implements MyControllerInterface {
 ```
 
 - A Spring controller class that extends another controller class with/without a class level `@RequestMapping` annotation and methods annotated
-    with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`. In addition, the controller class
-    can also implement methods not on the parent controller with the same annotations.
+  with `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` or `@PatchMapping`. In addition, the controller class
+  can also implement methods not on the parent controller with the same annotations.
 ```java
 @RequestMapping("/root")
 public abstract class MyCommonController {
@@ -101,7 +101,7 @@ will be named based on the controller class name and the executed method. For ex
 
 This module contains instrumentation for the `org.springframework.web.servlet.HandlerInterceptor` interface that replaces
 the legacy pointcut instrumentation. The weave class differs from the pointcut in that it now will instrument
-the `default` methods on the interface; the pointcut method did not. This means that when an implementing class relies on
+the `default` methods on the interface; the pointcut method did not. This means that when an implementing class relies on 
 a default method (doesn't override it), that call is now traced. As a result, the instrumentation coverage
 is more complete and there will be more `preHandle`, `postHandle` and `afterCompletion` segments.
 
