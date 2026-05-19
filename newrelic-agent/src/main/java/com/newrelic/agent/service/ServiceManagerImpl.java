@@ -19,6 +19,7 @@ import com.newrelic.agent.ServerlessHarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.serverless.ServerlessServiceImpl;
 import com.newrelic.agent.ThreadService;
@@ -164,6 +165,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile SlowTransactionService slowTransactionService;
     private volatile AgentControlIntegrationService agentControlIntegrationService;
     private volatile KotlinCoroutinesService kotlinCoroutinesService;
+    private volatile KtorService ktorService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -262,6 +264,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         KotlinCoroutinesConfig kotlinCoroutinesConfig = config.getKotlinCoroutinesConfig();
         kotlinCoroutinesService = new KotlinCoroutinesService(kotlinCoroutinesConfig);
 
+        ktorService = new KtorService();
+
         distributedTraceService = new DistributedTraceServiceImpl();
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics =
                 new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
@@ -342,6 +346,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         slowTransactionService.start();
         agentControlIntegrationService.start();
         kotlinCoroutinesService.start();
+        ktorService.start();
 
         startServices();
 
@@ -433,6 +438,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         slowTransactionService.stop();
         agentControlIntegrationService.stop();
         kotlinCoroutinesService.stop();
+        ktorService.stop();
         stopServices();
     }
 
@@ -712,6 +718,10 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public KotlinCoroutinesService getKotlinCoroutinesService() {
         return kotlinCoroutinesService;
+    }
+
+    public KtorService getKtorService() {
+        return ktorService;
     }
 
     @Override
