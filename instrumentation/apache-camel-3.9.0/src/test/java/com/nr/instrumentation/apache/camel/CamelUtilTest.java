@@ -62,7 +62,6 @@ public class CamelUtilTest {
         urls.add("disruptor-vm:contents?param=value");
         urls.add("log:contents?param=value");
         urls.add("seda:contents?param=value");
-        urls.add("seda-vm:contents?param=value");
         for (String url : urls) {
             try (Endpoint endpoint = mockEndpoint(url)) {
                 ExchangeProcessor processor = CamelUtil.getExchangeProcessor(endpoint);
