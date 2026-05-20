@@ -4,6 +4,28 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.2.0
+## New features and improvements
+- Adds Java 26 support [2734](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds Serverless mode for AWS Lambda monitoring with the Java agent [2609](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2615](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2625](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2633](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2640](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2641](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2647](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2673](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2716](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2721](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2735](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2723](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2740](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2769](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2782](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2794](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2797](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2796](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2806](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds new `application_logging.forwarding.log_level_denylist` config [2764](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Implements region aware event/metric ingest URIs [2749](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2790](https://github.com/newrelic/newrelic-java-agent/pull/2734) [2790](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds support for associating logs to corresponding entity when `enable_auto_app_naming` is `true` [2627](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Add `opentelemetry-sdk-extension-autoconfigure-1.59.0` instrumentation for OpenTelemetry 1.59.0+ [2786](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds support for associating adaptive sampler to corresponding entity when `enable_auto_app_naming` is `true` [2805](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds supportability metrics for each entity created when `enable_auto_app_naming` is `true` [2808](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Implements Cloud Metadata Bypass Proxy config [2791](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds support for multiple versions of Caffeine in the agent [2807](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds support for explain plans that utilize SQL arrays [2815](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds generic 'Queue' as a transport type [2820](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds support for Reactor Netty Http client calls [2817](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+
+## Fixes
+- Fixes an edge case where ill-formed payloads caused an NPE when accessing the `sampled` field on the NR payload [2762](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Expires Tokens when a Reactive Subscription is canceled [2798](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Adds logic to manually evict any dead threads from the `TheadTracker` cache to prevent a memory leak [2811](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+- Resolves a deadlock between harvest thread and JVM shutdown thread [2539](https://github.com/newrelic/newrelic-java-agent/pull/2734)
+
 ## Version 9.1.0
 ## New features and improvements
 - **_The Java Hybrid Agent_**: offering a "best-of-both-worlds" experience by combining New Relic’s deep visibility with [OpenTelemetry API compatibility](https://docs.newrelic.com/docs/apm/agents/manage-apm-agents/opentelemetry-api-support/). This release includes comprehensive support for the OpenTelemetry Tracing, Metrics, and Logs APIs, as well as standalone library and native framework instrumentation. Key enhancements like Span Links and Events on Spans are now available, ensuring seamless interoperability in mixed-mode environments.

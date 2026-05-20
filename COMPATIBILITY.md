@@ -1,6 +1,6 @@
 # Java Agent Compatibility
 
-## JVMs 
+## JVMs
 
 This version of the Java Agent supports Java versions 8 - 26.
 
@@ -13,6 +13,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Mule 3.4.0 to latest
   * Netty 3.3.0.Alpha1 to 5.0.0.Alpha1 (exclusive)
   * Netty Reactor 0.7.0.RELEASE to latest
+  * Netty Reactor HTTP 1.0.0 to latest
   * Open Liberty 21.0.0.12 to latest
   * Play 2.4.0-M3 to latest
   * Resin 3.1.9 to latest
@@ -34,6 +35,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * AWS Firehose 2.1.0 to latest
   * AWS Kinesis 1.11.106 to latest
   * AWS Lambda 1.11.280 to latest
+  * AWS Lambda Core 1.1.0 to latest
   * AWS S3 1.9.0 to latest
   * AWS SNS 1.11.12 to latest
   * AWS SQS 1.10.44 to latest
@@ -110,6 +112,7 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 2.13: 2.7.3 to latest
     * Scala 2.12: 2.6.0 to latest
   * Spray 1.3.1 to latest
+  * Spring RestTemplate 6.0.0 to 7.0.0 (exclusive)
   * Spring Webclient 5.0.0.RELEASE to latest
   * Spring Webflux 5.0.0.RELEASE to latest
   * STTP 2.2.3 to latest
@@ -160,6 +163,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Generic JDBC (any JDBC compliant driver)
   * Anorm 2.3-M1 to 2.5 (exclusive)
   * AWS v1 DynamoDB 1.11.106 to latest
+  * AWS v2 DAX 2.0.0 to latest
   * AWS v2 DynamoDB 2.1.0 to latest
   * Cassandra 3.0.0 to latest
   * Couchbase 2.4.0 to latest
@@ -196,6 +200,7 @@ This version of the Java Agent supports Java versions 8 - 26.
 
   * Any [compatible JDBC driver](#JDBC)
   * AWS v1 DynamoDB 1.11.106 to latest
+  * AWS v2 DAX 2.0.0 to latest
   * AWS v2 DynamoDB 2.1.0 to latest
   * Cassandra 3.0.0 to latest
   * Jedis 1.4.0 to latest
@@ -206,10 +211,13 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## AI Monitoring
   If you have version 8.12.0 or higher of Java agent, you can collect AI data from certain AI libraries and frameworks.
   * AWS Bedrock 2.20.157 to latest
+  * Spring AI Chat Completions 1.0.0-RC1 to latest
+  * Spring AI Embeddings 1.0.0-M7 to latest
 
   ## Other instrumented features
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
+  * Java XML RPC 8 to latest
   * JSP 2.0 to latest
   * OpenEJB 3.0 to latest
   * OpenJPA 1.0 to latest

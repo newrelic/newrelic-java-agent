@@ -90,6 +90,58 @@ custom attributes added by the `addCustomParameters` API to be added to `LlmEven
 One potential custom attribute with special meaning that customers are encouraged to add is `llm.conversation_id`, which has implications in the UI and can be
 used to group LLM messages into specific conversations.
 
+### Token Counting
+
+The instrumentation implements a three-tier fallback strategy for token counting:
+
+#### Priority Order
+1. **Response Object** (most accurate) - Extracts from the models response when available
+2. **User Callback** - using the `setLlmTokenCountCallback` API
+3. **Backend Tokenization** - Fallback when no token data is provided
+
+#### Model Token Data Availability
+
+| Model | Token Data in Response | Summary Attributes              | Message `token_count`                                                    |
+|-------|-------------------|---------------------------------|--------------------------------------------------------------------------|
+| **AI21 Jurassic** |  Yes | `response.usage.*` fields added | `0`                                                                      |
+| **Amazon Titan** |  Yes | `response.usage.*` fields added | `0`                                                                      |
+| **Meta Llama2** |  Yes | `response.usage.*` fields added | `0`                                                                      |
+| **Anthropic Claude** |  No | None added                      | Callback Value or `token_count` is omitted and the backend will tokenize |
+| **Cohere Command** |  No | None added                      | Callback Value or `token_count` is omitted and the backend will tokenize                                               |
+
+#### Summary Event Usage Attributes
+
+When a model provides complete token usage data, the following attributes are added to `LlmChatCompletionSummary` events:
+
+* `response.usage.prompt_tokens` - Number of tokens in the prompt
+* `response.usage.completion_tokens` - Number of tokens in the completion
+* `response.usage.total_tokens` - Total tokens used (prompt + completion)
+
+These three attributes are only added when ALL token counts are available. If any are missing, NONE are added, and the system falls back to callback or backend tokenization.
+
+#### Message Event Token Counting
+
+The `token_count` attribute on `LlmChatCompletionMessage` events behaves as follows:
+
+* **When summary has complete usage**: `token_count = 0` (signals backend not to tokenize)
+* **When usage incomplete, callback registered**: `token_count = <callback result>`
+* **When usage incomplete, no callback**: Attribute omitted (backend will tokenize from `content`)
+
+#### Using the Token Count Callback
+
+The `setLlmTokenCountCallback` API provides a fallback when models don't include token data:
+
+```java
+NewRelic.getAgent()
+    .getAiMonitoring()
+    .setLlmTokenCountCallback((model, content) -> {
+        // Your tokenization logic
+        return calculateTokens(model, content);
+    });
+```
+
+This callback is only invoked when the model response doesn't include complete token usage data.
+
 ### Metrics
 
 When in an active transaction a named span/segment for each LLM embedding and chat completion call is created using the following format:

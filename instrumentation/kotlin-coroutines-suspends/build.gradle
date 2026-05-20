@@ -2,6 +2,10 @@ plugins {
     id "org.jetbrains.kotlin.jvm"
 }
 
+test {
+    systemProperty 'newrelic.config.class_transformer.clear_return_stacks', 'true'
+}
+
 dependencies {
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-agent"))

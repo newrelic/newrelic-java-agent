@@ -64,6 +64,7 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
     private Integer port = null;
     private String identifier = null;
     private String databaseName = null;
+    private int batchSize = 0;
 
     public DefaultSqlTracer(Transaction transaction, ClassMethodSignature sig, Object object,
             MetricNameFormat metricNameFormatter, int tracerFlags) {
@@ -236,6 +237,9 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
                 this.sqlObject = getSql();
             }
             parseStatement(returnValue, transaction.getRPMService().getConnectionTimestamp());
+            if (batchSize > 0) {
+                setAgentAttribute("batch_size", batchSize);
+            }
 
             if (isTransactionSegment() && sql != null) {
                 if (transactionTracerConfig.isExplainEnabled()) {
@@ -379,6 +383,15 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
             rpmConnectTimestamp = System.nanoTime();
             parsedDatabaseStatement = tx.getDatabaseStatementParser().getParsedDatabaseStatement(getDatabaseVendor(),
                     getRawSql(),  metaData);
+
+            if (batchSize > 0 && parsedDatabaseStatement != null) {
+                String batchOperation = "batch_" + parsedDatabaseStatement.getOperation();
+                parsedDatabaseStatement = new ParsedDatabaseStatement(
+                        parsedDatabaseStatement.getModel(),
+                        batchOperation,
+                        parsedDatabaseStatement.recordMetric()
+                );
+            }
         } else if (configTimestamp > rpmConnectTimestamp) {
             parsedDatabaseStatement = null;
             rpmConnectTimestamp = 0;
@@ -463,6 +476,17 @@ public class DefaultSqlTracer extends DefaultTracer implements SqlTracer, Compar
 
     public String getDatabaseName() {
         return databaseName;
+    }
+
+    @Override
+    public void setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Setting batch size to {0} for {1}", this.batchSize, this);
+    }
+
+    @Override
+    public int getBatchSize() {
+        return batchSize;
     }
 
     /**
