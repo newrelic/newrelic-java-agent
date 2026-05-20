@@ -7,47 +7,73 @@
 
 package io.micronaut.http.server.netty.handler;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import io.netty.channel.ChannelHandlerContext;
+import com.nr.agent.instrumentation.micronaut.netty_44.NettyExtendedRequest;
+import com.nr.agent.instrumentation.micronaut.netty_44.NettyHeaders;
+import io.netty.channel.ChannelHandlerContext_Instrumentation;
+import io.netty.channel.ChannelPipeline_Instrumentation;
+import io.netty.handler.codec.http.HttpRequest;
 
-@Weave(originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler", type = MatchType.ExactClass)
+@Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler")
 public abstract class PipeliningServerHandler_Instrumentation {
 
-    @Trace(dispatcher = true)
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    @Trace
+    public void channelRead(ChannelHandlerContext_Instrumentation ctx, Object msg) {
+        ChannelPipeline_Instrumentation pipeline = ctx != null ? ctx.pipeline() : null;
+        if(pipeline != null) {
+            if(pipeline.micronautToken != null) {
+                pipeline.micronautToken.link();
+            } else {
+                Token token = NewRelic.getAgent().getTransaction().getToken();
+                if(token != null) {
+                    if(token.isActive()) {
+                        pipeline.micronautToken = token;
+                    } else {
+                        token.expire();
+                        token = null;
+                    }
+                }
+            }
+        }
+        Weaver.callOriginal();
+    }
+
+    public void channelReadComplete(ChannelHandlerContext_Instrumentation ctx) {
+        ChannelPipeline_Instrumentation pipeline = ctx != null ? ctx.pipeline() : null;
+        if(pipeline != null) {
+            if(pipeline.micronautToken != null) {
+                pipeline.micronautToken.expire();
+                pipeline.micronautToken = null;
+            }
+        }
         Weaver.callOriginal();
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$MessageInboundHandler")
-
     private static class MessageInboundHandler_Instrumentation {
 
-        @Trace
+        @Trace(dispatcher = true)
         void read(Object message) {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "MessageInboundHandler", "read");
-            Weaver.callOriginal();
-        }
+            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHandler", "MessageInboundHandler", "read");
+            if(message instanceof HttpRequest) {
+                HttpRequest httpRequest = (HttpRequest) message;
+                NettyExtendedRequest  nettyExtendedRequest = new NettyExtendedRequest(httpRequest);
+                NettyHeaders nettyHeaders = new NettyHeaders(httpRequest);
+                Transaction transaction = NewRelic.getAgent().getTransaction();
+                transaction.acceptDistributedTraceHeaders(TransportType.HTTP, nettyHeaders);
+                transaction.setWebRequest(nettyExtendedRequest);
+                transaction.convertToWebTransaction();
+            }
 
-    }
-
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$DecompressingInboundHandler")
-
-    private static class DecompressingInboundHandler_Instrumentation {
-
-        @Trace
-        void read(Object message) {
-            NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "DecompressingInboundHandler", "read");
             Weaver.callOriginal();
         }
 
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$OptimisticBufferingInboundHandler")
-
     private static class OptimisticBufferingInboundHandler_Instrumentation {
 
         @Trace
@@ -61,7 +87,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$DroppingInboundHandler")
-
     private static class DroppingInboundHandler_Instrumentation {
 
         @Trace
@@ -73,7 +98,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$StreamingInboundHandler")
-
     private static class StreamingInboundHandler_Instrumentation {
 
         @Trace
@@ -84,21 +108,7 @@ public abstract class PipeliningServerHandler_Instrumentation {
 
     }
 
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$BlockingOutboundHandler")
-
-    private static class BlockingOutboundHandler_Instrumentation {
-
-        @Trace
-        void writeSome() {
-            NewRelic.getAgent()
-                    .getTracedMethod()
-                    .setMetricName("Micronaut", "HTTP", "Netty", "OutboundHander", "BlockingOutboundHandler", "writeSome");
-            Weaver.callOriginal();
-        }
-    }
-
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$ContinueOutboundHandler")
-
     private static class ContinueOutboundHandler_Instrumentation {
 
         @Trace
@@ -111,7 +121,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$FullOutboundHandler")
-
     private static class FullOutboundHandler_Instrumentation {
 
         @Trace
@@ -122,7 +131,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$StreamingOutboundHandler")
-
     private static class StreamingOutboundHandler_Instrumentation {
 
         @Trace
@@ -132,12 +140,6 @@ public abstract class PipeliningServerHandler_Instrumentation {
                     .setMetricName("Micronaut", "HTTP", "Netty", "OutboundHander", "StreamingOutboundHandler", "writeSome");
             Weaver.callOriginal();
         }
-    }
-
-    @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$OutboundAccessImpl")
-
-    public static class OutboundAccessImpl_Instrumentation {
-
     }
 
 }

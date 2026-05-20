@@ -135,7 +135,7 @@ common: &default_settings
         # A comma separated list of label keys that should NOT be added to application logs.
         # Example:
         #   exclude: label_name1,label_name2
-        exclude:
+        #exclude:
 
       # Whether the log events should include context from loggers with support for that.
       context_data:
@@ -148,6 +148,10 @@ common: &default_settings
 
         # A comma separated list of attribute keys whose values should not be sent to New Relic.
         #exclude:
+
+      # A comma separated list of strings representing log levels that should not be forwarded. Log level names are case-insensitive but otherwise must be an exact match.
+      # Example values: "info, debug"
+      #log_level_denylist:
 
     # The agent will generate metrics to indicate the number of
     # application log events occurring at each distinct log level.
@@ -240,12 +244,10 @@ common: &default_settings
 
     # Controls the addition of comments to the beginning of executed SQL
     # statements to be used by the New Relic Query Performance Monitoring
-    # product for entity linking. An empty String disables SQL comments
-    # (default setting).
-    # Allowed options are:
-    # nr_service_guid - The GUID of the New Relic entity this agent is instrumenting
+    # product for entity linking. Default is false.
+    #
     # A resulting comment would resemble this:
-    # /*nr_service_guid=MTE3NDc2MDB8QVBNfEFQUExJQ0FUSU9OfDI4MTc5NDEIEA*/
+    # /*nr_service_guid=MTE3NDc2MDB8QVBNfAAAAAxJQEEEEE9OfDI4MTc5NDEIEA*/
     sql_metadata_comments:
 
     # For large SQL statements, executing the regular expressions that attempt to parse exec and
@@ -526,6 +528,11 @@ common: &default_settings
     #      https://docs.newrelic.com/docs/data-apis/ingest-apis/metric-api/metric-api-limits-restricted-attributes/
     # Default is 250000
     queue_size: 250000
+
+    # If true, the JFR host name will be set to the value in the process_host.display_name config.
+    # Note that if the process_host.display_name value is empty/null, the default hostname
+    # resolution logic will be used. Default is false.
+    use_display_name: false
 
   # User-configurable custom labels for this agent.  Labels are name-value pairs.
   # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.

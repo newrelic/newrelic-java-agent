@@ -540,6 +540,7 @@ public class WeavePackageManager {
                         } else {
                             NewClassAppender.appendClasses(className, superName, interfaceNames, classloader,
                                     verificationResult.computeUtilityClassBytes(cache));
+                            JpmsModuleHelper.addReadsToUnnamedModule(instrumentation, className, classloader);
                         }
                         result.put(weavePackage, verificationResult);
                     } catch (Throwable t) {
