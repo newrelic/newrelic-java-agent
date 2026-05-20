@@ -38,6 +38,8 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_CARDINALITY;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_CARDINALITY_DEFAULT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -85,6 +87,7 @@ public class OpenTelemetryConfigTest {
         OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
         assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
         assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        assertEquals(OPEN_TELEMETRY_METRICS_CARDINALITY_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsCardinality());
     }
 
     @Test
@@ -411,6 +414,20 @@ public class OpenTelemetryConfigTest {
             OpenTelemetryConfig.resetSdkMetricExporterConfigForTests();
             // reverts to default export_timeout
             assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryMetricsCardinality() {
+        int expectedCardinality = 4_000;
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(OPEN_TELEMETRY_METRICS_CARDINALITY, OPEN_TELEMETRY_METRICS_CARDINALITY_DEFAULT))
+                .thenReturn(expectedCardinality);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            // configured cardinality should be respected
+            assertEquals(expectedCardinality, OpenTelemetryConfig.getOpenTelemetryMetricsCardinality());
         }
     }
 }
