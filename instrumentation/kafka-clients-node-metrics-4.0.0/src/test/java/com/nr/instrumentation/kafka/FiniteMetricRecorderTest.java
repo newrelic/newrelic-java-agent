@@ -13,10 +13,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class FiniteMetricRecorderTest {
 
     private FiniteMetricRecorder recorder;

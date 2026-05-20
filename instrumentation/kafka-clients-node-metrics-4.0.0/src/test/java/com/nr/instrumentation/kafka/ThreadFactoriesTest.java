@@ -12,8 +12,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.ThreadFactory;
-import org.junit.Test;
 
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class ThreadFactoriesTest {
 
     @Test

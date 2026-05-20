@@ -14,14 +14,19 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class MetricNameUtilTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)

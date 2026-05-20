@@ -22,6 +22,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -37,6 +40,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -44,6 +48,7 @@ import org.testcontainers.utility.DockerImageName;
 @Ignore("This test is flaky on GHA")
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class Kafka40MessageTest {
     @Rule
     public KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.3.0"));

@@ -7,8 +7,11 @@
 
 package com.nr.instrumentation.kafka;
 
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.apache.kafka.common.Node;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
@@ -24,6 +27,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class NodeTopicRegistryTest {
 
     @Test

@@ -11,6 +11,8 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.Gauge;
@@ -19,6 +21,7 @@ import org.apache.kafka.common.metrics.MetricConfig;
 import org.apache.kafka.common.utils.Time;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Method;
@@ -44,6 +47,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class NewRelicMetricsReporterTest {
     private Introspector introspector;
     private static final KafkaMetric METRIC1 = kafkaMetric("metric1", null, 42.0f);

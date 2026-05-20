@@ -20,6 +20,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.Measurable;
 import org.apache.kafka.common.metrics.stats.Avg;
@@ -27,6 +30,7 @@ import org.apache.kafka.common.metrics.stats.CumulativeSum;
 import org.apache.kafka.common.metrics.stats.Max;
 import org.apache.kafka.common.metrics.stats.Value;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -34,6 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.OngoingStubbing;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class CachedKafkaMetricsTest {
 
     @Mock
