@@ -8,6 +8,7 @@ jobs:
   publish_snapshot:
     runs-on: ubuntu-24.04
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Configure AWS Credentials

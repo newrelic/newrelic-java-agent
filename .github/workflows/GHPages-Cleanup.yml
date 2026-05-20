@@ -18,6 +18,7 @@ jobs:
     env:
       DAYS: ${{ inputs.days || '5' }}
     steps:
+      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout GH Pages
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:

@@ -1,5 +1,9 @@
 name: Java Instrumentation Tests
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
 on:
   workflow_dispatch:
     inputs:
@@ -30,6 +34,7 @@ jobs:
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
       GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m'"
     steps:
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:

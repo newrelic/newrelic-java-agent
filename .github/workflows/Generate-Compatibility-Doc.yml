@@ -1,5 +1,9 @@
 name: Generate Compatibility Doc
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
 on:
   push:
     branches:
@@ -31,6 +35,7 @@ jobs:
       PUBLIC_DOC_FILE: build/docs/site/compatibility-requirements-java-agent.mdx
 
     steps:
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Setup environment
@@ -63,6 +68,7 @@ jobs:
       INTERNAL_FILEPATH: COMPATIBILITY.md
 
     steps:
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Download internal doc
@@ -104,6 +110,7 @@ jobs:
       DESTINATION_FILEPATH: src/content/docs/apm/agents/java-agent/getting-started/compatibility-requirements-java-agent.mdx
 
     steps:
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout external docs repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
