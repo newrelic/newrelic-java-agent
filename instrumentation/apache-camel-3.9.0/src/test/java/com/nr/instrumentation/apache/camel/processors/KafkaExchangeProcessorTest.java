@@ -5,7 +5,7 @@
  *
  */
 
-spackage com.nr.instrumentation.apache.camel.processors;
+package com.nr.instrumentation.apache.camel.processors;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;

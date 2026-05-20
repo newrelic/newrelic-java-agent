@@ -25,7 +25,9 @@ public class Processor_Instrumentation {
                 exchangeInstrumentation.token.link();
             } else if (exchangeInstrumentation.fromConsumer) {
                 ExchangeProcessor exchangeProcessor = CamelUtil.getExchangeProcessor(CamelUtil.getEndpoint(exchange));
-                CamelUtil.startTxn(exchange, exchangeProcessor);
+                if (exchangeProcessor != null && exchangeProcessor.shouldStartTransaction()) {
+                    CamelUtil.startTxn(exchange, exchangeProcessor);
+                }
             }
         }
 

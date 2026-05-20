@@ -38,6 +38,7 @@ public class CamelUtilTest {
         }
     }
 
+    @Test
     public void testKafkaProcessor() throws IOException {
         List<String> urls = new ArrayList<>();
         urls.add("kafka:topicB?brokers=localhost:9092");
@@ -52,6 +53,7 @@ public class CamelUtilTest {
         }
     }
 
+    @Test
     public void testNoOpProcessor() throws IOException {
         List<String> urls = new ArrayList<>();
         urls.add("direct:contents?param=value");
@@ -72,6 +74,7 @@ public class CamelUtilTest {
         }
     }
 
+    @Test
     public void testDefaultProcessor() throws IOException {
         List<String> urls = new ArrayList<>();
         urls.add("a:contents?param=value");
