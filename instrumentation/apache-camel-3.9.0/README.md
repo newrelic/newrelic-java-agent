@@ -16,5 +16,4 @@ One agent configuration value influences Kafka batch behaviour:
 
 ## Notes
 
-- This module is **disabled by default** (`Enabled: false` in the JAR manifest). It must be explicitly enabled in the New Relic agent configuration.
-- `NoOpExchangeProcessor` components are suppressed because they represent in-process routing steps (e.g. `direct:`, `seda:`) and/or logging that would produce noise rather than meaningful transaction boundaries.
+- Transactions will not start for certain routing steps (e.g. `direct:`, `seda:`) and/or logging to prevent noise in telemetry.
