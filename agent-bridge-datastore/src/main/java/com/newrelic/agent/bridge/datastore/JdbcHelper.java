@@ -358,11 +358,6 @@ public class JdbcHelper {
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
     private static String generateSqlMetadataComment() {
-        com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
-        if (transaction == NoOpTransaction.INSTANCE) {
-            return "";
-        }
-
         // The check of isSqlMetadataCommentsEnabled happens in the addSqlMetadataCommentIfNeeded method
         // which gates the execution of this method
         StringBuilder comment = new StringBuilder(64);
@@ -380,7 +375,7 @@ public class JdbcHelper {
 
         // Only return comment if metadata was added
         if (comment.length() > 0) {
-            comment.append("*/ ");
+            comment.append("*/");
 
             Logger logger = AgentBridge.getAgent().getLogger();
             if (logger.isLoggable(Level.FINEST)) {
