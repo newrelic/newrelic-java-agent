@@ -25,6 +25,7 @@ abstract class ResumeUndispatchedRunnable_Instrumentation {
 
 	@Trace(async = true)
 	public void run() {
+		NewRelic.getAgent().getTracedMethod().setMetricName(new String[] {"Custom","Kotlin","Coroutines","ResumeUndispatchedRunnable","run"});
 		if(token != null) {
 			token.linkAndExpire();
 			token = null;
