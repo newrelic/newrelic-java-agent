@@ -35,8 +35,8 @@ jobs:
       PUBLIC_DOC_FILE: build/docs/site/compatibility-requirements-java-agent.mdx
 
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -45,14 +45,14 @@ jobs:
         run: ./gradlew clean generateCompatibilitySite
 
       - name: Upload internal compatibility doc
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 #pin@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: internal-compatibility-doc
           path: ${{ env.INTERNAL_DOC_FILE }}
           retention-days: 1
 
       - name: Upload public site compatibility doc
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 #pin@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: site-compatibility-doc
           path: ${{ env.PUBLIC_DOC_FILE }}
@@ -68,11 +68,11 @@ jobs:
       INTERNAL_FILEPATH: COMPATIBILITY.md
 
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Download internal doc
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: internal-compatibility-doc
           path: tmp
@@ -82,7 +82,7 @@ jobs:
 
       - name: Create PR for internal doc
         id: create-pr-internal
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # pin@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: ${{ env.INTERNAL_FILEPATH }}
@@ -112,14 +112,14 @@ jobs:
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout external docs repo
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           repository: ${{ env.EXTERNAL_REPO_NAME }}
           token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
           path: docs-website
 
       - name: Download site doc
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: site-compatibility-doc
           path: tmp
@@ -129,7 +129,7 @@ jobs:
 
       - name: Create PR for site doc
         id: create-pr-docs-site
-        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # pin@v8
         with:
           token: ${{ secrets.DOCS_WEBSITE_TOKEN }}
           path: docs-website
