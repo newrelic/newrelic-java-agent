@@ -1,0 +1,31 @@
+
+dependencies {
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+    implementation("org.apache.kafka:kafka-clients:4.0.0")
+
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-node-metrics-4.0.0', 'Enabled': 'false' ,
+            'Implementation-Title-Alias': 'kafka-clients-node-metrics' }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-clients:[4.0.0,)'
+}

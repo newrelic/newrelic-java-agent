@@ -203,8 +203,8 @@ public class SpanEventsServiceTest {
             assertEquals(6, reservoir.getTotalSampledPriorityEvents());
             assertAllPartialGranularitySpans(reservoir, true, false);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Instrumented"), eq(7.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Kept"), eq(6.0f)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Instrumented"), eq(7)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/REDUCED/Span/Kept"), eq(6)));
         }
     }
 
@@ -223,8 +223,8 @@ public class SpanEventsServiceTest {
             assertEquals(6, reservoir.getTotalSampledPriorityEvents());
             assertAllPartialGranularitySpans(reservoir, false, false);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Instrumented"), eq(7.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Kept"), eq(6.0f)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Instrumented"), eq(7)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/ESSENTIAL/Span/Kept"), eq(6)));
         }
     }
 
@@ -256,8 +256,8 @@ public class SpanEventsServiceTest {
             assertEquals(true, hadSpanWithNRIDsAttr);
             assertEquals(true, hadSpanWithNRDurationAttr);
 
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Instrumented"), eq(7.0f)));
-            newRelic.verify(() -> NewRelic.recordMetric(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Kept"), eq(5.0f)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Instrumented"), eq(7)));
+            newRelic.verify(() -> NewRelic.incrementCounter(eq("Supportability/DistributedTrace/PartialGranularity/COMPACT/Span/Kept"), eq(5)));
         }
     }
 

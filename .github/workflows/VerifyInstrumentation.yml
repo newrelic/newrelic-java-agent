@@ -1,5 +1,9 @@
 name: Verify Instrumentation
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
 on:
   workflow_dispatch:
     inputs:
@@ -56,9 +60,10 @@ jobs:
     if: ${{ failure() }}
     runs-on: ubuntu-24.04
     steps:
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Send failure message to Slack
         id: slack
-        uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # pin@v1.25.0
+        uses: slackapi/slack-github-action@66834e4b0cad4cbf09ca680587ad8af71d615d4b # pin@3.0.3
         with:
           payload: |
             {

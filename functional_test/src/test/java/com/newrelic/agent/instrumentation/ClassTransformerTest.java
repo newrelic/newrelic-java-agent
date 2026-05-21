@@ -15,10 +15,7 @@ import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPoi
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.HandlerInterceptorPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.HandlerMethodInvokerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringDispatcherPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringExceptionHandlerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
@@ -54,10 +51,7 @@ public class ClassTransformerTest {
                 // Spring
                 new SpringPointCut(classTransformer),
                 // new SpringWildcardPathPointCut(classTransformer),
-                new SpringDispatcherPointCut(classTransformer),
-                new HandlerInterceptorPointCut(classTransformer),
                 new HandlerMethodInvokerPointCut(classTransformer),
-                new SpringExceptionHandlerPointCut(classTransformer),
                 // Faces
                 new LifecyclePointCut(classTransformer),
                 // new PhasePointCut(), // In pointcuts.yml
