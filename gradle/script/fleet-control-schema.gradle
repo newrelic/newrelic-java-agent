@@ -1,0 +1,62 @@
+// Regenerates the Fleet Control agent config schema from newrelic.yml.
+//
+// The generator lives at .fleetControl/schemaGeneration/generate-schema.groovy
+// and writes JSON Schema 2020-12 to .fleetControl/schemas/config.json.
+//
+// Wired into :newrelic-agent:check so `./gradlew check` (or `./gradlew build`)
+// regenerates the schema in place. The build does not fail on schema drift —
+// the developer is expected to notice the file change in `git status` and
+// commit it. Real generator errors (meta-schema validation, etc.) still fail
+// the build.
+
+configurations {
+    fleetControlSchemaTool
+}
+
+dependencies {
+    fleetControlSchemaTool localGroovy()
+    // Mirror the script's @Grab block. With these on the classpath the
+    // Grab annotations are no-ops, so the generator does not need network
+    // access to resolve them at run time.
+    fleetControlSchemaTool 'org.yaml:snakeyaml:2.2'
+    fleetControlSchemaTool 'com.networknt:json-schema-validator:1.5.5'
+    fleetControlSchemaTool 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
+}
+
+def schemaScript = file("${rootProject.projectDir}/.fleetControl/schemaGeneration/generate-schema.groovy")
+def newrelicYml = file("${rootProject.projectDir}/newrelic-agent/src/main/resources/newrelic.yml")
+def schemaOutput = file("${rootProject.projectDir}/.fleetControl/schemas/config.json")
+
+def generateAgentConfigSchema = tasks.register('generateAgentConfigSchema', JavaExec) {
+    group = 'verification'
+    description = 'Regenerates the Fleet Control agent config schema from newrelic.yml'
+
+    classpath = configurations.fleetControlSchemaTool
+    mainClass.set('groovy.ui.GroovyMain')
+    args(schemaScript.absolutePath)
+
+    // Skip Ivy/Grape — deps are already on the classpath.
+    systemProperty('groovy.grape.enable', 'false')
+
+    inputs.file(schemaScript)
+    inputs.file(newrelicYml)
+    outputs.file(schemaOutput)
+
+    // Exit 1 means "schema changed, commit it" — informational, not an error
+    // for local builds. Exit >= 2 is a real generator failure.
+    ignoreExitValue = true
+    doLast {
+        int code = executionResult.get().exitValue
+        if (code >= 2) {
+            throw new GradleException("Schema generator failed (exit ${code})")
+        }
+    }
+}
+
+project(':newrelic-agent') {
+    afterEvaluate {
+        tasks.named('check').configure {
+            dependsOn generateAgentConfigSchema
+        }
+    }
+}

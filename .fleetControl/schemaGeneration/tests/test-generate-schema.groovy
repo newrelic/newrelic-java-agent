@@ -1,0 +1,527 @@
+#!/usr/bin/env groovy
+/*
+ * Unit tests for generate-schema.groovy.
+ *
+ * Run:
+ *   groovy tests/test-generate-schema.groovy     (from .fleetControl/)
+ *
+ * Loads the script via GroovyShell with TEST_MODE=true so its main block
+ * is skipped; helper methods are then invokable on the script object.
+ */
+
+@Grab('org.yaml:snakeyaml:2.2')
+import org.yaml.snakeyaml.Yaml
+
+// ---------------------------------------------------------------------------
+// Load generate-schema.groovy in test mode
+// ---------------------------------------------------------------------------
+File testFile = new File(getClass().protectionDomain.codeSource.location.toURI())
+File scriptFile = new File(testFile.parentFile, '../generate-schema.groovy')
+assert scriptFile.exists(), "Cannot find generate-schema.groovy at ${scriptFile}"
+
+Binding binding = new Binding([TEST_MODE: true])
+GroovyShell shell = new GroovyShell(binding)
+Script script = shell.parse(scriptFile)
+script.run()  // executes top-level definitions, but main is guarded
+
+// ---------------------------------------------------------------------------
+// Tiny test runner
+// ---------------------------------------------------------------------------
+class TestRunner {
+    int passed = 0
+    int failed = 0
+    List<String> failures = []
+
+    void test(String name, Closure body) {
+        try {
+            body()
+            println "  PASS  ${name}"
+            passed++
+        } catch (Throwable e) {
+            println "  FAIL  ${name}"
+            println "        ${e.message ?: e.class.simpleName}"
+            failed++
+            failures << name
+        }
+    }
+
+    int summary() {
+        println "\n${passed} passed, ${failed} failed"
+        return failed > 0 ? 1 : 0
+    }
+}
+
+TestRunner t = new TestRunner()
+
+// ---------------------------------------------------------------------------
+// inferType
+// ---------------------------------------------------------------------------
+println "\n--- inferType ---"
+t.test('boolean')              { assert script.inferType(true) == 'boolean'; assert script.inferType(false) == 'boolean' }
+t.test('integer')              { assert script.inferType(0) == 'integer'; assert script.inferType(42) == 'integer'; assert script.inferType(-1L) == 'integer' }
+t.test('number (float)')       { assert script.inferType(0.5) == 'number'; assert script.inferType(1.0d) == 'number' }
+t.test('string')               { assert script.inferType('hello') == 'string'; assert script.inferType('') == 'string' }
+t.test('array')                { assert script.inferType([]) == 'array'; assert script.inferType([1, 2, 3]) == 'array' }
+t.test('object (Map)')         { assert script.inferType([:]) == 'object'; assert script.inferType([k: 'v']) == 'object' }
+t.test('null falls to string') { assert script.inferType(null) == 'string' }
+
+// ---------------------------------------------------------------------------
+// stripErb
+// ---------------------------------------------------------------------------
+println "\n--- stripErb ---"
+t.test('single-line ERB') {
+    assert script.stripErb('<%= license_key %>') == '<%= required %>'
+}
+t.test('string without ERB unchanged') {
+    assert script.stripErb('plain string') == 'plain string'
+}
+t.test('multiple ERB blocks in one string') {
+    assert script.stripErb('<%= a %> and <%= b %>') == '<%= required %> and <%= required %>'
+}
+t.test('multi-line ERB (DOTALL)') {
+    assert script.stripErb('<%= foo\n   bar %>') == '<%= required %>'
+}
+
+// ---------------------------------------------------------------------------
+// extractComments
+// ---------------------------------------------------------------------------
+println "\n--- extractComments ---"
+t.test('single comment attached to key') {
+    Map<String, String> c = (Map<String, String>) script.extractComments('# my comment\nfoo: 1\n')
+    assert c['foo'] == 'my comment'
+}
+t.test('multi-line comment joined') {
+    Map<String, String> c = (Map<String, String>) script.extractComments('# line one\n# line two\nfoo: 1\n')
+    assert c['foo'] == 'line one line two'
+}
+t.test('blank line resets pending (regression: bug #2)') {
+    Map<String, String> c = (Map<String, String>) script.extractComments('# stale comment\n\nfoo: 1\n')
+    assert !c.containsKey('foo')
+}
+t.test("commented-out config doesn't bleed (regression: bug #3)") {
+    String yaml = '# log_file_path:\n\n# real description\nai_monitoring:\n  enabled: false\n'
+    Map<String, String> c = (Map<String, String>) script.extractComments(yaml)
+    assert c['ai_monitoring'] == 'real description'
+}
+t.test('nested keys use full path') {
+    String yaml = '# parent doc\nouter:\n  # child doc\n  inner: 1\n'
+    Map<String, String> c = (Map<String, String>) script.extractComments(yaml)
+    assert c['outer'] == 'parent doc'
+    assert c['outer.inner'] == 'child doc'
+}
+
+// ---------------------------------------------------------------------------
+// makeProperty (helpers take override maps as params, so we pass test-locals)
+// ---------------------------------------------------------------------------
+println "\n--- makeProperty ---"
+Map testEnums = ['log_level': ['off', 'info', 'debug']]
+Map testTypes = [
+    'error_collector.ignore_status_codes': [type: 'array', items: [type: 'integer'], default: [404]],
+]
+
+t.test('boolean with default') {
+    Map p = script.makeProperty('enabled', true, 'Enable the thing', testEnums, testTypes)
+    assert p.type == 'boolean'
+    assert p.default == true
+    assert p.description == 'Enable the thing'
+}
+t.test('integer with default, no description') {
+    Map p = script.makeProperty('count', 42, '', testEnums, testTypes)
+    assert p.type == 'integer'
+    assert p.default == 42
+    assert !p.containsKey('description')
+}
+t.test('array with default (regression: bug #10)') {
+    Map p = script.makeProperty('ignore_classes', ['FooException'], '', testEnums, testTypes)
+    assert p.type == 'array'
+    assert p.default == ['FooException']
+    assert p.items == [type: 'string']
+}
+t.test('array items type inferred from first element') {
+    Map p = script.makeProperty('codes', [404, 500], '', testEnums, testTypes)
+    assert p.items == [type: 'integer']
+    assert p.default == [404, 500]
+}
+t.test('empty array emits no default') {
+    Map p = script.makeProperty('empty', [], '', testEnums, testTypes)
+    assert p.type == 'array'
+    assert !p.containsKey('default')
+}
+t.test('enum override by full path') {
+    Map p = script.makeProperty('log_level', 'info', '', testEnums, testTypes)
+    assert p.type == 'string'
+    assert p.enum == ['off', 'info', 'debug']
+    assert p.default == 'info'
+}
+t.test('type override takes precedence (regression: bug #4)') {
+    Map p = script.makeProperty('error_collector.ignore_status_codes', 404, 'doc',
+                                testEnums, testTypes)
+    assert p.type == 'array'
+    assert p.items == [type: 'integer']
+    assert p.default == [404]
+}
+t.test('ERB default stripped') {
+    Map p = script.makeProperty('license_key', '<%= license_key %>', '', testEnums, testTypes)
+    assert p.default == '<%= required %>'
+}
+
+// ---------------------------------------------------------------------------
+// buildProperties
+// ---------------------------------------------------------------------------
+println "\n--- buildProperties ---"
+Set testExcludes = ['class_transformer', 'obfuscate_jvm_props', 'security.agent'] as Set
+
+t.test('excludes full-path keys (regression: bug #1)') {
+    Map data = [
+        class_transformer:    [foo: true],
+        obfuscate_jvm_props:  null,
+        agent_enabled:        true,
+    ]
+    Map props = script.buildProperties(data, [:], 'common',
+                                        testExcludes, testEnums, testTypes)
+    assert !props.containsKey('class_transformer')
+    assert !props.containsKey('obfuscate_jvm_props')
+    assert props.containsKey('agent_enabled')
+}
+// Groovy 5 quirk: Map.properties / Map['properties'] both invoke the Java
+// bean accessor, NOT a key lookup. Use .get('properties') to navigate past
+// any field literally named 'properties'.
+t.test('excludes ancestor paths') {
+    Map data = [
+        security: [
+            enabled: true,
+            agent:   [enabled: false],
+        ],
+    ]
+    Map props = script.buildProperties(data, [:], 'common',
+                                        testExcludes, testEnums, testTypes)
+    Map sec = (Map) props.security.get('properties')
+    assert sec.containsKey('enabled')
+    assert !sec.containsKey('agent')
+}
+t.test('descriptions attach to objects and leaves') {
+    Map data = [outer: [inner: true]]
+    Map comments = [
+        'common.outer':       'outer description',
+        'common.outer.inner': 'inner description',
+    ]
+    Map props = script.buildProperties(data, comments, 'common',
+                                        testExcludes, testEnums, testTypes)
+    assert props.outer.description == 'outer description'
+    assert props.outer.get('properties').inner.description == 'inner description'
+}
+
+// ---------------------------------------------------------------------------
+// Integration: generateSchema against an inline YAML fixture
+// ---------------------------------------------------------------------------
+println "\n--- generateSchema (integration) ---"
+String fixture = '''\
+common:
+  # The license key.
+  license_key: '<%= license_key %>'
+
+  # The application name.
+  app_name: My App
+
+  # Logging configuration.
+  log_level: info
+
+  # Stale comment that should NOT bleed into the next key.
+
+  # Real description for error_collector.
+  error_collector:
+    enabled: true
+    ignore_classes:
+      - FooException
+    ignore_status_codes: 404
+
+  # Should be dropped (in EXCLUDE_KEYS).
+  class_transformer:
+    com.foo: false
+'''
+
+Set fixtureExcludes = ['class_transformer'] as Set
+Map fixtureEnums = ['log_level': ['off', 'info', 'debug']]
+Map fixtureTypes = [
+    'error_collector.ignore_status_codes': [type: 'array', items: [type: 'integer'], default: [404]],
+]
+Map schema = script.generateSchema(fixture, fixtureExcludes, fixtureEnums, fixtureTypes)
+
+// Groovy 5 quirk: see note above — use .get('properties') everywhere.
+Map schemaProps = (Map) schema.get('properties')
+
+t.test('top-level required is [license_key, app_name]') {
+    assert schema.required == ['license_key', 'app_name']
+}
+t.test('license_key overridden to plain required string') {
+    Map lk = (Map) schemaProps.license_key
+    assert lk.type == 'string'
+    assert lk.minLength == 1
+    assert !lk.containsKey('default')
+}
+t.test('log_level emitted as enum with default') {
+    Map ll = (Map) schemaProps.log_level
+    assert ll.default == 'info'
+    assert ll.enum.contains('info')
+}
+t.test('class_transformer excluded') {
+    assert !schemaProps.containsKey('class_transformer')
+}
+t.test('error_collector description has no upstream leak') {
+    Map ec = (Map) schemaProps.error_collector
+    assert ec.description?.contains('Real description')
+    assert !(ec.description?.contains('Stale comment'))
+}
+t.test('ignore_classes has array default') {
+    Map ec = (Map) schemaProps.error_collector
+    Map ic = (Map) ec.get('properties').ignore_classes
+    assert ic.type == 'array'
+    assert ic.default == ['FooException']
+}
+t.test('ignore_status_codes uses type override') {
+    Map ec = (Map) schemaProps.error_collector
+    Map isc = (Map) ec.get('properties').ignore_status_codes
+    assert isc.type == 'array'
+    assert isc.items == [type: 'integer']
+    assert isc.default == [404]
+}
+
+// ---------------------------------------------------------------------------
+// classifyChanges
+// ---------------------------------------------------------------------------
+println "\n--- classifyChanges ---"
+
+Closure objNode = { Map props, List required = null, Object additional = true ->
+    Map node = [type: 'object', properties: props, additionalProperties: additional]
+    if (required != null) node.required = required
+    return node
+}
+
+Closure byKind = { List<Map> changes ->
+    changes.collectEntries { [(it.kind): it] }
+}
+
+t.test('no changes returns empty list') {
+    Map s = objNode([foo: [type: 'string', default: 'x']])
+    assert script.classifyChanges(s, s) == []
+}
+t.test('added property is additive') {
+    Map old = objNode([:])
+    Map ne  = objNode([foo: [type: 'string']])
+    List<Map> ch = script.classifyChanges(old, ne)
+    assert ch.size() == 1
+    assert ch[0].path == 'foo'
+    assert ch[0].kind == 'added'
+    assert ch[0].severity == 'additive'
+}
+t.test('removed property is breaking') {
+    Map old = objNode([foo: [type: 'string']])
+    Map ne  = objNode([:])
+    List<Map> ch = script.classifyChanges(old, ne)
+    assert ch[0].kind == 'removed'
+    assert ch[0].severity == 'breaking'
+}
+t.test('type change is breaking') {
+    Map old = objNode([foo: [type: 'string']])
+    Map ne  = objNode([foo: [type: 'integer']])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.type_changed.severity == 'breaking'
+    assert ch.type_changed.detail.contains('string')
+    assert ch.type_changed.detail.contains('integer')
+}
+t.test('required added is breaking') {
+    Map old = objNode([foo: [type: 'string']], [])
+    Map ne  = objNode([foo: [type: 'string']], ['foo'])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.required_added.severity == 'breaking'
+    assert ch.required_added.path == 'foo'
+}
+t.test('required removed is additive') {
+    Map old = objNode([foo: [type: 'string']], ['foo'])
+    Map ne  = objNode([foo: [type: 'string']], [])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.required_removed.severity == 'additive'
+}
+t.test('additionalProperties tightened is breaking') {
+    Map old = objNode([:], null, true)
+    Map ne  = objNode([:], null, false)
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.additional_properties_tightened.severity == 'breaking'
+}
+t.test('additionalProperties implicit-true matches explicit-true (no change)') {
+    Map old = [type: 'object', properties: [:]]
+    Map ne  = [type: 'object', properties: [:], additionalProperties: true]
+    assert script.classifyChanges(old, ne) == []
+}
+t.test('enum value removed is breaking') {
+    Map old = objNode([x: [type: 'string', enum: ['a', 'b', 'c']]])
+    Map ne  = objNode([x: [type: 'string', enum: ['a', 'c']]])
+    List<Map> ch = script.classifyChanges(old, ne)
+    Map removed = ch.find { it.kind == 'enum_value_removed' }
+    assert removed.severity == 'breaking'
+    assert removed.detail.contains("'b'")
+}
+t.test('enum value added is additive') {
+    Map old = objNode([x: [type: 'string', enum: ['a']]])
+    Map ne  = objNode([x: [type: 'string', enum: ['a', 'b']]])
+    Map added = script.classifyChanges(old, ne).find { it.kind == 'enum_value_added' }
+    assert added.severity == 'additive'
+}
+t.test('enum newly introduced is breaking') {
+    Map old = objNode([x: [type: 'string']])
+    Map ne  = objNode([x: [type: 'string', enum: ['a', 'b']]])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.enum_introduced.severity == 'breaking'
+}
+t.test('enum removed entirely is additive') {
+    Map old = objNode([x: [type: 'string', enum: ['a', 'b']]])
+    Map ne  = objNode([x: [type: 'string']])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.enum_removed_entirely.severity == 'additive'
+}
+t.test('default changed is additive') {
+    Map old = objNode([x: [type: 'string', default: 'a']])
+    Map ne  = objNode([x: [type: 'string', default: 'b']])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.default_changed.severity == 'additive'
+    assert ch.default_changed.detail.contains('a')
+    assert ch.default_changed.detail.contains('b')
+}
+t.test('description changed is cosmetic') {
+    Map old = objNode([x: [type: 'string', description: 'old']])
+    Map ne  = objNode([x: [type: 'string', description: 'new']])
+    Map ch = byKind(script.classifyChanges(old, ne))
+    assert ch.description_changed.severity == 'cosmetic'
+}
+t.test('nested object recurses') {
+    Map old = objNode([outer: objNode([inner: [type: 'string']])])
+    Map ne  = objNode([outer: objNode([inner: [type: 'integer']])])
+    List<Map> ch = script.classifyChanges(old, ne)
+    assert ch.size() == 1
+    assert ch[0].kind == 'type_changed'
+    assert ch[0].path == 'outer.inner'
+}
+t.test('renderChange formatting') {
+    assert script.renderChange([path: 'foo.bar', kind: 'added',
+                                severity: 'additive', detail: 'new property']) ==
+           '+ foo.bar: new property'
+    assert script.renderChange([path: 'foo', kind: 'removed',
+                                severity: 'breaking', detail: '']) == '- foo'
+    assert script.renderChange([path: 'foo', kind: 'type_changed',
+                                severity: 'breaking', detail: 'type x → y']) ==
+           '~ foo: type x → y'
+}
+
+// ---------------------------------------------------------------------------
+// recommendBump + applyBump
+// ---------------------------------------------------------------------------
+println "\n--- recommendBump ---"
+t.test('any breaking → major') {
+    List changes = [
+        [severity: 'cosmetic'],
+        [severity: 'additive'],
+        [severity: 'breaking'],
+    ]
+    assert script.recommendBump(changes) == 'major'
+}
+t.test('additive without breaking → minor') {
+    List changes = [[severity: 'cosmetic'], [severity: 'additive']]
+    assert script.recommendBump(changes) == 'minor'
+}
+t.test('cosmetic only → patch') {
+    List changes = [[severity: 'cosmetic']]
+    assert script.recommendBump(changes) == 'patch'
+}
+t.test('empty changes → none') {
+    assert script.recommendBump([]) == 'none'
+}
+
+println "\n--- applyBump ---"
+t.test('major resets minor and patch') {
+    assert script.applyBump('1.2.3', 'major') == '2.0.0'
+}
+t.test('minor resets patch only') {
+    assert script.applyBump('1.2.3', 'minor') == '1.3.0'
+}
+t.test('patch increments patch only') {
+    assert script.applyBump('1.2.3', 'patch') == '1.2.4'
+}
+t.test('none returns input unchanged') {
+    assert script.applyBump('1.2.3', 'none') == '1.2.3'
+}
+t.test('non-semver throws') {
+    try {
+        script.applyBump('not-semver', 'major')
+        assert false : 'expected throw'
+    } catch (IllegalArgumentException ignored) {
+        // expected
+    }
+}
+
+// ---------------------------------------------------------------------------
+// bumpVersion (file I/O)
+// ---------------------------------------------------------------------------
+println "\n--- bumpVersion ---"
+
+Closure withTempYaml = { String content, Closure body ->
+    File f = File.createTempFile('config-def-', '.yml')
+    try {
+        f.text = content
+        body(f)
+    } finally {
+        f.delete()
+    }
+}
+
+String fixtureYaml = '''\
+configurationDefinitions:
+  - platform: KUBERNETESCLUSTER
+    description: Test agent configuration
+    type: agent-config
+    version: 1.2.3
+    schema: ./schemas/config.json
+    format: yml
+'''
+
+t.test('reads current version, returns old/new pair') {
+    withTempYaml(fixtureYaml) { File f ->
+        def (String oldV, String newV) = script.bumpVersion(f, 'minor', false)
+        assert oldV == '1.2.3'
+        assert newV == '1.3.0'
+    }
+}
+t.test('default (write=false) does NOT touch the file') {
+    withTempYaml(fixtureYaml) { File f ->
+        String before = f.text
+        script.bumpVersion(f, 'major', false)
+        assert f.text == before
+    }
+}
+t.test('--ci (write=true) writes the new version') {
+    withTempYaml(fixtureYaml) { File f ->
+        script.bumpVersion(f, 'major', true)
+        Map data = (Map) new Yaml().load(f.text)
+        assert data.configurationDefinitions[0].version == '2.0.0'
+    }
+}
+t.test("'none' bump leaves file untouched even with write=true") {
+    withTempYaml(fixtureYaml) { File f ->
+        String before = f.text
+        def (String oldV, String newV) = script.bumpVersion(f, 'none', true)
+        assert oldV == newV
+        assert f.text == before
+    }
+}
+t.test('missing version field throws') {
+    withTempYaml('configurationDefinitions:\n  - platform: foo\n') { File f ->
+        try {
+            script.bumpVersion(f, 'major', false)
+            assert false : 'expected throw'
+        } catch (IllegalStateException ignored) {
+            // expected
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+System.exit(t.summary())

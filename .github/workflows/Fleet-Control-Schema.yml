@@ -1,0 +1,80 @@
+name: Fleet Control Config Schema
+
+# Regenerates .fleetControl/schemas/config.json from newrelic.yml whenever a
+# PR against main touches inputs that could affect the schema, then commits
+# the regenerated schema (and any version bump in
+# .fleetControl/configurationDefinitions.yml) back to the PR branch.
+#
+# Auto-commit only works for PRs from branches in this repository — pushes
+# to fork branches require write access we don't have. PRs from forks will
+# skip the regeneration; reviewers can run the generator locally
+# (`./gradlew generateAgentConfigSchema`) and ask the contributor to pull.
+
+permissions: {}
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'newrelic-agent/src/main/resources/newrelic.yml'
+      - '.fleetControl/schemaGeneration/**'
+      - '.fleetControl/schemas/**'
+      - '.fleetControl/configurationDefinitions.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: fleet-control-schema-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    name: Regenerate config schema
+    runs-on: ubuntu-24.04
+    # GITHUB_TOKEN cannot push to fork branches, so skip fork PRs.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # pin@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Groovy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y groovy
+
+      - name: Run schema generator
+        id: generate
+        run: |
+          set +e
+          groovy .fleetControl/schemaGeneration/generate-schema.groovy --ci
+          code=$?
+          set -e
+          case "$code" in
+            0) echo "changed=false" >> "$GITHUB_OUTPUT" ;;
+            1) echo "changed=true"  >> "$GITHUB_OUTPUT" ;;
+            *) echo "Schema generator failed (exit $code)"; exit "$code" ;;
+          esac
+
+      - name: Commit and push regenerated schema
+        if: steps.generate.outputs.changed == 'true'
+        run: |
+          if [ -z "$(git status --porcelain .fleetControl)" ]; then
+            echo "Generator reported changes but working tree is clean — nothing to commit."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .fleetControl/schemas/config.json .fleetControl/configurationDefinitions.yml
+          git commit -m "chore: regenerate Fleet Control config schema"
+          git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
