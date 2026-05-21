@@ -163,6 +163,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Generic JDBC (any JDBC compliant driver)
   * Anorm 2.3-M1 to 2.5 (exclusive)
   * AWS v1 DynamoDB 1.11.106 to latest
+  * AWS v2 DAX 2.0.0 to latest
   * AWS v2 DynamoDB 2.1.0 to latest
   * Cassandra 3.0.0 to latest
   * Couchbase 2.4.0 to latest
@@ -199,6 +200,7 @@ This version of the Java Agent supports Java versions 8 - 26.
 
   * Any [compatible JDBC driver](#JDBC)
   * AWS v1 DynamoDB 1.11.106 to latest
+  * AWS v2 DAX 2.0.0 to latest
   * AWS v2 DynamoDB 2.1.0 to latest
   * Cassandra 3.0.0 to latest
   * Jedis 1.4.0 to latest
@@ -209,6 +211,8 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## AI Monitoring
   If you have version 8.12.0 or higher of Java agent, you can collect AI data from certain AI libraries and frameworks.
   * AWS Bedrock 2.20.157 to latest
+  * Spring AI Chat Completions 1.0.0-RC1 to latest
+  * Spring AI Embeddings 1.0.0-M7 to latest
 
   ## Other instrumented features
   * Java Completable futures 8 to latest

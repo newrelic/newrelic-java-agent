@@ -17,7 +17,6 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.ClassTransformerConfig;
 import com.newrelic.agent.instrumentation.PointCutClassTransformer;
 import com.newrelic.agent.instrumentation.TracerFactoryPointCut;
 import com.newrelic.agent.instrumentation.classmatchers.InterfaceMatcher;
