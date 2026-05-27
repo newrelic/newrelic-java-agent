@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "title": "New Relic Java Agent Configuration",
-    "description": "Fleet Control configuration schema for the New Relic Java agent. Generated from newrelic-agent/src/main/resources/newrelic.yml.",
+    "description": "Fleet Control configuration schema for the New Relic Java agent. Generated from .fleetControl/schemaGeneration/newrelic.yml.",
     "type": "object",
     "properties": {
         "license_key": {
@@ -33,6 +33,11 @@
             "type": "boolean",
             "default": true,
             "description": "Set to true to enable component-based transaction naming. Set to false to use the URI of a web request as the name of the transaction. Default is true."
+        },
+        "enable_custom_tracing": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable @Trace annotation instrumentation. Default: true"
         },
         "log_level": {
             "type": "string",
@@ -72,6 +77,79 @@
             "type": "string",
             "default": "newrelic_agent.log",
             "description": "The name of the log file. Default is newrelic_agent.log."
+        },
+        "datastore_multihost_preference": {
+            "type": "string",
+            "default": "NONE",
+            "description": "When multiple datastore addresses detected, determines which to use. Values: NONE, FIRST, LAST Default: NONE"
+        },
+        "legacy_async_api_skip_suspend": {
+            "type": "boolean",
+            "default": false,
+            "description": "Workaround for memory leak with legacy async API instrumentation. Default: false"
+        },
+        "reactor-netty": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Report Reactor Netty errors. Default: false"
+        },
+        "scala_futures_as_segments": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "additionalProperties": true,
+            "description": "Report Scala Futures as transaction segments. Default: false"
+        },
+        "send_data_on_exit": {
+            "type": "boolean",
+            "default": false,
+            "description": "Send data on JVM exit. Default: false"
+        },
+        "send_data_on_exit_threshold": {
+            "type": "integer",
+            "default": 60,
+            "description": "Seconds app must run before send_data_on_exit applies. Default: 60"
+        },
+        "sync_startup": {
+            "type": "boolean",
+            "default": false,
+            "description": "Wait for New Relic connection on app startup. Default: false"
+        },
+        "send_environment_info": {
+            "type": "boolean",
+            "default": true,
+            "description": "Report JVM settings to New Relic. Default: true"
+        },
+        "trim_stats": {
+            "type": "boolean",
+            "default": true,
+            "description": "Aggregate metrics for segments with <2% of transaction time. Default: true"
+        },
+        "token_timeout": {
+            "type": "integer",
+            "default": 180,
+            "description": "Seconds before async token auto-expires. Default: 180"
+        },
+        "segment_timeout": {
+            "type": "integer",
+            "default": 600,
+            "description": "Seconds before segment auto-ends. Default: 600"
         },
         "ai_monitoring": {
             "type": "object",
@@ -118,6 +196,11 @@
                             "default": false,
                             "description": "When true and \"enable_auto_app_naming\" is also true, log events will be sent to their corresponding named entity rather than the roll up entity. Default is false."
                         },
+                        "max_samples_stored": {
+                            "type": "integer",
+                            "default": 10000,
+                            "description": "Application log events are collected up to the configured amount. Afterwards, events are sampled to maintain an even distribution across the harvest cycle. Default is 10000. Setting to 0 will disable."
+                        },
                         "labels": {
                             "type": "object",
                             "properties": {
@@ -125,6 +208,13 @@
                                     "type": "boolean",
                                     "default": false,
                                     "description": "When true, custom tags (labels) will be added to agent forwarded logs."
+                                },
+                                "exclude": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "A comma separated list of label keys that should NOT be added to application logs."
                                 }
                             },
                             "additionalProperties": true,
@@ -137,10 +227,28 @@
                                     "type": "boolean",
                                     "default": false,
                                     "description": "When true, application logs will contain context data."
+                                },
+                                "include": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "A comma separated list of attribute keys whose values should be sent to New Relic."
+                                },
+                                "exclude": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "A comma separated list of attribute keys whose values should not be sent to New Relic."
                                 }
                             },
                             "additionalProperties": true,
                             "description": "Whether the log events should include context from loggers with support for that."
+                        },
+                        "log_level_denylist": {
+                            "type": "string",
+                            "description": "A comma separated list of strings representing log levels that should not be forwarded. Log level names are case-insensitive but otherwise must be an exact match. Example values: \"info, debug\""
                         }
                     },
                     "additionalProperties": true,
@@ -157,6 +265,18 @@
                     },
                     "additionalProperties": true,
                     "description": "The agent will generate metrics to indicate the number of application log events occurring at each distinct log level."
+                },
+                "local_decorating": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "When true, the agent will decorate your application log files with linking metadata. The default is false."
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "The agent will add linking metadata to each log line in your application log files. This feature should only be used if you want to use a third party log forwarder, instead of the agent's built-in forwarding feature, to send your application log events to New Relic."
                 }
             },
             "additionalProperties": true,
@@ -174,6 +294,84 @@
             "additionalProperties": true,
             "description": "Adds integration with CodeStream, introducing Code-Level Metrics! Golden Signals visible in your IDE through New Relic CodeStream."
         },
+        "proxy_host": {
+            "type": "string",
+            "description": "Proxy settings for connecting to the New Relic server: If a proxy is used, the host setting is required. Other settings are optional. Default port is 8080. The username and password settings will be used to authenticate to Basic Auth challenges from a proxy server. Proxy scheme will allow the agent to connect through proxies using the HTTPS scheme."
+        },
+        "proxy_port": {
+            "type": "integer",
+            "default": 8080
+        },
+        "proxy_user": {
+            "type": "string"
+        },
+        "proxy_password": {
+            "type": "string"
+        },
+        "proxy_scheme": {
+            "type": "string",
+            "default": "http"
+        },
+        "cloud": {
+            "type": "object",
+            "properties": {
+                "aws": {
+                    "type": "object",
+                    "properties": {
+                        "account_id": {
+                            "type": "string",
+                            "default": "",
+                            "description": "AWS account ID for cloud.resource_id attribute."
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "metadata_bypass_proxy": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Bypass proxy for cloud metadata endpoints. Default: false"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Cloud environment settings for container metadata collection: When running in containerized environments (like AWS Fargate) with a proxy, metadata endpoints may need to bypass the proxy to be accessible."
+        },
+        "utilization": {
+            "type": "object",
+            "properties": {
+                "detect_aws": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Poll AWS metadata API. Default: true"
+                },
+                "detect_azure": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Poll Azure metadata API. Default: true"
+                },
+                "detect_gcp": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Poll GCP metadata API. Default: true"
+                },
+                "detect_kubernetes": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Report KUBERNETES_SERVICE_HOST env var. Default: true"
+                },
+                "detect_pcf": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Read PCF environment variables. Default: true"
+                },
+                "detect_docker": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Read Docker info from file system. Default: true"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Cloud platform utilization settings."
+        },
         "max_stack_trace_lines": {
             "type": "integer",
             "default": 30,
@@ -186,6 +384,20 @@
                     "type": "boolean",
                     "default": true,
                     "description": "When true, attributes will be sent to New Relic. The default is true."
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A comma separated list of attribute keys whose values should be sent to New Relic."
+                },
+                "exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "A comma separated list of attribute keys whose values should not be sent to New Relic."
                 },
                 "http_attribute_mode": {
                     "type": "string",
@@ -201,6 +413,28 @@
             "additionalProperties": true,
             "description": "Provides the ability to configure the attributes sent to New Relic. These attributes can be found in transaction traces, traced errors, transaction events, and page views."
         },
+        "custom_insights_events": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable custom event collection. Default: true"
+                },
+                "max_attribute_value": {
+                    "type": "integer",
+                    "default": 255,
+                    "description": "Max attribute value length (max 4095). Default: 255"
+                },
+                "max_samples_stored": {
+                    "type": "integer",
+                    "default": 30000,
+                    "description": "Max custom events per minute. Default: 30000"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Custom events configuration."
+        },
         "transaction_tracer": {
             "type": "object",
             "properties": {
@@ -215,7 +449,8 @@
                     "description": "Threshold in seconds for when to collect a transaction trace. When the response time of a controller action exceeds this threshold, a transaction trace will be recorded and sent to New Relic. Valid values are any float value, or (default) \"apdex_f\", which will use the threshold for the \"Frustrated\" Apdex level (greater than four times the apdex_t value). Default is apdex_f."
                 },
                 "sql_metadata_comments": {
-                    "type": "string",
+                    "type": "boolean",
+                    "default": false,
                     "description": "Controls the addition of comments to the beginning of executed SQL statements to be used by the New Relic Query Performance Monitoring product for entity linking. Default is false.  A resulting comment would resemble this: /*nr_service_guid=MTE3NDc2MDB8QVBNfAAAAAxJQEEEEE9OfDI4MTc5NDEIEA*/"
                 },
                 "exec_call_sql_regex_disabled": {
@@ -257,6 +492,31 @@
                     "type": "integer",
                     "default": 20,
                     "description": "Use this setting to control the variety of transaction traces. The higher the setting, the greater the variety. Set this to 0 to always report the slowest transaction trace. Default is 20."
+                },
+                "attributes": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "include": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "If attributes are enabled for transaction traces, all attribute keys found in this list will be sent to New Relic in transaction traces."
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "All attribute keys found in this list will not be sent to New Relic in transaction traces."
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "This setting can be used to turn on or off all attributes for transaction traces."
                 }
             },
             "additionalProperties": true,
@@ -289,6 +549,30 @@
                         404
                     ],
                     "description": "Use this property to exclude specific http status codes from being reported as errors by providing a comma separated list of status codes. The default is to exclude 404s. If you want to override this, you must provide any new value because an empty list is ignored."
+                },
+                "ignore_messages": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Exception messages to ignore by class. Example: java.lang.IllegalArgumentException: - 'Invalid input*'"
+                },
+                "expected_classes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Expected exception classes (counted but not errors)."
+                },
+                "expected_status_codes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Expected HTTP status codes."
+                },
+                "expected_messages": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Expected messages by class."
                 }
             },
             "additionalProperties": true,
@@ -306,6 +590,31 @@
                     "type": "integer",
                     "default": 2000,
                     "description": "Events are collected up to the configured amount. Afterwards, events are sampled to maintain an even distribution across the harvest cycle. Default is 2000. Setting to 0 will disable."
+                },
+                "attributes": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "include": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "If attributes are enabled for transaction events, all attribute keys found in this list will be sent to New Relic in transaction treventsaces."
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "All attribute keys found in this list will not be sent to New Relic in transaction events."
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "This setting can be used to turn on or off all attributes for transaction events."
                 }
             },
             "additionalProperties": true,
@@ -373,6 +682,20 @@
                             "type": "boolean",
                             "default": true,
                             "description": "When true, attributes will be sent to New Relic. The default is true."
+                        },
+                        "include": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "A comma separated list of attribute keys whose values should be sent to New Relic."
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "A comma separated list of attribute keys whose values should not be sent to New Relic."
                         }
                     },
                     "additionalProperties": true,
@@ -411,6 +734,38 @@
                     "type": "string",
                     "default": "<head>",
                     "description": "If tag_lib_instrument is true, this is the regex pattern that will be used to detect HTML start head elements. Modify the regex if you have more complex start head elements (attributes for example). The defined pattern is case-insensitive."
+                },
+                "disabled_auto_pages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Pages to skip auto instrumentation (comma-separated)."
+                },
+                "attributes": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable attributes for browser monitoring. Default: false"
+                        },
+                        "include": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Attribute keys to include."
+                        },
+                        "exclude": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "Attribute keys to exclude."
+                        }
+                    },
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
@@ -420,6 +775,44 @@
             "type": "boolean",
             "default": true,
             "description": "By default, the agent sends JVM input arguments to New Relic, where they are visible as Environment data. Set to false to disable the sending of JVM props."
+        },
+        "circuitbreaker": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable circuit breaker protection. Default: true"
+                },
+                "memory_threshold": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Free heap memory percentage threshold. Default: 20"
+                },
+                "gc_cpu_threshold": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "GC CPU percentage threshold. Default: 10"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Circuit breaker protection settings."
+        },
+        "extensions": {
+            "type": "string",
+            "description": "Extensions directory configuration."
+        },
+        "slow_sql": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable slow SQL tracing. Default: true"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Slow SQL tracing configuration."
         },
         "jfr": {
             "type": "object",
@@ -452,6 +845,19 @@
             },
             "additionalProperties": true,
             "description": "Real-time profiling using Java Flight Recorder (JFR). This feature reports dimensional metric and event data to the endpoints configured by metric_ingest_uri and event_ingest_uri, respectively. Requires a JVM that provides the JFR library."
+        },
+        "infinite_tracing": {
+            "type": "object",
+            "properties": {
+                "trace_observer": {
+                    "type": "string"
+                },
+                "span_events": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Infinite Tracing configuration."
         },
         "labels": {
             "type": "object",
