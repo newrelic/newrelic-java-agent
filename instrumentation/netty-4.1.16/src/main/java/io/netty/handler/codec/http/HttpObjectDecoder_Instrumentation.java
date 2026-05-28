@@ -17,7 +17,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.DefaultChannelPipeline_Instrumentation;
+import io.netty.channel.DefaultChannelPipeline;
 import io.netty.channel.NRNettyChannelHandler;
 
 @Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectDecoder")
@@ -27,7 +27,7 @@ public class HttpObjectDecoder_Instrumentation {
 	protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
 		Weaver.callOriginal();
 		ChannelPipeline pipeline = ctx.pipeline();
-		Token token = ((DefaultChannelPipeline_Instrumentation)pipeline).nettyToken;
+		Token token = ((DefaultChannelPipeline)pipeline).nettyToken;
 		for (Object msg : out) {
 			if (msg instanceof HttpRequest && token == null) {
 				if (pipeline.get(NRNettyChannelHandler.NR_CHANNEL_HANDLER) == null) {

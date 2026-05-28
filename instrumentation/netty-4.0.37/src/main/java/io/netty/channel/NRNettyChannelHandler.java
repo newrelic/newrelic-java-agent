@@ -3,8 +3,7 @@ package io.netty.channel;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import com.agent.instrumentation.netty4116.Http2RequestWrapper;
-import com.agent.instrumentation.netty4116.RequestWrapper;
+import com.agent.instrumentation.netty40.RequestWrapper;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -13,7 +12,6 @@ import com.newrelic.api.agent.Transaction;
 import com.newrelic.api.agent.TransactionNamePriority;
 
 import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http2.Http2HeadersFrame;
 
 public class NRNettyChannelHandler extends ChannelInboundHandlerAdapter_Instrumentation {
 
@@ -27,12 +25,13 @@ public class NRNettyChannelHandler extends ChannelInboundHandlerAdapter_Instrume
 		}
 	}
 
-	@Trace(dispatcher = true)
+	@Trace(dispatcher = true, excludeFromTransactionTrace = true)
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
 
+
 		ChannelPipeline pipeline = ctx.pipeline();
-		if (pipeline instanceof DefaultChannelPipeline) {
-			DefaultChannelPipeline dPipeline = (DefaultChannelPipeline)pipeline;
+		if (pipeline instanceof DefaultChannelPipeline_Instrumentation) {
+			DefaultChannelPipeline_Instrumentation dPipeline = (DefaultChannelPipeline_Instrumentation)pipeline;
 
 			if(dPipeline.nettyToken == null) {
 				dPipeline.nettyToken = NewRelic.getAgent().getTransaction().getToken();
@@ -43,8 +42,6 @@ public class NRNettyChannelHandler extends ChannelInboundHandlerAdapter_Instrume
 			tx.convertToWebTransaction();
 			if(msg instanceof HttpRequest) {
 				tx.setWebRequest(new RequestWrapper((HttpRequest) msg));
-			} else if(msg instanceof Http2HeadersFrame) {
-				tx.setWebRequest(new Http2RequestWrapper((Http2HeadersFrame) msg));
 			}
 		} 
 		TracedMethod tracer = NewRelic.getAgent().getTracedMethod();
@@ -66,5 +63,6 @@ public class NRNettyChannelHandler extends ChannelInboundHandlerAdapter_Instrume
 		super.channelReadComplete(ctx);
 	}
 
+	
 
 }

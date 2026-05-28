@@ -13,8 +13,8 @@ public abstract class ChannelOutboundHandler_Instrumentation {
 		Weaver.callOriginal();
 		if(msg instanceof FullHttpResponse) {
 			ChannelPipeline pipeline = ctx.pipeline();
-			if (pipeline instanceof DefaultChannelPipeline_Instrumentation) {
-				DefaultChannelPipeline_Instrumentation dPipeline = (DefaultChannelPipeline_Instrumentation)pipeline;
+			if (pipeline instanceof DefaultChannelPipeline) {
+				DefaultChannelPipeline dPipeline = (DefaultChannelPipeline)pipeline;
 				if(dPipeline.nettyToken != null) {
 					if(dPipeline.nettyToken.isActive()) {
 						dPipeline.nettyToken.expire();

@@ -16,7 +16,7 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.DefaultChannelPipeline_Instrumentation;
+import io.netty.channel.DefaultChannelPipeline;
 
 @Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectEncoder")
 public class HttpObjectEncoder_Instrumentation {
@@ -25,9 +25,9 @@ public class HttpObjectEncoder_Instrumentation {
     protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) {
     	ChannelPipeline pipeline = ctx.pipeline();
     	
-       boolean expired = NettyUtil.processResponse(msg, (DefaultChannelPipeline_Instrumentation)pipeline);
+       boolean expired = NettyUtil.processResponse(msg, (DefaultChannelPipeline)pipeline);
         if (expired) {
-        	((DefaultChannelPipeline_Instrumentation)pipeline).nettyToken = null;
+        	((DefaultChannelPipeline)pipeline).nettyToken = null;
         }
         Weaver.callOriginal();
     }

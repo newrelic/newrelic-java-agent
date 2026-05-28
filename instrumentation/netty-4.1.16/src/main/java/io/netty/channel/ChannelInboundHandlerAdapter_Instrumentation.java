@@ -19,8 +19,8 @@ public abstract class ChannelInboundHandlerAdapter_Instrumentation extends Chann
 
 		ChannelPipeline pipeline = ctx.pipeline();
 
-		if (pipeline instanceof DefaultChannelPipeline_Instrumentation) {
-			DefaultChannelPipeline_Instrumentation cPipeline = (DefaultChannelPipeline_Instrumentation)pipeline;
+		if (pipeline instanceof DefaultChannelPipeline) {
+			DefaultChannelPipeline cPipeline = (DefaultChannelPipeline)pipeline;
 			if (cPipeline.nettyToken != null) {
 				cPipeline.nettyToken.link();
 			} 
@@ -61,8 +61,8 @@ public abstract class ChannelInboundHandlerAdapter_Instrumentation extends Chann
 		if (ctx != null) {
 			ChannelPipeline pipeline = ctx.pipeline();
 
-			if (pipeline instanceof DefaultChannelPipeline_Instrumentation) {
-				DefaultChannelPipeline_Instrumentation cPipeline = (DefaultChannelPipeline_Instrumentation)pipeline;
+			if (pipeline instanceof DefaultChannelPipeline) {
+				DefaultChannelPipeline cPipeline = (DefaultChannelPipeline)pipeline;
 				if (cPipeline.nettyToken != null) {
 					cPipeline.nettyToken.link();
 				}
