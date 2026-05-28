@@ -84,18 +84,73 @@ final Map<String, List<String>> ENUM_OVERRIDES = [
 ]
 
 // ---------------------------------------------------------------------------
+// Type override helpers — factory methods for common schema patterns.
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a schema for keys that accept either a YAML array of strings OR a
+ * comma-delimited string. Used for keys parsed via BaseConfig.getUniqueStrings().
+ */
+static Map<String, Object> stringArrayOrDelimited(List<String> defaultValue = []) {
+    Map<String, Object> schema = [
+        anyOf: [
+            [type: 'array', items: [type: 'string']] as Map<String, Object>,
+            [type: 'string']
+        ]
+    ] as Map<String, Object>
+    if (defaultValue != null) {
+        schema.put('default', defaultValue)
+    }
+    return schema
+}
+
+/**
+ * Creates a schema for status code keys that accept an integer, array of integers,
+ * or a comma-delimited string with optional range syntax (e.g., "400-499").
+ */
+static Map<String, Object> statusCodeArrayOrRange(List<Integer> defaultValue = []) {
+    Map<String, Object> schema = [
+        anyOf: [
+            [type: 'integer'] as Map<String, Object>,
+            [type: 'array', items: [type: 'integer']] as Map<String, Object>,
+            [type: 'string', description: 'Comma-separated integers or ranges (e.g., "400-499")'] as Map<String, Object>
+        ]
+    ] as Map<String, Object>
+    if (defaultValue != null && !defaultValue.isEmpty()) {
+        schema.put('default', defaultValue)
+    }
+    return schema
+}
+
+// ---------------------------------------------------------------------------
 // Type overrides — when YAML default doesn't reflect the documented semantic.
 // ---------------------------------------------------------------------------
 final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
-    'error_collector.ignore_status_codes': [
-        type:    'array',
-        items:   [type: 'integer'],
-        default: [404],
-    ] as Map<String, Object>,
-    // labels is a map of name→value pairs but its only YAML example is
-    // commented out, so SnakeYAML parses it as null and the generator
-    // would otherwise emit type: string. Per the YAML comments: max 64
-    // labels, names/values up to 255 chars.
+    // --- Status code keys (integer, array, or range string) ---
+    'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
+    'error_collector.expected_status_codes': statusCodeArrayOrRange(),
+
+    // --- Keys using getUniqueStrings (array or comma-delimited string) ---
+    'attributes.include':                                      stringArrayOrDelimited(),
+    'attributes.exclude':                                      stringArrayOrDelimited(),
+    'transaction_tracer.attributes.include':                   stringArrayOrDelimited(),
+    'transaction_tracer.attributes.exclude':                   stringArrayOrDelimited(),
+    'transaction_events.attributes.include':                   stringArrayOrDelimited(),
+    'transaction_events.attributes.exclude':                   stringArrayOrDelimited(),
+    'span_events.attributes.include':                          stringArrayOrDelimited(),
+    'span_events.attributes.exclude':                          stringArrayOrDelimited(),
+    'browser_monitoring.disabled_auto_pages':                  stringArrayOrDelimited(),
+    'browser_monitoring.attributes.include':                   stringArrayOrDelimited(),
+    'browser_monitoring.attributes.exclude':                   stringArrayOrDelimited(),
+    'application_logging.forwarding.context_data.include':     stringArrayOrDelimited(),
+    'application_logging.forwarding.context_data.exclude':     stringArrayOrDelimited(),
+    'application_logging.forwarding.labels.exclude':           stringArrayOrDelimited(),
+    'class_transformer.classloader_excludes':                  stringArrayOrDelimited(),
+
+    // --- labels is a map of name→value pairs ---
+    // Its only YAML example is commented out, so SnakeYAML parses it as null
+    // and the generator would otherwise emit type: string. Per the YAML
+    // comments: max 64 labels, names/values up to 255 chars.
     'labels': [
         type:                 'object',
         additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
@@ -118,13 +173,6 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
 //   'transaction_tracer.log_sql',
 // ---------------------------------------------------------------------------
 final Set<String> EXCLUDE_KEYS = [
-    // Module-specific instrumentation toggles use dotted keys
-    // (e.g. com.newrelic.instrumentation.servlet-user) that collide with the
-    // generator's `.`-delimited path logic, plus the classloader_excludes
-    // block uses an unusual YAML shape. Power-user knob — better disabled
-    // via system properties than the Fleet Control UI.
-    'class_transformer',
-
     // The agent derives both URIs from license_key by default; explicit
     // overrides are an advanced regional/private-cloud concern that
     // doesn't belong in the standard config UI.
@@ -136,6 +184,20 @@ final Set<String> EXCLUDE_KEYS = [
     // entry. Add a TYPE_OVERRIDE below if you need to surface it.
     'obfuscate_jvm_props',
 ] as Set<String>
+
+// ---------------------------------------------------------------------------
+// Key patterns to exclude — regex patterns for keys that should be excluded.
+// Used for instrumentation module toggles under class_transformer that have
+// dotted package names (e.g., com.newrelic.instrumentation.servlet-user).
+// ---------------------------------------------------------------------------
+final List<Pattern> EXCLUDE_KEY_PATTERNS = [
+    // Instrumentation module toggles under class_transformer with dotted names.
+    // Any key under class_transformer that contains a dot is an instrumentation
+    // module name (e.g., com.newrelic.instrumentation.servlet-user, org.example.mymodule).
+    // These are dynamically named and shouldn't be exposed in Fleet Control UI.
+    // Pattern matches: class_transformer.<anything>.<anything>...
+    Pattern.compile(/^class_transformer\.[^.]+\..+/),
+] as List<Pattern>
 
 // ---------------------------------------------------------------------------
 // Helpers — all static; none reference instance state.
@@ -234,7 +296,7 @@ static Map<String, String> extractComments(String rawText) {
         def m = keyRe.matcher(stripped)
         if (m.find() && !stripped.startsWith('-')) {
             String key = m.group(1)
-            while (!indentStack.isEmpty() && indentStack.getLast().indent >= indent) {
+            while (!indentStack.isEmpty() && indentStack.last().indent >= indent) {
                 indentStack.removeLast()
             }
             indentStack.add(new IndentEntry(indent, key))
@@ -255,6 +317,7 @@ static Map<String, String> extractComments(String rawText) {
 // ---------------------------------------------------------------------------
 static Map<String, Object> buildProperties(Map<String, Object> data, Map<String, String> comments, String prefix,
                                            Set<String> excludeKeys,
+                                           List<Pattern> excludeKeyPatterns,
                                            Map<String, List<String>> enumOverrides,
                                            Map<String, Map<String, Object>> typeOverrides) {
     Map<String, Object> properties = [:]
@@ -268,12 +331,17 @@ static Map<String, Object> buildProperties(Map<String, Object> data, Map<String,
             return
         }
 
+        // Skip keys matching exclusion patterns (e.g., instrumentation module names)
+        if (excludeKeyPatterns.any { Pattern p -> p.matcher(flatKey).matches() }) {
+            return
+        }
+
         String desc = comments.get("common.${flatKey}".toString()) ?: comments.get(flatKey) ?: ''
 
         Map<String, Object> prop
         if (value instanceof Map && !((Map) value).isEmpty()) {
             Map<String, Object> nested = buildProperties((Map<String, Object>) value, comments, keyPath,
-                                                          excludeKeys, enumOverrides, typeOverrides)
+                                                          excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
             prop = [
                 type:                 'object',
                 properties:           nested,
@@ -535,6 +603,7 @@ static void validateMetaSchema(Map<String, Object> schema) {
 // Schema generation
 // ---------------------------------------------------------------------------
 static Map<String, Object> generateSchema(String rawText, Set<String> excludeKeys,
+                                          List<Pattern> excludeKeyPatterns,
                                           Map<String, List<String>> enumOverrides,
                                           Map<String, Map<String, Object>> typeOverrides) {
     String safeText = rawText.replaceAll(/(?s)<%=.*?%>/, '"__ERB_PLACEHOLDER__"')
@@ -543,7 +612,7 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
 
     Map<String, String> comments = extractComments(rawText)
     Map<String, Object> properties = buildProperties(common, comments, 'common',
-                                                     excludeKeys, enumOverrides, typeOverrides)
+                                                     excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
 
     // Override license_key (ERB placeholder → required string)
     if (properties.containsKey('license_key')) {
@@ -571,13 +640,16 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
 // Main — skipped when the script is loaded by tests with TEST_MODE=true
 // ---------------------------------------------------------------------------
 if (binding.variables.get('TEST_MODE') != true) {
-    // Parse CLI flags: --ci (apply bump) and --bump=major|minor|patch|none (override)
+    // Parse CLI flags
     boolean ciMode = false
+    boolean forceMode = false
     String overrideBump = null
     List<String> rawArgs = (binding.variables.get('args') ?: []) as List<String>
     rawArgs.each { String arg ->
         if (arg == '--ci') {
             ciMode = true
+        } else if (arg == '--force') {
+            forceMode = true
         } else if (arg.startsWith('--bump=')) {
             overrideBump = arg.substring('--bump='.length())
             if (!(overrideBump in ['major', 'minor', 'patch', 'none'])) {
@@ -588,9 +660,16 @@ if (binding.variables.get('TEST_MODE') != true) {
     }
 
     String rawText = loadNewrelicYml(DEFAULT_YML_PATH)
-    Map<String, Object> newSchema = generateSchema(rawText, EXCLUDE_KEYS, ENUM_OVERRIDES, TYPE_OVERRIDES)
+    Map<String, Object> newSchema = generateSchema(rawText, EXCLUDE_KEYS, EXCLUDE_KEY_PATTERNS, ENUM_OVERRIDES, TYPE_OVERRIDES)
 
     validateMetaSchema(newSchema)
+
+    // In force mode, skip comparison and just write the schema
+    if (forceMode) {
+        writeSchema(newSchema, SCHEMA_PATH)
+        println "Wrote:   ${SCHEMA_PATH} (force mode — no comparison)"
+        System.exit(0)
+    }
 
     Map<String, Object> oldSchema = loadExisting(SCHEMA_PATH)
 
