@@ -75,12 +75,12 @@ final File DEFAULT_YML_PATH = new File(REPO_ROOT, 'newrelic-agent/src/main/resou
 // Enum / special-value overrides
 // ---------------------------------------------------------------------------
 final Map<String, List<String>> ENUM_OVERRIDES = [
-    'log_level':                                                 ['off', 'severe', 'warning', 'info', 'fine', 'finer', 'finest'],
-    'transaction_tracer.record_sql':                             ['off', 'raw', 'obfuscated'],
-    'attributes.http_attribute_mode':                            ['standard', 'legacy', 'both'],
-    'security.mode':                                             ['IAST', 'RASP'],
-    'distributed_tracing.sampler.remote_parent_sampled':         ['default', 'always_on', 'always_off'],
-    'distributed_tracing.sampler.remote_parent_not_sampled':     ['default', 'always_on', 'always_off'],
+        'log_level':                                                 ['off', 'severe', 'warning', 'info', 'fine', 'finer', 'finest'],
+        'transaction_tracer.record_sql':                             ['off', 'raw', 'obfuscated'],
+        'attributes.http_attribute_mode':                            ['standard', 'legacy', 'both'],
+        'security.mode':                                             ['IAST', 'RASP'],
+        'distributed_tracing.sampler.remote_parent_sampled':         ['default', 'always_on', 'always_off'],
+        'distributed_tracing.sampler.remote_parent_not_sampled':     ['default', 'always_on', 'always_off'],
 ]
 
 // ---------------------------------------------------------------------------
@@ -93,10 +93,10 @@ final Map<String, List<String>> ENUM_OVERRIDES = [
  */
 static Map<String, Object> stringArrayOrDelimited(List<String> defaultValue = []) {
     Map<String, Object> schema = [
-        anyOf: [
-            [type: 'array', items: [type: 'string']] as Map<String, Object>,
-            [type: 'string']
-        ]
+            anyOf: [
+                    [type: 'array', items: [type: 'string']] as Map<String, Object>,
+                    [type: 'string']
+            ]
     ] as Map<String, Object>
     if (defaultValue != null) {
         schema.put('default', defaultValue)
@@ -110,11 +110,11 @@ static Map<String, Object> stringArrayOrDelimited(List<String> defaultValue = []
  */
 static Map<String, Object> statusCodeArrayOrRange(List<Integer> defaultValue = []) {
     Map<String, Object> schema = [
-        anyOf: [
-            [type: 'integer'] as Map<String, Object>,
-            [type: 'array', items: [type: 'integer']] as Map<String, Object>,
-            [type: 'string', description: 'Comma-separated integers or ranges (e.g., "400-499")'] as Map<String, Object>
-        ]
+            anyOf: [
+                    [type: 'integer'] as Map<String, Object>,
+                    [type: 'array', items: [type: 'integer']] as Map<String, Object>,
+                    [type: 'string', description: 'Comma-separated integers or ranges (e.g., "400-499")'] as Map<String, Object>
+            ]
     ] as Map<String, Object>
     if (defaultValue != null && !defaultValue.isEmpty()) {
         schema.put('default', defaultValue)
@@ -126,36 +126,36 @@ static Map<String, Object> statusCodeArrayOrRange(List<Integer> defaultValue = [
 // Type overrides — when YAML default doesn't reflect the documented semantic.
 // ---------------------------------------------------------------------------
 final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
-    // --- Status code keys (integer, array, or range string) ---
-    'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
-    'error_collector.expected_status_codes': statusCodeArrayOrRange(),
+        // --- Status code keys (integer, array, or range string) ---
+        'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
+        'error_collector.expected_status_codes': statusCodeArrayOrRange(),
 
-    // --- Keys using getUniqueStrings (array or comma-delimited string) ---
-    'attributes.include':                                      stringArrayOrDelimited(),
-    'attributes.exclude':                                      stringArrayOrDelimited(),
-    'transaction_tracer.attributes.include':                   stringArrayOrDelimited(),
-    'transaction_tracer.attributes.exclude':                   stringArrayOrDelimited(),
-    'transaction_events.attributes.include':                   stringArrayOrDelimited(),
-    'transaction_events.attributes.exclude':                   stringArrayOrDelimited(),
-    'span_events.attributes.include':                          stringArrayOrDelimited(),
-    'span_events.attributes.exclude':                          stringArrayOrDelimited(),
-    'browser_monitoring.disabled_auto_pages':                  stringArrayOrDelimited(),
-    'browser_monitoring.attributes.include':                   stringArrayOrDelimited(),
-    'browser_monitoring.attributes.exclude':                   stringArrayOrDelimited(),
-    'application_logging.forwarding.context_data.include':     stringArrayOrDelimited(),
-    'application_logging.forwarding.context_data.exclude':     stringArrayOrDelimited(),
-    'application_logging.forwarding.labels.exclude':           stringArrayOrDelimited(),
-    'class_transformer.classloader_excludes':                  stringArrayOrDelimited(),
+        // --- Keys using getUniqueStrings (array or comma-delimited string) ---
+        'attributes.include':                                      stringArrayOrDelimited(),
+        'attributes.exclude':                                      stringArrayOrDelimited(),
+        'transaction_tracer.attributes.include':                   stringArrayOrDelimited(),
+        'transaction_tracer.attributes.exclude':                   stringArrayOrDelimited(),
+        'transaction_events.attributes.include':                   stringArrayOrDelimited(),
+        'transaction_events.attributes.exclude':                   stringArrayOrDelimited(),
+        'span_events.attributes.include':                          stringArrayOrDelimited(),
+        'span_events.attributes.exclude':                          stringArrayOrDelimited(),
+        'browser_monitoring.disabled_auto_pages':                  stringArrayOrDelimited(),
+        'browser_monitoring.attributes.include':                   stringArrayOrDelimited(),
+        'browser_monitoring.attributes.exclude':                   stringArrayOrDelimited(),
+        'application_logging.forwarding.context_data.include':     stringArrayOrDelimited(),
+        'application_logging.forwarding.context_data.exclude':     stringArrayOrDelimited(),
+        'application_logging.forwarding.labels.exclude':           stringArrayOrDelimited(),
+        'class_transformer.classloader_excludes':                  stringArrayOrDelimited(),
 
-    // --- labels is a map of name→value pairs ---
-    // Its only YAML example is commented out, so SnakeYAML parses it as null
-    // and the generator would otherwise emit type: string. Per the YAML
-    // comments: max 64 labels, names/values up to 255 chars.
-    'labels': [
-        type:                 'object',
-        additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
-        maxProperties:        64,
-    ] as Map<String, Object>,
+        // --- labels is a map of name→value pairs ---
+        // Its only YAML example is commented out, so SnakeYAML parses it as null
+        // and the generator would otherwise emit type: string. Per the YAML
+        // comments: max 64 labels, names/values up to 255 chars.
+        'labels': [
+                type:                 'object',
+                additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
+                maxProperties:        64,
+        ] as Map<String, Object>,
 ]
 
 // ---------------------------------------------------------------------------
@@ -173,16 +173,16 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
 //   'transaction_tracer.log_sql',
 // ---------------------------------------------------------------------------
 final Set<String> EXCLUDE_KEYS = [
-    // The agent derives both URIs from license_key by default; explicit
-    // overrides are an advanced regional/private-cloud concern that
-    // doesn't belong in the standard config UI.
-    'metric_ingest_uri',
-    'event_ingest_uri',
+        // The agent derives both URIs from license_key by default; explicit
+        // overrides are an advanced regional/private-cloud concern that
+        // doesn't belong in the standard config UI.
+        'metric_ingest_uri',
+        'event_ingest_uri',
 
-    // All children are commented out in newrelic.yml so SnakeYAML parses
-    // this as null. Including it would emit a misleading {type: "string"}
-    // entry. Add a TYPE_OVERRIDE below if you need to surface it.
-    'obfuscate_jvm_props',
+        // All children are commented out in newrelic.yml so SnakeYAML parses
+        // this as null. Including it would emit a misleading {type: "string"}
+        // entry. Add a TYPE_OVERRIDE below if you need to surface it.
+        'obfuscate_jvm_props',
 ] as Set<String>
 
 // ---------------------------------------------------------------------------
@@ -191,12 +191,12 @@ final Set<String> EXCLUDE_KEYS = [
 // dotted package names (e.g., com.newrelic.instrumentation.servlet-user).
 // ---------------------------------------------------------------------------
 final List<Pattern> EXCLUDE_KEY_PATTERNS = [
-    // Instrumentation module toggles under class_transformer with dotted names.
-    // Any key under class_transformer that contains a dot is an instrumentation
-    // module name (e.g., com.newrelic.instrumentation.servlet-user, org.example.mymodule).
-    // These are dynamically named and shouldn't be exposed in Fleet Control UI.
-    // Pattern matches: class_transformer.<anything>.<anything>...
-    Pattern.compile(/^class_transformer\.[^.]+\..+/),
+        // Instrumentation module toggles under class_transformer with dotted names.
+        // Any key under class_transformer that contains a dot is an instrumentation
+        // module name (e.g., com.newrelic.instrumentation.servlet-user, org.example.mymodule).
+        // These are dynamically named and shouldn't be exposed in Fleet Control UI.
+        // Pattern matches: class_transformer.<anything>.<anything>...
+        Pattern.compile(/^class_transformer\.[^.]+\..+/),
 ] as List<Pattern>
 
 // ---------------------------------------------------------------------------
@@ -341,11 +341,11 @@ static Map<String, Object> buildProperties(Map<String, Object> data, Map<String,
         Map<String, Object> prop
         if (value instanceof Map && !((Map) value).isEmpty()) {
             Map<String, Object> nested = buildProperties((Map<String, Object>) value, comments, keyPath,
-                                                          excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
+                    excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
             prop = [
-                type:                 'object',
-                properties:           nested,
-                additionalProperties: true,
+                    type:                 'object',
+                    properties:           nested,
+                    additionalProperties: true,
             ] as Map<String, Object>
             if (desc) prop.put('description', desc.trim())
         } else {
@@ -512,7 +512,7 @@ static List<String> bumpVersion(File yamlPath, String bump, boolean write) {
     List defs = (List) (data?.get('configurationDefinitions') ?: [])
     if (defs.isEmpty() || !((Map) defs[0]).containsKey('version')) {
         throw new IllegalStateException(
-            "${yamlPath}: configurationDefinitions[0].version not found"
+                "${yamlPath}: configurationDefinitions[0].version not found"
         )
     }
     String oldVersion = ((Map) defs[0]).get('version').toString()
@@ -524,16 +524,16 @@ static List<String> bumpVersion(File yamlPath, String bump, boolean write) {
         int matches = 0
         while (matcher.find()) {
             matcher.appendReplacement(sb,
-                java.util.regex.Matcher.quoteReplacement(
-                    "${matcher.group(1)}${newVersion}${matcher.group(3)}"
-                )
+                    java.util.regex.Matcher.quoteReplacement(
+                            "${matcher.group(1)}${newVersion}${matcher.group(3)}"
+                    )
             )
             matches++
         }
         matcher.appendTail(sb)
         if (matches != 1) {
             throw new IllegalStateException(
-                "${yamlPath}: expected exactly 1 'version:' line, found ${matches}"
+                    "${yamlPath}: expected exactly 1 'version:' line, found ${matches}"
             )
         }
         yamlPath.text = sb.toString()
@@ -549,8 +549,8 @@ static String loadNewrelicYml(File defaultPath) {
     File source = envPath ? new File(envPath) : defaultPath
     if (!source.exists()) {
         throw new FileNotFoundException(
-            "newrelic.yml not found at ${source.absolutePath}. " +
-            "Set NEWRELIC_YML to override the source path."
+                "newrelic.yml not found at ${source.absolutePath}. " +
+                        "Set NEWRELIC_YML to override the source path."
         )
     }
     println "Reading: ${source.absolutePath}"
@@ -612,27 +612,27 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
 
     Map<String, String> comments = extractComments(rawText)
     Map<String, Object> properties = buildProperties(common, comments, 'common',
-                                                     excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
+            excludeKeys, excludeKeyPatterns, enumOverrides, typeOverrides)
 
     // Override license_key (ERB placeholder → required string)
     if (properties.containsKey('license_key')) {
         properties.put('license_key', [
-            type:        'string',
-            description: 'New Relic license key associated with your account. ' +
-                         "Binds the agent's data to your account in the New Relic UI.",
-            minLength:   1,
+                type:        'string',
+                description: 'New Relic license key associated with your account. ' +
+                        "Binds the agent's data to your account in the New Relic UI.",
+                minLength:   1,
         ] as Map<String, Object>)
     }
 
     return [
-        $schema:              'https://json-schema.org/draft/2020-12/schema',
-        title:                'New Relic Java Agent Configuration',
-        description:          'Fleet Control configuration schema for the New Relic Java agent. ' +
-                              'Generated from newrelic-agent/src/main/resources/newrelic.yml.',
-        type:                 'object',
-        properties:           properties,
-        required:             ['license_key', 'app_name'],
-        additionalProperties: true,
+            $schema:              'https://json-schema.org/draft/2020-12/schema',
+            title:                'New Relic Java Agent Configuration',
+            description:          'Fleet Control configuration schema for the New Relic Java agent. ' +
+                    'Generated from newrelic-agent/src/main/resources/newrelic.yml.',
+            type:                 'object',
+            properties:           properties,
+            required:             ['license_key', 'app_name'],
+            additionalProperties: true,
     ] as Map<String, Object>
 }
 
