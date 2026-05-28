@@ -17,6 +17,7 @@ on:
       doc_type:
         description: The type of the compatibility doc you wish to generate - either "internal" (a simplified .md file, copied into this repo) or "site" (a complete .mdx file, copied to the public docs website).
         required: true
+        type: choice
         options:
           - internal
           - site
@@ -62,6 +63,9 @@ jobs:
     name: Update Internal Compatibility File
     needs: generate-files
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.doc_type == 'internal')
 
     env:
