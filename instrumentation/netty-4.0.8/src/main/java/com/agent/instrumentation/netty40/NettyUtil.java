@@ -10,7 +10,8 @@ package com.agent.instrumentation.netty40;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.api.agent.NewRelic;
-import io.netty.handler.codec.http.DefaultHttpResponse;
+
+import io.netty.channel.DefaultChannelPipeline_Instrumentation;
 import io.netty.handler.codec.http.HttpResponse;
 
 import java.net.InetSocketAddress;
@@ -34,6 +35,15 @@ public class NettyUtil {
 
     public static void setServerInfo() {
         AgentBridge.publicApi.setServerInfo("Netty", getNettyVersion());
+    }
+
+    public static boolean processResponse(Object msg, DefaultChannelPipeline_Instrumentation pipeline) {
+        if(pipeline != null && pipeline.nettyToken != null) {
+            if(pipeline.nettyToken instanceof Token) {
+                return processResponse(msg,(Token)pipeline.nettyToken);
+            }
+        }
+        return false;
     }
 
     public static boolean processResponse(Object msg, Token token) {

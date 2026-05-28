@@ -7,24 +7,20 @@
 
 package io.netty.bootstrap;
 
-import com.agent.instrumentation.netty40.NettyUtil;
-import com.newrelic.api.agent.weaver.Weave;
-import com.newrelic.api.agent.weaver.WeaveAllConstructors;
-import com.newrelic.api.agent.weaver.Weaver;
-import io.netty.channel.ChannelFuture;
-
 import java.net.SocketAddress;
 
-@Weave
-public abstract class AbstractBootstrap {
+import com.agent.instrumentation.netty40.NettyUtil;
+import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.Weaver;
 
-    @WeaveAllConstructors
-    AbstractBootstrap() {
-        // initialize NettyDispatcher here to avoid classloader deadlocks
-        NettyDispatcher.get();
-    }
+import io.netty.channel.ChannelFuture;
 
-    private ChannelFuture doBind(final SocketAddress localAddress) {
+@Weave(type = MatchType.ExactClass, originalName = "io.netty.bootstrap.AbstractBootstrap")
+public abstract class AbstractBootstrap_Instrumentation {
+
+    @SuppressWarnings("unused")
+	private ChannelFuture doBind(final SocketAddress localAddress) {
         NettyUtil.setAppServerPort(localAddress);
         NettyUtil.setServerInfo();
         return Weaver.callOriginal();
