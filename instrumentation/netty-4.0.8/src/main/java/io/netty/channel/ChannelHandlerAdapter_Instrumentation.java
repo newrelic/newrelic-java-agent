@@ -11,7 +11,7 @@ import com.newrelic.api.agent.weaver.Weaver;
  * don't the NRNettyChannelHandler won't compile
  *
  */
-@Weave(type = MatchType.BaseClass)
+@Weave(type = MatchType.BaseClass, originalName = "io.netty.channel.ChannelHandlerAdapter")
 public abstract class ChannelHandlerAdapter_Instrumentation implements ChannelHandler {
 
 	public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

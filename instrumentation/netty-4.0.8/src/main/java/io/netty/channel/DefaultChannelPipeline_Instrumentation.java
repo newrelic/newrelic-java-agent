@@ -5,13 +5,13 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 
-@Weave(type = MatchType.BaseClass)
+@Weave(type = MatchType.BaseClass, originalName = "io.netty.channel.DefaultChannelPipeline")
 public abstract class DefaultChannelPipeline_Instrumentation implements ChannelPipeline {
 
 	@NewField
 	public Token nettyToken = null;
 	
-	protected DefaultChannelPipeline_Instrumentation(Channel channel) {
+	protected DefaultChannelPipeline_Instrumentation(AbstractChannel channel) {
 		
 	}
 }
