@@ -2,7 +2,9 @@ name: Generate Compatibility Doc
 
 # Permissions granted to all jobs in the workflow.
 # Permissions that aren't explicitly defined here will default to a value of none.
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
 
 on:
   push:
@@ -17,6 +19,7 @@ on:
       doc_type:
         description: The type of the compatibility doc you wish to generate - either "internal" (a simplified .md file, copied into this repo) or "site" (a complete .mdx file, copied to the public docs website).
         required: true
+        type: choice
         options:
           - internal
           - site
