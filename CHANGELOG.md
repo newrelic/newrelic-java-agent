@@ -4,6 +4,60 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.3.0
+## New features and improvements
+- Add log_level_denylist config to default yaml [2830](https://github.com/newrelic/newrelic-java-agent/pull/2830)
+- Solr 9 JMX module
+  [2821](https://github.com/newrelic/newrelic-java-agent/pull/2821)
+- New centralized token counting strategy for capturing token counts from LLM Responses. [2837](https://github.com/newrelic/newrelic-java-agent/pull/2837)
+- Support for capturing JDBC batch operations; specifically the addBatch() and executeBatch() methods. [2840](https://github.com/newrelic/newrelic-java-agent/pull/2840)
+- XML RPC instrumentation module to replace legacy point cut [2841](https://github.com/newrelic/newrelic-java-agent/pull/2841)
+- Add a new JFR specific config `jfr.use_display_name`. If set to true, the agent will set the JFR host name to the value in the `process_host.display_name` configuration. The default is false to preserve old behavior.
+  If jfr.use_display_name is true but the display_name config is empty, the JfrService will fallback to the old behavior for the host name.
+```
+common: &default_settings
+  jfr:
+    use_display_name: true
+```
+[2847](https://github.com/newrelic/newrelic-java-agent/pull/2847)
+- Remove unneeded segment creation in java.xmlrpc module [2853](https://github.com/newrelic/newrelic-java-agent/pull/2853)
+- Update aws-bedrock-runtime-2.20 Module with a new token counting strategy for each of the models.
+  [2845](https://github.com/newrelic/newrelic-java-agent/pull/2845)
+- New license key obfuscation algorithm
+  [2864](https://github.com/newrelic/newrelic-java-agent/pull/2864)
+- Support for Micronaut Http Clients versions 3.5.0+ [2834](https://github.com/newrelic/newrelic-java-agent/pull/2834)
+- Support for Apache Camel 3.9.0 and up
+  [2896](https://github.com/newrelic/newrelic-java-agent/pull/2896)
+  [2901](https://github.com/newrelic/newrelic-java-agent/pull/2901)
+- Support for Kafka Clients 4.0.0 and up [2896](https://github.com/newrelic/newrelic-java-agent/pull/2896)
+- Internal dependency Log4j Core Upgrade from 2.17.1 to 2.25.4 [2833](https://github.com/newrelic/newrelic-java-agent/pull/2833)
+- AWS DAX Support starting from 2.0.0 to latest [2873](https://github.com/newrelic/newrelic-java-agent/pull/2873)
+- Add instrumentation for Spring AI completion and embedding clients for versions 1.0.0 and up.  This adds new instrumentation modules:
+```
+spring-ai-client-chat-1.0.0
+spring-ai-model-1.0.0
+```
+[2842](https://github.com/newrelic/newrelic-java-agent/pull/2842)
+- Core Tracing - Drop SpanEvents and Re-Parent dropped SpanLinks [2881](https://github.com/newrelic/newrelic-java-agent/pull/2881)
+- Pointcut replacements
+  * Remove SpringDispatcherPointCut and SpringExceptionHandlerPointCut and instead move the functionality into our Spring instrumentation modules.
+  * Replace HandlerInterceptorPointCut
+    [2871](https://github.com/newrelic/newrelic-java-agent/pull/2871)
+    [2886](https://github.com/newrelic/newrelic-java-agent/pull/2886)
+- Support Micronaut’s BlockingHttpClient [2860](https://github.com/newrelic/newrelic-java-agent/pull/2860)
+- Add support for AI Model Context Protocol 1.0.0 to latest. [2880](https://github.com/newrelic/newrelic-java-agent/pull/2880)
+
+## Fixes
+
+- Fix coroutines instrumentation. Fixes include:
+  * Better tracking of asynchronous behavior by instrumenting gaps that were found where execution can jump to another thread.
+  * Better naming on Coroutines and Continuations. Existing naming was too generic. New naming identifies according to whether it is started via runBlocking, async, withContext or launch.
+  * Removed some utility methods that were no longer used
+    [2802](https://github.com/newrelic/newrelic-java-agent/pull/2802)
+- Fixes excessive number of unexpired async tokens when instrumenting Micronaut. [2792](https://github.com/newrelic/newrelic-java-agent/pull/2792)
+- Resolution of Mule 4.9 IllegalAccessError [2859](https://github.com/newrelic/newrelic-java-agent/pull/2859)
+- Fix a mis-recording of the Instrumented and Kept metrics for Core Tracing, as they were originally being recorded as a time metric. [2881](https://github.com/newrelic/newrelic-java-agent/pull/2881)
+
 ## Version 9.2.0
 ## New features and improvements
 - Adds Java 26 support [2734](https://github.com/newrelic/newrelic-java-agent/pull/2734)
