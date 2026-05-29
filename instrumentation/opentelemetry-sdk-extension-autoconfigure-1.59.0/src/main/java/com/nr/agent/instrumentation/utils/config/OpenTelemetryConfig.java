@@ -252,9 +252,8 @@ public class OpenTelemetryConfig {
         return Collections.emptyList();
     }
 
-    private static List<String> getUniqueStringsFromCollection(Collection<?> values, String prefix) {
+    private static List<String> getUniqueStringsFromCollection(Collection<?> values) {
         List<String> result = new ArrayList<>(values.size());
-        boolean noPrefix = (prefix == null || prefix.isEmpty());
         for (Object value : values) {
             String val;
             if (value instanceof Integer) {
@@ -266,18 +265,10 @@ public class OpenTelemetryConfig {
             }
             val = val.trim();
             if (val.length() != 0 && !result.contains(val)) {
-                if (noPrefix) {
-                    result.add(val);
-                } else {
-                    result.add(prefix + val);
-                }
+                result.add(val);
             }
         }
         return result;
-    }
-
-    private static List<String> getUniqueStringsFromCollection(Collection<?> values) {
-        return getUniqueStringsFromCollection(values, null);
     }
 
     private static List<String> getUniqueStringsFromString(String valuesString, String separator) {
