@@ -81,6 +81,7 @@ final Map<String, List<String>> ENUM_OVERRIDES = [
         'security.mode':                                             ['IAST', 'RASP'],
         'distributed_tracing.sampler.remote_parent_sampled':         ['default', 'always_on', 'always_off'],
         'distributed_tracing.sampler.remote_parent_not_sampled':     ['default', 'always_on', 'always_off'],
+        'datastore_multihost_preference':                            ['NONE', 'FIRST', 'LAST'],
 ]
 
 // ---------------------------------------------------------------------------
