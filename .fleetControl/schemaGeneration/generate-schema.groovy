@@ -69,7 +69,7 @@ final File REPO_ROOT = FLEET_CONTROL_DIR.parentFile
 final File SCHEMA_DIR = new File(FLEET_CONTROL_DIR, 'schemas')
 final File SCHEMA_PATH = new File(SCHEMA_DIR, 'config.json')
 final File CONFIG_DEF_PATH = new File(FLEET_CONTROL_DIR, 'configurationDefinitions.yml')
-final File DEFAULT_YML_PATH = new File(REPO_ROOT, 'newrelic-agent/src/main/resources/newrelic.yml')
+final File DEFAULT_YML_PATH = new File(REPO_ROOT, '.fleetControl/schemaGeneration/reference-newrelic.yml')
 
 // ---------------------------------------------------------------------------
 // Enum / special-value overrides
@@ -130,23 +130,6 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
         'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
         'error_collector.expected_status_codes': statusCodeArrayOrRange(),
 
-        // --- Keys using getUniqueStrings (array or comma-delimited string) ---
-        'attributes.include':                                      stringArrayOrDelimited(),
-        'attributes.exclude':                                      stringArrayOrDelimited(),
-        'transaction_tracer.attributes.include':                   stringArrayOrDelimited(),
-        'transaction_tracer.attributes.exclude':                   stringArrayOrDelimited(),
-        'transaction_events.attributes.include':                   stringArrayOrDelimited(),
-        'transaction_events.attributes.exclude':                   stringArrayOrDelimited(),
-        'span_events.attributes.include':                          stringArrayOrDelimited(),
-        'span_events.attributes.exclude':                          stringArrayOrDelimited(),
-        'browser_monitoring.disabled_auto_pages':                  stringArrayOrDelimited(),
-        'browser_monitoring.attributes.include':                   stringArrayOrDelimited(),
-        'browser_monitoring.attributes.exclude':                   stringArrayOrDelimited(),
-        'application_logging.forwarding.context_data.include':     stringArrayOrDelimited(),
-        'application_logging.forwarding.context_data.exclude':     stringArrayOrDelimited(),
-        'application_logging.forwarding.labels.exclude':           stringArrayOrDelimited(),
-        'class_transformer.classloader_excludes':                  stringArrayOrDelimited(),
-
         // --- labels is a map of name→value pairs ---
         // Its only YAML example is commented out, so SnakeYAML parses it as null
         // and the generator would otherwise emit type: string. Per the YAML
@@ -178,11 +161,7 @@ final Set<String> EXCLUDE_KEYS = [
         // doesn't belong in the standard config UI.
         'metric_ingest_uri',
         'event_ingest_uri',
-
-        // All children are commented out in newrelic.yml so SnakeYAML parses
-        // this as null. Including it would emit a misleading {type: "string"}
-        // entry. Add a TYPE_OVERRIDE below if you need to surface it.
-        'obfuscate_jvm_props',
+        'distributed_tracing.sampler'
 ] as Set<String>
 
 // ---------------------------------------------------------------------------
@@ -243,8 +222,13 @@ static Map<String, Object> makeProperty(String keyPath, Object value, String des
         prop = [type: jsonType] as Map<String, Object>
 
         if (jsonType == 'array') {
-            prop.put('items', itemsTypeFromList((value instanceof List) ? (List<Object>) value : [] as List<Object>))
-            if (value instanceof List && value) prop.put('default', value)
+            // Empty arrays accept either a YAML array or comma-delimited string
+            if (value instanceof List && ((List) value).isEmpty()) {
+                prop = stringArrayOrDelimited([])
+            } else {
+                prop.put('items', itemsTypeFromList((value instanceof List) ? (List<Object>) value : [] as List<Object>))
+                if (value instanceof List && value) prop.put('default', value)
+            }
         } else if (jsonType == 'object') {
             prop.put('additionalProperties', true)
         } else if (value != null) {
