@@ -11,6 +11,7 @@ import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.nr.lettuce6.instrumentation.*;
 import io.lettuce.core.api.StatefulConnection;
+import io.lettuce.core.cluster.StatefulRedisClusterConnectionImpl_Instrumentation;
 import io.lettuce.core.protocol.ProtocolKeyword;
 import io.lettuce.core.protocol.RedisCommand;
 import reactor.core.publisher.Flux;
@@ -30,15 +31,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
         if (cmd != null) {
             ProtocolKeyword type = cmd.getType();
             String name = type.name();
-
-            String collName = null;
-            RedisURI uri = null;
-            if (StatefulRedisConnectionImpl_Instrumentation.class.isInstance(connection)) {
-                StatefulRedisConnectionImpl_Instrumentation<K, V> connImpl = (StatefulRedisConnectionImpl_Instrumentation<K, V>) connection;
-                if (connImpl.redisURI != null) {
-                    uri = connImpl.redisURI;
-                }
-            }
+            RedisURI uri = RedisDatastoreParameters.getUriFromConnection(connection);
             String operation = "UnknownOp";
             ProtocolKeyword t = cmd.getType();
             if ((t != null) && (t.name() != null) && (!t.name().isEmpty())) {
@@ -63,13 +56,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
             String name = type.name();
 
             String collName = null;
-            RedisURI uri = null;
-            if (StatefulRedisConnectionImpl_Instrumentation.class.isInstance(connection)) {
-                StatefulRedisConnectionImpl_Instrumentation<K, V> connImpl = (StatefulRedisConnectionImpl_Instrumentation<K, V>) connection;
-                if (connImpl.redisURI != null) {
-                    uri = connImpl.redisURI;
-                }
-            }
+            RedisURI uri = RedisDatastoreParameters.getUriFromConnection(connection);
             String operation = "UnknownOp";
             ProtocolKeyword t = cmd.getType();
             if ((t != null) && (t.name() != null) && (!t.name().isEmpty())) {
