@@ -57,7 +57,7 @@ jobs:
         id: generate
         run: |
           set +e
-          groovy .fleetControl/schemaGeneration/generate-schema.groovy --ci
+          groovy .fleetControl/schemaGeneration/GenerateSchema.groovy --ci
           code=$?
           set -e
           case "$code" in

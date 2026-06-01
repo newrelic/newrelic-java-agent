@@ -1,6 +1,6 @@
 // Regenerates the Fleet Control agent config schema from newrelic.yml.
 //
-// The generator lives at .fleetControl/schemaGeneration/generate-schema.groovy
+// The generator lives at .fleetControl/schemaGeneration/GenerateSchema.groovy
 // and writes JSON Schema 2020-12 to .fleetControl/schemas/config.json.
 //
 // Wired into :newrelic-agent:check so `./gradlew check` (or `./gradlew build`)
@@ -23,7 +23,7 @@ dependencies {
     fleetControlSchemaTool 'com.fasterxml.jackson.core:jackson-databind:2.18.1'
 }
 
-def schemaScript = file("${rootProject.projectDir}/.fleetControl/schemaGeneration/generate-schema.groovy")
+def schemaScript = file("${rootProject.projectDir}/.fleetControl/schemaGeneration/GenerateSchema.groovy")
 def newrelicYml = file("${rootProject.projectDir}/newrelic-agent/src/main/resources/newrelic.yml")
 def schemaOutput = file("${rootProject.projectDir}/.fleetControl/schemas/config.json")
 

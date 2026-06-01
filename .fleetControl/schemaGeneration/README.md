@@ -6,17 +6,17 @@ This directory contains the Groovy script that generates a JSON Schema from the 
 
 ```bash
 # Generate schema (from repo root)
-groovy .fleetControl/schemaGeneration/generate-schema.groovy
+groovy .fleetControl/schemaGeneration/GenerateSchema.groovy
 
 # Generate schema and apply version bump (CI mode)
-groovy .fleetControl/schemaGeneration/generate-schema.groovy --ci
+groovy .fleetControl/schemaGeneration/GenerateSchema.groovy --ci
 ```
 
 ## Files
 
 | File | Description |
 |------|-------------|
-| `generate-schema.groovy` | Main generator script |
+| `GenerateSchema.groovy` | Main generator script |
 | `../schemas/config.json` | Generated JSON Schema (Draft 2020-12) |
 | `../configurationDefinitions.yml` | Version metadata (bumped on schema changes) |
 

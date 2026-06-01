@@ -15,10 +15,10 @@
  *   1 — schema changed (CI should commit the updated files)
  *
  * Run standalone:
- *   groovy generate-schema.groovy
+ *   groovy GenerateSchema.groovy
  *
  * Override the source file:
- *   NEWRELIC_YML=/path/to/newrelic.yml groovy generate-schema.groovy
+ *   NEWRELIC_YML=/path/to/newrelic.yml groovy GenerateSchema.groovy
  *
  * ---------------------------------------------------------------------------
  * Why every object emits `additionalProperties: true`
