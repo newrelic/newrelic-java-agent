@@ -80,6 +80,11 @@
         },
         "datastore_multihost_preference": {
             "type": "string",
+            "enum": [
+                "NONE",
+                "FIRST",
+                "LAST"
+            ],
             "default": "NONE",
             "description": "When multiple datastore addresses detected, determines which to use. Values: NONE, FIRST, LAST Default: NONE"
         },
@@ -474,6 +479,7 @@
                 "max_attribute_value": {
                     "type": "integer",
                     "default": 255,
+                    "maximum": 4095,
                     "description": "Max attribute value length (max 4095). Default: 255"
                 },
                 "max_samples_stored": {

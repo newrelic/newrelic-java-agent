@@ -140,6 +140,15 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
                 additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
                 maxProperties:        64,
         ] as Map<String, Object>,
+
+        // --- custom_insights_events.max_attribute_value capped at 4095 ---
+        // Per the YAML comment ("max 4095"). Without this, the schema would
+        // emit a plain integer with no upper bound.
+        'custom_insights_events.max_attribute_value': [
+                type:    'integer',
+                default: 255,
+                maximum: 4095,
+        ] as Map<String, Object>,
 ]
 
 // ---------------------------------------------------------------------------
