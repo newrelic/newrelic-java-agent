@@ -144,10 +144,13 @@ t.test('array items type inferred from first element') {
     assert p.items == [type: 'integer']
     assert p.default == [404, 500]
 }
-t.test('empty array emits no default') {
+t.test('empty array emits anyOf (array or comma-delimited string)') {
     Map p = script.makeProperty('empty', [], '', testEnums, testTypes)
-    assert p.type == 'array'
-    assert !p.containsKey('default')
+    assert p.anyOf == [
+        [type: 'array', items: [type: 'string']],
+        [type: 'string'],
+    ]
+    assert p.default == []
 }
 t.test('enum override by full path') {
     Map p = script.makeProperty('log_level', 'info', '', testEnums, testTypes)
@@ -180,7 +183,7 @@ t.test('excludes full-path keys (regression: bug #1)') {
         agent_enabled:        true,
     ]
     Map props = script.buildProperties(data, [:], 'common',
-                                        testExcludes, testEnums, testTypes)
+                                        testExcludes, [], testEnums, testTypes)
     assert !props.containsKey('class_transformer')
     assert !props.containsKey('obfuscate_jvm_props')
     assert props.containsKey('agent_enabled')
@@ -196,7 +199,7 @@ t.test('excludes ancestor paths') {
         ],
     ]
     Map props = script.buildProperties(data, [:], 'common',
-                                        testExcludes, testEnums, testTypes)
+                                        testExcludes, [], testEnums, testTypes)
     Map sec = (Map) props.security.get('properties')
     assert sec.containsKey('enabled')
     assert !sec.containsKey('agent')
@@ -208,7 +211,7 @@ t.test('descriptions attach to objects and leaves') {
         'common.outer.inner': 'inner description',
     ]
     Map props = script.buildProperties(data, comments, 'common',
-                                        testExcludes, testEnums, testTypes)
+                                        testExcludes, [], testEnums, testTypes)
     assert props.outer.description == 'outer description'
     assert props.outer.get('properties').inner.description == 'inner description'
 }
@@ -243,11 +246,12 @@ common:
 '''
 
 Set fixtureExcludes = ['class_transformer'] as Set
+List fixtureExcludePatterns = []
 Map fixtureEnums = ['log_level': ['off', 'info', 'debug']]
 Map fixtureTypes = [
     'error_collector.ignore_status_codes': [type: 'array', items: [type: 'integer'], default: [404]],
 ]
-Map schema = script.generateSchema(fixture, fixtureExcludes, fixtureEnums, fixtureTypes)
+Map schema = script.generateSchema(fixture, fixtureExcludes, fixtureExcludePatterns, fixtureEnums, fixtureTypes)
 
 // Groovy 5 quirk: see note above — use .get('properties') everywhere.
 Map schemaProps = (Map) schema.get('properties')
@@ -286,72 +290,6 @@ t.test('ignore_status_codes uses type override') {
     assert isc.type == 'array'
     assert isc.items == [type: 'integer']
     assert isc.default == [404]
-}
-
-// ---------------------------------------------------------------------------
-// mergeSchemas — never-remove deep merge
-// ---------------------------------------------------------------------------
-println "\n--- mergeSchemas ---"
-
-t.test('empty old returns new untouched') {
-    Map ne = [type: 'object', properties: [foo: [type: 'string']]]
-    assert script.mergeSchemas([:], ne) == ne
-}
-t.test('keys only in old are preserved') {
-    Map old = [type: 'object', properties: [legacy: [type: 'string', default: 'x']]]
-    Map ne  = [type: 'object', properties: [fresh:  [type: 'integer']]]
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    Map mp = (Map) merged.get('properties')
-    assert mp.containsKey('legacy')
-    assert mp.containsKey('fresh')
-    assert mp.legacy.default == 'x'
-}
-t.test('keys in both: new leaf wins') {
-    Map old = [type: 'object', properties: [foo: [type: 'string', default: 'old']]]
-    Map ne  = [type: 'object', properties: [foo: [type: 'string', default: 'new']]]
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    assert ((Map) merged.get('properties')).foo.default == 'new'
-}
-t.test('nested object recurses (preserves old children, overlays new)') {
-    Map old = [type: 'object', properties: [
-        outer: [type: 'object', properties: [
-            keep:    [type: 'string', default: 'kept'],
-            shared:  [type: 'string', default: 'old'],
-        ]],
-    ]]
-    Map ne = [type: 'object', properties: [
-        outer: [type: 'object', properties: [
-            shared: [type: 'string', default: 'new'],
-            added:  [type: 'integer'],
-        ]],
-    ]]
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    Map outer = (Map) ((Map) merged.get('properties')).outer.get('properties')
-    assert outer.keep.default == 'kept'
-    assert outer.shared.default == 'new'
-    assert outer.added.type == 'integer'
-}
-t.test('top-level required uses new value (loosening allowed)') {
-    Map old = [type: 'object', properties: [foo: [type: 'string']], required: ['foo']]
-    Map ne  = [type: 'object', properties: [foo: [type: 'string']], required: []]
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    assert merged.required == []
-}
-t.test('type changes at leaves: new wins (no stale constraints)') {
-    Map old = [type: 'object', properties: [x: [type: 'string', enum: ['a', 'b']]]]
-    Map ne  = [type: 'object', properties: [x: [type: 'integer', default: 5]]]
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    Map x = (Map) ((Map) merged.get('properties')).x
-    assert x.type == 'integer'
-    assert x.default == 5
-    assert !x.containsKey('enum')
-}
-t.test('top-level title/description take new value') {
-    Map old = [type: 'object', properties: [:], title: 'old', description: 'old desc']
-    Map ne  = [type: 'object', properties: [:], title: 'new', description: 'new desc']
-    Map merged = (Map) script.mergeSchemas(old, ne)
-    assert merged.title == 'new'
-    assert merged.description == 'new desc'
 }
 
 // ---------------------------------------------------------------------------
