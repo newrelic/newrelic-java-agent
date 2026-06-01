@@ -46,6 +46,8 @@ public class OpenTelemetryConfig {
     public static final int OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT = 60_000; // export interval in milliseconds
     public static final String OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT = "opentelemetry.metrics.export_timeout";
     public static final int OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT = 10_000; // export timeout in milliseconds
+    public static final String OPEN_TELEMETRY_METRICS_CARDINALITY= "opentelemetry.metrics.cardinality";
+    public static final int OPEN_TELEMETRY_METRICS_CARDINALITY_DEFAULT = 2_000; // maximum number of distinct points per metric
     private static Integer exportTimeout = getOpenTelemetryMetricsExportTimeout();
     private static Integer exportInterval;
 
@@ -243,6 +245,16 @@ public class OpenTelemetryConfig {
 
         return exportTimeout;
     }
+
+    /**
+     * Get the OTLP cardinality limit
+     *
+     * @return int cardinality limit. Maximum number of distinct points per metric
+     */
+    public static int getOpenTelemetryMetricsCardinality() {
+        return NewRelic.getAgent().getConfig().getValue(OPEN_TELEMETRY_METRICS_CARDINALITY, OPEN_TELEMETRY_METRICS_CARDINALITY_DEFAULT);
+    }
+
 
     /**
      * Splits the given values String into a collection of Strings based on the provided separator character.

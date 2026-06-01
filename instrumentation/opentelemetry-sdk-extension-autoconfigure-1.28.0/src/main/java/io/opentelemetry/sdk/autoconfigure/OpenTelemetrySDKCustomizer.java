@@ -70,6 +70,7 @@ final class OpenTelemetrySDKCustomizer {
                     String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
             properties.put("otel.exporter.otlp.metrics.timeout",
                     String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
+            properties.put("otel.java.metrics.cardinality.limit", String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsCardinality()));
             properties.put("otel.exporter.otlp.protocol", "http/protobuf");
             properties.put("otel.span.attribute.value.length.limit", "4095");
             properties.put("otel.exporter.otlp.compression", "gzip");
