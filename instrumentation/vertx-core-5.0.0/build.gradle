@@ -1,0 +1,32 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.vertx:vertx-core:5.0.0")
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-core-5.0.0'
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.vertx:vertx-core:[5.0.0,6.0.0)'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+test {
+    // Vert.x 5.0.0 requires Java 11+; skip when running on Java 8.
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}
+
+site {
+    title 'Vertx'
+    type 'Framework'
+}
