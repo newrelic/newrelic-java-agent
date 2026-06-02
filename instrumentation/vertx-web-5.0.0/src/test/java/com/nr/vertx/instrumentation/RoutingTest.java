@@ -258,9 +258,7 @@ public class RoutingTest extends VertxTestBase{
             HttpServer server = createServer(vertx, mainRouter);
             getRequest("/api/hello", server).then().body(containsString("HelloHandler"));
 
-            // In Vert.x 5.0.0, route("/api/*").subRouter() stores getPath() as "/api/" (without the "*"),
-            // so the transaction name reflects "api//hello" rather than "api/hello" from mountSubRouter.
-            final Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/api//hello (GET)");
+            final Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/api/hello (GET)");
             assertNotNull(attributes.get("MainHandler"));
             assertNotNull(attributes.get("HelloHandler"));
         } finally {

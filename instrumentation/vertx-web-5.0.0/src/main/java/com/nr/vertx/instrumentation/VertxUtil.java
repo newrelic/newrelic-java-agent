@@ -21,7 +21,6 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class VertxUtil {
 
@@ -97,7 +96,8 @@ public class VertxUtil {
     }
 
     private static String buildName(RoutingContext context, Queue<String> pathQueue) {
-        return pathQueue.stream().collect(Collectors.joining("/")) + " (" + context.request().method() + ")";
+        String name = String.join("/", pathQueue).replaceAll("/+", "/");
+        return name + " (" + context.request().method() + ")";
     }
 
     public static void link(RoutingContext context) {
