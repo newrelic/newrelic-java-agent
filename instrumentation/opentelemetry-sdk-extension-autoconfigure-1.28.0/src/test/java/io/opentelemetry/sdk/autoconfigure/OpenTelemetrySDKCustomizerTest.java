@@ -130,7 +130,7 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         Agent agent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
         Logger logger = mock(Logger.class);
         when(agent.getLogger()).thenReturn(logger);
-        Mockito.when(agent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "")).thenReturn(excludedMeters);
+        Mockito.when(agent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE)).thenReturn(excludedMeters);
         SdkMeterProviderBuilder customizedBuilder;
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(agent);
