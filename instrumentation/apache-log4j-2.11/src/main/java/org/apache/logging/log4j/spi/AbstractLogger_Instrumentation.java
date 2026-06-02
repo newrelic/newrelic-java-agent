@@ -21,7 +21,6 @@ public abstract class AbstractLogger_Instrumentation {
     private void logMessageSafely(final String fqcn, final Level level, final Marker marker,
             final Message message, final Throwable throwable) {
         if (isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
-            System.out.println("DUF- Thread: " + Thread.currentThread());
             ThreadContext.put(BLOB_PREFIX, getLinkingMetadataBlob());
         }
 

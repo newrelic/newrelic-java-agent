@@ -39,7 +39,6 @@ abstract class AbstractJacksonLayout_Instrumentation {
             if (isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
                 // It is possible that the log might already have NR-LINKING metadata from JUL instrumentation
                 if (!writerString.contains(BLOB_PREFIX)) {
-                    System.out.println("DUF- here1");
                     int indexToModifyJson = getIndexToModifyJson(writerString);
                     if (foundIndexToInsertLinkingMetadata(indexToModifyJson)) {
                         // Replace the JSON string with modified version that includes NR-LINKING metadata
