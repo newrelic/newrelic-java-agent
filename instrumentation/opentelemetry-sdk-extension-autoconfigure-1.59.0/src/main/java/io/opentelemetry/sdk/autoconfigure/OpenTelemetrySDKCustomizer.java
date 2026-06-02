@@ -21,7 +21,6 @@ import io.opentelemetry.sdk.metrics.View;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,50 +43,73 @@ final class OpenTelemetrySDKCustomizer {
     }
 
     /**
-     * Configure OpenTelemetry exporters to send data to the New Relic backend.
+     * Configure OpenTelemetry exporters to send data to the New Relic backend. Properties
+     * returned from this customizer are applied last by the OpenTelemetry SDK autoconfigure
+     * builder and therefore take precedence over user-supplied environment variables and
+     * system properties for the keys listed below. OpenTelemetry SDK properties that NR does
+     * not set here are left untouched and continue to honor user-supplied env / system values.
      */
     static Map<String, String> applyProperties(ConfigProperties configProperties, Agent agent) {
-        final String existingEndpoint = configProperties.getString("otel.exporter.otlp.endpoint");
-        if (existingEndpoint == null) {
-            agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
-            String host = agent.getConfig().getValue("host");
-            if (host == null) {
-                host = DEFAULT_COLLECTOR_HOST;
-                agent.getLogger().log(Level.WARNING,
-                        "No host was configured for the OpenTelemetry metrics exporter endpoint. The exporter will use the default host for the New Relic US Production region: {0}",
-                        DEFAULT_COLLECTOR_HOST);
-            }
-            final String endpoint = "https://" + host + ":443";
-            final String licenseKey = agent.getConfig().getValue("license_key");
-            final Map<String, String> properties = new HashMap<>();
-            properties.put("otel.exporter.otlp.headers", "api-key=" + licenseKey);
-            properties.put("otel.exporter.otlp.endpoint", endpoint);
-            properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
-            properties.put("otel.traces.exporter", "none"); // disable default traces exporter
-            properties.put("otel.logs.exporter", "none"); // disable default logs exporter
-            // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
-            properties.put("otel.metric.export.interval",
-                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
-            properties.put("otel.exporter.otlp.metrics.timeout",
-                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
-            properties.put("otel.exporter.otlp.protocol", "http/protobuf");
-            properties.put("otel.span.attribute.value.length.limit", "4095");
-            properties.put("otel.exporter.otlp.compression", "gzip");
-            properties.put("otel.exporter.otlp.metrics.temporality.preference", "DELTA");
-            properties.put("otel.exporter.otlp.metrics.default.histogram.aggregation", "BASE2_EXPONENTIAL_BUCKET_HISTOGRAM");
-            properties.put("otel.experimental.exporter.otlp.retry.enabled", "true");
-            properties.put("otel.experimental.resource.disabled.keys", "process.command_line");
-
-            final Object appName = agent.getConfig().getValue("app_name");
-            properties.put("otel.service.name", appName.toString());
-
-            return properties;
-        } else {
+        agent.getLogger().log(Level.INFO, "Auto-initializing OpenTelemetry SDK");
+        String host = agent.getConfig().getValue("host");
+        if (host == null) {
+            host = DEFAULT_COLLECTOR_HOST;
             agent.getLogger().log(Level.WARNING,
-                    "The OpenTelemetry exporter endpoint is set to {0}, the agent will not autoconfigure the SDK",
-                    existingEndpoint);
+                    "No host was configured for the OpenTelemetry metrics exporter endpoint. The exporter will use the default host for the New Relic US Production region: {0}",
+                    DEFAULT_COLLECTOR_HOST);
         }
-        return Collections.emptyMap();
+        final String endpoint = "https://" + host + ":443";
+        final String licenseKey = agent.getConfig().getValue("license_key");
+        final Map<String, String> properties = new HashMap<>();
+        properties.put("otel.exporter.otlp.headers", "api-key=" + licenseKey);
+        properties.put("otel.exporter.otlp.endpoint", endpoint);
+        properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
+        properties.put("otel.traces.exporter", "none"); // disable default traces exporter
+        properties.put("otel.logs.exporter", "none"); // disable default logs exporter
+        // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
+        properties.put("otel.metric.export.interval",
+                String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
+        properties.put("otel.exporter.otlp.metrics.timeout",
+                String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
+        properties.put("otel.exporter.otlp.protocol", "http/protobuf");
+        properties.put("otel.span.attribute.value.length.limit", "4095");
+        properties.put("otel.exporter.otlp.compression", "gzip");
+        properties.put("otel.exporter.otlp.metrics.temporality.preference", "DELTA");
+        properties.put("otel.exporter.otlp.metrics.default.histogram.aggregation", "BASE2_EXPONENTIAL_BUCKET_HISTOGRAM");
+        properties.put("otel.experimental.exporter.otlp.retry.enabled", "true");
+        properties.put("otel.experimental.resource.disabled.keys", "process.command_line");
+
+        final Object appName = agent.getConfig().getValue("app_name");
+        properties.put("otel.service.name", appName.toString());
+
+        logOverriddenUserProperties(configProperties, properties, agent.getLogger());
+        return properties;
+    }
+
+    /**
+     * For each NR-managed key that the user has supplied a different value for via env var,
+     * system property, or another properties supplier, log an INFO line so operators can see
+     * why their setting was ignored. Non-NR keys are unaffected — they flow through the OTel
+     * SDK's normal precedence (system property > env var > properties supplier).
+     */
+    private static void logOverriddenUserProperties(ConfigProperties configProperties,
+                                                    Map<String, String> nrProperties,
+                                                    Logger logger) {
+        for (Map.Entry<String, String> entry : nrProperties.entrySet()) {
+            final String key = entry.getKey();
+            final String nrValue = entry.getValue();
+            final String userValue;
+            try {
+                userValue = configProperties.getString(key);
+            } catch (RuntimeException e) {
+                continue;
+            }
+            if (userValue != null && !userValue.equals(nrValue)) {
+                logger.log(Level.INFO,
+                        "Overriding user-supplied OpenTelemetry property {0}={1} with New Relic autoconfigure value {2}",
+                        key, userValue, nrValue);
+            }
+        }
     }
 
     static Resource applyResources(Resource resource, ConfigProperties configProperties) {

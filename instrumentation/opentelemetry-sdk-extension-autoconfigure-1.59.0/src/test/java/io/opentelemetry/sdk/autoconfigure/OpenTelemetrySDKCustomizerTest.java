@@ -60,6 +60,90 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         assertEquals("gzip", properties.get("otel.exporter.otlp.compression"));
     }
 
+    public void testApplyPropertiesOverridesUserSuppliedEndpoint() {
+        Agent agent = mock(Agent.class);
+        Logger logger = mock(Logger.class);
+        when(agent.getLogger()).thenReturn(logger);
+        Config config = mock(Config.class);
+        when(agent.getConfig()).thenReturn(config);
+        when(config.getValue("app_name")).thenReturn("Test");
+        when(config.getValue("host")).thenReturn("mylaptop");
+        when(config.getValue("license_key")).thenReturn("12345");
+
+        // Simulate user-supplied OTel env var / system property values for keys NR manages.
+        ConfigProperties userConfig = mock(ConfigProperties.class);
+        when(userConfig.getString("otel.exporter.otlp.endpoint")).thenReturn("https://user-endpoint:4318");
+        when(userConfig.getString("otel.metrics.exporter")).thenReturn("prometheus");
+        when(userConfig.getString("otel.service.name")).thenReturn("user-service");
+
+        Map<String, String> properties = OpenTelemetrySDKCustomizer.applyProperties(userConfig, agent);
+
+        // NR-managed keys win over user-supplied values.
+        assertEquals("https://mylaptop:443", properties.get("otel.exporter.otlp.endpoint"));
+        assertEquals("otlp", properties.get("otel.metrics.exporter"));
+        assertEquals("Test", properties.get("otel.service.name"));
+        // Other NR-managed keys remain populated.
+        assertEquals("api-key=12345", properties.get("otel.exporter.otlp.headers"));
+        assertEquals("none", properties.get("otel.traces.exporter"));
+        assertEquals("none", properties.get("otel.logs.exporter"));
+
+        // An INFO override message is logged for each NR-managed key the user supplied a
+        // different value for (3 keys above).
+        Mockito.verify(logger, Mockito.times(3)).log(
+                Mockito.eq(java.util.logging.Level.INFO),
+                Mockito.eq("Overriding user-supplied OpenTelemetry property {0}={1} with New Relic autoconfigure value {2}"),
+                Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    public void testApplyPropertiesPreservesUntouchedUserKeys() {
+        Agent agent = mock(Agent.class);
+        Logger logger = mock(Logger.class);
+        when(agent.getLogger()).thenReturn(logger);
+        Config config = mock(Config.class);
+        when(agent.getConfig()).thenReturn(config);
+        when(config.getValue("app_name")).thenReturn("Test");
+        when(config.getValue("host")).thenReturn("mylaptop");
+        when(config.getValue("license_key")).thenReturn("12345");
+
+        // The user has set an OTel SDK property that NR does not manage.
+        ConfigProperties userConfig = mock(ConfigProperties.class);
+        when(userConfig.getString("otel.java.metrics.cardinality.limit")).thenReturn("11111");
+
+        Map<String, String> properties = OpenTelemetrySDKCustomizer.applyProperties(userConfig, agent);
+
+        // NR's customizer must not shadow keys it does not manage. The OTel SDK's own
+        // precedence (system prop > env var > supplier) keeps the user-supplied value
+        // because NR's returned override map does not contain it.
+        assertFalse(properties.containsKey("otel.java.metrics.cardinality.limit"));
+        // No INFO override log should be emitted for an untouched key.
+        Mockito.verify(logger, Mockito.never()).log(
+                Mockito.eq(java.util.logging.Level.INFO),
+                Mockito.eq("Overriding user-supplied OpenTelemetry property {0}={1} with New Relic autoconfigure value {2}"),
+                Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    public void testApplyPropertiesNoOverrideLogWhenUserValueMatchesNR() {
+        Agent agent = mock(Agent.class);
+        Logger logger = mock(Logger.class);
+        when(agent.getLogger()).thenReturn(logger);
+        Config config = mock(Config.class);
+        when(agent.getConfig()).thenReturn(config);
+        when(config.getValue("app_name")).thenReturn("Test");
+        when(config.getValue("host")).thenReturn("mylaptop");
+        when(config.getValue("license_key")).thenReturn("12345");
+
+        // User supplied the same value NR is going to set — no override log expected.
+        ConfigProperties userConfig = mock(ConfigProperties.class);
+        when(userConfig.getString("otel.metrics.exporter")).thenReturn("otlp");
+
+        OpenTelemetrySDKCustomizer.applyProperties(userConfig, agent);
+
+        Mockito.verify(logger, Mockito.never()).log(
+                Mockito.eq(java.util.logging.Level.INFO),
+                Mockito.eq("Overriding user-supplied OpenTelemetry property {0}={1} with New Relic autoconfigure value {2}"),
+                Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
     public void testApplyResourcesServiceInstanceIdSet() {
         com.newrelic.agent.bridge.Agent agent = mock(com.newrelic.agent.bridge.Agent.class);
         Resource resource = OpenTelemetrySDKCustomizer.applyResources(

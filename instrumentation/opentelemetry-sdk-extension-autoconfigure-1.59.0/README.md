@@ -158,6 +158,14 @@ This config was originally used to enable/disable metrics signals and has been r
         enabled: true
 ```
 
+### OpenTelemetry SDK Property Precedence
+
+When the New Relic Java agent's OpenTelemetry instrumentation is enabled, properties set by the agent's `OpenTelemetrySDKCustomizer` (the OTLP exporter endpoint, OTLP headers, exporter selection for traces/logs/metrics, service name, etc.) take precedence over user-supplied values from environment variables (`OTEL_*`) and system properties (`-Dotel.*`). This guarantees that telemetry is routed to the APM entity being monitored.
+
+OpenTelemetry SDK properties that the New Relic agent does **not** set (for example `otel.java.metrics.cardinality.limit` / `OTEL_JAVA_METRICS_CARDINALITY_LIMIT`) are not affected and continue to honor user-supplied values via the OpenTelemetry SDK's normal precedence (system property > environment variable > properties supplier).
+
+When a user-supplied value is overridden by the agent, an INFO message is logged identifying the affected property and both values.
+
 ## OpenTelemetry Dimensional Metrics Signals
 
 The [OpenTelemetry Metrics API](https://opentelemetry.io/docs/specs/otel/metrics/api/) can be used to create dimensional metrics which will be exported by the OpenTelemetry SDK to New Relic over OTLP. The dimensional metrics will be decorated with the `entity.guid` of the APM entity being monitored by the New Relic Java agent.
