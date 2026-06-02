@@ -36,8 +36,8 @@ public class NRTracerBuilderTest extends TestCase {
 
     public void testBuildDisabled() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "")).thenReturn("test-lib");
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn("test-lib");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
