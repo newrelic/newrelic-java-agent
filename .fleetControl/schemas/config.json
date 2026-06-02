@@ -110,6 +110,182 @@
             "additionalProperties": true,
             "description": "Report Reactor Netty errors. Default: false"
         },
+        "grpc": {
+            "type": "object",
+            "properties": {
+                "distributed_tracing": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Enable distributed tracing for gRPC calls. Default: true"
+                },
+                "errors": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Report gRPC errors. Default: true"
+                }
+            },
+            "additionalProperties": true,
+            "description": "gRPC instrumentation configuration."
+        },
+        "instrumentation": {
+            "type": "object",
+            "properties": {
+                "hibernate": {
+                    "type": "object",
+                    "properties": {
+                        "stats_sampler": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            },
+                            "additionalProperties": true,
+                            "description": "Enable Hibernate statistics sampler. Default: false"
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Hibernate instrumentation configuration."
+        },
+        "kafka": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "properties": {
+                        "environment_attributes": {
+                            "anyOf": [
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "type": "string"
+                                }
+                            ],
+                            "default": [
+                                
+                            ],
+                            "description": "List of environment attributes to include with Kafka config events. Default: empty list"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Kafka configuration emission settings."
+                },
+                "metrics": {
+                    "type": "object",
+                    "properties": {
+                        "debug": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            },
+                            "additionalProperties": true,
+                            "description": "Enable debug logging for Kafka metrics. Default: false"
+                        },
+                        "as_events": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            },
+                            "additionalProperties": true,
+                            "description": "Report Kafka metrics as custom events instead of dimensional metrics. Default: false"
+                        },
+                        "interval": {
+                            "type": "integer",
+                            "default": 30,
+                            "description": "Reporting interval in seconds for Kafka metrics. Default: 30"
+                        },
+                        "node": {
+                            "type": "object",
+                            "properties": {
+                                "metrics": {
+                                    "type": "object",
+                                    "properties": {
+                                        "disabled": {
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
+                            "additionalProperties": true,
+                            "description": "Disable collection of Kafka node-level metrics. Default: false"
+                        },
+                        "topic": {
+                            "type": "object",
+                            "properties": {
+                                "metrics": {
+                                    "type": "object",
+                                    "properties": {
+                                        "disabled": {
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            },
+                            "additionalProperties": true,
+                            "description": "Disable collection of Kafka topic-level metrics. Default: false"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Kafka metrics configuration."
+                }
+            },
+            "additionalProperties": true,
+            "description": "Kafka instrumentation configuration."
+        },
+        "netty": {
+            "type": "object",
+            "properties": {
+                "http2": {
+                    "type": "object",
+                    "properties": {
+                        "frame_read_listener": {
+                            "type": "object",
+                            "properties": {
+                                "start_transaction": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "description": "Start a new transaction for HTTP/2 frame read events. Default: false"
+                                }
+                            },
+                            "additionalProperties": true
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Netty instrumentation configuration."
+        },
         "scala_futures_as_segments": {
             "type": "object",
             "properties": {
@@ -120,6 +296,24 @@
             },
             "additionalProperties": true,
             "description": "Report Scala Futures as transaction segments. Default: false"
+        },
+        "scala": {
+            "type": "object",
+            "properties": {
+                "callbackrunnable": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Enable CallbackRunnable instrumentation for Scala futures. Default: false"
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Scala CallbackRunnable instrumentation."
         },
         "send_data_on_exit": {
             "type": "boolean",
@@ -1114,6 +1308,23 @@
                     "default": false,
                     "description": "Set to true to allow individual OpenTelemetry signals to be enabled, false to disable all OpenTelemetry signals. Default is false."
                 },
+                "sdk": {
+                    "type": "object",
+                    "properties": {
+                        "autoconfigure": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            },
+                            "additionalProperties": true
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Legacy setting for SDK autoconfigure. Use opentelemetry.enabled instead. Default is false."
+                },
                 "logs": {
                     "type": "object",
                     "properties": {
@@ -1167,6 +1378,16 @@
                                 
                             ],
                             "description": "A comma-delimited string of OpenTelemetry Meters (e.g. \"MeterName3,MeterName4\") whose signals should be excluded. This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters."
+                        },
+                        "export_interval": {
+                            "type": "integer",
+                            "default": 60000,
+                            "description": "Export interval in milliseconds for OpenTelemetry metrics. Default is 60000 (60 seconds)."
+                        },
+                        "export_timeout": {
+                            "type": "integer",
+                            "default": 10000,
+                            "description": "Export timeout in milliseconds for OpenTelemetry metrics. Default is 10000 (10 seconds)."
                         }
                     },
                     "additionalProperties": true,

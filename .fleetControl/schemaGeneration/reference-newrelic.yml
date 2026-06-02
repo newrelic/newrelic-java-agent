@@ -128,10 +128,81 @@ common: &default_settings
     errors:
       enabled: false
 
+  # gRPC instrumentation configuration.
+  grpc:
+    # Enable distributed tracing for gRPC calls.
+    # Default: true
+    distributed_tracing:
+      enabled: true
+
+    # Report gRPC errors.
+    # Default: true
+    errors:
+      enabled: true
+
+  # Hibernate instrumentation configuration.
+  instrumentation:
+    hibernate:
+      # Enable Hibernate statistics sampler.
+      # Default: false
+      stats_sampler:
+        enabled: false
+
+  # Kafka instrumentation configuration.
+  kafka:
+    # Kafka configuration emission settings.
+    config:
+      # List of environment attributes to include with Kafka config events.
+      # Default: empty list
+      environment_attributes: []
+
+    # Kafka metrics configuration.
+    metrics:
+      # Enable debug logging for Kafka metrics.
+      # Default: false
+      debug:
+        enabled: false
+
+      # Report Kafka metrics as custom events instead of dimensional metrics.
+      # Default: false
+      as_events:
+        enabled: false
+
+      # Reporting interval in seconds for Kafka metrics.
+      # Default: 30
+      interval: 30
+
+      # Disable collection of Kafka node-level metrics.
+      # Default: false
+      node:
+        metrics:
+          disabled: false
+
+      # Disable collection of Kafka topic-level metrics.
+      # Default: false
+      topic:
+        metrics:
+          disabled: false
+
+  # Netty instrumentation configuration.
+  netty:
+    http2:
+      frame_read_listener:
+        # Start a new transaction for HTTP/2 frame read events.
+        # Default: false
+        start_transaction: false
+
   # Report Scala Futures as transaction segments.
   # Default: false
   scala_futures_as_segments:
     enabled: false
+
+  # Scala CallbackRunnable instrumentation.
+  scala:
+    callbackrunnable:
+      # Enable CallbackRunnable instrumentation for Scala futures.
+      # Default: false
+      enabled: false
 
   # Send data on JVM exit.
   # Default: false
@@ -637,6 +708,13 @@ common: &default_settings
     com.newrelic.instrumentation.jdbc-resultset:
       enabled: false
 
+    # HttpURLConnection instrumentation verbosity setting.
+    # When true, captures every response handler method as a segment.
+    # When false, suppresses segments that don't make external calls.
+    # Default is true.
+    com.newrelic.instrumentation.httpurlconnection:
+      verbose: true
+
     # Classes loaded by classloaders in this list will not be instrumented.
     # This is a useful optimization for runtimes which use classloaders to
     # load dynamic classes which the agent would not instrument.
@@ -759,6 +837,12 @@ common: &default_settings
     # Default is false.
     enabled: false
 
+    # Legacy setting for SDK autoconfigure. Use opentelemetry.enabled instead.
+    # Default is false.
+    sdk:
+      autoconfigure:
+        enabled: false
+
     # OpenTelemetry Logs signals.
     logs:
 
@@ -780,6 +864,14 @@ common: &default_settings
       # A comma-delimited string of OpenTelemetry Meters (e.g. "MeterName3,MeterName4") whose signals should be excluded.
       # This takes precedence over all other includes/excludes sources, effectively disabling the listed Meters.
       exclude: []
+
+      # Export interval in milliseconds for OpenTelemetry metrics.
+      # Default is 60000 (60 seconds).
+      export_interval: 60000
+
+      # Export timeout in milliseconds for OpenTelemetry metrics.
+      # Default is 10000 (10 seconds).
+      export_timeout: 10000
 
     # OpenTelemetry Traces signals.
     traces:
