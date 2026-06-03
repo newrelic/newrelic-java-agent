@@ -2,12 +2,12 @@
 /*
  * Fleet Control Config Schema Generator — Java Agent (Groovy option)
  *
- * Reads newrelic.yml from the working tree and writes JSON Schema Draft
- * 2020-12 to .fleetControl/schemas/config.json.
+ * Reads reference-newrelic.yml from the working tree and writes JSON Schema
+ * Draft 2020-12 to .fleetControl/schemas/config.json.
  *
  * Source resolution:
  *   1. NEWRELIC_YML env var, if set
- *   2. <repo-root>/newrelic-agent/src/main/resources/newrelic.yml
+ *   2. <repo-root>/.fleetControl/schemaGeneration/reference-newrelic.yml
  *      (resolved relative to this script's location)
  *
  * Exit codes:
@@ -18,7 +18,7 @@
  *   groovy GenerateSchema.groovy
  *
  * Override the source file:
- *   NEWRELIC_YML=/path/to/newrelic.yml groovy GenerateSchema.groovy
+ *   NEWRELIC_YML=/path/to/reference-newrelic.yml groovy GenerateSchema.groovy
  *
  * ---------------------------------------------------------------------------
  * Why every object emits `additionalProperties: true`
@@ -29,7 +29,7 @@
  *
  *   1. Forward compatibility. The agent ships new config keys in every
  *      release. A Fleet Control deployment may be validating against a
- *      schema that was generated from an older newrelic.yml — strict
+ *      schema that was generated from an older reference-newrelic.yml — strict
  *      validation (the JSON Schema default when this is omitted is
  *      effectively `additionalProperties: true`, but `false` is what most
  *      tooling defaults to in practice) would reject any newer key,
@@ -543,7 +543,7 @@ static String loadNewrelicYml(File defaultPath) {
     File source = envPath ? new File(envPath) : defaultPath
     if (!source.exists()) {
         throw new FileNotFoundException(
-                "newrelic.yml not found at ${source.absolutePath}. " +
+                "reference-newrelic.yml not found at ${source.absolutePath}. " +
                         "Set NEWRELIC_YML to override the source path."
         )
     }
@@ -622,7 +622,7 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
             $schema:              'https://json-schema.org/draft/2020-12/schema',
             title:                'New Relic Java Agent Configuration',
             description:          'Fleet Control configuration schema for the New Relic Java agent. ' +
-                    'Generated from newrelic-agent/src/main/resources/newrelic.yml.',
+                    'Generated from .fleetControl/schemaGeneration/reference-newrelic.yml.',
             type:                 'object',
             properties:           properties,
             required:             ['license_key', 'app_name'],

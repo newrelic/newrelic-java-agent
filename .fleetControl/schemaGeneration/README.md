@@ -1,6 +1,6 @@
 # Fleet Control Schema Generator
 
-This directory contains the Groovy script that generates a JSON Schema from the Java Agent's `newrelic.yml` configuration file for use with Fleet Control.
+This directory contains the Groovy script that generates a JSON Schema from `reference-newrelic.yml` for use with Fleet Control.
 
 ## Quick Start
 
@@ -22,7 +22,7 @@ groovy .fleetControl/schemaGeneration/GenerateSchema.groovy --ci
 
 ## How It Works
 
-1. Reads `newrelic-agent/src/main/resources/newrelic.yml`
+1. Reads `.fleetControl/schemaGeneration/reference-newrelic.yml`
 2. Parses YAML structure and extracts comments for descriptions
 3. Applies type overrides and enum constraints
 4. Validates against JSON Schema Draft 2020-12 meta-schema
@@ -31,7 +31,7 @@ groovy .fleetControl/schemaGeneration/GenerateSchema.groovy --ci
 
 ## Adding New Configuration Keys
 
-When new keys are added to `newrelic.yml`, the script will automatically detect and include them. However, **special handling is required for certain key types**.
+When new keys are added to `reference-newrelic.yml`, the script will automatically detect and include them. However, **special handling is required for certain key types**.
 
 ### Array-or-String Keys (getUniqueStrings)
 
@@ -119,7 +119,7 @@ This is used to exclude instrumentation module keys like `class_transformer.com.
 
 ## Checklist for New Config Keys
 
-When adding new configuration keys to `newrelic.yml`:
+When adding new configuration keys to `reference-newrelic.yml`:
 
 1. **Run the generator** to pick up the new key automatically
 2. **Check the inferred type** in the generated schema

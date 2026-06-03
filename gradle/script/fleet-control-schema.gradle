@@ -1,4 +1,4 @@
-// Regenerates the Fleet Control agent config schema from newrelic.yml.
+// Regenerates the Fleet Control agent config schema from reference-newrelic.yml.
 //
 // The generator lives at .fleetControl/schemaGeneration/GenerateSchema.groovy
 // and writes JSON Schema 2020-12 to .fleetControl/schemas/config.json.
@@ -13,6 +13,12 @@ configurations {
     fleetControlSchemaTool
 }
 
+// The root project doesn't inherit repositories from the subprojects { ... }
+// block in the root build.gradle, so declare them here for this configuration.
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     fleetControlSchemaTool localGroovy()
     // Mirror the script's @Grab block. With these on the classpath the
@@ -24,12 +30,12 @@ dependencies {
 }
 
 def schemaScript = file("${rootProject.projectDir}/.fleetControl/schemaGeneration/GenerateSchema.groovy")
-def newrelicYml = file("${rootProject.projectDir}/newrelic-agent/src/main/resources/newrelic.yml")
+def newrelicYml = file("${rootProject.projectDir}/.fleetControl/schemaGeneration/reference-newrelic.yml")
 def schemaOutput = file("${rootProject.projectDir}/.fleetControl/schemas/config.json")
 
 def generateAgentConfigSchema = tasks.register('generateAgentConfigSchema', JavaExec) {
     group = 'verification'
-    description = 'Regenerates the Fleet Control agent config schema from newrelic.yml'
+    description = 'Regenerates the Fleet Control agent config schema from reference-newrelic.yml'
 
     classpath = configurations.fleetControlSchemaTool
     mainClass.set('groovy.ui.GroovyMain')
