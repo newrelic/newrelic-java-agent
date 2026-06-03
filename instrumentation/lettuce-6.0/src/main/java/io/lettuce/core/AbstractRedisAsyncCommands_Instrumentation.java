@@ -29,7 +29,7 @@ public abstract class AbstractRedisAsyncCommands_Instrumentation<K, V> {
     @Trace
     public <T> AsyncCommand<K, V, T> dispatch(RedisCommand<K, V, T> cmd) {
         AsyncCommand<K, V, T> acmd = Weaver.callOriginal();
-        RedisURI uri = RedisDatastoreParameters.getUriFromConnection(getConnection());
+        RedisURI uri = getConnectionUri(getConnection());
         String operation = "UnknownOp";
         ProtocolKeyword t = cmd.getType();
         if (t != null && t.name() != null && !t.name().isEmpty()) {
@@ -43,6 +43,20 @@ public abstract class AbstractRedisAsyncCommands_Instrumentation<K, V> {
         NRBiConsumer<T> nrBiConsumer = new NRBiConsumer<T>(segment, params);
         acmd.whenComplete(nrBiConsumer);
         return acmd;
+    }
+
+
+    private RedisURI getConnectionUri(StatefulConnection<?, ?> conn){
+        if (conn == null) {
+            return null;
+        }
+        if (conn instanceof StatefulRedisConnectionImpl_Instrumentation) {
+            return ((StatefulRedisConnectionImpl_Instrumentation) conn).redisURI;
+        }
+        if (conn instanceof StatefulRedisClusterConnectionImpl_Instrumentation) {
+            return ((StatefulRedisClusterConnectionImpl_Instrumentation) conn).firstSeedUri;
+        }
+        return null;
     }
 
 }

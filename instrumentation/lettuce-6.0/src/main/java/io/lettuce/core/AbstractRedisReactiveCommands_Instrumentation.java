@@ -31,7 +31,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
         if (cmd != null) {
             ProtocolKeyword type = cmd.getType();
             String name = type.name();
-            RedisURI uri = RedisDatastoreParameters.getUriFromConnection(connection);
+            RedisURI uri = getConnectionUri(connection);
             String operation = "UnknownOp";
             ProtocolKeyword t = cmd.getType();
             if ((t != null) && (t.name() != null) && (!t.name().isEmpty())) {
@@ -56,7 +56,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
             String name = type.name();
 
             String collName = null;
-            RedisURI uri = RedisDatastoreParameters.getUriFromConnection(connection);
+            RedisURI uri = getConnectionUri(connection);
             String operation = "UnknownOp";
             ProtocolKeyword t = cmd.getType();
             if ((t != null) && (t.name() != null) && (!t.name().isEmpty())) {
@@ -81,5 +81,18 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
             return result.doOnSubscribe(subscriberConsumer).doOnError(errorConsumer).doFinally(onFinally);
         }
         return result;
+    }
+
+    private RedisURI getConnectionUri(StatefulConnection<?, ?> conn){
+        if (conn == null) {
+            return null;
+        }
+        if (conn instanceof StatefulRedisConnectionImpl_Instrumentation) {
+            return ((StatefulRedisConnectionImpl_Instrumentation) conn).redisURI;
+        }
+        if (conn instanceof StatefulRedisClusterConnectionImpl_Instrumentation) {
+            return ((StatefulRedisClusterConnectionImpl_Instrumentation) conn).firstSeedUri;
+        }
+        return null;
     }
 }
