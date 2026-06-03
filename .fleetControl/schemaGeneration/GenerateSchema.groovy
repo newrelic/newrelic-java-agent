@@ -291,7 +291,7 @@ static Map<String, String> extractComments(String rawText) {
         if (m.find() && !stripped.startsWith('-')) {
             String key = m.group(1)
             while (!indentStack.isEmpty() && indentStack.last().indent >= indent) {
-                indentStack.removeLast()
+                indentStack.pop()
             }
             indentStack.add(new IndentEntry(indent, key))
             String keyPath = indentStack.collect { it.key }.join('.')
@@ -632,85 +632,96 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
 
 // ---------------------------------------------------------------------------
 // Main — skipped when the script is loaded by tests with TEST_MODE=true
+//
+// Wrapped in try/catch so an uncaught exception maps to exit code 2
+// ("real generator failure"). Without this, Groovy exits 1 on uncaught throw,
+// which our CI workflow would misinterpret as "schema changed" and silently
+// succeed.
 // ---------------------------------------------------------------------------
 if (binding.variables.get('TEST_MODE') != true) {
-    // Parse CLI flags
-    boolean ciMode = false
-    boolean forceMode = false
-    String overrideBump = null
-    List<String> rawArgs = (binding.variables.get('args') ?: []) as List<String>
-    rawArgs.each { String arg ->
-        if (arg == '--ci') {
-            ciMode = true
-        } else if (arg == '--force') {
-            forceMode = true
-        } else if (arg.startsWith('--bump=')) {
-            overrideBump = arg.substring('--bump='.length())
-            if (!(overrideBump in ['major', 'minor', 'patch', 'none'])) {
-                System.err.println "Invalid --bump value: ${overrideBump}"
-                System.exit(2)
+    try {
+        // Parse CLI flags
+        boolean ciMode = false
+        boolean forceMode = false
+        String overrideBump = null
+        List<String> rawArgs = (binding.variables.get('args') ?: []) as List<String>
+        rawArgs.each { String arg ->
+            if (arg == '--ci') {
+                ciMode = true
+            } else if (arg == '--force') {
+                forceMode = true
+            } else if (arg.startsWith('--bump=')) {
+                overrideBump = arg.substring('--bump='.length())
+                if (!(overrideBump in ['major', 'minor', 'patch', 'none'])) {
+                    System.err.println "Invalid --bump value: ${overrideBump}"
+                    System.exit(2)
+                }
             }
         }
-    }
 
-    String rawText = loadNewrelicYml(DEFAULT_YML_PATH)
-    Map<String, Object> newSchema = generateSchema(rawText, EXCLUDE_KEYS, EXCLUDE_KEY_PATTERNS, ENUM_OVERRIDES, TYPE_OVERRIDES)
+        String rawText = loadNewrelicYml(DEFAULT_YML_PATH)
+        Map<String, Object> newSchema = generateSchema(rawText, EXCLUDE_KEYS, EXCLUDE_KEY_PATTERNS, ENUM_OVERRIDES, TYPE_OVERRIDES)
 
-    validateMetaSchema(newSchema)
+        validateMetaSchema(newSchema)
 
-    // In force mode, skip comparison and just write the schema
-    if (forceMode) {
+        // In force mode, skip comparison and just write the schema
+        if (forceMode) {
+            writeSchema(newSchema, SCHEMA_PATH)
+            println "Wrote:   ${SCHEMA_PATH} (force mode — no comparison)"
+            System.exit(0)
+        }
+
+        Map<String, Object> oldSchema = loadExisting(SCHEMA_PATH)
+
         writeSchema(newSchema, SCHEMA_PATH)
-        println "Wrote:   ${SCHEMA_PATH} (force mode — no comparison)"
-        System.exit(0)
-    }
+        println "Wrote:   ${SCHEMA_PATH}"
 
-    Map<String, Object> oldSchema = loadExisting(SCHEMA_PATH)
-
-    writeSchema(newSchema, SCHEMA_PATH)
-    println "Wrote:   ${SCHEMA_PATH}"
-
-    if (oldSchema.isEmpty()) {
-        println '\nFirst run — schema created.'
-        System.exit(0)
-    }
-
-    List<Map<String, Object>> changes = classifyChanges(oldSchema, newSchema)
-
-    if (changes) {
-        List<Map<String, Object>> breaking = changes.findAll { it.get('severity') == 'breaking' }
-        List<Map<String, Object>> additive = changes.findAll { it.get('severity') == 'additive' }
-        List<Map<String, Object>> cosmetic = changes.findAll { it.get('severity') == 'cosmetic' }
-        println "\nSchema changes (${changes.size()}):"
-        if (breaking) {
-            println "  BREAKING (${breaking.size()}):"
-            breaking.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+        if (oldSchema.isEmpty()) {
+            println '\nFirst run — schema created.'
+            System.exit(0)
         }
-        if (additive) {
-            println "  ADDITIVE (${additive.size()}):"
-            additive.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
-        }
-        if (cosmetic) {
-            println "  COSMETIC (${cosmetic.size()}):"
-            cosmetic.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
-        }
-    } else {
-        println '\nNo schema changes.'
-    }
 
-    String autoBump = recommendBump(changes)
-    String chosen = overrideBump ?: autoBump
-    def (String oldV, String newV) = bumpVersion(CONFIG_DEF_PATH, chosen, ciMode)
-    if (chosen == 'none' || newV == oldV) {
-        println "\nRecommended bump: none (${oldV} unchanged)"
-    } else if (overrideBump && overrideBump != autoBump) {
-        println "\nRecommended bump: ${autoBump} → overridden to ${chosen} (${oldV} → ${newV})"
-    } else {
-        println "\nRecommended bump: ${chosen} (${oldV} → ${newV})"
-    }
-    if (ciMode && newV != oldV) {
-        println "Wrote:   ${CONFIG_DEF_PATH}"
-    }
+        List<Map<String, Object>> changes = classifyChanges(oldSchema, newSchema)
 
-    System.exit(changes ? 1 : 0)
+        if (changes) {
+            List<Map<String, Object>> breaking = changes.findAll { it.get('severity') == 'breaking' }
+            List<Map<String, Object>> additive = changes.findAll { it.get('severity') == 'additive' }
+            List<Map<String, Object>> cosmetic = changes.findAll { it.get('severity') == 'cosmetic' }
+            println "\nSchema changes (${changes.size()}):"
+            if (breaking) {
+                println "  BREAKING (${breaking.size()}):"
+                breaking.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+            }
+            if (additive) {
+                println "  ADDITIVE (${additive.size()}):"
+                additive.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+            }
+            if (cosmetic) {
+                println "  COSMETIC (${cosmetic.size()}):"
+                cosmetic.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+            }
+        } else {
+            println '\nNo schema changes.'
+        }
+
+        String autoBump = recommendBump(changes)
+        String chosen = overrideBump ?: autoBump
+        def (String oldV, String newV) = bumpVersion(CONFIG_DEF_PATH, chosen, ciMode)
+        if (chosen == 'none' || newV == oldV) {
+            println "\nRecommended bump: none (${oldV} unchanged)"
+        } else if (overrideBump && overrideBump != autoBump) {
+            println "\nRecommended bump: ${autoBump} → overridden to ${chosen} (${oldV} → ${newV})"
+        } else {
+            println "\nRecommended bump: ${chosen} (${oldV} → ${newV})"
+        }
+        if (ciMode && newV != oldV) {
+            println "Wrote:   ${CONFIG_DEF_PATH}"
+        }
+
+        System.exit(changes ? 1 : 0)
+    } catch (Throwable t) {
+        System.err.println "Generator failed: ${t.class.name}: ${t.message}"
+        t.printStackTrace(System.err)
+        System.exit(2)
+    }
 }

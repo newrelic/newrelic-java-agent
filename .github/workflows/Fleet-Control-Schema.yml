@@ -5,8 +5,9 @@ name: Fleet Control Config Schema
 # (and any version bump in .fleetControl/configurationDefinitions.yml) back to
 # the pushed branch.
 #
-# Also fails if newrelic.yml changed in the push but reference-newrelic.yml
-# didn't — those two files must stay in sync.
+# Also fails the current push if newrelic.yml changed but reference-newrelic.yml
+# didn't. The check is per-push, so a follow-up push that updates
+# reference-newrelic.yml will pass and re-green the PR.
 #
 # Skips main because branch protection blocks the bot from pushing there. The
 # drift check runs on the feature branch before merge, so drift can't reach
@@ -41,11 +42,17 @@ jobs:
 
       - name: Check newrelic.yml / reference-newrelic.yml drift
         run: |
-          changed=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          before='${{ github.event.before }}'
+          after='${{ github.event.after }}'
+          echo "Comparing $before...$after"
+          changed=$(git diff --name-only "$before" "$after")
+          echo "Changed files:"
+          echo "$changed" | sed 's/^/  /'
           agent_yml=$(echo "$changed" | grep -c '^newrelic-agent/src/main/resources/newrelic.yml$' || true)
           ref_yml=$(echo "$changed" | grep -c '^\.fleetControl/schemaGeneration/reference-newrelic.yml$' || true)
+          echo "agent_yml=$agent_yml ref_yml=$ref_yml"
           if [ "$agent_yml" -gt 0 ] && [ "$ref_yml" -eq 0 ]; then
-            echo "::error::newrelic.yml changed but reference-newrelic.yml did not. These two files must stay in sync — update both in the same push."
+            echo "::error::newrelic.yml changed in this push but reference-newrelic.yml did not. Update reference-newrelic.yml in a follow-up push to clear this check."
             exit 1
           fi
 
