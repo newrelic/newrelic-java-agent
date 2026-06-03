@@ -1,46 +1,53 @@
 name: Fleet Control Config Schema
 
-# Regenerates .fleetControl/schemas/config.json from newrelic.yml whenever a
-# PR against main touches inputs that could affect the schema, then commits
-# the regenerated schema (and any version bump in
-# .fleetControl/configurationDefinitions.yml) back to the PR branch.
+# Regenerates .fleetControl/schemas/config.json from reference-newrelic.yml
+# whenever a push touches relevant inputs, then commits the regenerated schema
+# (and any version bump in .fleetControl/configurationDefinitions.yml) back to
+# the pushed branch.
 #
-# Auto-commit only works for PRs from branches in this repository — pushes
-# to fork branches require write access we don't have. PRs from forks will
-# skip the regeneration; reviewers can run the generator locally
-# (`./gradlew generateAgentConfigSchema`) and ask the contributor to pull.
+# Also fails if newrelic.yml changed in the push but reference-newrelic.yml
+# didn't — those two files must stay in sync.
+#
+# Skips main because branch protection blocks the bot from pushing there. The
+# drift check runs on the feature branch before merge, so drift can't reach
+# main without going through a feature-branch run first.
 
 permissions: {}
 
 on:
-  pull_request:
-    branches: [ main ]
+  push:
+    branches-ignore:
+      - main
     paths:
       - 'newrelic-agent/src/main/resources/newrelic.yml'
       - '.fleetControl/schemaGeneration/**'
-      - '.fleetControl/schemas/**'
-      - '.fleetControl/configurationDefinitions.yml'
-  workflow_dispatch:
 
 concurrency:
-  group: fleet-control-schema-${{ github.event.pull_request.number || github.ref }}
+  group: fleet-control-schema-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   regenerate:
     name: Regenerate config schema
     runs-on: ubuntu-24.04
-    # GITHUB_TOKEN cannot push to fork branches, so skip fork PRs.
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # pin@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check newrelic.yml / reference-newrelic.yml drift
+        run: |
+          changed=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          agent_yml=$(echo "$changed" | grep -c '^newrelic-agent/src/main/resources/newrelic.yml$' || true)
+          ref_yml=$(echo "$changed" | grep -c '^\.fleetControl/schemaGeneration/reference-newrelic.yml$' || true)
+          if [ "$agent_yml" -gt 0 ] && [ "$ref_yml" -eq 0 ]; then
+            echo "::error::newrelic.yml changed but reference-newrelic.yml did not. These two files must stay in sync — update both in the same push."
+            exit 1
+          fi
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -77,4 +84,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add .fleetControl/schemas/config.json .fleetControl/configurationDefinitions.yml
           git commit -m "chore: regenerate Fleet Control config schema"
-          git push origin HEAD:${{ github.event.pull_request.head.ref || github.ref_name }}
+          git push
