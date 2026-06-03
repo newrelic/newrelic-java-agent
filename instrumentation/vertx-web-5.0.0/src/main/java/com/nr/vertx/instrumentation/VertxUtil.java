@@ -134,11 +134,13 @@ public class VertxUtil {
                 com.newrelic.agent.bridge.Token token = context.get(NEWRELIC_TOKEN);
                 if (token != null) {
                     context.data().remove(NEWRELIC_TOKEN);
-                    // Use the current thread's transaction (SameOrHigherPriority policy) rather than
-                    // token.getTransaction() (HigherPriority policy) so that FRAMEWORK_HIGH can
-                    // override any SERVLET_NAME that Netty may have stamped after nameTransactionEarly.
                     nameTransaction(context, NewRelic.getAgent().getTransaction());
                     token.expire();
+
+                    com.newrelic.agent.bridge.Transaction txn = AgentBridge.getAgent().getTransaction(false);
+                    if (txn != null) {
+                        txn.expireAllTokens();
+                    }
                 }
             } catch (Throwable t) {
                 AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
