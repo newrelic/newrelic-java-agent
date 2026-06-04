@@ -37,7 +37,7 @@ public class VertxHttpMethodTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             getRequest("/my/path", server).then().body(containsString("ResponseHandler sent response"));
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/my/path (GET)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/my/path (GET)");
             assertNotNull(attributes.get("ResponseHandler"));
         } finally {
             vertx.close();
@@ -53,7 +53,7 @@ public class VertxHttpMethodTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             postRequest("/my/path", server).then().body(containsString("ResponseHandler sent response"));
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/my/path (POST)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/my/path (POST)");
             assertNotNull(attributes.get("ResponseHandler"));
         } finally {
             vertx.close();
@@ -69,7 +69,7 @@ public class VertxHttpMethodTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             putRequest("/my/path", server).then().body(containsString("ResponseHandler sent response"));
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/my/path (PUT)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/my/path (PUT)");
             assertNotNull(attributes.get("ResponseHandler"));
         } finally {
             vertx.close();
@@ -85,7 +85,7 @@ public class VertxHttpMethodTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             deleteRequest("/my/path", server).then().body(containsString("ResponseHandler sent response"));
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/my/path (DELETE)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/my/path (DELETE)");
             assertNotNull(attributes.get("ResponseHandler"));
         } finally {
             vertx.close();
@@ -101,7 +101,7 @@ public class VertxHttpMethodTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             headRequest("/my/path", server).then().statusCode(200);
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/my/path (HEAD)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/my/path (HEAD)");
             assertNotNull(attributes.get("ResponseHandler"));
         } finally {
             vertx.close();
@@ -120,23 +120,23 @@ public class VertxHttpMethodTest extends VertxTestBase {
 
             getRequest("", server).then().body(containsString("ResponseHandler sent response"));
             assertEquals(1, introspector.getFinishedTransactionCount(TIMEOUT));
-            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Vertx/UnnamedPath (GET)"));
+            assertTrue(introspector.getTransactionNames().contains("WebTransaction/Vertx/UnnamedPath (GET)"));
 
             postRequest("", server).then().body(containsString("ResponseHandler sent response"));
             assertEquals(2, introspector.getFinishedTransactionCount(TIMEOUT));
-            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Vertx/UnnamedPath (POST)"));
+            assertTrue(introspector.getTransactionNames().contains("WebTransaction/Vertx/UnnamedPath (POST)"));
 
             deleteRequest("", server).then().body(containsString("ResponseHandler sent response"));
             assertEquals(3, introspector.getFinishedTransactionCount(TIMEOUT));
-            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Vertx/UnnamedPath (DELETE)"));
+            assertTrue(introspector.getTransactionNames().contains("WebTransaction/Vertx/UnnamedPath (DELETE)"));
 
             putRequest("", server).then().body(containsString("ResponseHandler sent response"));
             assertEquals(4, introspector.getFinishedTransactionCount(TIMEOUT));
-            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Vertx/UnnamedPath (PUT)"));
+            assertTrue(introspector.getTransactionNames().contains("WebTransaction/Vertx/UnnamedPath (PUT)"));
 
             headRequest("", server).then().statusCode(200);
             assertEquals(5, introspector.getFinishedTransactionCount(TIMEOUT));
-            assertTrue(introspector.getTransactionNames().contains("OtherTransaction/Vertx/UnnamedPath (HEAD)"));
+            assertTrue(introspector.getTransactionNames().contains("WebTransaction/Vertx/UnnamedPath (HEAD)"));
         } finally {
             vertx.close();
         }

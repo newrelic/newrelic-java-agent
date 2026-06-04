@@ -44,7 +44,7 @@ public class RoutingTest extends VertxTestBase{
             getRequest("/swiss-cheese-knife?medium=true&looknomgi=omgno", server)
                     .then().body(containsString("CheeseHandler sent response"));
 
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/swiss-cheese-knife (GET)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/swiss-cheese-knife (GET)");
             assertNotNull(attributes.get("CheeseHandler"));
         } finally {
             vertx.close();
@@ -65,28 +65,28 @@ public class RoutingTest extends VertxTestBase{
             getRequest("/best/first/place/to/understand/your/", server)
                     .then().body(containsString("BestFirstPlace sent response"));
 
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/best/first/place/to (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/best/first/place/to (GET)");
             assertNotNull(attributes.get("BestFirstPlace"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/best/first/place/to/understand/your/digital", server)
                     .then().body(containsString("BestFirstPlace sent response"));
 
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/best/first/place/to (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/best/first/place/to (GET)");
             assertNotNull(attributes.get("BestFirstPlace"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/best/first/place/to/understand/your/digital/biscuit", server)
                     .then().body(containsString("BestFirstPlace sent response"));
 
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/best/first/place/to (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/best/first/place/to (GET)");
             assertNotNull(attributes.get("BestFirstPlace"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/best/first/place/to/understand/your/digital/biscuit?nutella=yes", server)
                     .then().body(containsString("BestFirstPlace sent response"));
 
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/best/first/place/to (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/best/first/place/to (GET)");
             assertNotNull(attributes.get("BestFirstPlace"));
         } finally {
             vertx.close();
@@ -107,12 +107,12 @@ public class RoutingTest extends VertxTestBase{
             Map<String, Object> attributes;
 
             getRequest("/coffee/ghana/medium/", server).then().body(containsString("CoffeeHandler sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/coffee/:origin/:roast/ (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/coffee/:origin/:roast/ (GET)");
             assertNotNull(attributes.get("CoffeeHandler"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/coffee/gresham/french/?nomgi=wat", server).then().body(containsString("CoffeeHandler sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/coffee/:origin/:roast/ (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/coffee/:origin/:roast/ (GET)");
             assertNotNull(attributes.get("CoffeeHandler"));
             InstrumentationTestRunner.getIntrospector().clear();
         } finally {
@@ -134,17 +134,17 @@ public class RoutingTest extends VertxTestBase{
             Map<String, Object> attributes;
 
             getRequest("/newrelic/java/agent", server).then().body(containsString("Agent sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/.*agent (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/.*agent (GET)");
             assertNotNull(attributes.get("Agent"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/newrelic/agent", server).then().body(containsString("Agent sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/.*agent (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/.*agent (GET)");
             assertNotNull(attributes.get("Agent"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/agent", server).then().body(containsString("Agent sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/.*agent (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/.*agent (GET)");
             assertNotNull(attributes.get("Agent"));
         } finally {
             vertx.close();
@@ -163,12 +163,12 @@ public class RoutingTest extends VertxTestBase{
             Map<String, Object> attributes;
 
             getRequest("/tools/drill123", server).then().body(containsString("TwoGroups sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/\\/([^\\/]+)\\/([^\\/]+) (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/\\/([^\\/]+)\\/([^\\/]+) (GET)");
             assertNotNull(attributes.get("TwoGroups"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/first/second?query=parameters&favorite=red", server).then().body(containsString("TwoGroups sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/\\/([^\\/]+)\\/([^\\/]+) (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/\\/([^\\/]+)\\/([^\\/]+) (GET)");
             assertNotNull(attributes.get("TwoGroups"));
             InstrumentationTestRunner.getIntrospector().clear();
         } finally {
@@ -192,12 +192,12 @@ public class RoutingTest extends VertxTestBase{
             Map<String, Object> attributes;
 
             getRequest("/products", server).then().body(containsString("ProductHandlerGet sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/products (GET)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/products (GET)");
             assertNotNull(attributes.get("ProductHandlerGet"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             postRequest("/products/upload", server).then().body(containsString("ProductHandlerPost sent response"));
-            attributes = getAttributesForTransaction("OtherTransaction/Vertx/products/upload (POST)");
+            attributes = getAttributesForTransaction("WebTransaction/Vertx/products/upload (POST)");
             assertNotNull(attributes.get("ProductHandlerPost"));
             InstrumentationTestRunner.getIntrospector().clear();
         } finally {
@@ -215,7 +215,7 @@ public class RoutingTest extends VertxTestBase{
             HttpServer server = createServer(vertx, router);
 
             getRequest(server).then().body(containsString("TextPlainHandler"));
-            final Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/UnnamedPath (GET)");
+            final Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/UnnamedPath (GET)");
             assertNotNull(attributes.get("TextPlainHandler"));
         } finally {
             vertx.close();
@@ -234,7 +234,7 @@ public class RoutingTest extends VertxTestBase{
             HttpServer server = createServer(vertx, router);
 
             postRequest("/myapi/orders", server).then().body(containsString("OrdersHandler sent response"));
-            final Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/myapi/orders (POST)");
+            final Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/myapi/orders (POST)");
             assertNotNull(attributes.get("OrdersHandler"));
         } finally {
             vertx.close();
@@ -258,7 +258,7 @@ public class RoutingTest extends VertxTestBase{
             HttpServer server = createServer(vertx, mainRouter);
             getRequest("/api/hello", server).then().body(containsString("HelloHandler"));
 
-            final Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/api/hello (GET)");
+            final Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/api/hello (GET)");
             assertNotNull(attributes.get("MainHandler"));
             assertNotNull(attributes.get("HelloHandler"));
         } finally {
@@ -291,7 +291,7 @@ public class RoutingTest extends VertxTestBase{
 
             getRequest("/some/path", server).then().body(CoreMatchers.containsString("Reroute: bar"));
 
-            Map<String, Object> attributes = getAttributesForTransaction("OtherTransaction/Vertx/some/path/B (GET)");
+            Map<String, Object> attributes = getAttributesForTransaction("WebTransaction/Vertx/some/path/B (GET)");
 
             Assert.assertNotNull(attributes.get("SomePath1"));
             Assert.assertNotNull(attributes.get("SomePath2"));

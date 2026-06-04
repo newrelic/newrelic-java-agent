@@ -135,6 +135,7 @@ public class VertxUtil {
                 if (token != null) {
                     context.data().remove(NEWRELIC_TOKEN);
                     nameTransaction(context, NewRelic.getAgent().getTransaction());
+                    NewRelic.getAgent().getTransaction().setWebResponse(new VertxHttpServerResponseWrapper(context));
                     token.expire();
 
                     com.newrelic.agent.bridge.Transaction txn = AgentBridge.getAgent().getTransaction(false);

@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
 @InstrumentationTestConfig(includePrefixes = { "io.vertx" })
 public class VertxHandlersTest extends VertxTestBase {
 
-    public static final String UNNAMED_PATH = "OtherTransaction/Vertx/UnnamedPath (GET)";
+    public static final String UNNAMED_PATH = "WebTransaction/Vertx/UnnamedPath (GET)";
 
     @Test
     public void testSerialRequestHandlers() {

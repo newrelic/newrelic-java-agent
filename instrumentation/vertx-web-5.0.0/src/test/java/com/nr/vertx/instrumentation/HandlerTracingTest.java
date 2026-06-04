@@ -34,12 +34,12 @@ public class HandlerTracingTest extends VertxTestBase {
             router.route().path("/product/:pid").handler(ProductHandlers.getProductHandler());
             HttpServer server = createServer(vertx, router);
             getRequest("/products/", server).then().statusCode(200);
-            Map<String, TracedMetricData> metrics = getMetrics("OtherTransaction/Vertx/products (GET)");
+            Map<String, TracedMetricData> metrics = getMetrics("WebTransaction/Vertx/products (GET)");
             assertTrue(metrics.containsKey("com.nr.vertx.instrumentation.HandlerTracingTest.lambda()"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/product/milk", server).then().statusCode(200);
-            metrics = getMetrics("OtherTransaction/Vertx/product/:pid (GET)");
+            metrics = getMetrics("WebTransaction/Vertx/product/:pid (GET)");
             assertTrue(metrics.containsKey("com.nr.vertx.test.handlers.ProductHandlers.lambda()"));
             InstrumentationTestRunner.getIntrospector().clear();
         } finally {
@@ -57,12 +57,12 @@ public class HandlerTracingTest extends VertxTestBase {
             HttpServer server = createServer(vertx, router);
 
             getRequest("/products/", server).then().statusCode(200);
-            Map<String, TracedMetricData> metrics = getMetrics("OtherTransaction/Vertx/products (GET)");
+            Map<String, TracedMetricData> metrics = getMetrics("WebTransaction/Vertx/products (GET)");
             assertTrue(metrics.containsKey("com.nr.vertx.instrumentation.HandlerTracingTest.lambda()"));
             InstrumentationTestRunner.getIntrospector().clear();
 
             getRequest("/product/milk", server).then().statusCode(200);
-            metrics = getMetrics("OtherTransaction/Vertx/product/:pid (GET)");
+            metrics = getMetrics("WebTransaction/Vertx/product/:pid (GET)");
             assertTrue(metrics.containsKey("com.nr.vertx.test.handlers.ProductHandlers.lambda()"));
             InstrumentationTestRunner.getIntrospector().clear();
         } finally {
