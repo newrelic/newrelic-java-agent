@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 /*
- * Fleet Control Config Schema Generator — Java Agent (Groovy option)
+ * Agent Config Schema Generator — Java Agent.
  *
  * Reads reference-newrelic.yml from the working tree and writes JSON Schema
  * Draft 2020-12 to .fleetControl/schemas/config.json.
@@ -11,14 +11,25 @@
  *      (resolved relative to this script's location)
  *
  * Exit codes:
- *   0 — no schema changes (or first run)
- *   1 — schema changed (CI should commit the updated files)
+ *   0 — no schema changes (or first run, or --force mode)
+ *   1 — schema regenerated and on-disk differed (CI should commit)
+ *   2 — generator failure (uncaught exception)
  *
  * Run standalone:
  *   groovy GenerateSchema.groovy
  *
+ * Force-regenerate without comparing:
+ *   groovy GenerateSchema.groovy --force
+ *
  * Override the source file:
  *   NEWRELIC_YML=/path/to/reference-newrelic.yml groovy GenerateSchema.groovy
+ *
+ * Version bumping is NOT this script's concern. See BumpSchemaVersion.groovy
+ * for the release-time bump path. This script only writes config.json; it
+ * never touches configurationDefinitions.yml.
+ *
+ * Diff/bump helpers (classifyChanges, recommendBump, etc.) live in
+ * SchemaDiff.groovy and are loaded via GroovyShell at startup.
  *
  * ---------------------------------------------------------------------------
  * Why every object emits `additionalProperties: true`
@@ -51,7 +62,6 @@
 @Grab('com.fasterxml.jackson.core:jackson-databind:2.18.1')
 import org.yaml.snakeyaml.Yaml
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -68,7 +78,6 @@ final File FLEET_CONTROL_DIR = SCRIPT_DIR.parentFile
 final File REPO_ROOT = FLEET_CONTROL_DIR.parentFile
 final File SCHEMA_DIR = new File(FLEET_CONTROL_DIR, 'schemas')
 final File SCHEMA_PATH = new File(SCHEMA_DIR, 'config.json')
-final File CONFIG_DEF_PATH = new File(FLEET_CONTROL_DIR, 'configurationDefinitions.yml')
 final File DEFAULT_YML_PATH = new File(REPO_ROOT, '.fleetControl/schemaGeneration/reference-newrelic.yml')
 
 // ---------------------------------------------------------------------------
@@ -291,7 +300,11 @@ static Map<String, String> extractComments(String rawText) {
         if (m.find() && !stripped.startsWith('-')) {
             String key = m.group(1)
             while (!indentStack.isEmpty() && indentStack.last().indent >= indent) {
-                indentStack.pop()
+                // Note: Groovy's List.pop() removes the FIRST element (opposite
+                // of Java's Stack.pop()), and ArrayList.removeLast() is Java 21+
+                // only — so neither is safe here. Explicit index removal works
+                // on all Java versions and matches the stack semantics we want.
+                indentStack.remove(indentStack.size() - 1)
             }
             indentStack.add(new IndentEntry(indent, key))
             String keyPath = indentStack.collect { it.key }.join('.')
@@ -351,191 +364,6 @@ static Map<String, Object> buildProperties(Map<String, Object> data, Map<String,
 }
 
 // ---------------------------------------------------------------------------
-// Schema diff classification — distinguishes breaking from additive changes.
-// Change records are plain Maps:
-//   [path: String, kind: String, severity: 'breaking' | 'additive', detail: String]
-// NOTE: Map values are accessed via .get('properties') because Groovy 5
-// resolves .properties / ['properties'] to the bean accessor, not the key.
-// ---------------------------------------------------------------------------
-
-static String renderChange(Map<String, Object> c) {
-    String kind = (String) c.get('kind')
-    String sym = kind == 'added' ? '+' : (kind == 'removed' ? '-' : '~')
-    String detail = (String) c.get('detail')
-    String path = (String) c.get('path')
-    return detail ? "${sym} ${path}: ${detail}" : "${sym} ${path}"
-}
-
-static List<Map<String, Object>> classifyChanges(Map<String, Object> oldS, Map<String, Object> newS, String path = '') {
-    List<Map<String, Object>> changes = []
-
-    // required: gained → breaking, lost → additive
-    Set<String> oldReq = ((List<String>) (oldS.get('required') ?: [])) as Set<String>
-    Set<String> newReq = ((List<String>) (newS.get('required') ?: [])) as Set<String>
-    (newReq - oldReq).sort().each { String k ->
-        changes.add([path: path ? "${path}.${k}".toString() : k,
-                     kind: 'required_added', severity: 'breaking',
-                     detail: 'now required'] as Map<String, Object>)
-    }
-    (oldReq - newReq).sort().each { String k ->
-        changes.add([path: path ? "${path}.${k}".toString() : k,
-                     kind: 'required_removed', severity: 'additive',
-                     detail: 'no longer required'] as Map<String, Object>)
-    }
-
-    // additionalProperties: implicit `true` is the JSON Schema default
-    Object oldAP = oldS.containsKey('additionalProperties') ? oldS.get('additionalProperties') : true
-    Object newAP = newS.containsKey('additionalProperties') ? newS.get('additionalProperties') : true
-    if (oldAP == true && newAP == false) {
-        changes.add([path: path ?: '<root>',
-                     kind: 'additional_properties_tightened', severity: 'breaking',
-                     detail: 'additionalProperties: true → false'] as Map<String, Object>)
-    } else if (oldAP == false && newAP == true) {
-        changes.add([path: path ?: '<root>',
-                     kind: 'additional_properties_loosened', severity: 'additive',
-                     detail: 'additionalProperties: false → true'] as Map<String, Object>)
-    }
-
-    // Walk properties (.get because of the Groovy 5 bean-accessor quirk)
-    Map<String, Object> oldProps = (Map<String, Object>) (oldS.get('properties') ?: [:])
-    Map<String, Object> newProps = (Map<String, Object>) (newS.get('properties') ?: [:])
-    (oldProps.keySet() + newProps.keySet()).sort().each { String key ->
-        String childPath = path ? "${path}.${key}".toString() : key
-        if (!oldProps.containsKey(key)) {
-            changes.add([path: childPath, kind: 'added', severity: 'additive',
-                         detail: 'new property'] as Map<String, Object>)
-        } else if (!newProps.containsKey(key)) {
-            changes.add([path: childPath, kind: 'removed', severity: 'breaking',
-                         detail: 'property removed'] as Map<String, Object>)
-        } else {
-            Map<String, Object> op = (Map<String, Object>) oldProps.get(key)
-            Map<String, Object> np = (Map<String, Object>) newProps.get(key)
-            if (op.get('type') == 'object' && np.get('type') == 'object') {
-                changes.addAll(classifyChanges(op, np, childPath))
-            } else {
-                changes.addAll(classifyLeaf(op, np, childPath))
-            }
-        }
-    }
-    return changes
-}
-
-static List<Map<String, Object>> classifyLeaf(Map<String, Object> op, Map<String, Object> np, String path) {
-    List<Map<String, Object>> changes = []
-
-    if (op.get('type') != np.get('type')) {
-        changes.add([path: path, kind: 'type_changed', severity: 'breaking',
-                     detail: "type ${op.get('type')} → ${np.get('type')}".toString()] as Map<String, Object>)
-    }
-
-    Object oe = op.get('enum')
-    Object ne = np.get('enum')
-    if (oe == null && ne != null) {
-        changes.add([path: path, kind: 'enum_introduced', severity: 'breaking',
-                     detail: "newly constrained to enum ${ne}".toString()] as Map<String, Object>)
-    } else if (oe != null && ne == null) {
-        changes.add([path: path, kind: 'enum_removed_entirely', severity: 'additive',
-                     detail: 'enum constraint removed'] as Map<String, Object>)
-    } else if (oe && ne && (oe as Set) != (ne as Set)) {
-        ((oe as Set) - (ne as Set)).sort().each { v ->
-            changes.add([path: path, kind: 'enum_value_removed', severity: 'breaking',
-                         detail: "enum value '${v}' removed".toString()] as Map<String, Object>)
-        }
-        ((ne as Set) - (oe as Set)).sort().each { v ->
-            changes.add([path: path, kind: 'enum_value_added', severity: 'additive',
-                         detail: "enum value '${v}' added".toString()] as Map<String, Object>)
-        }
-    }
-
-    if (op.get('default') != np.get('default')) {
-        changes.add([path: path, kind: 'default_changed', severity: 'additive',
-                     detail: "default ${op.get('default')} → ${np.get('default')}".toString()] as Map<String, Object>)
-    }
-
-    if (op.get('description') != np.get('description')) {
-        changes.add([path: path, kind: 'description_changed', severity: 'cosmetic',
-                     detail: 'description updated'] as Map<String, Object>)
-    }
-
-    return changes
-}
-
-// ---------------------------------------------------------------------------
-// Semver bump — derived from the highest-severity change in the diff
-// ---------------------------------------------------------------------------
-
-/** Translate a list of Change records into a semver bump kind. */
-static String recommendBump(List<Map<String, Object>> changes) {
-    if (changes.any { it.get('severity') == 'breaking' }) return 'major'
-    if (changes.any { it.get('severity') == 'additive' }) return 'minor'
-    if (changes.any { it.get('severity') == 'cosmetic' }) return 'patch'
-    return 'none'
-}
-
-/** Apply a bump kind to a semver string. 'none' returns the input unchanged. */
-static String applyBump(String version, String bump) {
-    if (bump == 'none') return version
-    List<String> parts = version.tokenize('.')
-    if (parts.size() != 3 || !parts.every { it.isInteger() }) {
-        throw new IllegalArgumentException("version '${version}' is not semver MAJOR.MINOR.PATCH")
-    }
-    int major = parts[0] as int
-    int minor = parts[1] as int
-    int patch = parts[2] as int
-    switch (bump) {
-        case 'major': return "${major + 1}.0.0".toString()
-        case 'minor': return "${major}.${minor + 1}.0".toString()
-        case 'patch': return "${major}.${minor}.${patch + 1}".toString()
-        default: throw new IllegalArgumentException("unknown bump kind '${bump}'")
-    }
-}
-
-/**
- * Read configurationDefinitions.yml, compute the new version, optionally
- * write it back. Returns [oldVersion, newVersion]. Mutates the file only
- * when `write` is true.
- *
- * Reading parses with SnakeYAML for structural validation; writing does
- * a targeted regex replacement of just the `version:` line so the rest of
- * the file is preserved byte-for-byte. Same approach in every generator
- * → trivial cross-language parity.
- */
-static List<String> bumpVersion(File yamlPath, String bump, boolean write) {
-    String text = yamlPath.text
-    Map<String, Object> data = (Map<String, Object>) new Yaml().load(text)
-    List defs = (List) (data?.get('configurationDefinitions') ?: [])
-    if (defs.isEmpty() || !((Map) defs[0]).containsKey('version')) {
-        throw new IllegalStateException(
-                "${yamlPath}: configurationDefinitions[0].version not found"
-        )
-    }
-    String oldVersion = ((Map) defs[0]).get('version').toString()
-    String newVersion = applyBump(oldVersion, bump)
-    if (write && newVersion != oldVersion) {
-        Pattern versionLine = Pattern.compile(/(?m)^(\s*version:\s*)(\S+)(\s*)$/)
-        StringBuffer sb = new StringBuffer()
-        def matcher = versionLine.matcher(text)
-        int matches = 0
-        while (matcher.find()) {
-            matcher.appendReplacement(sb,
-                    java.util.regex.Matcher.quoteReplacement(
-                            "${matcher.group(1)}${newVersion}${matcher.group(3)}"
-                    )
-            )
-            matches++
-        }
-        matcher.appendTail(sb)
-        if (matches != 1) {
-            throw new IllegalStateException(
-                    "${yamlPath}: expected exactly 1 'version:' line, found ${matches}"
-            )
-        }
-        yamlPath.text = sb.toString()
-    }
-    return [oldVersion, newVersion]
-}
-
-// ---------------------------------------------------------------------------
 // I/O
 // ---------------------------------------------------------------------------
 static String loadNewrelicYml(File defaultPath) {
@@ -549,15 +377,6 @@ static String loadNewrelicYml(File defaultPath) {
     }
     println "Reading: ${source.absolutePath}"
     return source.getText('UTF-8')
-}
-
-static Map<String, Object> loadExisting(File path) {
-    if (!path.exists()) return [:] as Map<String, Object>
-    try {
-        return (Map<String, Object>) new JsonSlurper().parse(path)
-    } catch (ignored) {
-        return [:] as Map<String, Object>
-    }
 }
 
 static void writeSchema(Map<String, Object> schema, File path) {
@@ -641,23 +460,24 @@ static Map<String, Object> generateSchema(String rawText, Set<String> excludeKey
 if (binding.variables.get('TEST_MODE') != true) {
     try {
         // Parse CLI flags
-        boolean ciMode = false
         boolean forceMode = false
-        String overrideBump = null
         List<String> rawArgs = (binding.variables.get('args') ?: []) as List<String>
         rawArgs.each { String arg ->
-            if (arg == '--ci') {
-                ciMode = true
-            } else if (arg == '--force') {
+            if (arg == '--force') {
                 forceMode = true
-            } else if (arg.startsWith('--bump=')) {
-                overrideBump = arg.substring('--bump='.length())
-                if (!(overrideBump in ['major', 'minor', 'patch', 'none'])) {
-                    System.err.println "Invalid --bump value: ${overrideBump}"
-                    System.exit(2)
-                }
+            } else {
+                System.err.println "Unknown flag: ${arg}"
+                System.err.println "Supported: --force"
+                System.exit(2)
             }
         }
+
+        // Load the SchemaDiff library for change classification + bump-recommendation reporting.
+        // This script never WRITES a version bump — version-bump writes live in BumpSchemaVersion.groovy.
+        File schemaDiffFile = new File(SCRIPT_DIR, 'SchemaDiff.groovy')
+        GroovyShell shell = new GroovyShell()
+        Script lib = shell.parse(schemaDiffFile)
+        lib.run()
 
         String rawText = loadNewrelicYml(DEFAULT_YML_PATH)
         Map<String, Object> newSchema = generateSchema(rawText, EXCLUDE_KEYS, EXCLUDE_KEY_PATTERNS, ENUM_OVERRIDES, TYPE_OVERRIDES)
@@ -671,7 +491,7 @@ if (binding.variables.get('TEST_MODE') != true) {
             System.exit(0)
         }
 
-        Map<String, Object> oldSchema = loadExisting(SCHEMA_PATH)
+        Map<String, Object> oldSchema = lib.loadExisting(SCHEMA_PATH)
 
         writeSchema(newSchema, SCHEMA_PATH)
         println "Wrote:   ${SCHEMA_PATH}"
@@ -681,7 +501,7 @@ if (binding.variables.get('TEST_MODE') != true) {
             System.exit(0)
         }
 
-        List<Map<String, Object>> changes = classifyChanges(oldSchema, newSchema)
+        List<Map<String, Object>> changes = lib.classifyChanges(oldSchema, newSchema)
 
         if (changes) {
             List<Map<String, Object>> breaking = changes.findAll { it.get('severity') == 'breaking' }
@@ -690,32 +510,20 @@ if (binding.variables.get('TEST_MODE') != true) {
             println "\nSchema changes (${changes.size()}):"
             if (breaking) {
                 println "  BREAKING (${breaking.size()}):"
-                breaking.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+                breaking.each { Map<String, Object> ch -> println "    ${lib.renderChange(ch)}" }
             }
             if (additive) {
                 println "  ADDITIVE (${additive.size()}):"
-                additive.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+                additive.each { Map<String, Object> ch -> println "    ${lib.renderChange(ch)}" }
             }
             if (cosmetic) {
                 println "  COSMETIC (${cosmetic.size()}):"
-                cosmetic.each { Map<String, Object> ch -> println "    ${renderChange(ch)}" }
+                cosmetic.each { Map<String, Object> ch -> println "    ${lib.renderChange(ch)}" }
             }
+            String autoBump = lib.recommendBump(changes)
+            println "\nRecommended bump: ${autoBump} (informational; run BumpSchemaVersion.groovy at release time to apply)"
         } else {
             println '\nNo schema changes.'
-        }
-
-        String autoBump = recommendBump(changes)
-        String chosen = overrideBump ?: autoBump
-        def (String oldV, String newV) = bumpVersion(CONFIG_DEF_PATH, chosen, ciMode)
-        if (chosen == 'none' || newV == oldV) {
-            println "\nRecommended bump: none (${oldV} unchanged)"
-        } else if (overrideBump && overrideBump != autoBump) {
-            println "\nRecommended bump: ${autoBump} → overridden to ${chosen} (${oldV} → ${newV})"
-        } else {
-            println "\nRecommended bump: ${chosen} (${oldV} → ${newV})"
-        }
-        if (ciMode && newV != oldV) {
-            println "Wrote:   ${CONFIG_DEF_PATH}"
         }
 
         System.exit(changes ? 1 : 0)
