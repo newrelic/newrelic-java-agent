@@ -15,7 +15,7 @@ import io.lettuce.core.codec.RedisCodec;
 import java.util.Iterator;
 
 @Weave(originalName = "io.lettuce.core.cluster.RedisClusterClient")
-public abstract class RedisClusterClient_Instrumentation {
+public class RedisClusterClient_Instrumentation {
 
     private final Iterable<RedisURI> initialUris = Weaver.callOriginal();
 
