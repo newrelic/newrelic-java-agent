@@ -7,7 +7,6 @@
 package com.nr.agent.instrumentation.sling;
 
 import com.newrelic.api.agent.NewRelic;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.PrintWriter;
 
