@@ -20,10 +20,18 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.*;
 public abstract class AbstractLogger_Instrumentation {
     private void logMessageSafely(final String fqcn, final Level level, final Marker marker,
             final Message message, final Throwable throwable) {
+        boolean addedLinkingMetadata = false;
         if (isApplicationLoggingEnabled() && isApplicationLoggingLocalDecoratingEnabled()) {
             ThreadContext.put(BLOB_PREFIX, getLinkingMetadataBlob());
+            addedLinkingMetadata = true;
         }
 
-        Weaver.callOriginal();
+        try {
+            Weaver.callOriginal();
+        } finally {
+            if (addedLinkingMetadata) {
+                ThreadContext.remove(BLOB_PREFIX);
+            }
+        }
     }
 }
