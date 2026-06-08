@@ -65,6 +65,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # pin@3.0.3
         with:
+          webhook-type: 'incoming-webhook'
           payload: |
             {
               "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
