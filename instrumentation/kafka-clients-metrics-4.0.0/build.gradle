@@ -1,0 +1,34 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.kafka:kafka-clients:4.0.0")
+
+    testImplementation("org.testcontainers:kafka:1.21.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-metrics-4.0.0',
+            'Implementation-Title-Alias': 'kafka-clients-metrics' }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.kafka:kafka-clients:[4.0.0,)'
+}
+
+site {
+    title 'Kafka Clients Metrics'
+    type 'Kafka'
+}

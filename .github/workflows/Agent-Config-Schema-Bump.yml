@@ -1,0 +1,91 @@
+name: Agent Config Schema Bump
+
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
+on:
+  workflow_run:
+    workflows: ["Test Suite - Release"]
+    types: [completed]
+
+jobs:
+  bump:
+    name: Open agent config schema bump PR
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Find latest agent release tag
+        id: tag
+        run: |
+          tag=$(git describe --tags --abbrev=0 --match='v*' main 2>/dev/null || true)
+          if [ -z "$tag" ]; then
+            echo "::error::No agent release tag (v*) found on main."
+            exit 1
+          fi
+          echo "Found latest tag: $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73 # pin@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Groovy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y groovy
+
+      - name: Compute and apply bump
+        id: bump
+        run: |
+          set +e
+          groovy .fleetControl/schemaGeneration/BumpSchemaVersion.groovy \
+            --since=${{ steps.tag.outputs.tag }} --ci
+          code=$?
+          set -e
+          case "$code" in
+            0) echo "bumped=false" >> "$GITHUB_OUTPUT" ;;
+            1) echo "bumped=true"  >> "$GITHUB_OUTPUT" ;;
+            *) echo "Bump failed (exit $code)"; exit "$code" ;;
+          esac
+
+      - name: Open bump PR
+        id: create-pr
+        if: steps.bump.outputs.bumped == 'true'
+        uses: peter-evans/create-pull-request@6d6857d36972b65feb161a90e484f2984215f83e  # pin@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: .fleetControl/configurationDefinitions.yml
+          branch: bump-agent-config-schema-version-${{ github.run_id }}
+          delete-branch: true
+          base: main
+          title: 'chore: bump agent config schema version'
+          commit-message: 'chore: bump agent config schema version'
+          body: |
+            Auto-generated bump after Test Suite - Release succeeded
+            (run [${{ github.event.workflow_run.id }}](${{ github.event.workflow_run.html_url }})).
+
+            Bump computed from the schema diff since the last agent release tag
+            (`${{ steps.tag.outputs.tag }}`).
+
+            ## ⚠️ Release ordering
+
+            **Merge this PR BEFORE cutting the release tag.**
+
+      - name: Summary
+        if: steps.create-pr.outputs.pull-request-number
+        run: |
+          echo "Submitted PR #${{ steps.create-pr.outputs.pull-request-number }} to bump the agent config schema version."
+          echo "Your review is required. See ${{ steps.create-pr.outputs.pull-request-url }}"

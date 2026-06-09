@@ -14,9 +14,19 @@ on:
         description: "Specify cache branch/tag/sha (main is default)"
         required: false
         default: 'main'
-      ingest-metrics-desc:
-        description: "(Optional) For site wiki ingest metrics: Specify a description for this run. This will be used as the title for the new wiki page."
+      wiki-report-desc:
+        description: "(Optional) Description for wiki reports (used when publishing ingest metrics and/or performance metrics). NO SPACES. Ex: Release9.0.0"
         required: false
+      publish-ingest-metrics:
+        description: "Publish ingest metrics to wiki"
+        required: false
+        type: boolean
+        default: false
+      publish-performance-metrics:
+        description: "Publish AIT performance metrics to wiki"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
 
@@ -26,7 +36,9 @@ jobs:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
       ait-ref: ${{ inputs.ait-ref || 'main' }}
       cache-ref: ${{ inputs.cache-ref || 'main' }}
-      ingest-metrics-desc: ${{ inputs.ingest-metrics-desc }}
+      wiki-report-desc: ${{ inputs.wiki-report-desc }}
+      publish-ingest-metrics: ${{ inputs.publish-ingest-metrics }}
+      publish-performance-metrics: ${{ inputs.publish-performance-metrics }}
     secrets: inherit
 
   functional-tests:
