@@ -36,6 +36,7 @@ import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static llm.models.TestUtil.assertLlmEmbeddingAttributes;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -112,6 +113,24 @@ public class CommandModelInvocationTest {
     }
 
     @Test
+    public void testEmbeddingTokenAttributes() {
+        boolean isError = false;
+
+        CommandModelInvocation commandModelInvocation = mockCommandModelInvocation(embeddingModelId, embeddingRequestBody, embeddingResponseBody, isError);
+        commandModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmEmbeddingEvents = introspector.getCustomEvents(LLM_EMBEDDING);
+        assertEquals(1, llmEmbeddingEvents.size());
+        Event llmEmbeddingEvent = llmEmbeddingEvents.iterator().next();
+        Map<String, Object> attributes = llmEmbeddingEvent.getAttributes();
+
+        assertFalse(attributes.containsKey("token_count"));
+        assertFalse(attributes.containsKey("response.usage.total_tokens"));
+        assertFalse(attributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(attributes.containsKey("response.usage.completion_tokens"));
+    }
+
+    @Test
     public void testEmbeddingError() {
         boolean isError = true;
 
@@ -154,6 +173,49 @@ public class CommandModelInvocationTest {
         assertLlmChatCompletionSummaryAttributes(llmChatCompletionSummaryEvent, completionModelId, finishReason);
 
         assertErrorEvent(isError, introspector.getErrorEvents());
+    }
+
+    @Test
+    public void testCompletionWithIncompleteUsageData() {
+        boolean isError = false;
+
+        CommandModelInvocation commandModelInvocation = mockCommandModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        commandModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertEquals(13, attributes.get("token_count"));
+        }
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        Map<String, Object> summaryAttributes = summaryEvent.getAttributes();
+
+        assertFalse(summaryAttributes.containsKey("response.usage.prompt_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.completion_tokens"));
+        assertFalse(summaryAttributes.containsKey("response.usage.total_tokens"));
+    }
+
+    @Test
+    public void testCompletionWithNoCallback() {
+        boolean isError = false;
+
+        LlmTokenCountCallbackHolder.setLlmTokenCountCallback(null);
+
+        CommandModelInvocation commandModelInvocation = mockCommandModelInvocation(completionModelId, completionRequestBody, completionResponseBody, isError);
+        commandModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(2, llmChatCompletionMessageEvents.size());
+
+        for (Event messageEvent : llmChatCompletionMessageEvents) {
+            Map<String, Object> attributes = messageEvent.getAttributes();
+            assertFalse(attributes.containsKey("token_count"));
+        }
     }
 
     private CommandModelInvocation mockCommandModelInvocation(String modelId, String requestBody, String responseBody, boolean isError) {

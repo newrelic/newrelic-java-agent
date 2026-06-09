@@ -54,7 +54,7 @@ public class UndispatchedKt_Instrumentation {
 		}
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+            f = new NRFunction2SuspendWrapper<>(null, "CoroutineUndispatched", f);
 		}
 		Weaver.callOriginal();
 	}
@@ -66,7 +66,7 @@ public class UndispatchedKt_Instrumentation {
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+			f = new NRFunction2SuspendWrapper<>(null, "CoroutineUndispatched", f);
 		}
 		return Weaver.callOriginal();
 	}
@@ -78,7 +78,7 @@ public class UndispatchedKt_Instrumentation {
 		traced.addCustomAttribute("Suspend-Type", "Function2");
 		traced.addCustomAttribute("Receiver", receiver.getClass().getName());
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+			f = new NRFunction2SuspendWrapper<>(null, "CoroutineUndispatched", f);
 		}
 		return Weaver.callOriginal();
 	}

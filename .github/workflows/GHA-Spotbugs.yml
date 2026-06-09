@@ -3,6 +3,11 @@
 # The XML file can be analyzed inside the Spotbugs GUI: https://spotbugs.readthedocs.io/en/stable/running.html
 name: Execute Spotbugs
 
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -19,13 +24,13 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
         if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # pin@v4
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -40,37 +45,37 @@ jobs:
       - name: Execute Spotbugs
         run: ./gradlew $GRADLE_OPTIONS spotbugsMain
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: all-spotbugs-results
           path: '**/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: newrelic-agent-spotbugs-results
           path: 'newrelic-agent/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: newrelic-weaver-spotbugs-results
           path: 'newrelic-weaver/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: agent-bridge-spotbugs-results
           path: 'agent-bridge/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: agent-model-spotbugs-results
           path: 'agent-model/build/spotbugs/main.*'
           retention-days: 5
 
-      - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # pin@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
         with:
           name: newrelic-api-spotbugs-results
           path: 'newrelic-api/build/spotbugs/main.*'
@@ -83,9 +88,9 @@ jobs:
     env:
       BRANCH_NAME: ${{ inputs.agent-ref || 'main' }}
     steps:
-
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout GhPages branch
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: 'gh-pages'
           path: 'gh-pages'
@@ -101,31 +106,31 @@ jobs:
 
       # Download reports
       - name: Download spotbugs reports 1
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: newrelic-agent-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-agent-spotbugs-results
 
       - name: Download spotbugs reports 2
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: newrelic-weaver-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-weaver-spotbugs-results
 
       - name: Download spotbugs reports 3
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: agent-bridge-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/agent-bridge-spotbugs-results
 
       - name: Download spotbugs reports 4
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: agent-model-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/agent-model-spotbugs-results
 
       - name: Download spotbugs reports 5
-        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # pin@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
           name: newrelic-api-spotbugs-results
           path: gh-pages/spotbugs/${{ env.BRANCH_NAME }}/newrelic-api-spotbugs-results

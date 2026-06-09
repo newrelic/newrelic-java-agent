@@ -5,6 +5,11 @@
 # and when many runners do that at the same time, the cache server returns 429s (Too many requests).
 
 name: X - Reusable Verify Instrumentation
+
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
 on:
   workflow_call:
     inputs:
@@ -26,7 +31,8 @@ jobs:
     outputs:
       modules: ${{ steps.set-modules.outputs.modules }}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -56,7 +62,8 @@ jobs:
       # GHA's IDE think the line below is broken. It is not.
       matrix: ${{ fromJson(needs.read-modules.outputs.modules) }}
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: ${{ inputs.ref }}
 
@@ -65,13 +72,16 @@ jobs:
 
       - name: Retrieve agent from cache
         id: retrieve-agent
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.2.0 # pin@v4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # pin@v5.0.5 # pin@v5
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: agent-jar-${{ github.run_id }}
           fail-on-cache-miss: true
 
-      # Verify instrumentation must run with Java 17
+      # Verify instrumentation must run on the MAXIMUM CONFIGURED toolchain version among all instrumentation modules.
+      # Currently, the maximum configured toolchain in this project is Java 17.
+      # If you added an instrumentation module with a toolchain > 17, and this job is failing, that may be why.
+      # Increase JAVA_HOME to the new maximum configured toolchain version.
       - name: Running verifyInstrumentation on (${{ matrix.modules }})
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}

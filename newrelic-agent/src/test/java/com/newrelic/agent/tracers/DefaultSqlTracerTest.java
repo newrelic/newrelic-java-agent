@@ -722,6 +722,41 @@ public class DefaultSqlTracerTest {
         assertClmAbsent(spanEvent);
     }
 
+    @Test
+    public void testBatchSizeStoredAndRetrieved() throws Exception {
+        DefaultSqlTracer tracer = newTracer("insert into users values (?, ?)");
+        tracer.setBatchSize(50);
+
+        assertEquals(50, tracer.getBatchSize());
+    }
+
+    @Test
+    public void testBatchOperationNaming() throws Exception {
+        DefaultSqlTracer tracer = newTracer("insert into users values (?, ?)");
+        tracer.setBatchSize(50);
+
+        // Simulate what happens in parseStatement
+        tracer.finish(Opcodes.RETURN, null);
+
+        // operation must have includes "batch_" prefix
+        String metricName = tracer.getMetricName();
+        assertTrue("Metric should contain 'batch_insert'",
+                metricName.contains("batch_insert") || metricName.contains("batch insert"));
+    }
+
+    @Test
+    public void testBatchSizeAgentAttribute() throws Exception {
+        DefaultSqlTracer tracer = newTracer("update orders set status = ?");
+        tracer.setBatchSize(25);
+        tracer.finish(Opcodes.RETURN, null);
+
+        // Verify batch_size was set as agent attribute
+        Map<String, Object> agentAttrs = tracer.getAgentAttributes();
+        assertTrue("Agent attributes should contain batch_size",
+                agentAttrs.containsKey("batch_size"));
+        assertEquals(25, agentAttrs.get("batch_size"));
+    }
+
     private static void assertClmAbsent(Tracer tracer) {
         assertNull(tracer.getAgentAttribute(AttributeNames.CLM_NAMESPACE));
         assertNull(tracer.getAgentAttribute(AttributeNames.CLM_FUNCTION));

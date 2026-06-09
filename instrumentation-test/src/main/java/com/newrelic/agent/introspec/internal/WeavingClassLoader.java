@@ -148,7 +148,8 @@ class WeavingClassLoader extends TransformingClassLoader {
     private boolean isInstrumentationUtilityClass(ClassResource classResource) {
         return classResource.sourceURL.toString().endsWith("/build/classes/main/") ||
                 classResource.sourceURL.toString().endsWith("/build/classes/java/main/") ||
-                classResource.sourceURL.toString().endsWith("/build/classes/scala/main/");
+                classResource.sourceURL.toString().endsWith("/build/classes/scala/main/") ||
+                classResource.sourceURL.toString().endsWith("/build/classes/kotlin/main/");
     }
 
     @Override

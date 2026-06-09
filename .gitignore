@@ -40,3 +40,12 @@ production/
 instrumentation/play-2.6/src/test/scala/router/*.scala
 instrumentation/play-2.6.13/src/test/scala/router/*.scala
 
+# Always ignore local Claude settings and overrides
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Ignore local application data (if stored within the project root)
+# Note: These are often kept in your home directory (~/.claude/) instead
+.claude/transcripts/
+.claude/logs/
+.claude/cache/
