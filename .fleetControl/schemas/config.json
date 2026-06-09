@@ -699,8 +699,14 @@
                     "description": "Threshold in seconds for when to collect a transaction trace. When the response time of a controller action exceeds this threshold, a transaction trace will be recorded and sent to New Relic. Valid values are any float value, or (default) \"apdex_f\", which will use the threshold for the \"Frustrated\" Apdex level (greater than four times the apdex_t value). Default is apdex_f."
                 },
                 "sql_metadata_comments": {
-                    "type": "boolean",
-                    "default": false,
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    "additionalProperties": true,
                     "description": "Controls the addition of comments to the beginning of executed SQL statements to be used by the New Relic Query Performance Monitoring product for entity linking. Default is false.  A resulting comment would resemble this: /*nr_service_guid=MTE3NDc2MDB8QVBNfAAAAAxJQEEEEE9OfDI4MTc5NDEIEA*/"
                 },
                 "exec_call_sql_regex_disabled": {

@@ -438,7 +438,8 @@ common: &default_settings
     #
     # A resulting comment would resemble this:
     # /*nr_service_guid=MTE3NDc2MDB8QVBNfAAAAAxJQEEEEE9OfDI4MTc5NDEIEA*/
-    sql_metadata_comments: false
+    sql_metadata_comments:
+      enabled: false
 
     # For large SQL statements, executing the regular expressions that attempt to parse exec and
     # call statements can take a significant amount of time. Setting this to true will disable the
