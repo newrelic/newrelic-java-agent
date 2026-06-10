@@ -52,7 +52,6 @@ import org.json.simple.JSONStreamAware;
 
 import java.lang.management.ManagementFactory;
 import java.net.ConnectException;
-import java.rmi.UnexpectedException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,7 +267,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             List<String> requiredParams = new ArrayList<>(Arrays.asList(COLLECT_ERRORS_KEY, COLLECT_TRACES_KEY, DATA_REPORT_PERIOD_KEY));
             if (!data.keySet().containsAll(requiredParams) && !serverlessMode) {
                 requiredParams.removeAll(data.keySet());
-                throw new UnexpectedException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
+                throw new ConnectionResponseException(MessageFormat.format("Missing the following connection parameters: {0}", requiredParams));
             }
             Agent.LOG.log(Level.INFO, "Agent {0} connected to {1}", toString(), getHostString());
 

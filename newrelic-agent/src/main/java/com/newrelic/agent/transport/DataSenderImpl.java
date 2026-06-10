@@ -9,12 +9,7 @@ package com.newrelic.agent.transport;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.newrelic.agent.ForceDisconnectException;
-import com.newrelic.agent.ForceRestartException;
-import com.newrelic.agent.LicenseException;
-import com.newrelic.agent.MaxPayloadException;
-import com.newrelic.agent.MetricData;
-import com.newrelic.agent.MetricNames;
+import com.newrelic.agent.*;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.agentcontrol.AgentHealth;
 import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
@@ -51,7 +46,6 @@ import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.rmi.UnexpectedException;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -248,7 +242,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         params.add(startupOptions);
         Object response = invokeNoRunId(redirectHost, CollectorMethods.CONNECT, compressedEncoding, params);
         if (!(response instanceof Map)) {
-            throw new UnexpectedException(MessageFormat.format("Expected a map of connection data, got {0}", response));
+            throw new ConnectionResponseException(MessageFormat.format("Expected a map of connection data, got {0}", response));
         }
         Map<String, Object> data = (Map<String, Object>) response;
         if (data.containsKey(MAX_PAYLOAD_SIZE_IN_BYTES)) {
@@ -274,7 +268,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
             Object runId = data.get(ConnectionResponse.AGENT_RUN_ID_KEY);
             setAgentRunId(runId);
         } else {
-            throw new UnexpectedException(MessageFormat.format("Missing {0} connection parameter", ConnectionResponse.AGENT_RUN_ID_KEY));
+            throw new ConnectionResponseException(MessageFormat.format("Missing {0} connection parameter", ConnectionResponse.AGENT_RUN_ID_KEY));
         }
         configService.setLaspPolicies(policiesJson);
 
