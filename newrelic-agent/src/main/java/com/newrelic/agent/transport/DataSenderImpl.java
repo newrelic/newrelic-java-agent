@@ -9,7 +9,13 @@ package com.newrelic.agent.transport;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.newrelic.agent.*;
+import com.newrelic.agent.ConnectionResponseException;
+import com.newrelic.agent.ForceDisconnectException;
+import com.newrelic.agent.ForceRestartException;
+import com.newrelic.agent.LicenseException;
+import com.newrelic.agent.MaxPayloadException;
+import com.newrelic.agent.MetricData;
+import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.agentcontrol.AgentHealth;
 import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
