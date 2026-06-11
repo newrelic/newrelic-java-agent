@@ -192,4 +192,24 @@ public interface CollectionFactory {
             java.util.concurrent.TimeUnit unit,
             int initialCapacity,
             CacheRemovalListener<K, V> listener);
+
+    /**
+     * Creates a {@link java.util.concurrent.ConcurrentHashMap} using the standard JDK implementation.
+     *
+     * <p>Note that instances of this class do not perform any automatic evictions. It is the
+     * responsibility of the caller to invoke {@link java.util.Map#remove(Object)} when entries are
+     * no longer needed.
+     *
+     * <p>Supply an appropriate initial capacity and load factor. The standard load factor used by the
+     * JDK is {@code 0.75}.
+     *
+     * @param <K> the type of keys
+     * @param <V> the type of values
+     * @param initialCapacity the initial capacity of the map
+     * @param loadFactor the load factor threshold for resizing
+     *
+     * @return a new {@link java.util.concurrent.ConcurrentHashMap}
+     * @see <a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentHashMap.html">ConcurrentHashMap (Java 8)</a>
+     */
+    <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity, float loadFactor);
 }

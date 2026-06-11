@@ -9,6 +9,7 @@ package com.newrelic.agent.util;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 // Import from SHADED Caffeine 3.2.3
@@ -189,6 +190,11 @@ public class Caffeine3CollectionFactory implements CollectionFactory {
                 })
                 .build();
         return new CaffeineCleanableMap<>(cache);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity, float loadFactor) {
+        return new ConcurrentHashMap<K, V>(initialCapacity, loadFactor);
     }
 
     private CacheRemovalListener.RemovalReason convertRemovalCause(
