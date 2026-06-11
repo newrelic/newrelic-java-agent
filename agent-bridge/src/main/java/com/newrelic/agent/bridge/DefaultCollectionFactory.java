@@ -168,8 +168,8 @@ public class DefaultCollectionFactory implements CollectionFactory {
     }
 
     @Override
-    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity, float loadFactor) {
-        return new ConcurrentHashMap<K, V>(initialCapacity, loadFactor);
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity) {
+        return new ConcurrentHashMap<K, V>(initialCapacity);
     }
 
     /**

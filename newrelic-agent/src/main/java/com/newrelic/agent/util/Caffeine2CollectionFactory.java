@@ -182,8 +182,8 @@ public class Caffeine2CollectionFactory implements CollectionFactory {
         return new CaffeineCleanableMap<>(cache);
     }
     @Override
-    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity, float loadFactor) {
-        return new ConcurrentHashMap<K, V>(initialCapacity, loadFactor);
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity) {
+        return new ConcurrentHashMap<K, V>(initialCapacity);
     }
 
     private CacheRemovalListener.RemovalReason convertRemovalCause(

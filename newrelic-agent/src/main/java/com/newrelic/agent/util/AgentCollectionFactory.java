@@ -167,7 +167,7 @@ public class AgentCollectionFactory implements CollectionFactory {
     }
 
     @Override
-    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity, float loadFactor) {
-        return getDelegate().createVanillaJavaConcurrentHashMap(initialCapacity, loadFactor);
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity) {
+        return getDelegate().createVanillaJavaConcurrentHashMap(initialCapacity);
     }
 }
