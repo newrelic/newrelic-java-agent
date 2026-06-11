@@ -18,23 +18,23 @@ import com.newrelic.api.agent.weaver.Weaver;
 
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
-    @NewField
-    String sampleBatchSql = null;
+//    @NewField
+//    String sampleBatchSql = null;
 
     public void addBatch(String sql) throws SQLException {
-        if (sampleBatchSql == null) {
-            sampleBatchSql = sql;
-        }
+//        if (sampleBatchSql == null) {
+//            sampleBatchSql = sql;
+//        }
         Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public int [] executeBatch() throws SQLException {
-        String sql = sampleBatchSql;
-        if (sql == null) {
-            sql = JdbcHelper.getSql((Statement) this);
-        }
-
+//        String sql = sampleBatchSql;
+//        if (sql == null) {
+//            sql = JdbcHelper.getSql((Statement) this);
+//        }
+        String sql = JdbcHelper.getSql((Statement) this);
         int [] results = Weaver.callOriginal();
         String batchSql = sql;
         if (results != null && sql != null) {
@@ -105,6 +105,10 @@ public abstract class Statement_Weaved {
         sql = JdbcHelper.addSqlMetadataCommentIfNeeded(sql);
         DatastoreMetrics.noticeSql(getConnection(), sql, null);
         return Weaver.callOriginal();
+    }
+
+    public void close() throws SQLException {
+        JdbcHelper.clearStatement((Statement) this);
     }
 
     public abstract Connection getConnection() throws SQLException;

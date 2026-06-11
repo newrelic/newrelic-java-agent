@@ -43,10 +43,18 @@ public class JdbcHelper {
         }
     };
 
+//    //striped caches - uncomment to play with striping
+//    private static final StripedCache<Statement, Object[]> paramsCacheStripes = new StripedCache<>("paramsCache", ConcurrentHashMap::new);
+//    private static final StripedCache<Statement, String> sqlCacheStripes = new StripedCache<>("sqlCache", ConcurrentHashMap::new);
+
+    //Single cache keyed on the statement
+    private static final Map<Statement, Object[]> statementToParams = new ConcurrentHashMap<>();
+
+    private static final Map<Statement, String> statementToSql = new ConcurrentHashMap<>();
+
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
-    private static final Map<Statement, String> statementToSql = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToIdentifier = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     public static final String UNKNOWN = "unknown";
@@ -69,6 +77,45 @@ public class JdbcHelper {
 
     private static volatile String cachedAppName = null;
     private static volatile String cachedEntityGuid = null;
+
+    //
+    //clear sql and params cache for this statement
+    public static void clearStatement(Statement statement) {
+        Map<Statement, Object[]> paramsCache = getParamsCacheForStatement(statement);
+        Map<Statement, String> sqlCache = getSqlCacheForStatement(statement);
+        paramsCache.remove(statement);
+        sqlCache.remove(statement);
+    }
+
+    //PARAMS METHODS
+    private static Map<Statement, Object[]> getParamsCacheForStatement(Statement statement) {
+        //return paramsCacheStripes.getStripe(statement);
+        return statementToParams;
+    }
+
+    public static Object[] getParams(Statement statement){
+        return getParamsCacheForStatement(statement).get(statement);
+    }
+
+    public static void setParams(Statement statement, Object[] params){
+       getParamsCacheForStatement(statement).put(statement, params);
+    }
+
+    //SQL METHODS
+    private static Map<Statement, String> getSqlCacheForStatement(Statement statement) {
+        //return sqlCacheStripes.getStripe(statement);
+        return statementToSql;
+    }
+
+    public static void putSql(Statement statement, String sql) {
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
+        getSqlCacheForStatement(statement).put(statement, sql);
+    }
+
+    public static String getSql(Statement statement) {
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting sql for statement: {0}", statement);
+        return getSqlCacheForStatement(statement).get(statement);
+    }
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);
@@ -160,16 +207,6 @@ public class JdbcHelper {
             return urlToDatabaseName.get(url);
         }
         return null;
-    }
-
-    public static void putSql(Statement statement, String sql) {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
-        statementToSql.put(statement, sql);
-    }
-
-    public static String getSql(Statement statement) {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting sql for statement: {0}", statement);
-        return statementToSql.get(statement);
     }
 
     public static Object[] growParameterArray(Object[] params, int missingIndex) {
