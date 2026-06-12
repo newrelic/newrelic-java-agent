@@ -22,17 +22,8 @@ import java.util.logging.Level;
 @Weave(originalName = "java.sql.PreparedStatement", type = MatchType.Interface)
 public abstract class PreparedStatement_Weaved {
 
-//    @NewField
-//    private Object[] params;
-
-//    @NewField
-//    String preparedSql;
-
     public void addBatch() throws SQLException {
-        // If we have SQL in our newfield but not in the shared map, store it
-//        if (preparedSql != null && JdbcHelper.getSql((Statement) this) == null) {
-//            JdbcHelper.putSql((Statement) this, preparedSql);
-//        }
+        //TODO is this still needed for matching control, or can we get rid of this?
         Weaver.callOriginal();
     }
 
