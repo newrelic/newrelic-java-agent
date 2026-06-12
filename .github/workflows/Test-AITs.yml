@@ -256,7 +256,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: |
-            26-ea
+            26
             25
             21
             17
@@ -276,7 +276,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: |
-            26-ea
+            26
             25
             21
             17
@@ -652,6 +652,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # pin@3.0.3
         with:
+          webhook-type: 'incoming-webhook'
           payload: |
             {
               "message": "Negative value detected in AIT run.  Check the artifacts named 'negative_value_*.txt'.  This will tell you which test had the negative value, and the contents will list the events.  And, of course, more details can be found in the logs.",

@@ -86,7 +86,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Spring Web Services 1.5.7 to 4.0.0 (exclusive)
   * Spring WebFlux 5.0.0.RELEASE to latest
   * Struts 2.0 to latest
-  * Vertx 3.2.0 to 5.0.0.CR1 (exclusive)
+  * Vertx 3.2.0 to 5.1.0 (exclusive)
   * ZIO 1.0.9 to latest
     * Scala 2.13: 1.0.9 to latest
   * JSF (Java Server Faces)
