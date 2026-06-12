@@ -10,13 +10,16 @@ package io.opentelemetry.sdk.trace;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
+import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.ExtendedRequest;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
+import com.newrelic.api.agent.Headers;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.TracedMethod;
+import com.newrelic.api.agent.TransportType;
 import com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader;
 import com.nr.agent.instrumentation.utils.span.AttributeMapper;
 import com.nr.agent.instrumentation.utils.span.AttributeType;
@@ -33,6 +36,7 @@ import io.opentelemetry.sdk.common.internal.AttributeUtil;
 import io.opentelemetry.sdk.trace.data.LinkData;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -75,6 +79,7 @@ class NRSpanBuilder implements SpanBuilder {
 
     public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
             String spanName) {
+        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: creating NRSpanBuilder for span: "+spanName);
         this.instrumentation = instrumentation;
         this.spanName = spanName;
         this.sharedState = sharedState;
@@ -206,15 +211,31 @@ class NRSpanBuilder implements SpanBuilder {
      */
     @Override
     public Span startSpan() {
+        boolean sampled = false;
+        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: startSpan called for spanKind: "+spanKind);
+        for (String key : attributes.keySet()) {
+            AgentBridge.getAgent().getLogger().log(Level.SEVERE, "  JGB: attribute: "+key+"="+attributes.get(key));
+        }
         SpanContext parentSpanContext = this.parentSpanContext == null ?
                 Span.fromContext(Context.current()).getSpanContext() : this.parentSpanContext;
         if (SpanKind.SERVER == spanKind) {
             return startServerSpan(parentSpanContext);
         }
+
         final boolean dispatcher = SpanKind.CONSUMER.equals(spanKind);
         if (dispatcher) {
-            AgentBridge.getAgent().getTransaction(true);
+            Transaction tx = AgentBridge.getAgent().getTransaction(true);
+            acceptMessageQueueNotSampledHeaderIfNecessary(tx);
         }
+
+        if (SpanKind.PRODUCER == spanKind) {
+            // TODO do we want to do this regardless of the config flag?
+            Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
+            if (sendMessageQueueNotSampledHeader) {
+                sampled = !insertMessageQueueNotSampledHeaderIfNecessary();
+            }
+        }
+
         final ExitTracer tracer = instrumentation.createTracer(spanName, getTracerFlags(dispatcher));
         if (tracer == null) {
             return NO_OP_SPAN;
@@ -227,12 +248,25 @@ class NRSpanBuilder implements SpanBuilder {
         return onStart(
                 new ExitTracerSpan(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), sharedState.getClock(),
                         attributes,
-                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
+                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos, sampled));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(true);
-        final ExtendedRequest request = new ExtendedRequest() {
+
+        final ExtendedRequest request = generateExtendedRequestForServerSpan();
+        final ExtendedResponse response = generateExtendedResponseForServerSpan();
+
+        transaction.requestInitialized(request, response);
+        TracedMethod tracedMethod = transaction.getTracedMethod();
+        List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
+        return onStart(new ExitTracerSpan((ExitTracer) tracedMethod, instrumentationScopeInfo, spanKind, spanName,
+                parentSpanContext, sharedState.getResource(), sharedState.getClock(), attributes, endHandler, immutableLinks, totalNumberOfLinksAdded,
+                startEpochNanos));
+    }
+
+    private ExtendedRequest generateExtendedRequestForServerSpan() {
+        return new ExtendedRequest() {
 
             @Override
             public String getRequestURI() {
@@ -272,45 +306,12 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public String getHeader(String name) {
-                if ("User-Agent".equalsIgnoreCase(name)) {
-                    return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Host, attributes.keySet()));
-                }
-                // TODO is it possible to get the newrelic DT header from OTel??? It doesn't seem so.
-                if (NEWRELIC.equalsIgnoreCase(name)) {
-                    return null;
-                }
-                return null;
+                return getHeaderFromAttributes(name);
             }
 
             @Override
             public List<String> getHeaders(String name) {
-                if (name.isEmpty()) {
-                    return Collections.emptyList();
-                }
-                List<String> headers = new ArrayList<>();
-
-                if (W3C_TRACESTATE.equalsIgnoreCase(name)) {
-                    Map<String, String> traceState = parentSpanContext.getTraceState().asMap();
-                    StringBuilder tracestateStringBuilder = new StringBuilder();
-                    // Build full tracestate header incase there are multiple vendors
-                    for (Map.Entry<String, String> entry : traceState.entrySet()) {
-                        if (tracestateStringBuilder.length() == 0) {
-                            tracestateStringBuilder.append(entry.toString());
-                        } else {
-                            tracestateStringBuilder.append(",").append(entry.toString());
-                        }
-                    }
-                    headers.add(tracestateStringBuilder.toString());
-                    return headers;
-                }
-                if (W3C_TRACEPARENT.equalsIgnoreCase(name)) {
-                    String traceParent = W3CTraceParentHeader.create(parentSpanContext);
-                    if (!traceParent.isEmpty()) {
-                        headers.add(traceParent);
-                        return headers;
-                    }
-                }
-                return headers;
+                return getHeadersFromAttributes(name);
             }
 
             @Override
@@ -318,8 +319,10 @@ class NRSpanBuilder implements SpanBuilder {
                 return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Method, attributes.keySet()));
             }
         };
+    }
 
-        final ExtendedResponse response = new ExtendedResponse() {
+    private ExtendedResponse generateExtendedResponseForServerSpan() {
+        return new ExtendedResponse() {
 
             @Override
             public int getStatus() throws Exception {
@@ -352,12 +355,129 @@ class NRSpanBuilder implements SpanBuilder {
                 return 0;
             }
         };
-        transaction.requestInitialized(request, response);
-        TracedMethod tracedMethod = transaction.getTracedMethod();
-        List<LinkData> immutableLinks = this.links == null ? Collections.emptyList() : Collections.unmodifiableList(this.links);
-        return onStart(new ExitTracerSpan((ExitTracer) tracedMethod, instrumentationScopeInfo, spanKind, spanName,
-                parentSpanContext, sharedState.getResource(), sharedState.getClock(), attributes, endHandler, immutableLinks, totalNumberOfLinksAdded,
-                startEpochNanos));
+
+    }
+
+    private void acceptMessageQueueNotSampledHeaderIfNecessary(Transaction tx) {
+        // TODO should we just load this config value once?
+        Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
+        if (sendMessageQueueNotSampledHeader) tx.acceptDistributedTraceHeaders(TransportType.Queue, generateDtHeaders());
+    }
+
+    private boolean insertMessageQueueNotSampledHeaderIfNecessary() {
+        Transaction tx = AgentBridge.getAgent().getTransaction(false);
+        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB inside insertMessageQueueNotSampledHeaderIfNecessary; tx: "+tx);
+        if (tx instanceof NoOpTransaction) return false;
+
+        // ask the agent to insert the header, if necessary
+        tx.insertDistributedTraceHeaders(generateDtHeaders());
+        // if it did, then set the corresponding attribute on the span
+        if (attributes.containsKey("nrns")) {
+            AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB got nrns flag");
+            attributes.put("new_relic_not_sampled", "");
+            return true;
+        }
+        return false;
+    }
+
+    private Headers generateDtHeaders() {
+        return new Headers() {
+            @Override
+            public HeaderType getHeaderType() {
+                return HeaderType.MESSAGE;
+            }
+
+            @Override
+            public String getHeader(String name) {
+                String result = getHeaderFromAttributes(name);
+                AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: got DT header: "+name+" = "+result);
+                return result;
+            }
+
+            @Override
+            public Collection<String> getHeaders(String name) {
+                Collection<String> result = getHeadersFromAttributes(name);
+                AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: got DT header: "+name+" has "+(result == null ? "N/A" : result.size())+" values");
+                return result;
+            }
+
+            @Override
+            public void setHeader(String name, String value) {
+                attributes.put(name, value);
+            }
+
+            @Override
+            public void addHeader(String name, String value) {
+                attributes.put(name, value);
+            }
+
+            @Override
+            public Collection<String> getHeaderNames() {
+                return null; // TODO?
+            }
+
+            @Override
+            public boolean containsHeader(String name) {
+                return attributes.containsKey(name);
+            }
+        };
+    }
+
+    private String getHeaderFromAttributes(String name) {
+        if ("User-Agent".equalsIgnoreCase(name)) {
+            return (String) attributes.get(attributeMapper.findProperOtelKey(SpanKind.SERVER, AttributeType.Host, attributes.keySet()));
+        }
+        // yes, the 2 if statements are purposefully cross-matched
+        // if we are looking for nrns, then we'll want to know if it already has new_relic_not_sampled
+        // and vice versa
+        if ("nrns".equalsIgnoreCase(name)) {
+            return attributes.containsKey("new_relic_not_sampled") ? "" : null;
+        }
+        if ("new_relic_not_sampled".equalsIgnoreCase(name)) {
+            return attributes.containsKey("nrns") ? "" : null;
+        }
+        // TODO is it possible to get the newrelic DT header from OTel??? It doesn't seem so.
+        if (NEWRELIC.equalsIgnoreCase(name)) {
+            return null;
+        }
+        return null;
+    }
+
+    private List<String> getHeadersFromAttributes(String name) {
+        if (name.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> headers = new ArrayList<>();
+
+        Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
+        if ("nrns".equalsIgnoreCase(name) &&
+                attributes.containsKey("new_relic_not_sampled") &&
+                sendMessageQueueNotSampledHeader) { // TODO is this necessary?
+            headers.add(""); // intentionally blank
+            return headers;
+        }
+        if (W3C_TRACESTATE.equalsIgnoreCase(name)) {
+            Map<String, String> traceState = parentSpanContext.getTraceState().asMap();
+            StringBuilder tracestateStringBuilder = new StringBuilder();
+            // Build full tracestate header incase there are multiple vendors
+            for (Map.Entry<String, String> entry : traceState.entrySet()) {
+                if (tracestateStringBuilder.length() == 0) {
+                    tracestateStringBuilder.append(entry.toString());
+                } else {
+                    tracestateStringBuilder.append(",").append(entry.toString());
+                }
+            }
+            headers.add(tracestateStringBuilder.toString());
+            return headers;
+        }
+        if (W3C_TRACEPARENT.equalsIgnoreCase(name)) {
+            String traceParent = W3CTraceParentHeader.create(parentSpanContext);
+            if (!traceParent.isEmpty()) {
+                headers.add(traceParent);
+                return headers;
+            }
+        }
+        return headers;
     }
 
     Span onStart(ReadWriteSpan span) {

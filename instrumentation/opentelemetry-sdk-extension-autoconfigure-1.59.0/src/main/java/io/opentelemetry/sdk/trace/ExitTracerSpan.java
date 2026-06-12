@@ -112,6 +112,14 @@ public class ExitTracerSpan implements ReadWriteSpan {
     ExitTracerSpan(ExitTracer tracer, InstrumentationScopeInfo instrumentationScopeInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
             Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
             int totalNumberOfLinksAdded, long userStartEpochNanos) {
+        this(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext, resource,
+                tracerClock, attributes, onEnd, links, totalNumberOfLinksAdded, userStartEpochNanos, false);
+    }
+
+    // TODO do we really want to add sampled here?
+    ExitTracerSpan(ExitTracer tracer, InstrumentationScopeInfo instrumentationScopeInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
+            Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
+            int totalNumberOfLinksAdded, long userStartEpochNanos, boolean sampled) {
         this.tracer = tracer;
         this.spanKind = spanKind;
         this.spanName = spanName;
@@ -121,7 +129,9 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.resource = resource;
         this.instrumentationScopeInfo = instrumentationScopeInfo;
         this.links = links;
-        this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
+        this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(),
+                sampled ? TraceFlags.getSampled() : TraceFlags.getDefault(),
+                TraceState.getDefault());
         this.setAllAttributes(resource.getAttributes());
         this.totalNumberOfLinksAdded = totalNumberOfLinksAdded;
         this.totalNumberOfEventsAdded = 0;

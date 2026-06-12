@@ -92,6 +92,7 @@ public class HeadersUtil {
     static final String W3C_TRACEPARENT_HEADER = "traceparent";
     private static final String W3C_TRACEPARENT_HEADER_CAMEL = "TraceParent";
     private static final String W3C_TRACEPARENT_HEADER_CAPS = "TRACEPARENT";
+    private static final String MESSAGE_QUEUE_NOT_SAMPLED_HEADER = "nrns"; // New Relic Not Sampled abreviated header for message queues
 
     /**
      * Minimum supported version of New Relic Synthetics protocol.
@@ -248,6 +249,10 @@ public class HeadersUtil {
         headers.setHeader(W3C_TRACEPARENT_HEADER, value);
     }
 
+    public static void setMessageQueueNotSampledHeader(OutboundHeaders headers) {
+        headers.setHeader(MESSAGE_QUEUE_NOT_SAMPLED_HEADER, "");
+    }
+
     /**
      * parse headers from the inbound payload. It prioritizes trace context headers over newrelic headers. It then accepts the distributed
      * trace payload if it was able to parse it from the headers.
@@ -256,6 +261,20 @@ public class HeadersUtil {
      * @param inboundHeaders the request headers containing the distributed trace payload
      */
     public static void parseAndAcceptDistributedTraceHeaders(Transaction tx, InboundHeaders inboundHeaders) {
+
+        boolean containsMessageQueueNotSampledHeader = null != inboundHeaders.getHeader(MESSAGE_QUEUE_NOT_SAMPLED_HEADER);
+        Agent.LOG.severe("JGB containsMessageQueueNotSampledHeader: "+containsMessageQueueNotSampledHeader);
+        // TODO check for config flag?
+        if (containsMessageQueueNotSampledHeader) {
+            // we have a nrns header, short circuit and treat this as a remote_parent_not_sampled case
+            // where we have no other trace information
+            // TODO check if the priority has already been set
+            tx.assignPriorityFromRemoteParent(false); // TODO is this all that's necessary?
+            tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_NRNS);
+            Agent.LOG.severe("JGB priority: "+tx.getPriority());
+            return;
+        }
+
         List<String> traceParent = HeadersUtil.getTraceParentHeader(inboundHeaders);
         if (traceParent != null && !traceParent.isEmpty()) {
             List<String> traceState = HeadersUtil.getTraceStateHeader(inboundHeaders);
@@ -287,6 +306,8 @@ public class HeadersUtil {
 
     /**
      * creates new trace context distributed trace headers (and maybe new relic headers) and adds them to the headers object passed in
+     * if this is a Message Queue header type, and the decision is not to sample, then we may send the abbreviated "nrns" or
+     * New Relic Not Sampled header to save space, but only if the config has been set to do so
      *
      * @param tx           current transaction
      * @param tracedMethod the current traced method, used to grab the span id
@@ -303,6 +324,15 @@ public class HeadersUtil {
 
         Agent.LOG.log(Level.FINER, "Sending distributed trace header in transaction {0}", tx);
         DistributedTracingConfig distributedTracingConfig = tx.getAgentConfig().getDistributedTracingConfig();
+
+        if (HeaderType.MESSAGE.equals(headers.getHeaderType()) && !payload.sampled.booleanValue() &&
+                distributedTracingConfig.useMessageQueueNotSampleHeader()) {
+            Agent.LOG.log(Level.FINEST, "Using Message Queue Not Sampled (nrns) header for transaction {0}", tx);
+            tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_CREATE_NRNS);
+            HeadersUtil.setMessageQueueNotSampledHeader(headers);
+            return true;
+        }
+
         boolean includeNewRelicHeader = distributedTracingConfig.isIncludeNewRelicHeader();
         if (includeNewRelicHeader) {
             HeadersUtil.setNewRelicTraceHeader(headers, payload.httpSafe());
