@@ -30,6 +30,9 @@ public class MicronautSubresourceInstrumentation {
     @WeaveIntoAllMethods
     @Trace
     private static void instrumentation() {
+        if(!NewRelic.getAgent().getTransaction().isWebTransaction()) {
+            NewRelic.getAgent().getTransaction().convertToWebTransaction();
+        }
         Controller controller = Weaver.getClassAnnotation(Controller.class);
         if (controller != null) {
             String controllerValue = controller.value();
@@ -137,6 +140,8 @@ public class MicronautSubresourceInstrumentation {
             }
 
             StringBuilder sb = new StringBuilder();
+            sb.append(methodName);
+            sb.append(" - ");
 
             if (controllerValue != null) {
                 sb.append(controllerValue);
@@ -146,9 +151,8 @@ public class MicronautSubresourceInstrumentation {
             if (value != null) {
                 sb.append(value);
             }
-
-            sb.append(" (").append(methodName).append(") ");
-            NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true, "MicronautController", sb.toString());
+            String txnName = sb.toString().replace("//", "/");
+            NewRelic.getAgent().getTransaction().setTransactionName(TransactionNamePriority.FRAMEWORK_LOW , false, "MicronautController", txnName);
         }
     }
 }

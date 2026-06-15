@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.function.BiConsumer;
 
-@Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.reactive.execution.ReactorExecutionFlowImpl")
+@Weave(originalName = "io.micronaut.http.reactive.execution.ReactorExecutionFlowImpl", type = MatchType.ExactClass)
 abstract class ReactorExecutionFlowImpl_Instrumentation {
 
     @NewField
