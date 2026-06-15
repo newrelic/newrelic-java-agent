@@ -14,7 +14,6 @@ import com.newrelic.agent.instrumentation.pointcuts.frameworks.RenderPortletPoin
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.HandlerMethodInvokerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
@@ -52,9 +51,6 @@ public class ClassTransformerTest {
                 new SpringPointCut(classTransformer),
                 // new SpringWildcardPathPointCut(classTransformer),
                 new HandlerMethodInvokerPointCut(classTransformer),
-                // Faces
-                new LifecyclePointCut(classTransformer),
-                // new PhasePointCut(), // In pointcuts.yml
                 // CXF
                 new CXFPointCut(classTransformer),
                 new CXFInvokerPointCut(classTransformer),
