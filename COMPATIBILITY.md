@@ -32,6 +32,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   The agent automatically instruments the following frameworks.
 
   * Akka 2.4.10 to latest
+  * Apache Camel 3.9.0 to latest
   * AWS Firehose 2.1.0 to latest
   * AWS Kinesis 1.11.106 to latest
   * AWS Lambda 1.11.280 to latest
@@ -58,6 +59,9 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
   * Micronaut 1.0.0 to latest
+  * Micronaut Core Reactive 2.4.0 to latest
+  * Micronaut Inject 1.0.0 to latest
+  * Micronaut Router 1.0.0 to latest
   * Monix tasks 2.0.0 to latest
     * Scala 2.12: 2.0.6 to latest
     * Scala 2.13: 3.0.0 to latest
@@ -82,7 +86,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Spring Web Services 1.5.7 to 4.0.0 (exclusive)
   * Spring WebFlux 5.0.0.RELEASE to latest
   * Struts 2.0 to latest
-  * Vertx 3.2.0 to 5.0.0.CR1 (exclusive)
+  * Vertx 3.2.0 to 5.1.0 (exclusive)
   * ZIO 1.0.9 to latest
     * Scala 2.13: 1.0.9 to latest
   * JSF (Java Server Faces)
@@ -106,6 +110,10 @@ This version of the Java Agent supports Java versions 8 - 26.
   * gRPC 1.4.0 to latest
   * HttpUrlConnection 0 to latest
   * Java HttpClient 11 to latest
+  * Micronaut HTTP 1.3.0 to latest
+  * Micronaut HTTP Client 2.0.0 to 5.0.0 (exclusive)
+  * Micronaut Http Netty 1.0.0 to 5.0.0 (exclusive)
+  * Micronaut Http Server Netty 2.0.0 to latest
   * Ning AsyncHttpClient 1.0 to 2.0.0 (exclusive)
   * OKHttp 3.6.0 to 4.4.0 (exclusive)
   * Play WS 2.6.0 to latest
@@ -147,7 +155,7 @@ This version of the Java Agent supports Java versions 8 - 26.
 
   * Kafka Clients Config 1.1.0 to latest
   * Kafka Clients Heartbeat 0.10.1.0 to 2.5.0 (exclusive)
-  * Kafka Clients Metrics 0.10.0.0 to 4.0.0 (exclusive)
+  * Kafka Clients Metrics 0.10.0.0 to latest
   * Kafka Clients Node Metrics 1.0.0 to latest
   * Kafka Clients Spans 0.11.0.0 to latest
   * Kafka Clients Spans Consumer 2.0.0 to 4.0.0 (exclusive)
@@ -211,6 +219,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## AI Monitoring
   If you have version 8.12.0 or higher of Java agent, you can collect AI data from certain AI libraries and frameworks.
   * AWS Bedrock 2.20.157 to latest
+  * MCP Java SDK 1.0.0 to latest
   * Spring AI Chat Completions 1.0.0-RC1 to latest
   * Spring AI Embeddings 1.0.0-M7 to latest
 

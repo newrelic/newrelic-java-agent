@@ -1,0 +1,38 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.mcp-java-sdk-1.0.0' }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'io.modelcontextprotocol.sdk:mcp:1.0.0'
+
+    testImplementation 'io.modelcontextprotocol.sdk:mcp:1.0.0'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+, use -Ptest17 when running tests
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.modelcontextprotocol.sdk:mcp:[1.0.0,)'
+    excludeRegex 'io.modelcontextprotocol.sdk:mcp:0\\..*'
+    excludeRegex 'io.modelcontextprotocol.sdk:mcp:.*-RC[0-9]*'
+}
+
+site {
+    title 'MCP Java SDK'
+    type 'AI'
+}

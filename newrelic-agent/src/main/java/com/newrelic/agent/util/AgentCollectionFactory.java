@@ -8,6 +8,7 @@
 package com.newrelic.agent.util;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -163,5 +164,10 @@ public class AgentCollectionFactory implements CollectionFactory {
             int initialCapacity,
             CacheRemovalListener<K, V> listener) {
         return getDelegate().createCacheWithAccessExpirationAndRemovalListener(age, unit, initialCapacity, listener);
+    }
+
+    @Override
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity) {
+        return getDelegate().createVanillaJavaConcurrentHashMap(initialCapacity);
     }
 }
