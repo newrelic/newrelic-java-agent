@@ -7,7 +7,6 @@
 package coroutines
 
 import com.newrelic.agent.bridge.AgentBridge
-import com.newrelic.agent.deps.org.checkerframework.checker.units.qual.m
 import com.newrelic.agent.introspec.InstrumentationTestConfig
 import com.newrelic.agent.introspec.InstrumentationTestRunner
 import com.newrelic.agent.introspec.Introspector
@@ -259,8 +258,7 @@ class CoroutinesTest {
     // test the flag for whether to capture a call to Delay as a segment or not.  This tests that it is captured
     @Test
     fun testDelayCaptured() {
-        val utils = Utils.getInstance()
-        utils.configureDelay(true)
+        Utils.DELAYED_ENABLED = true
         delayTransaction()
 
         assertEquals("Expected 1 finished transaction", 1, introspector.finishedTransactionCount)
@@ -277,8 +275,7 @@ class CoroutinesTest {
     // test the flag for whether to capture a call to Delay as a segment or not.  This tests that it is captured
     @Test
     fun testDelayIgnored() {
-        val utils = Utils.getInstance()
-        utils.configureDelay(false)
+        Utils.DELAYED_ENABLED = false
         delayTransaction()
 
         assertEquals("Expected 1 finished transaction", 1, introspector.finishedTransactionCount)
@@ -291,7 +288,7 @@ class CoroutinesTest {
         // ensure that the Delay segment metric is not included
         assertFalse(metrics.keys.contains("Custom/Delay"))
         // set back to default true value
-        utils.configureDelay(true)
+        Utils.DELAYED_ENABLED = true
     }
 
     @Test
