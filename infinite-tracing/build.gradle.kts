@@ -4,7 +4,6 @@ plugins {
 }
 jacoco {
     toolVersion = "0.8.10"
-    reportsDir = file("$buildDir/reports/jacoco")
 }
 
 group = "com.newrelic.agent.java"
@@ -49,7 +48,7 @@ tasks.withType<GenerateModuleMetadata> {
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
-        xml.isEnabled = true
-        html.destination = file("${buildDir}/reports/jacoco")
+        xml.required = true
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco")
     }
 }
