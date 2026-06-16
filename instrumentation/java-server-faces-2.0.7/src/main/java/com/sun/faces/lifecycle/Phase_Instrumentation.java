@@ -23,7 +23,7 @@ public class Phase_Instrumentation {
     public void doPhase(FacesContext context, Lifecycle lifecycle, ListIterator phases) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(false);
         if (transaction != null) {
-            transaction.getTracedMethod().setMetricName("Java", this.getClass().getName(), "doPhase");
+            transaction.getTracedMethod().setMetricName("Custom", this.getClass().getName(), "doPhase");
         }
         Weaver.callOriginal();
     }
