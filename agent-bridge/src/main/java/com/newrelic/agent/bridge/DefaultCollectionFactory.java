@@ -167,6 +167,11 @@ public class DefaultCollectionFactory implements CollectionFactory {
         return new DefaultCleanableMap<>(Collections.synchronizedMap(new HashMap<>()));
     }
 
+    @Override
+    public <K, V> Map<K, V> createVanillaJavaConcurrentHashMap(int initialCapacity) {
+        return new ConcurrentHashMap<K, V>(initialCapacity);
+    }
+
     /**
      * Simple wrapper that delegates all Map operations and provides a no-op cleanUp().
      */

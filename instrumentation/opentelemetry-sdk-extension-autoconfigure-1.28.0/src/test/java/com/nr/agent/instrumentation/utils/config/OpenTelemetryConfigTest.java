@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -90,8 +91,23 @@ public class OpenTelemetryConfigTest {
     @Test
     public void testGetOpenTelemetryMetricsExcludesFromYamlProps() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "")).thenReturn("foo,bar,baz");
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE, "")).thenReturn("");
+
+        // Comma delimited String
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE)).thenReturn("foo,bar,baz");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE)).thenReturn("");
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            List<String> openTelemetryMetricsExcludes = OpenTelemetryConfig.getOpenTelemetryMetricsExcludes();
+            assertEquals(3, openTelemetryMetricsExcludes.size());
+            assertTrue(openTelemetryMetricsExcludes.contains("foo"));
+            assertTrue(openTelemetryMetricsExcludes.contains("bar"));
+            assertTrue(openTelemetryMetricsExcludes.contains("baz"));
+        }
+
+        // List syntax
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE)).thenReturn(Arrays.asList("foo", "bar", "baz"));
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -106,8 +122,23 @@ public class OpenTelemetryConfigTest {
     @Test
     public void testGetOpenTelemetryTracesExcludesFromYamlProps() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "")).thenReturn("foo,bar,baz");
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "")).thenReturn("");
+
+        // Comma delimited String
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn("foo,bar,baz");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            List<String> openTelemetryTracesExcludes = OpenTelemetryConfig.getOpenTelemetryTracesExcludes();
+            assertEquals(3, openTelemetryTracesExcludes.size());
+            assertTrue(openTelemetryTracesExcludes.contains("foo"));
+            assertTrue(openTelemetryTracesExcludes.contains("bar"));
+            assertTrue(openTelemetryTracesExcludes.contains("baz"));
+        }
+
+        // List
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn(Arrays.asList("foo", "bar", "baz"));
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -131,9 +162,9 @@ public class OpenTelemetryConfigTest {
         setSystemPropertyProvider(systemPropertyProvider);
 
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "")).thenReturn(environmentFacade.getenv(
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE)).thenReturn(environmentFacade.getenv(
                 NEW_RELIC_OPENTELEMETRY_METRICS_EXCLUDE));
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -157,9 +188,9 @@ public class OpenTelemetryConfigTest {
         setSystemPropertyProvider(systemPropertyProvider);
 
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "")).thenReturn(environmentFacade.getenv(
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn(environmentFacade.getenv(
                 NEW_RELIC_OPENTELEMETRY_TRACES_EXCLUDE));
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -183,9 +214,9 @@ public class OpenTelemetryConfigTest {
         setSystemPropertyProvider(systemPropertyProvider);
 
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "")).thenReturn(testSystemProps.getSystemProperty(
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE)).thenReturn(testSystemProps.getSystemProperty(
                 NEWRELIC_CONFIG_OPENTELEMETRY_METRICS_EXCLUDE));
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -207,9 +238,9 @@ public class OpenTelemetryConfigTest {
         setSystemPropertyProvider(systemPropertyProvider);
 
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "")).thenReturn(testSystemProps.getSystemProperty(
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn(testSystemProps.getSystemProperty(
                 NEWRELIC_CONFIG_OPENTELEMETRY_TRACES_EXCLUDE));
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -224,8 +255,8 @@ public class OpenTelemetryConfigTest {
     @Test
     public void testIsOpenTelemetryTracerDisabled() {
         Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "")).thenReturn("foo");
-        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "")).thenReturn("");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE)).thenReturn("foo");
+        Mockito.when(mockAgent.getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE)).thenReturn("");
 
         try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
             mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
@@ -238,14 +269,20 @@ public class OpenTelemetryConfigTest {
 
     @Test
     public void testGetUniqueStringsFromString() {
-        List<String> splitStrings = OpenTelemetryConfig.getUniqueStringsFromString("one,two, three , four, five,six", COMMA_SEPARATOR);
-        assertEquals(6, splitStrings.size());
-        assertTrue(splitStrings.contains("one"));
-        assertTrue(splitStrings.contains("two"));
-        assertTrue(splitStrings.contains("three"));
-        assertTrue(splitStrings.contains("four"));
-        assertTrue(splitStrings.contains("five"));
-        assertTrue(splitStrings.contains("six"));
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue("test")).thenReturn("one,two, three , four, five,six");
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            List<String> splitStrings = OpenTelemetryConfig.getUniqueStrings("test", COMMA_SEPARATOR);
+            assertEquals(6, splitStrings.size());
+            assertTrue(splitStrings.contains("one"));
+            assertTrue(splitStrings.contains("two"));
+            assertTrue(splitStrings.contains("three"));
+            assertTrue(splitStrings.contains("four"));
+            assertTrue(splitStrings.contains("five"));
+            assertTrue(splitStrings.contains("six"));
+        }
     }
 
     @Test

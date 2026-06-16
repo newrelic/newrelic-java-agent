@@ -3,6 +3,7 @@ package com.newrelic.instrumentation.kotlin.coroutines_19;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 
+import com.newrelic.api.agent.Trace;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 
@@ -24,6 +25,7 @@ public class NRFunction1SuspendWrapper<P1, R> implements Function1<P1, R> {
 	}
 
 	@Override
+	@Trace
 	public R invoke(P1 p1) {
 		if(p1 instanceof Continuation) {
 			Continuation<?> cont = (Continuation<?>)p1;

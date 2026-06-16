@@ -9,10 +9,7 @@ package com.nr.agent.instrumentation.utils.config;
 
 import com.newrelic.api.agent.NewRelic;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -125,8 +122,7 @@ public class OpenTelemetryConfig {
         getOpenTelemetryMetricsIncludes().forEach(DEFAULT_METER_EXCLUDES::remove);
 
         // Combine the remaining default excludes with the user configured excludes for the final excludes list.
-        String metricsExclude = NewRelic.getAgent().getConfig().getValue(OPENTELEMETRY_METRICS_EXCLUDE, "");
-        List<String> excludedMeters = getUniqueStringsFromString(metricsExclude, COMMA_SEPARATOR);
+        List<String> excludedMeters = getUniqueStrings(OPENTELEMETRY_METRICS_EXCLUDE, COMMA_SEPARATOR);
         excludedMeters.addAll(DEFAULT_METER_EXCLUDES);
         return excludedMeters;
     }
@@ -137,8 +133,7 @@ public class OpenTelemetryConfig {
      * @return list of OpenTelemetry Metrics includes
      */
     public static List<String> getOpenTelemetryMetricsIncludes() {
-        String metricsInclude = NewRelic.getAgent().getConfig().getValue(OPENTELEMETRY_METRICS_INCLUDE, "");
-        return getUniqueStringsFromString(metricsInclude, COMMA_SEPARATOR);
+        return getUniqueStrings(OPENTELEMETRY_METRICS_INCLUDE, COMMA_SEPARATOR);
     }
 
     /**
@@ -154,8 +149,7 @@ public class OpenTelemetryConfig {
         getOpenTelemetryTracesIncludes().forEach(DEFAULT_TRACER_EXCLUDES::remove);
 
         // Combine the remaining default excludes with the user configured excludes for the final excludes list.
-        String tracesExclude = NewRelic.getAgent().getConfig().getValue(OPENTELEMETRY_TRACES_EXCLUDE, "");
-        List<String> excludedTracers = getUniqueStringsFromString(tracesExclude, COMMA_SEPARATOR);
+        List<String> excludedTracers = getUniqueStrings(OPENTELEMETRY_TRACES_EXCLUDE, COMMA_SEPARATOR);
         excludedTracers.addAll(DEFAULT_TRACER_EXCLUDES);
         return excludedTracers;
     }
@@ -166,8 +160,7 @@ public class OpenTelemetryConfig {
      * @return list of OpenTelemetry Traces includes
      */
     public static List<String> getOpenTelemetryTracesIncludes() {
-        String tracesInclude = NewRelic.getAgent().getConfig().getValue(OPENTELEMETRY_TRACES_INCLUDE, "");
-        return getUniqueStringsFromString(tracesInclude, COMMA_SEPARATOR);
+        return getUniqueStrings(OPENTELEMETRY_TRACES_INCLUDE, COMMA_SEPARATOR);
     }
 
     /**
@@ -245,18 +238,42 @@ public class OpenTelemetryConfig {
     }
 
     /**
-     * Splits the given values String into a collection of Strings based on the provided separator character.
-     *
-     * @param valuesString A separator delimited string
-     * @param separator    A character delimiter in a string
-     * @return List of string split by the separator delimiter
+     * Returns a collection of strings for the given key.  The property value can be a collection or
+     * a String list that uses a separator character.
      */
-    public static List<String> getUniqueStringsFromString(String valuesString, String separator) {
-        List<String> result = new ArrayList<>();
-        if (valuesString == null || valuesString.isEmpty()) {
-            return result;
+    protected static List<String> getUniqueStrings(String key, String separator) {
+        Object val = NewRelic.getAgent().getConfig().getValue(key);
+        if (val instanceof String && !((String) val).isEmpty()) {
+            return getUniqueStringsFromString((String) val, separator);
         }
+        if (val instanceof Collection<?> && !((Collection<?>) val).isEmpty()) {
+            return getUniqueStringsFromCollection((Collection<?>) val);
+        }
+        return Collections.emptyList();
+    }
+
+    private static List<String> getUniqueStringsFromCollection(Collection<?> values) {
+        List<String> result = new ArrayList<>(values.size());
+        for (Object value : values) {
+            String val;
+            if (value instanceof Integer) {
+                val = String.valueOf(value);
+            } else if (value instanceof Long) {
+                val = String.valueOf(value);
+            } else {
+                val = (String) value;
+            }
+            val = val.trim();
+            if (val.length() != 0 && !result.contains(val)) {
+                result.add(val);
+            }
+        }
+        return result;
+    }
+
+    private static List<String> getUniqueStringsFromString(String valuesString, String separator) {
         String[] valuesArray = valuesString.split(separator);
+        List<String> result = new ArrayList<>(valuesArray.length);
         for (String value : valuesArray) {
             value = value.trim();
             if (!value.isEmpty() && !result.contains(value)) {
