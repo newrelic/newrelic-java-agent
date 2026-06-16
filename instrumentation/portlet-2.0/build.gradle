@@ -1,0 +1,21 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('javax.portlet:portlet-api:3.0.0')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.portlet-2.0' }
+}
+
+// Note that the implementation dependency and verify range are based on v3.0.0 of
+// the portlet-api, but the module is named "portlet-2.0". This is because the v2.0
+// dependency isn't published on Maven Central, but this module will still apply
+// to any class that implements the javax.portlet.Portlet interface.
+verifyInstrumentation {
+    passesOnly('javax.portlet:portlet-api:[3.0.0,)')
+}
+
+site {
+    title 'Portlet'
+    type 'Framework'
+}
