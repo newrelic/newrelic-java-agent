@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -27,15 +27,16 @@ import io.reactivex.Flowable;
 @Weave(originalName = "io.micronaut.http.client.netty.DefaultHttpClient", type = MatchType.ExactClass)
 public abstract class DefaultHttpClient_Instrumentation {
 
-    @Trace(dispatcher = true)
+    @Trace
     public <I> Flowable<Event<ByteBuffer<?>>> eventStream(io.micronaut.http.HttpRequest<I> request) {
         return Weaver.callOriginal();
     }
 
+    @Trace
     public <I, O, E> Flowable<io.micronaut.http.HttpResponse<O>> exchange(io.micronaut.http.HttpRequest<I> request, Argument<O> bodyType,
             Argument<E> errorType) {
-        MicronautHeaders wrapper = new MicronautHeaders(request);
-        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(wrapper);
+        MicronautHeaders headers = new MicronautHeaders(request);
+        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
         Flowable<io.micronaut.http.HttpResponse<O>> result = Weaver.callOriginal();
         HttpParameters params = HttpParameters.library("Micronaut")
@@ -48,9 +49,10 @@ public abstract class DefaultHttpClient_Instrumentation {
         return result.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener).doOnNext(new ResponseConsumer(txn));
     }
 
+    @Trace
     public <I> Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> exchangeStream(io.micronaut.http.HttpRequest<I> request) {
-        MicronautHeaders wrapper = new MicronautHeaders(request);
-        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(wrapper);
+            MicronautHeaders headers = new MicronautHeaders(request);
+        NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
 
         Flowable<io.micronaut.http.HttpResponse<ByteBuffer<?>>> result = Weaver.callOriginal();
         HttpParameters params = HttpParameters.library("Micronaut")
@@ -63,12 +65,12 @@ public abstract class DefaultHttpClient_Instrumentation {
         return result.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener).doOnNext(new ResponseConsumer(txn));
     }
 
-    @Trace(dispatcher = true)
+    @Trace
     public <I, O> Flowable<O> jsonStream(io.micronaut.http.HttpRequest<I> request, io.micronaut.core.type.Argument<O> type) {
         return Weaver.callOriginal();
     }
 
-    @Trace(dispatcher = true)
+    @Trace
     public Flowable<MutableHttpResponse<?>> proxy(io.micronaut.http.HttpRequest<?> request) {
         MicronautHeaders headers = new MicronautHeaders(request);
         NewRelic.getAgent().getTransaction().insertDistributedTraceHeaders(headers);
