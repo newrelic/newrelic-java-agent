@@ -60,7 +60,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -75,6 +74,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     public static final String COLLECT_TRACES_KEY = "collect_traces";
     public static final String COLLECT_ERRORS_KEY = "collect_errors";
     public static final String DATA_REPORT_PERIOD_KEY = "data_report_period";
+    public static final String OTLP_RESOURCE_ATTRIBUTES = "otlp_resource_attributes";
 
     /**
      * If the exception has occurred 5 times, then print out the message.
@@ -312,7 +312,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             return dataSender.connect(getStartOptions());
         } catch (LicenseException e) {
             logLicenseException(e);
-            if (!((RPMConnectionServiceImpl) ServiceFactory.getRPMConnectionService()).shouldPreventNewConnectionTask()){
+            if (!((RPMConnectionServiceImpl) ServiceFactory.getRPMConnectionService()).shouldPreventNewConnectionTask()) {
                 reconnect();
             }
             throw e;
@@ -352,29 +352,28 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         return serviceMetadata;
     }
 
+    /**
+     * Build a map of attributes that should be decorated onto OTel dimensional metrics.
+     * The attributes are taken from the otlp_resource_attributes field in
+     * the connect response.
+     * <p>
+     * DO NOT add new attributes to this map unless they are
+     * specifically required for OTel dimensional metrics.
+     *
+     * @param connectData map of data received in connect response
+     * @return map of attributes to be decorated onto OTel dimensional metrics
+     */
     private Map<String, String> buildServiceMetadata(Map<String, Object> connectData) {
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, String> otlpResourceAttributes = (Map<String, String>) connectData.get(OTLP_RESOURCE_ATTRIBUTES);
 
-        AgentConfig config = ServiceFactory.getConfigService().getAgentConfig(appName);
-        Map<String, String> labels = config.getLabelsConfig().getLabels();
-        if (labels != null) {
-            // Add labels (aka tags) to service metadata
-            metadata.putAll(labels);
-        }
+        Map<String, String> metadata = (otlpResourceAttributes != null) ? new HashMap<>(otlpResourceAttributes) : new HashMap<>();
 
         if (entityGuid != null && !entityGuid.isEmpty()) {
             metadata.put("entity.guid", entityGuid);
         }
 
-        // TODO Add attributes from connect response when they're implemented
-        // FIXME Just mock some fake data for proof of concept
-        metadata.put("k8s.clusterName", "my-cluster");
-        metadata.put("k8s.containerName", "my-container");
-        metadata.put("language", "java");
-        metadata.put("realAgentId", "12345");
-        // generate a random number attribute so that the data
-        // changes on each connect, and we can verify the update logic
-        metadata.put("randomNumber", String.valueOf(ThreadLocalRandom.current().nextInt(1, 11)));
+        // TODO the appId attribute gets removed by the OTel metrics pipeline and causes a nr.invalidAttributeCount attribute to be added to the metrics. Ideally, it shouldn't be included in the otlp_resource_attributes payload, but for now just manually delete it.
+        metadata.remove("appId");
 
         return Collections.unmodifiableMap(metadata);
     }

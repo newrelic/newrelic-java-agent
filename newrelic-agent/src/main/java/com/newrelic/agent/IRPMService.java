@@ -51,6 +51,16 @@ public interface IRPMService extends Service {
 
     String getEntityGuid();
 
+    /**
+     * Returns service metadata from the most recent connect response.
+     * Values update on each agent reconnect.
+     * <p>
+     * While this is intended to decorate attributes onto OTel
+     * dimensional metrics, it may be generally useful anywhere access
+     * to agent metadata, tags, and host/entity attributes are needed.
+     *
+     * @return map of metadata key/value pairs (never null)
+     */
     Map<String, String> getServiceMetadata();
 
     String getApplicationName();
