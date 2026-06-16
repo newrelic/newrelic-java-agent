@@ -365,16 +365,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
      */
     private Map<String, String> buildServiceMetadata(Map<String, Object> connectData) {
         Map<String, String> otlpResourceAttributes = (Map<String, String>) connectData.get(OTLP_RESOURCE_ATTRIBUTES);
-
         Map<String, String> metadata = (otlpResourceAttributes != null) ? new HashMap<>(otlpResourceAttributes) : new HashMap<>();
 
         if (entityGuid != null && !entityGuid.isEmpty()) {
             metadata.put("entity.guid", entityGuid);
         }
-
-        // TODO the appId attribute gets removed by the OTel metrics pipeline and causes a nr.invalidAttributeCount attribute to be added to the metrics. Ideally, it shouldn't be included in the otlp_resource_attributes payload, but for now just manually delete it.
-        metadata.remove("appId");
-
         return Collections.unmodifiableMap(metadata);
     }
 
