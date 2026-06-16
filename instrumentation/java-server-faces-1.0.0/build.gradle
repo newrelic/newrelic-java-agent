@@ -1,0 +1,23 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("javax.faces:jsf-api:1.2_15-03")
+    implementation("javax.faces:jsf-impl:1.2_15-03")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java-server-faces-1.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly('javax.faces:jsf-api:[1.0,2.0)')
+    passesOnly('javax.faces:jsf-impl:[1.2_09-03,2.0)')
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
+
+}
+
+site {
+    title 'Java Server Faces'
+    type 'Other'
+}
