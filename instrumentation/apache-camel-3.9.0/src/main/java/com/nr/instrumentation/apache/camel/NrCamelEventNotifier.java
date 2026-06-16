@@ -1,0 +1,64 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package com.nr.instrumentation.apache.camel;
+
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Trace;
+import org.apache.camel.Exchange;
+import org.apache.camel.Exchange_Instrumentation;
+import org.apache.camel.impl.event.ExchangeCompletedEvent;
+import org.apache.camel.impl.event.ExchangeCreatedEvent;
+import org.apache.camel.spi.CamelEvent;
+import org.apache.camel.support.EventNotifierSupport;
+
+final class NrCamelEventNotifier extends EventNotifierSupport {
+
+    @Override
+    public void notify(CamelEvent event) throws Exception {
+        if (event instanceof ExchangeCreatedEvent) {
+            onExchangeCreated((ExchangeCreatedEvent) event);
+        } else if (event instanceof ExchangeCompletedEvent) {
+            onExchangeCompleted((ExchangeCompletedEvent) event);
+        }
+    }
+
+    @Trace(async = true)
+    private static void onExchangeCompleted(CamelEvent.ExchangeCompletedEvent event) {
+        Exchange exchange = event.getExchange();
+        if (exchange instanceof Exchange_Instrumentation) {
+            Exchange_Instrumentation exchangeInstrumentation = (Exchange_Instrumentation)exchange;
+            if (exchangeInstrumentation.token != null) {
+                exchangeInstrumentation.token.linkAndExpire();
+                exchangeInstrumentation.token = null;
+            }
+        }
+    }
+
+    @Trace(async = true, excludeFromTransactionTrace = true)
+    private static void onExchangeCreated(ExchangeCreatedEvent event) {
+        Exchange exchange = event.getExchange();
+        if (exchange instanceof Exchange_Instrumentation) {
+            Exchange_Instrumentation exchangeInstrumentation = (Exchange_Instrumentation)exchange;
+            if (exchangeInstrumentation.token != null) {
+                exchangeInstrumentation.token.link();
+            } else {
+                exchangeInstrumentation.token = NewRelic.getAgent().getTransaction().getToken();
+            }
+        }
+    }
+
+    @Override
+    public boolean isEnabled(CamelEvent event) {
+        return event instanceof ExchangeCreatedEvent || event instanceof ExchangeCompletedEvent;
+    }
+
+    @Override
+    public String toString() {
+        return "NewRelicCamelEventNotifier";
+    }
+}
