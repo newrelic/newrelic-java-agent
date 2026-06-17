@@ -21,23 +21,32 @@ import kotlin.coroutines.Continuation;
 public class Pipeline_Instrumentation<TSubject, TContext> {
 
     @NewField
-    private Token token = null;
+    private Token token;
 
     public Pipeline_Instrumentation(PipelinePhase... phases) {
+        if (token != null) {
+            return;
+        }
         String simpleName = getClass().getSimpleName();
-        if(PipelineUtils.tracePipeline(simpleName)) {
-            token = NewRelic.getAgent().getTransaction().getToken();
+        if (PipelineUtils.tracePipeline(simpleName)) {
+            Token t = NewRelic.getAgent().getTransaction().getToken();
+            if (t != null && t.isActive()) {
+                token = t;
+            } else if (t != null) {
+                t.expire();
+            }
         }
     }
 
     @Trace(async = true)
-    public Object execute(TContext context, TSubject subject, Continuation<? super TSubject>  continuation) {
-        if(token != null) {
-            token.linkAndExpire();
-            token = null;
+    public Object execute(TContext context, TSubject subject, Continuation<? super TSubject> continuation) {
+        Token localToken = token;
+        token = null;
+        if (localToken != null) {
+            localToken.linkAndExpire();
         }
         return Weaver.callOriginal();
-    };
+    }
 
 
 
