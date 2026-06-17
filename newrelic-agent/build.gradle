@@ -242,7 +242,7 @@ compileJava {
 
 // Java 11 compilation - both Caffeine versions
 compileJava11Java {
-    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, "generateVersionProperties"
 }
 
 compileTestJava {
