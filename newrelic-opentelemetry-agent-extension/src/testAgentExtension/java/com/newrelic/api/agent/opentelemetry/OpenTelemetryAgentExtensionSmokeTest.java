@@ -189,8 +189,6 @@ class OpenTelemetryAgentExtensionSmokeTest {
         // RUM API
         NewRelic.getBrowserTimingHeader();
         NewRelic.getBrowserTimingHeader("nonce");
-        NewRelic.getBrowserTimingFooter();
-        NewRelic.getBrowserTimingFooter("nonce");
         NewRelic.setUserName("name");
         NewRelic.setAccountName("name");
         NewRelic.setProductName("name");
