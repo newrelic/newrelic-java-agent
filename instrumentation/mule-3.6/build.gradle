@@ -1,26 +1,11 @@
 // The various additions and changes to this build file (versus other module build files)
-// are a result of an upgrade to gradle 8. Each new major version of gradle requires a
-// re-creation of local cache metadata, even if the target artifact is already cached on the machine.
+// are a result of an upgrade to gradle 8. Gradle 8's dependency resolution engine re-fetches
+// dependency metadata more aggressively than gradle 7, contacting remote repositories even
+// when artifacts are already cached on the machine.
 // The MuleSoft repo uses an SSL cert that is not trusted by the default Java 8 trust store,
 // which causes SSL errors when gradle attempts to contact the repo to refresh the cache metadata.
 // These changes are required to avoid contacting the mule soft repo for anything.
 
-repositories {
-    // The content closure restricts gradle from contacting the mulesoft repos for anything
-    // other than mulesoft artifacts
-    maven {
-        url 'https://repository.mulesoft.org/releases/'
-        content { includeGroupByRegex 'org\\.mule.*' }
-    }
-    maven {
-        url 'https://repository.mulesoft.org/snapshots/'
-        content { includeGroupByRegex 'org\\.mule.*' }
-    }
-    maven {
-        url 'https://repository.mulesoft.org/nexus/content/repositories/public/'
-        content { includeGroupByRegex 'org\\.mule.*' }
-    }
-}
 
 configurations.all {
     resolutionStrategy.dependencySubstitution {
@@ -38,7 +23,7 @@ configurations.all {
             }
         }
     }
-    
+
     // All these dependencies exist solely on the mulesoft repo, but aren't required
     // for actually building this module, so we can exclude them.
     exclude group: 'org.mule.modules', module: 'mule-module-xml'
