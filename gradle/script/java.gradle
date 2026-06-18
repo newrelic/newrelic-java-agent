@@ -108,8 +108,6 @@ test {
     ext.configureTest = { String jdkName, Closure configuration ->
         // Add an input property so that we differentiate between JDKs with the same version
         inputs.property("test.jdk", jdkName)
-        // Null out the launcher so we can set an executable instead
-        javaLauncher.convention(null).value(null)
         executable = project.property(jdkName) + '/bin/java'
         configuration.call()
     }
