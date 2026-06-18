@@ -237,16 +237,16 @@ task generateVersionProperties() {
 
 // Java 8 compilation - only Caffeine2
 compileJava {
-    dependsOn shadeCaffeine2Jar
+    dependsOn shadeCaffeine2Jar, generateVersionProperties
 }
 
 // Java 11 compilation - both Caffeine versions
 compileJava11Java {
-    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, "generateVersionProperties"
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, generateVersionProperties
 }
 
 compileTestJava {
-    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar
+    dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, generateVersionProperties
 }
 
 /**
