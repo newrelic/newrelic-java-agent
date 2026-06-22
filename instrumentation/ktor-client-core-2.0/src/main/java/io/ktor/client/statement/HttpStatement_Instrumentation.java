@@ -54,6 +54,7 @@ public class HttpStatement_Instrumentation {
         }
     }
 
+    @Trace
     public Object execute(Continuation<? super HttpResponse> continuation) {
         if(needsTracking) {
             NRContinuationWrapper<? super HttpResponse> wrapper = KtorClientUtils.getContinuationWrapper(continuation, httpParameters);

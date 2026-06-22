@@ -9,8 +9,7 @@ tasks.test {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation(project(":newrelic-agent"))
-    implementation("io.ktor:ktor-client-jetty-jvm:2.0.0")
+    implementation("io.ktor:ktor-client-jetty-jvm:3.0.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
 
@@ -19,13 +18,13 @@ dependencies {
 tasks.jar {
     manifest {
         attributes(
-            "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-client-jetty-2.0"
+            "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-client-jetty-jakarta-3.0"
         )
     }
 }
 
 verifyInstrumentation {
-    passesOnly("io.ktor:ktor-client-jetty-jvm:[2.0.0,)")
+    passesOnly("io.ktor:ktor-client-jetty-jvm:[3.0.0,)")
     excludeRegex(".*beta.*")
     excludeRegex(".*rc.*")
 }
