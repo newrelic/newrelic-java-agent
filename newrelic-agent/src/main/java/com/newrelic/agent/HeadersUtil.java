@@ -267,6 +267,7 @@ public class HeadersUtil {
         if (sendMessageQueueNotSampledHeader && containsMessageQueueNotSampledHeader) {
             // only if we haven't already accepted inbound headers
             if (tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
+                Agent.LOG.log(Level.FINEST, "Accepting Message Queue Not Sampled (nrns) header for transaction {0}", tx);
                 // we have a nrns header, short circuit and treat this as a remote_parent_not_sampled case
                 // where we have no other trace information
                 // note: this priority could get overridden later, if a subsequent call to acceptDistributedTracePayload is made
