@@ -1,0 +1,48 @@
+/*
+ *
+ *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package org.apache.kafka.clients.consumer;
+
+import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.weaver.NewField;
+import com.newrelic.api.agent.weaver.Weave;
+import com.newrelic.api.agent.weaver.Weaver;
+import com.nr.instrumentation.kafka.ClusterIdHelper;
+import com.nr.instrumentation.kafka.Utils;
+
+@Weave(originalName = "org.apache.kafka.clients.consumer.KafkaConsumer")
+public class KafkaConsumer_Instrumentation<K, V> {
+
+    @NewField
+    private volatile String nrClusterId;
+
+    public ConsumerRecords<K, V> poll(final long timeoutMs) {
+        final ConsumerRecords<K, V> records = Weaver.callOriginal();
+        if (nrClusterId == null) {
+            String id = ClusterIdHelper.fromConsumer(this);
+            if (id != null) {
+                nrClusterId = id;
+            }
+        }
+        if (records != null && !records.isEmpty() && nrClusterId != null) {
+            final String clusterId = nrClusterId;
+            final java.util.Map<String, Integer> topicCounts = new java.util.HashMap<>();
+            for (ConsumerRecord<?, ?> record : records) {
+                String topic = record.topic();
+                topicCounts.put(topic, topicCounts.getOrDefault(topic, 0) + 1);
+            }
+            for (java.util.Map.Entry<String, Integer> entry : topicCounts.entrySet()) {
+                NewRelic.getAgent().getMetricAggregator().recordMetric(
+                        Utils.KAFKA_CLUSTER_METRIC_PREFIX + clusterId
+                                + Utils.KAFKA_CLUSTER_TOPIC_SEGMENT + entry.getKey()
+                                + Utils.KAFKA_CLUSTER_CONSUME_SUFFIX,
+                        entry.getValue().floatValue());
+            }
+        }
+        return records;
+    }
+}
