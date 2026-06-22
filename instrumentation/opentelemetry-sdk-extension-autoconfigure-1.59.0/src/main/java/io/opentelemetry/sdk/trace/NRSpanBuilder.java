@@ -76,10 +76,10 @@ class NRSpanBuilder implements SpanBuilder {
     private static final int MAX_LINKS_PER_SPAN = 100;
     private static final int MAX_LINK_ATTRIBUTES = 64;
     private static final int MAX_LINK_ATTRIBUTE_LENGTH = 255;
+    private static final Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
 
     public NRSpanBuilder(Instrumentation instrumentation, String instrumentationScopeName, String instrumentationScopeVersion, TracerSharedState sharedState,
             String spanName) {
-        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: creating NRSpanBuilder for span: "+spanName);
         this.instrumentation = instrumentation;
         this.spanName = spanName;
         this.sharedState = sharedState;
@@ -211,11 +211,6 @@ class NRSpanBuilder implements SpanBuilder {
      */
     @Override
     public Span startSpan() {
-        boolean sampled = false;
-        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: startSpan called for spanKind: "+spanKind);
-        for (String key : attributes.keySet()) {
-            AgentBridge.getAgent().getLogger().log(Level.SEVERE, "  JGB: attribute: "+key+"="+attributes.get(key));
-        }
         SpanContext parentSpanContext = this.parentSpanContext == null ?
                 Span.fromContext(Context.current()).getSpanContext() : this.parentSpanContext;
         if (SpanKind.SERVER == spanKind) {
@@ -229,11 +224,7 @@ class NRSpanBuilder implements SpanBuilder {
         }
 
         if (SpanKind.PRODUCER == spanKind) {
-            // TODO do we want to do this regardless of the config flag?
-            Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
-            if (sendMessageQueueNotSampledHeader) {
-                sampled = !insertMessageQueueNotSampledHeaderIfNecessary();
-            }
+            insertMessageQueueNotSampledHeaderIfNecessary();
         }
 
         final ExitTracer tracer = instrumentation.createTracer(spanName, getTracerFlags(dispatcher));
@@ -247,8 +238,7 @@ class NRSpanBuilder implements SpanBuilder {
         // TODO REVIEW - we're not picking up the global resources
         return onStart(
                 new ExitTracerSpan(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), sharedState.getClock(),
-                        attributes,
-                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos, sampled));
+                        attributes, endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
@@ -359,25 +349,19 @@ class NRSpanBuilder implements SpanBuilder {
     }
 
     private void acceptMessageQueueNotSampledHeaderIfNecessary(Transaction tx) {
-        // TODO should we just load this config value once?
-        Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
         if (sendMessageQueueNotSampledHeader) tx.acceptDistributedTraceHeaders(TransportType.Queue, generateDtHeaders());
     }
 
-    private boolean insertMessageQueueNotSampledHeaderIfNecessary() {
+    private void insertMessageQueueNotSampledHeaderIfNecessary() {
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
-        AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB inside insertMessageQueueNotSampledHeaderIfNecessary; tx: "+tx);
-        if (tx instanceof NoOpTransaction) return false;
+        if (tx instanceof NoOpTransaction) return;
 
         // ask the agent to insert the header, if necessary
         tx.insertDistributedTraceHeaders(generateDtHeaders());
         // if it did, then set the corresponding attribute on the span
         if (attributes.containsKey("nrns")) {
-            AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB got nrns flag");
             attributes.put("new_relic_not_sampled", "");
-            return true;
         }
-        return false;
     }
 
     private Headers generateDtHeaders() {
@@ -390,14 +374,12 @@ class NRSpanBuilder implements SpanBuilder {
             @Override
             public String getHeader(String name) {
                 String result = getHeaderFromAttributes(name);
-                AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: got DT header: "+name+" = "+result);
                 return result;
             }
 
             @Override
             public Collection<String> getHeaders(String name) {
                 Collection<String> result = getHeadersFromAttributes(name);
-                AgentBridge.getAgent().getLogger().log(Level.SEVERE, "JGB: got DT header: "+name+" has "+(result == null ? "N/A" : result.size())+" values");
                 return result;
             }
 
@@ -413,7 +395,7 @@ class NRSpanBuilder implements SpanBuilder {
 
             @Override
             public Collection<String> getHeaderNames() {
-                return null; // TODO?
+                return null;
             }
 
             @Override
@@ -449,10 +431,9 @@ class NRSpanBuilder implements SpanBuilder {
         }
         List<String> headers = new ArrayList<>();
 
-        Boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
         if ("nrns".equalsIgnoreCase(name) &&
                 attributes.containsKey("new_relic_not_sampled") &&
-                sendMessageQueueNotSampledHeader) { // TODO is this necessary?
+                sendMessageQueueNotSampledHeader) {
             headers.add(""); // intentionally blank
             return headers;
         }

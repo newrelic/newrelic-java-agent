@@ -263,15 +263,16 @@ public class HeadersUtil {
     public static void parseAndAcceptDistributedTraceHeaders(Transaction tx, InboundHeaders inboundHeaders) {
 
         boolean containsMessageQueueNotSampledHeader = null != inboundHeaders.getHeader(MESSAGE_QUEUE_NOT_SAMPLED_HEADER);
-        Agent.LOG.severe("JGB containsMessageQueueNotSampledHeader: "+containsMessageQueueNotSampledHeader);
-        // TODO check for config flag?
-        if (containsMessageQueueNotSampledHeader) {
-            // we have a nrns header, short circuit and treat this as a remote_parent_not_sampled case
-            // where we have no other trace information
-            // TODO check if the priority has already been set
-            tx.assignPriorityFromRemoteParent(false); // TODO is this all that's necessary?
-            tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_NRNS);
-            Agent.LOG.severe("JGB priority: "+tx.getPriority());
+        boolean sendMessageQueueNotSampledHeader = NewRelic.getAgent().getConfig().getValue("distributed_tracing.send_message_queue_not_sampled_header", false);
+        if (sendMessageQueueNotSampledHeader && containsMessageQueueNotSampledHeader) {
+            // only if we haven't already accepted inbound headers
+            if (tx.getSpanProxy().getInboundDistributedTracePayload() == null) {
+                // we have a nrns header, short circuit and treat this as a remote_parent_not_sampled case
+                // where we have no other trace information
+                // note: this priority could get overridden later, if a subsequent call to acceptDistributedTracePayload is made
+                tx.assignPriorityFromRemoteParent(false);
+                tx.getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_NRNS);
+            }
             return;
         }
 
