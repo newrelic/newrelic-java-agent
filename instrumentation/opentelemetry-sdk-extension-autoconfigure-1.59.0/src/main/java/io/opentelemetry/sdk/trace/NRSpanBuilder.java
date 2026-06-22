@@ -419,7 +419,7 @@ class NRSpanBuilder implements SpanBuilder {
         if ("new_relic_not_sampled".equalsIgnoreCase(name)) {
             return attributes.containsKey("nrns") ? "" : null;
         }
-        // TODO is it possible to get the newrelic DT header from OTel??? It doesn't seem so.
+        // it is not currently possible to get the newrelic DT header from OTel
         if (NEWRELIC.equalsIgnoreCase(name)) {
             return null;
         }
