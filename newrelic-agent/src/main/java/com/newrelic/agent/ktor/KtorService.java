@@ -29,8 +29,6 @@ public class KtorService extends AbstractService {
 
     @Override
     protected void doStop() throws Exception {
-        KotlinCoroutinesService kotlinCoroutinesService = ServiceFactory.getKotlinCoroutinesService();
-
     }
 
     @Override

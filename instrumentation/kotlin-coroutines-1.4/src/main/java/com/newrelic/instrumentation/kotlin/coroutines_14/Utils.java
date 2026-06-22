@@ -260,7 +260,9 @@ public class Utils implements CoroutineConfigListener {
 
 	@Override
 	public void configureIgnoredFrameworks(String[] ignores) {
-		ignoredFrameworks.clear();
-		ignoredFrameworks.addAll(Arrays.asList(ignores));
+		if (ignores != null && ignores.length > 0) {
+			ignoredFrameworks.clear();
+			ignoredFrameworks.addAll(Arrays.asList(ignores));
+		}
 	}
 }

@@ -9,24 +9,22 @@ tasks.test {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation("io.ktor:ktor-utils:2.0.0")
+    implementation("io.ktor:ktor-client-jetty-jvm:3.0.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
-    testImplementation("io.ktor:ktor-utils:2.0.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
 }
 
 tasks.jar {
     manifest {
         attributes(
-            "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-utils-2.0"
+            "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-client-jetty-jakarta-3.0"
         )
     }
 }
 
 verifyInstrumentation {
-    passesOnly("io.ktor:ktor-utils:[2.0.0,3.0.0)")
-    excludeRegex(".*rc.*")
+    passesOnly("io.ktor:ktor-client-jetty-jvm:[3.0.0,)")
     excludeRegex(".*beta.*")
+    excludeRegex(".*rc.*")
 }
