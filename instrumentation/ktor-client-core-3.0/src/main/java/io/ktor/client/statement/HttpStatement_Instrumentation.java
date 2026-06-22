@@ -1,3 +1,10 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
 package io.ktor.client.statement;
 
 import com.newrelic.api.agent.HttpParameters;
@@ -47,6 +54,7 @@ public class HttpStatement_Instrumentation {
         }
     }
 
+    @Trace
     public Object execute(Continuation<? super HttpResponse> continuation) {
         if(needsTracking) {
             NRContinuationWrapper<? super HttpResponse> wrapper = KtorClientUtils.getContinuationWrapper(continuation, httpParameters);

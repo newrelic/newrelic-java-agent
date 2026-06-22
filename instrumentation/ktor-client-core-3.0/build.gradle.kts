@@ -9,7 +9,6 @@ tasks.test {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation(project(":newrelic-agent"))
     implementation("io.ktor:ktor-client-core-jvm:3.0.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
@@ -25,7 +24,7 @@ tasks.jar {
 }
 
 verifyInstrumentation {
-    passesOnly("io.ktor:ktor-client-jetty-jvm:[3.0.0,)")
+    passesOnly("io.ktor:ktor-client-core-jvm:[3.0.0,)")
     excludeRegex(".*beta.*")
     excludeRegex(".*rc.*")
 }

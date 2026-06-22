@@ -9,10 +9,11 @@ tasks.test {
 
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation(project(":newrelic-agent"))
     implementation("io.ktor:ktor-utils:1.4.0")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
+    testImplementation("io.ktor:ktor-utils:1.4.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
 
 }
 
