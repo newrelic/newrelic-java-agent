@@ -238,7 +238,8 @@ class NRSpanBuilder implements SpanBuilder {
         // TODO REVIEW - we're not picking up the global resources
         return onStart(
                 new ExitTracerSpan(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), sharedState.getClock(),
-                        attributes, endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
+                        attributes,
+                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
