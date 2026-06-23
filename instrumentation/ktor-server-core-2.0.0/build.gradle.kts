@@ -28,4 +28,5 @@ verifyInstrumentation {
     passesOnly("io.ktor:ktor-server-core:[2.0.0,3.0.0)")
     excludeRegex(".*rc.*")
     excludeRegex(".*beta.*")
+    excludeRegex(".*alpha.*")
 }

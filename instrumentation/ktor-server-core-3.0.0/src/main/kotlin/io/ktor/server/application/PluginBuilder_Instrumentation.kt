@@ -6,7 +6,7 @@ import com.newrelic.api.agent.weaver.Weave
 import com.newrelic.api.agent.weaver.Weaver
 
 @Weave(type = MatchType.BaseClass, originalName = "io.ktor.server.application.PluginBuilder")
-public abstract class PluginBuilder_Instrumentatio<PluginConfig : Any> {
+public abstract class PluginBuilder_Instrumentation<PluginConfig : Any> {
 
     @Trace
     public fun onCall(block: suspend OnCallContext<PluginConfig>.(call: ApplicationCall) -> Unit) {

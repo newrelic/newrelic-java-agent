@@ -31,7 +31,7 @@ tasks.jar {
 }
 
 verifyInstrumentation {
-    passes("io.ktor:ktor-server-jetty-jakarta-jvm:[3.3.0,)")
-    excludeRegex("io.ktor:ktor-server-jetty-jakarta-jvm:*-beta*'")
-    excludeRegex("io.ktor:ktor-server-jetty-jakarta-jvm:*-rc*")
+    passesOnly("io.ktor:ktor-server-jetty-jakarta-jvm:[3.3.0,)")
+    excludeRegex(".*beta.*")
+    excludeRegex(".*rc.*")
 }

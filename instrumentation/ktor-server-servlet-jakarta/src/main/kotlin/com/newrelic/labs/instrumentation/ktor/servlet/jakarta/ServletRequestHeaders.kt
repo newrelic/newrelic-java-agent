@@ -11,10 +11,6 @@ import com.newrelic.api.agent.HeaderType
 import com.newrelic.api.agent.Headers
 import jakarta.servlet.http.HttpServletRequest
 
-/**
- * Wrapper for HttpServletRequest to adapt it to New Relic's Headers interface.
- * This allows the New Relic agent to extract distributed tracing headers from incoming HTTP requests.
- */
 class ServletRequestHeaders(private val request: HttpServletRequest) : Headers {
 
     override fun getHeaderType(): HeaderType {
@@ -37,11 +33,9 @@ class ServletRequestHeaders(private val request: HttpServletRequest) : Headers {
     }
 
     override fun setHeader(name: String, value: String) {
-        // Request headers are read-only, cannot set
     }
 
     override fun addHeader(name: String, value: String) {
-        // Request headers are read-only, cannot add
     }
 
     override fun getHeaderNames(): MutableCollection<String> {

@@ -10,11 +10,9 @@ package com.newrelic.instrumentation.labs.ktor.server;
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 
-import io.ktor.http.Cookie;
 import io.ktor.http.HttpStatusCode;
 import io.ktor.server.application.ApplicationCall;
 import io.ktor.server.response.ApplicationResponse;
-import io.ktor.server.response.ResponseCookies;
 import io.ktor.server.response.ResponseHeaders;
 
 public class KtorExtendedResponse extends ExtendedResponse {
@@ -53,15 +51,9 @@ public class KtorExtendedResponse extends ExtendedResponse {
 	public String getContentType() {
 		ApplicationResponse response = call.getResponse();
 		if(response != null) {
-			ResponseCookies cookies = response.getCookies();
-			if(cookies != null) {
-				Cookie cookie = cookies.get("Content-Length");
-				if(cookie != null) {
-					String value = cookie.getValue();
-					if(value != null) {
-						return value;
-					}
-				}
+			ResponseHeaders headers = response.getHeaders();
+			if(headers != null) {
+				return headers.get("Content-Type");
 			}
 		}
 		return null;
@@ -86,17 +78,13 @@ public class KtorExtendedResponse extends ExtendedResponse {
 	public long getContentLength() {
 		ApplicationResponse response = call.getResponse();
 		if(response != null) {
-			ResponseCookies cookies = response.getCookies();
-			if(cookies != null) {
-				Cookie cookie = cookies.get("Content-Length");
-				if(cookie != null) {
-					String value = cookie.getValue();
-					if(value != null) {
-						try {
-							int length = Integer.parseInt(value);
-							return length;
-						} catch (NumberFormatException e) {
-						}
+			ResponseHeaders headers = response.getHeaders();
+			if(headers != null) {
+				String value = headers.get("Content-Length");
+				if(value != null) {
+					try {
+						return Long.parseLong(value);
+					} catch (NumberFormatException ignored) {
 					}
 				}
 			}

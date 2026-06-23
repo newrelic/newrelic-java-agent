@@ -26,8 +26,8 @@ import io.ktor.util.AttributeKey;
 import io.ktor.util.Attributes;
 
 public class KtorExtendedRequest extends ExtendedRequest {
-	
-	public ApplicationCall call = null;
+
+	private ApplicationCall call = null;
 	
 	public KtorExtendedRequest(ApplicationCall c) {
 		call = c;
@@ -72,12 +72,13 @@ public class KtorExtendedRequest extends ExtendedRequest {
 		return new String[0];
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAttribute(String name) {
 		Attributes attributes = call.getAttributes();
 		if(attributes != null) {
-			AttributeKey<?> key = new AttributeKey<>(name);
-			return attributes.get(key);
+			AttributeKey<Object> key = new AttributeKey<>(name);
+			return attributes.getOrNull(key);
 		}
 		return null;
 	}

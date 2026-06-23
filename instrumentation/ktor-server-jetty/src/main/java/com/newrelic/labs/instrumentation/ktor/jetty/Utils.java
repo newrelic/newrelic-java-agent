@@ -43,12 +43,4 @@ public class Utils {
         return sb.toString();
     }
     
-    public static String getTransactionNameFromConnectionPoint(Object connectionPoint) {
-        // For now, return a simple transaction name based on connection point
-        // This would need to be enhanced based on actual RequestConnectionPoint implementation
-        if (connectionPoint != null) {
-            return connectionPoint.toString();
-        }
-        return "JettyConnection";
-    }
 }
