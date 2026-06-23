@@ -9,6 +9,7 @@ java {
 }
 
 tasks.test {
+    onlyIf { !project.hasProperty("test8") }
     systemProperty("newrelic.config.class_transformer.clear_return_stacks", "true")
 }
 
