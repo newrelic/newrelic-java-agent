@@ -3,9 +3,6 @@ plugins {
 }
 
 tasks.test {
-    if (project.hasProperty("test17")) {
-        jvmArgs("-Djdk.attach.allowAttachSelf=true")
-    }
     systemProperty("newrelic.config.class_transformer.clear_return_stacks", "true")
 }
 

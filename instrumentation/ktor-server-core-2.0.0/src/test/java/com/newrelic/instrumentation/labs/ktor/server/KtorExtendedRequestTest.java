@@ -153,11 +153,15 @@ public class KtorExtendedRequestTest {
 
     @Test
     public void getCookieValue_returnsCookieValue() {
-        RequestCookies cookies = mock(RequestCookies.class);
-        when(request.getCookies()).thenReturn(cookies);
-        Map<String, String> rawCookies = new HashMap<>();
+        final Map<String, String> rawCookies = new HashMap<>();
         rawCookies.put("session", "abc");
-        when(cookies.getRawCookies()).thenReturn(rawCookies);
+        RequestCookies cookies = new RequestCookies(request) {
+            @Override
+            protected Map<String, String> fetchCookies() {
+                return rawCookies;
+            }
+        };
+        when(request.getCookies()).thenReturn(cookies);
 
         assertEquals("abc", extendedRequest.getCookieValue("session"));
     }

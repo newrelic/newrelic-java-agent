@@ -15,24 +15,67 @@ import io.ktor.server.response.ResponseHeaders;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class KtorExtendedResponseTest {
 
+    private static class FakeResponseHeaders extends ResponseHeaders {
+        private final Map<String, String> headerValues = new HashMap<>();
+        private String lastAppendedName;
+        private String lastAppendedValue;
+
+        void put(String name, String value) {
+            headerValues.put(name, value);
+        }
+
+        boolean wasAppended(String name, String value) {
+            return name.equals(lastAppendedName) && value.equals(lastAppendedValue);
+        }
+
+        @Override
+        public String get(String name) {
+            return headerValues.get(name);
+        }
+
+        @Override
+        protected void engineAppendHeader(String name, String value) {
+            lastAppendedName = name;
+            lastAppendedValue = value;
+        }
+
+        @Override
+        protected List<String> getEngineHeaderNames() {
+            return new ArrayList<>(headerValues.keySet());
+        }
+
+        @Override
+        protected List<String> getEngineHeaderValues(String name) {
+            List<String> result = new ArrayList<>();
+            String v = headerValues.get(name);
+            if (v != null) result.add(v);
+            return result;
+        }
+    }
+
     private ApplicationCall call;
     private ApplicationResponse response;
-    private ResponseHeaders headers;
+    private FakeResponseHeaders headers;
     private KtorExtendedResponse extendedResponse;
 
     @Before
     public void setup() {
         call = mock(ApplicationCall.class);
         response = mock(ApplicationResponse.class);
-        headers = mock(ResponseHeaders.class);
+        headers = new FakeResponseHeaders();
         when(call.getResponse()).thenReturn(response);
         when(response.getHeaders()).thenReturn(headers);
         extendedResponse = new KtorExtendedResponse(call);
@@ -45,9 +88,7 @@ public class KtorExtendedResponseTest {
 
     @Test
     public void getStatus_returnsStatusValue() throws Exception {
-        HttpStatusCode statusCode = mock(HttpStatusCode.class);
-        when(response.status()).thenReturn(statusCode);
-        when(statusCode.getValue()).thenReturn(200);
+        when(response.status()).thenReturn(new HttpStatusCode(200, "OK"));
 
         assertEquals(200, extendedResponse.getStatus());
     }
@@ -68,24 +109,20 @@ public class KtorExtendedResponseTest {
 
     @Test
     public void getStatusMessage_returnsDescription() throws Exception {
-        HttpStatusCode statusCode = mock(HttpStatusCode.class);
-        when(response.status()).thenReturn(statusCode);
-        when(statusCode.getDescription()).thenReturn("OK");
+        when(response.status()).thenReturn(new HttpStatusCode(200, "OK"));
 
         assertEquals("OK", extendedResponse.getStatusMessage());
     }
 
     @Test
     public void getContentType_readsFromResponseHeaders() {
-        when(headers.get("Content-Type")).thenReturn("application/json");
+        headers.put("Content-Type", "application/json");
 
         assertEquals("application/json", extendedResponse.getContentType());
     }
 
     @Test
     public void getContentType_returnsNullWhenHeaderAbsent() {
-        when(headers.get("Content-Type")).thenReturn(null);
-
         assertNull(extendedResponse.getContentType());
     }
 
@@ -98,14 +135,14 @@ public class KtorExtendedResponseTest {
 
     @Test
     public void getContentLength_readsFromResponseHeaders() {
-        when(headers.get("Content-Length")).thenReturn("1024");
+        headers.put("Content-Length", "1024");
 
         assertEquals(1024L, extendedResponse.getContentLength());
     }
 
     @Test
     public void getContentLength_returnsZeroForNonNumericValue() {
-        when(headers.get("Content-Length")).thenReturn("bad");
+        headers.put("Content-Length", "bad");
 
         assertEquals(0L, extendedResponse.getContentLength());
     }
@@ -121,6 +158,6 @@ public class KtorExtendedResponseTest {
     public void setHeader_appendsToResponseHeaders() {
         extendedResponse.setHeader("X-H", "v");
 
-        verify(headers).append("X-H", "v", true);
+        assertTrue(headers.wasAppended("X-H", "v"));
     }
 }
