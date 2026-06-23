@@ -346,7 +346,7 @@ class NRSpanBuilder implements SpanBuilder {
 
     private void insertMessageQueueNotSampledHeaderIfNecessary() {
         Transaction tx = AgentBridge.getAgent().getTransaction(false);
-        if (tx instanceof NoOpTransaction) return;
+        if (tx == null) return;
 
         // ask the agent to insert the header, if necessary
         tx.insertDistributedTraceHeaders(generateDtHeaders());
