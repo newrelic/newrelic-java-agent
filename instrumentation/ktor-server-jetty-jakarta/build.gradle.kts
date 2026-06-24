@@ -32,7 +32,7 @@ tasks.jar {
 }
 
 verifyInstrumentation {
-    passesOnly("io.ktor:ktor-server-jetty-jakarta-jvm:[2.3.0,3.1.0)")
+    passesOnly("io.ktor:ktor-server-jetty-jakarta-jvm:[2.3.0,3.3.0)")
     excludeRegex(".*beta.*")
     excludeRegex(".*rc.*")
 }
