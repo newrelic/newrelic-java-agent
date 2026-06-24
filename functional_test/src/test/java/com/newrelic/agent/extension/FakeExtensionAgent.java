@@ -20,9 +20,10 @@ import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.TraceMetadata;
 
+import java.util.Collections;
 import java.util.Map;
 
-public class FakeExtensionAgent implements Agent {
+class FakeExtensionAgent implements Agent {
     Logger logger;
 
     @Override
@@ -85,5 +86,10 @@ public class FakeExtensionAgent implements Agent {
     @Override
     public String getEntityGuid(boolean wait) {
         throw new RuntimeException();
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        return Collections.emptyMap();
     }
 }
