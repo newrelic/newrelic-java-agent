@@ -366,10 +366,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private Map<String, String> buildServiceMetadata(Map<String, Object> connectData) {
         Map<String, String> otlpResourceAttributes = (Map<String, String>) connectData.get(OTLP_RESOURCE_ATTRIBUTES);
         Map<String, String> metadata = (otlpResourceAttributes != null) ? new HashMap<>(otlpResourceAttributes) : new HashMap<>();
-
-        if (entityGuid != null && !entityGuid.isEmpty()) {
-            metadata.put("entity.guid", entityGuid);
-        }
         return Collections.unmodifiableMap(metadata);
     }
 
