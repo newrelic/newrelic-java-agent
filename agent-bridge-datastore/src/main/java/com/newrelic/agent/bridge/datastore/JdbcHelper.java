@@ -71,9 +71,6 @@ public class JdbcHelper {
     private static volatile Boolean isSqlMetadataCommentsEnabled = null;
     private static volatile String cachedServiceGuid = null;
 
-    /*
-    Statement cache API methods
-     */
     public static Object[] getParams(Statement statement){
         return statementToParams.get(statement);
     }
@@ -444,12 +441,10 @@ public class JdbcHelper {
     }
 
     /**
-     * Checks the config to see whether performance caching is enabled.
-     *
-     * If performance caching is not enabled (default) a Caffeine-backed Weak Keyed cache will be returned.
-     * If performance caching is enabled a vanilla Concurrent Hash Map will be returned.
-     * @return A Map whose keys are Statements and values cache information about these statements.
-     * @param <V>
+     * Checks the config to see whether weak key caching is enabled.
+     * <p>
+     * If weak key caching is enabled (default) a Caffeine-backed Weak Keyed cache will be returned.
+     * If weak key caching is not enabled a vanilla Concurrent Hash Map will be returned.
      */
     static <V> Map<Statement, V> initStatementCache(String cacheName) {
         boolean weakKeyCachingEnabled = NewRelic.getAgent().getConfig().getValue(JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED, JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT);
