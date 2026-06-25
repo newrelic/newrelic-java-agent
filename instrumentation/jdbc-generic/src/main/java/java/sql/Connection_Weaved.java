@@ -26,7 +26,6 @@ public abstract class Connection_Weaved {
         sql = JdbcHelper.addSqlMetadataCommentIfNeeded(sql);
         CallableStatement callableStatement = Weaver.callOriginal();
         JdbcHelper.putSql(callableStatement, sql);
-        //((PreparedStatement_Weaved) callableStatement).preparedSql = sql;
         return callableStatement;
     }
 

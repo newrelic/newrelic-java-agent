@@ -12,7 +12,6 @@ import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
@@ -21,11 +20,6 @@ import java.util.logging.Level;
 
 @Weave(originalName = "java.sql.PreparedStatement", type = MatchType.Interface)
 public abstract class PreparedStatement_Weaved {
-
-    public void addBatch() throws SQLException {
-        //TODO is this still needed for matching control, or can we get rid of this?
-        Weaver.callOriginal();
-    }
 
     @Trace(leaf = true)
     public ResultSet executeQuery() throws SQLException {
@@ -124,8 +118,7 @@ public abstract class PreparedStatement_Weaved {
     }
 
     public void clearParameters() throws SQLException {
-        JdbcHelper.setParams((Statement) this, new Object[0]);
-
+        JdbcHelper.putParams((Statement) this, new Object[0]);
         Weaver.callOriginal();
     }
 
@@ -150,7 +143,7 @@ public abstract class PreparedStatement_Weaved {
             params = JdbcHelper.growParameterArray(params, index);
         }
         params[index] = value;
-        JdbcHelper.setParams((Statement) this, params);
+        JdbcHelper.putParams((Statement) this, params);
     }
 
 }

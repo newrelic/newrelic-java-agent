@@ -7,22 +7,15 @@
 
 package java.sql;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
-
-    public void addBatch(String sql) throws SQLException {
-        //TODO is this still needed, or can it be removed?
-        Weaver.callOriginal();
-    }
 
     @Trace(leaf = true)
     public int [] executeBatch() throws SQLException {
@@ -100,7 +93,8 @@ public abstract class Statement_Weaved {
     }
 
     public void close() throws SQLException {
-        JdbcHelper.clearStatement((Statement) this);
+        JdbcHelper.removeStatement((Statement) this);
+        Weaver.callOriginal();
     }
 
     public abstract Connection getConnection() throws SQLException;

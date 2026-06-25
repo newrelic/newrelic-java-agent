@@ -8,7 +8,6 @@
 package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 
@@ -41,14 +40,20 @@ public class JdbcHelper {
         }
     };
 
-//    //striped caches - uncomment to play with striping
-//    private static final StripedCache<Statement, Object[]> paramsCacheStripes = new StripedCache<>("paramsCache", ConcurrentHashMap::new);
-//    private static final StripedCache<Statement, String> sqlCacheStripes = new StripedCache<>("sqlCache", ConcurrentHashMap::new);
-
-    //Single cache keyed on the statement
-    private static final Map<Statement, Object[]> statementToParams = new ConcurrentHashMap<>();
-
-    private static final Map<Statement, String> statementToSql = new ConcurrentHashMap<>();
+    //statement cache settings
+    private static final int INITIAL_STATEMENT_CACHE_CAPACITY = 1024;
+    private static final Map<Statement, Object[]> statementToParams = initStatementCache("statementToParams");
+    private static final Map<Statement, String> statementToSql = initStatementCache("statementToSql");
+    /**
+     * In extreme high-throughput scenarios, weak keyed eviction may throttle the CPU when it tries to perform maintenance on statement caches.
+     * Setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will convert the caches to ordinary ConcurrentHashMaps
+     * to alleviate this maintenance overhead.
+     * <p>
+     * Statements are only removed from the caches on Statement.close(), so this config MUST be enabled with caution. If the user does not properly close their
+     * statements, setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will cause memory issues.
+     */
+    private static final String JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED = "jdbc_statement_weak_key_caching.enabled";
+    private static final boolean JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT = Boolean.TRUE;
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
@@ -66,43 +71,32 @@ public class JdbcHelper {
     private static volatile Boolean isSqlMetadataCommentsEnabled = null;
     private static volatile String cachedServiceGuid = null;
 
-    //
-    //clear sql and params cache for this statement
-    public static void clearStatement(Statement statement) {
-        Map<Statement, Object[]> paramsCache = getParamsCacheForStatement(statement);
-        Map<Statement, String> sqlCache = getSqlCacheForStatement(statement);
-        paramsCache.remove(statement);
-        sqlCache.remove(statement);
-    }
-
-    //PARAMS METHODS
-    private static Map<Statement, Object[]> getParamsCacheForStatement(Statement statement) {
-        //return paramsCacheStripes.getStripe(statement);
-        return statementToParams;
-    }
-
+    /*
+    Statement cache API methods
+     */
     public static Object[] getParams(Statement statement){
-        return getParamsCacheForStatement(statement).get(statement);
+        return statementToParams.get(statement);
     }
 
-    public static void setParams(Statement statement, Object[] params){
-       getParamsCacheForStatement(statement).put(statement, params);
-    }
-
-    //SQL METHODS
-    private static Map<Statement, String> getSqlCacheForStatement(Statement statement) {
-        //return sqlCacheStripes.getStripe(statement);
-        return statementToSql;
-    }
-
-    public static void putSql(Statement statement, String sql) {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
-        getSqlCacheForStatement(statement).put(statement, sql);
+    public static void putParams(Statement statement, Object[] params) {
+       statementToParams.put(statement, params);
     }
 
     public static String getSql(Statement statement) {
         AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting sql for statement: {0}", statement);
-        return getSqlCacheForStatement(statement).get(statement);
+        return statementToSql.get(statement);
+    }
+
+    public static void putSql(Statement statement, String sql) {
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
+        statementToSql.put(statement, sql);
+    }
+
+    public static void removeStatement(Statement statement) {
+        if (statement != null) {
+            statementToParams.remove(statement);
+            statementToSql.remove(statement);
+        }
     }
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
@@ -447,6 +441,25 @@ public class JdbcHelper {
             }
         }
         return (isSqlMetadataCommentsEnabled != null) ? isSqlMetadataCommentsEnabled : Boolean.FALSE;
+    }
+
+    /**
+     * Checks the config to see whether performance caching is enabled.
+     *
+     * If performance caching is not enabled (default) a Caffeine-backed Weak Keyed cache will be returned.
+     * If performance caching is enabled a vanilla Concurrent Hash Map will be returned.
+     * @return A Map whose keys are Statements and values cache information about these statements.
+     * @param <V>
+     */
+    static <V> Map<Statement, V> initStatementCache(String cacheName) {
+        boolean weakKeyCachingEnabled = NewRelic.getAgent().getConfig().getValue(JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED, JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT);
+        if (weakKeyCachingEnabled) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is enabled. Using default Weak Keyed Cache for {0}", cacheName);
+            return AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+        } else {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is disabled. Using a ConcurrentHashMap for {0}. All JDBC Statements MUST be closed when this setting is enabled.", cacheName);
+            return AgentBridge.collectionFactory.createVanillaJavaConcurrentHashMap(INITIAL_STATEMENT_CACHE_CAPACITY);
+        }
     }
 
     /**
