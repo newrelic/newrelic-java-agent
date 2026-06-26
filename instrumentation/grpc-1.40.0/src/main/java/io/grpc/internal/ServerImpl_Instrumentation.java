@@ -42,9 +42,20 @@ public class ServerImpl_Instrumentation {
                 StatsTraceContext statsTraceCtx) {
             MethodDescriptor<ReqT, RespT> methodDescriptor = methodDef.getMethodDescriptor();
             String fullMethodName = methodDescriptor != null ? methodDescriptor.getFullMethodName() : null;
-            NewRelic.getAgent().getTransaction().setWebRequest(new GrpcRequest(fullMethodName, stream.getAuthority(), this.headers));
 
+            // Check if this is a BIDI streaming method
+            boolean isBidiStreaming = methodDescriptor != null &&
+                methodDescriptor.getType() == MethodDescriptor.MethodType.BIDI_STREAMING;
+
+            // Always create transaction and set web request
+            NewRelic.getAgent().getTransaction().setWebRequest(new GrpcRequest(fullMethodName, stream.getAuthority(), this.headers));
             stream.token = AgentBridge.getAgent().getTransaction().getToken();
+
+            // Mark BIDI streaming for special handling (transaction ends on first response)
+            if (isBidiStreaming) {
+                stream.isBidiStreaming = true;
+                NewRelic.addCustomParameter("grpc.transaction_ends_on_response", true);
+            }
 
             if (fullMethodName != null && !fullMethodName.isEmpty()) {
                 NewRelic.addCustomParameter("request.method", fullMethodName);
