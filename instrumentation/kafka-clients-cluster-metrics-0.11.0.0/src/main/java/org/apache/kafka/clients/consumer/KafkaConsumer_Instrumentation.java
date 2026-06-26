@@ -20,9 +20,13 @@ public class KafkaConsumer_Instrumentation<K, V> {
     @NewField
     private volatile String nrClusterId;
 
+    @NewField
+    private volatile long nrClusterIdFetchedAt;
+
     public ConsumerRecords<K, V> poll(final long timeoutMs) {
         final ConsumerRecords<K, V> records = Weaver.callOriginal();
-        if (nrClusterId == null) {
+        if (nrClusterId == null || System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
+            nrClusterIdFetchedAt = System.currentTimeMillis();
             String id = ClusterIdHelper.fromConsumer(this);
             if (id != null) {
                 nrClusterId = id;
@@ -30,10 +34,11 @@ public class KafkaConsumer_Instrumentation<K, V> {
         }
         if (records != null && !records.isEmpty() && nrClusterId != null) {
             final String clusterId = nrClusterId;
-            final java.util.Map<String, Integer> topicCounts = new java.util.HashMap<>();
+            final java.util.Map<String, Integer> topicCounts = new java.util.HashMap<String, Integer>();
             for (ConsumerRecord<?, ?> record : records) {
                 String topic = record.topic();
-                topicCounts.put(topic, topicCounts.getOrDefault(topic, 0) + 1);
+                Integer prev = topicCounts.get(topic);
+                topicCounts.put(topic, prev == null ? 1 : prev + 1);
             }
             for (java.util.Map.Entry<String, Integer> entry : topicCounts.entrySet()) {
                 NewRelic.getAgent().getMetricAggregator().recordMetric(

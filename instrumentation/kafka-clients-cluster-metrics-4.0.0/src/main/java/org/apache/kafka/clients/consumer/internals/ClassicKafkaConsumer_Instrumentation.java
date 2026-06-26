@@ -24,11 +24,15 @@ public class ClassicKafkaConsumer_Instrumentation<K, V> {
     @NewField
     private volatile String nrClusterId;
 
+    @NewField
+    private volatile long nrClusterIdFetchedAt;
+
     public ConsumerRecords<K, V> poll(final Duration timeout) {
         final ConsumerRecords<K, V> records = Weaver.callOriginal();
 
-        if (nrClusterId == null) {
+        if (nrClusterId == null || System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
             try {
+                nrClusterIdFetchedAt = System.currentTimeMillis();
                 String id = metadata.fetch().clusterResource().clusterId();
                 if (id != null && !id.isEmpty()) {
                     nrClusterId = id;
