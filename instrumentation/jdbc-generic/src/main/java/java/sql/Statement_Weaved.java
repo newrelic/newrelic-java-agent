@@ -17,15 +17,20 @@ import com.newrelic.api.agent.weaver.Weaver;
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
 
+    public void addBatch(String sql) throws SQLException {
+        if (JdbcHelper.getSql((Statement) this) == null) {
+            JdbcHelper.putSql((Statement) this, sql);
+        }
+        Weaver.callOriginal();
+    }
+
     @Trace(leaf = true)
     public int [] executeBatch() throws SQLException {
         String sql = JdbcHelper.getSql((Statement) this);
         int [] results = Weaver.callOriginal();
-        String batchSql = sql;
         if (results != null && sql != null) {
-            DatastoreMetrics.noticeBatchSql(getConnection(), batchSql, null, results.length);
+            DatastoreMetrics.noticeBatchSql(getConnection(), sql, null, results.length);
         }
-
         return results;
     }
 
