@@ -16,7 +16,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,39 +61,19 @@ public class RPMServiceMetadataTest {
     }
 
     @Test
-    public void buildServiceMetadata_includes_entity_guid_when_set() throws Exception {
-        setEntityGuid(rpmService, "guid-123");
-        Map<String, String> result = invokeBuildServiceMetadata(rpmService, Collections.<String, Object>emptyMap());
-        assertEquals(1, result.size());
-        assertEquals("guid-123", result.get("entity.guid"));
-    }
-
-    @Test
     public void buildServiceMetadata_includes_otlp_resource_attributes() throws Exception {
         Map<String, String> otlp = new HashMap<>();
         otlp.put("tags.region", "us-east-1");
         otlp.put("host.displayName", "host-42");
+        otlp.put("entity.guid", "guid-123");
         Map<String, Object> connect = new HashMap<>();
         connect.put(RPMService.OTLP_RESOURCE_ATTRIBUTES, otlp);
 
         Map<String, String> result = invokeBuildServiceMetadata(rpmService, connect);
-        assertEquals(2, result.size());
+        assertEquals(3, result.size());
         assertEquals("us-east-1", result.get("tags.region"));
         assertEquals("host-42", result.get("host.displayName"));
-    }
-
-    @Test
-    public void buildServiceMetadata_merges_otlp_attributes_and_entity_guid() throws Exception {
-        setEntityGuid(rpmService, "guid-xyz");
-        Map<String, String> otlp = new HashMap<>();
-        otlp.put("tags.region", "eu-west-1");
-        Map<String, Object> connect = new HashMap<>();
-        connect.put(RPMService.OTLP_RESOURCE_ATTRIBUTES, otlp);
-
-        Map<String, String> result = invokeBuildServiceMetadata(rpmService, connect);
-        assertEquals(2, result.size());
-        assertEquals("guid-xyz", result.get("entity.guid"));
-        assertEquals("eu-west-1", result.get("tags.region"));
+        assertEquals("guid-123", result.get("entity.guid"));
     }
 
     @Test
@@ -105,15 +84,8 @@ public class RPMServiceMetadataTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void buildServiceMetadata_returns_unmodifiable_map() throws Exception {
-        setEntityGuid(rpmService, "guid-abc");
         Map<String, String> result = invokeBuildServiceMetadata(rpmService, Collections.<String, Object>emptyMap());
         result.put("attempt", "modify");
-    }
-
-    private static void setEntityGuid(RPMService svc, String value) throws Exception {
-        Field f = RPMService.class.getDeclaredField("entityGuid");
-        f.setAccessible(true);
-        f.set(svc, value);
     }
 
     @SuppressWarnings("unchecked")
