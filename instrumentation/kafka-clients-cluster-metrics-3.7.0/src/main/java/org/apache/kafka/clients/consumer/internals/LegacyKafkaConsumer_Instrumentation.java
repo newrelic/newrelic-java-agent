@@ -33,7 +33,7 @@ public class LegacyKafkaConsumer_Instrumentation<K, V> {
     public ConsumerRecords<K, V> poll(final Duration timeout) {
         final ConsumerRecords<K, V> records = Weaver.callOriginal();
 
-        if (nrClusterId == null || System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
+        if (System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
             try {
                 nrClusterIdFetchedAt = System.currentTimeMillis();
                 String id = metadata.fetch().clusterResource().clusterId();
@@ -44,21 +44,45 @@ public class LegacyKafkaConsumer_Instrumentation<K, V> {
         }
 
         if (records != null && !records.isEmpty() && nrClusterId != null) {
-            final String clusterId = nrClusterId;
-            final Map<String, Integer> topicCounts = new HashMap<>();
-            for (ConsumerRecord<?, ?> record : records) {
-                String topic = record.topic();
-                topicCounts.put(topic, topicCounts.getOrDefault(topic, 0) + 1);
-            }
-            for (Map.Entry<String, Integer> entry : topicCounts.entrySet()) {
-                NewRelic.getAgent().getMetricAggregator().recordMetric(
-                        Utils.KAFKA_CLUSTER_METRIC_PREFIX + clusterId
-                                + Utils.KAFKA_CLUSTER_TOPIC_SEGMENT + entry.getKey()
-                                + Utils.KAFKA_CLUSTER_CONSUME_SUFFIX,
-                        entry.getValue().floatValue());
-            }
+            nrRecordClusterMetrics(records, nrClusterId);
         }
 
         return records;
+    }
+
+    public ConsumerRecords<K, V> poll(final long timeoutMs) {
+        final ConsumerRecords<K, V> records = Weaver.callOriginal();
+
+        if (System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
+            try {
+                nrClusterIdFetchedAt = System.currentTimeMillis();
+                String id = metadata.fetch().clusterResource().clusterId();
+                if (id != null && !id.isEmpty()) {
+                    nrClusterId = id;
+                }
+            } catch (Exception e) { NewRelic.getAgent().getLogger().log(Level.FINEST, e, "NR Kafka cluster ID fetch failed"); }
+        }
+
+        if (records != null && !records.isEmpty() && nrClusterId != null) {
+            nrRecordClusterMetrics(records, nrClusterId);
+        }
+
+        return records;
+    }
+
+    private static void nrRecordClusterMetrics(ConsumerRecords<?, ?> records, String clusterId) {
+        final Map<String, Integer> topicCounts = new HashMap<String, Integer>();
+        for (ConsumerRecord<?, ?> record : records) {
+            String topic = record.topic();
+            Integer prev = topicCounts.get(topic);
+            topicCounts.put(topic, prev == null ? 1 : prev + 1);
+        }
+        for (Map.Entry<String, Integer> entry : topicCounts.entrySet()) {
+            NewRelic.getAgent().getMetricAggregator().recordMetric(
+                    Utils.KAFKA_CLUSTER_METRIC_PREFIX + clusterId
+                            + Utils.KAFKA_CLUSTER_TOPIC_SEGMENT + entry.getKey()
+                            + Utils.KAFKA_CLUSTER_CONSUME_SUFFIX,
+                    entry.getValue().floatValue());
+        }
     }
 }

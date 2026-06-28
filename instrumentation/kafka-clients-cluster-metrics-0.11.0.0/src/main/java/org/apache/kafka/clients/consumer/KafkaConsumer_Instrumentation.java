@@ -25,7 +25,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
 
     public ConsumerRecords<K, V> poll(final long timeoutMs) {
         final ConsumerRecords<K, V> records = Weaver.callOriginal();
-        if (nrClusterId == null || System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
+        if (System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
             nrClusterIdFetchedAt = System.currentTimeMillis();
             String id = ClusterIdHelper.fromConsumer(this);
             if (id != null) {

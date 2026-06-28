@@ -30,7 +30,7 @@ public class ClassicKafkaConsumer_Instrumentation<K, V> {
     public ConsumerRecords<K, V> poll(final Duration timeout) {
         final ConsumerRecords<K, V> records = Weaver.callOriginal();
 
-        if (nrClusterId == null || System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
+        if (System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
             try {
                 nrClusterIdFetchedAt = System.currentTimeMillis();
                 String id = metadata.fetch().clusterResource().clusterId();
