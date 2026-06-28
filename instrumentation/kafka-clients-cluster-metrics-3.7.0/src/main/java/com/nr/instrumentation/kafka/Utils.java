@@ -12,5 +12,5 @@ public class Utils {
     public static final String KAFKA_CLUSTER_TOPIC_SEGMENT = "/Topic/";
     public static final String KAFKA_CLUSTER_PRODUCE_SUFFIX = "/Produce";
     public static final String KAFKA_CLUSTER_CONSUME_SUFFIX = "/Consume";
-    public static final long CLUSTER_ID_TTL_MS = 30L * 60 * 1000;
+    public static final long CLUSTER_ID_TTL_MS = 60L * 60 * 1000;
 }
