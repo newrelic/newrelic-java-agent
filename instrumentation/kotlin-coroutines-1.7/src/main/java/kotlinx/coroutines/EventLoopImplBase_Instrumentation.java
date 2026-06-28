@@ -12,6 +12,21 @@ import com.newrelic.instrumentation.kotlin.coroutines_17.Utils;
 @Weave(originalName = "kotlinx.coroutines.EventLoopImplBase")
 public abstract class EventLoopImplBase_Instrumentation {
 
+	public void schedule(long nanos, DelayedTask_Instrumentation task) {
+		if(task.token == null) {
+			Token t = NewRelic.getAgent().getTransaction().getToken();
+			if(t != null) {
+				if(!t.isActive()) {
+					t.expire();
+					t = null;
+				} else {
+					task.token = t;
+				}
+			}
+		}
+		Weaver.callOriginal();
+	}
+
 	@Weave(type = MatchType.BaseClass, originalName = "kotlinx.coroutines.EventLoopImplBase$DelayedTask")
 	public static abstract class DelayedTask_Instrumentation {
 
@@ -25,6 +40,14 @@ public abstract class EventLoopImplBase_Instrumentation {
 
 		@NewField
 		protected Token token = null;
+
+		public int scheduleTask(long delay, DelayedTaskQueue_Instrumentation queue, EventLoopImplBase_Instrumentation eventLoop) {
+			if(token == null) {
+				token = NewRelic.getAgent().getTransaction().getToken();
+			}
+
+			return Weaver.callOriginal();
+		}
 
 		public void dispose() {
 			if(token != null) {

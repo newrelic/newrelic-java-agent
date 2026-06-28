@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public final class WildflyServletRequestListener implements ServletRequestListener {
 
-    private static final String EXCEPTION_ATTRIBUTE_NAME = "javax.servlet.error.exception";
+    private static final String EXCEPTION_ATTRIBUTE_NAME = "jakarta.servlet.error.exception";
 
     @CatchAndLog
     @Override

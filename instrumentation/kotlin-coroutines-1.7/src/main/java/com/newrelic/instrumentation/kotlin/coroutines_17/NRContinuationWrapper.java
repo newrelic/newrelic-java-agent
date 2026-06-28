@@ -2,7 +2,6 @@ package com.newrelic.instrumentation.kotlin.coroutines_17;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
 
 import kotlin.coroutines.Continuation;
@@ -43,10 +42,6 @@ public class NRContinuationWrapper<T> implements Continuation<T> {
 			NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",name);
 		} else {
 			NewRelic.getAgent().getTracedMethod().setMetricName("Custom","ContinuationWrapper","resumeWith",p0.getClass().getName());
-		}
-		Token t = Utils.getToken(getContext());
-		if(t != null) {
-			t.link();
 		}
 		if(delegate != null) {
 			delegate.resumeWith(p0);

@@ -1,0 +1,21 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.glassfish:jakarta.faces:3.0.0")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java-server-faces-3.0.0' }
+}
+
+verifyInstrumentation {
+    passesOnly('org.glassfish:jakarta.faces:[3.0.0,)')
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
+
+}
+
+site {
+    title 'Java Server Faces'
+    type 'Other'
+}

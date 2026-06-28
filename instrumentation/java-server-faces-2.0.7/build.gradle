@@ -1,0 +1,25 @@
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.glassfish:javax.faces:2.0.7")
+    implementation("org.glassfish:jakarta.faces:2.3.9")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.java-server-faces-2.0.7' }
+}
+
+verifyInstrumentation {
+    // There are two passesOnly because the implementation library name was changed to jakarta.faces starting at
+    // v2.3.9, but the internal package names didn't change until v3.0.0
+    passesOnly('org.glassfish:javax.faces:[2.0.7,3.0.0)')
+    passesOnly('org.glassfish:jakarta.faces:[2.3.9,3.0.0)')
+    excludeRegex '.*.RC[0-9]'
+    excludeRegex '.*.M[0-9]'
+
+}
+
+site {
+    title 'Java Server Faces'
+    type 'Other'
+}

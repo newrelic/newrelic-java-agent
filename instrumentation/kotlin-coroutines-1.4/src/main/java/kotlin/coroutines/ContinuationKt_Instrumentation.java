@@ -23,7 +23,7 @@ public abstract class ContinuationKt_Instrumentation {
 	@Trace
 	public static <R, T> void startCoroutine(Function2<? super R, ? super Continuation<? super T>, ?> f, R receiver, Continuation<? super T> cont) {
 		if(!(f instanceof NRFunction2SuspendWrapper)) {
-            f = new NRFunction2SuspendWrapper<>(f);
+            f = new NRFunction2SuspendWrapper<>(null, "Coroutine",f);
 		}
 		Weaver.callOriginal();
 	}

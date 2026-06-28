@@ -18,7 +18,7 @@ public abstract class ChannelCoroutine_Instrumentation<E> {
 		return Weaver.callOriginal();
 	}
 
-	@Trace(dispatcher = true)
+	@Trace
 	public void cancel(java.util.concurrent.CancellationException ex) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","Channel",getClass().getSimpleName(),"Cancel");
 
