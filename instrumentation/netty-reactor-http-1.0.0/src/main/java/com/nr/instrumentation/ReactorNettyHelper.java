@@ -94,8 +94,8 @@ public class ReactorNettyHelper {
     }
 
     /**
-     * Defensive cleanup for any lingering Segment. No @Trace is applied because no meaningful work is done here. Ends the Segment so it stops retaining its
-     * parent Transaction.
+     * Defensive cleanup for any lingering Segment. No @Trace is applied because no meaningful work is done here.
+     * Ends the Segment so it stops retaining its parent Transaction.
      */
     public static void cleanupOrphanedSegment(Connection connection) {
         ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
