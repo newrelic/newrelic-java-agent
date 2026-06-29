@@ -16,7 +16,11 @@ public class ReactorNettyContext {
 
     public static void put(Connection connection, SegmentData segmentData) {
         if (connection != null && segmentData != null) {
-            connectionSegments.put(connection, segmentData);
+            SegmentData previous = connectionSegments.put(connection, segmentData);
+            // Connection reused midflight, end the misplaced segment to avoid orphaned segments in the parent transaction
+            if (previous != null && previous.segment != null) {
+                previous.segment.end();
+            }
         }
     }
 
