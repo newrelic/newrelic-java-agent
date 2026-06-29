@@ -21,7 +21,8 @@ task copySqlObfuscationTest(type: Copy) {
 }
 
 sourceSets.test.resources.srcDir 'build/sql_obfuscation_test'
-test.dependsOn copySqlObfuscationTest
+// processTestResources consumes this directory, so it must depend on the task that populates it
+processTestResources.dependsOn copySqlObfuscationTest
 
 verifyInstrumentation {
     passesOnly 'com.datastax.cassandra:cassandra-driver-core:[3.8.0,4.0.0)'

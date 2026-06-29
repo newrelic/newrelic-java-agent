@@ -12,8 +12,8 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContex
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.logging.Logging;
 import org.slf4j.Logger;
-import shadow.org.apache.tools.zip.ZipEntry;
-import shadow.org.apache.tools.zip.ZipOutputStream;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipOutputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +34,11 @@ public class Log4j2PluginFileMover implements Transformer {
     private long size;
     private long lastModified;
     private static final Logger logger = Logging.getLogger(Log4j2PluginFileMover.class);
+
+    @Override
+    public String getName() {
+        return "Log4j2PluginFileMover";
+    }
 
     @Override
     public boolean canTransformResource(FileTreeElement element) {

@@ -6,7 +6,7 @@ import org.gradle.jvm.tasks.Jar
 plugins {
     `maven-publish`
     signing
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
 }
 
 tasks.getByName<Jar>("jar") {
