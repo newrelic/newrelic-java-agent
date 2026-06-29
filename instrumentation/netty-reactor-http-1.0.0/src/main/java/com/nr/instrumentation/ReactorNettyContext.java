@@ -24,6 +24,11 @@ public class ReactorNettyContext {
         }
     }
 
+    /**
+     * Caller is responsible for ending the returned Segment ({@code data.segment.end()}).
+     * Otherwise, the Segment orphans in its parent Transaction until the agent's
+     * {@code segment_timeout} reaper force-ends it.
+     */
     public static SegmentData remove(Connection connection) {
         if (connection == null) return null;
         return connectionSegments.remove(connection);
@@ -39,12 +44,6 @@ public class ReactorNettyContext {
             this.segment = segment;
             this.requestUri = requestUri;
             this.httpMethod = httpMethod;
-        }
-
-        public void updateUri(URI uri) {
-            if (uri != null) {
-                this.requestUri = uri;
-            }
         }
     }
 }
