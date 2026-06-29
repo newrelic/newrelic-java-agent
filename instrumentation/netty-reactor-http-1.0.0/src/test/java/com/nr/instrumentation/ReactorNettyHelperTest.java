@@ -33,8 +33,8 @@ import static org.mockito.Mockito.verify;
 public class ReactorNettyHelperTest {
 
     /**
-     * When ReactorNettyContext.put() displaces an existing SegmentData, the prior Segment must
-     * have end() called on it so it stops pinning its parent Transaction in runningChildren.
+     * When ReactorNettyContext.put() displaces an existing SegmentData, the prior Segment must have end().
+     * This prevents it from pinning its parent Transaction in runningChildren.
      */
     @Test
     public void testPutEndsPriorSegmentOnOverwrite() {
@@ -116,8 +116,7 @@ public class ReactorNettyHelperTest {
     }
 
     /**
-     * SegmentData constructed with a null Segment should not cause cleanupOrphanedSegment
-     * to throw an NPE.
+     * SegmentData constructed with a null Segment should not cause cleanupOrphanedSegment to throw an NPE.
      */
     @Test
     public void testCleanupOrphanedSegmentWithNullSegmentInData() {
@@ -202,8 +201,8 @@ public class ReactorNettyHelperTest {
     }
 
     /**
-     * reactor-netty pools connections so the same Connection instance can be reused later in unrelated transactions. Each transaction's Segment must end at the
-     * right time with no cross talk between transactions.
+     * reactor-netty pools connections so the same Connection instance can be reused later in unrelated transactions.
+     * Each transaction's Segment must end at the right time with no cross talk between transactions.
      */
     @Test
     public void testCrossTransactionConnectionReuse() {

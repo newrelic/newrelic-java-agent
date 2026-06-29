@@ -24,10 +24,6 @@ import java.net.URI;
  * Helper class for netty-reactor-http instrumentation. Holds the per-state @Trace(async=true) work so that
  * async tracers are only created for the two states that do meaningful work (REQUEST_PREPARED, RESPONSE_RECEIVED),
  * not for every state transition fired through the observer's onStateChange method.
- * <p>
- * Follows the same precedent as TokenLinkingSubscriber in the netty-reactor-* / reactor-3.3.0 modules:
- * non-@Weave class with @Trace(async=true, excludeFromTransactionTrace=true) on helper methods called
- * from instrumented code.
  */
 public class ReactorNettyHelper {
 
@@ -74,17 +70,13 @@ public class ReactorNettyHelper {
 
     @Trace(async = true, excludeFromTransactionTrace = true)
     public static void handleResponseReceived(Connection connection) {
-        // Atomically claim the SegmentData. remove() is the single race-free coordination
-        // point — whichever thread (this method or a concurrent fallback cleanup handler)
-        // sees a non-null return wins the race and owns the Segment lifecycle. The loser
-        // sees null and no-ops, so a Segment can never be ended twice.
+        // Atomic remove() is the race free coordination point, Segment.end() cannot be called twice
         ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
         if (data == null || data.segment == null) {
             return;
         }
 
-        // We own the Segment. Always end it (no orphan); only report the external call
-        // if we have the URI — gate failure (null URI) skips the metric but still cleans up.
+        // Always end the segment and only report when URI is present
         if (data.requestUri != null) {
             HttpClientResponse response = (HttpClientResponse) connection;
             String procedure = (data.httpMethod != null && !data.httpMethod.isEmpty())
@@ -102,9 +94,8 @@ public class ReactorNettyHelper {
     }
 
     /**
-     * Defensive cleanup invoked on RESPONSE_COMPLETED/DISCONNECTING/RELEASED states. No @Trace
-     * because no meaningful tracer work is done here — just close out any lingering Segment so it
-     * stops retaining its parent Transaction.
+     * Defensive cleanup for any lingering Segment. No @Trace is applied because no meaningful work is done here. Ends the Segment so it stops retaining its
+     * parent Transaction.
      */
     public static void cleanupOrphanedSegment(Connection connection) {
         ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
