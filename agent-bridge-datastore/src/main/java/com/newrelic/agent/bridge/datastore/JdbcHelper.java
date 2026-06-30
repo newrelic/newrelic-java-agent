@@ -47,7 +47,8 @@ public class JdbcHelper {
      * to alleviate this maintenance overhead.
      * <p>
      * Statements are only removed from the caches on Statement.close(), so this config MUST be enabled with caution. If the user does not properly close their
-     * statements, setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will cause memory issues.
+     * statements, setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will cause memory issues. The user MUST explicitly call
+     * Statement.close() (not the implicit Statement.closeOnCompletion()) for cleanup to be guaranteed.
      */
     private static final String JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED = "jdbc_statement_weak_key_caching.enabled";
     private static final boolean JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT = Boolean.TRUE;
