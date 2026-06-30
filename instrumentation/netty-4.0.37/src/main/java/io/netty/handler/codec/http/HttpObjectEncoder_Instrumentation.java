@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2024 New Relic Corporation. All rights reserved.
+ *  * Copyright 2020 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -9,26 +9,27 @@ package io.netty.handler.codec.http;
 
 import java.util.List;
 
-import com.agent.instrumentation.netty4116.NettyUtil;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.DefaultChannelPipeline;
+import io.netty.channel.NRNettyChannelUtils;
 
 @Weave(type = MatchType.BaseClass, originalName = "io.netty.handler.codec.http.HttpObjectEncoder")
 public class HttpObjectEncoder_Instrumentation {
 
     // heading downstream
     protected void encode(ChannelHandlerContext ctx, Object msg, List<Object> out) {
+    	
     	ChannelPipeline pipeline = ctx.pipeline();
     	
-       boolean expired = NettyUtil.processResponse(msg, (DefaultChannelPipeline)pipeline);
+        boolean expired = NRNettyChannelUtils.processResponse(msg, pipeline);
         if (expired) {
-        	((DefaultChannelPipeline)pipeline).nettyToken = null;
+            NRNettyChannelUtils.setTokenToNull(pipeline);
         }
         Weaver.callOriginal();
     }
+
 }
