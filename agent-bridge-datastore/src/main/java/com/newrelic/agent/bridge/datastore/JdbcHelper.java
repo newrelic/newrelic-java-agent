@@ -41,9 +41,6 @@ public class JdbcHelper {
     };
 
     //statement cache settings
-    private static final int INITIAL_STATEMENT_CACHE_CAPACITY = 1024;
-    private static final Map<Statement, Object[]> statementToParams = initStatementCache("statementToParams");
-    private static final Map<Statement, String> statementToSql = initStatementCache("statementToSql");
     /**
      * In extreme high-throughput scenarios, weak keyed eviction may throttle the CPU when it tries to perform maintenance on statement caches.
      * Setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will convert the caches to ordinary ConcurrentHashMaps
@@ -54,6 +51,9 @@ public class JdbcHelper {
      */
     private static final String JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED = "jdbc_statement_weak_key_caching.enabled";
     private static final boolean JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT = Boolean.TRUE;
+    private static final int INITIAL_STATEMENT_CACHE_CAPACITY = 1024;
+    private static final Map<Statement, Object[]> statementToParams = initStatementCache("statementToParams");
+    private static final Map<Statement, String> statementToSql = initStatementCache("statementToSql");
 
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
@@ -71,12 +71,12 @@ public class JdbcHelper {
     private static volatile Boolean isSqlMetadataCommentsEnabled = null;
     private static volatile String cachedServiceGuid = null;
 
-    public static Object[] getParams(Statement statement){
+    public static Object[] getParams(Statement statement) {
         return statementToParams.get(statement);
     }
 
     public static void putParams(Statement statement, Object[] params) {
-       statementToParams.put(statement, params);
+        statementToParams.put(statement, params);
     }
 
     public static String getSql(Statement statement) {
@@ -106,7 +106,7 @@ public class JdbcHelper {
 
     public static DatabaseVendor getVendor(Class<?> driverOrDatastoreClass, String url) {
         DatabaseVendor vendor = classToVendorLookup.get(driverOrDatastoreClass);
-        AgentBridge.getAgent().getLogger().log(Level.FINEST,"Getting class: {0}, url: {1}, vendor: {2}", driverOrDatastoreClass, url, vendor);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting class: {0}, url: {1}, vendor: {2}", driverOrDatastoreClass, url, vendor);
 
         if (vendor != null) {
             return vendor;
@@ -252,7 +252,7 @@ public class JdbcHelper {
      *
      * @param connectionString URL connection string to parse.
      * @return identifier parsed from connection string if vendor is part of supported in-memory JDBC drivers,
-     *         {@link JdbcHelper#UNKNOWN} otherwise.
+     * {@link JdbcHelper#UNKNOWN} otherwise.
      */
     public static String parseInMemoryIdentifier(String connectionString) {
         if (connectionString == null) {
@@ -284,8 +284,6 @@ public class JdbcHelper {
 
         return UNKNOWN;
     }
-
-
 
     /**
      * Parse and cache identifier of in-memory database from Connection string url.
@@ -353,7 +351,6 @@ public class JdbcHelper {
      * the original SQL statement.
      *
      * @param sql the target SQL statement
-     *
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
@@ -447,12 +444,18 @@ public class JdbcHelper {
      * If weak key caching is not enabled a vanilla Concurrent Hash Map will be returned.
      */
     static <V> Map<Statement, V> initStatementCache(String cacheName) {
-        boolean weakKeyCachingEnabled = NewRelic.getAgent().getConfig().getValue(JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED, JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT);
+        boolean weakKeyCachingEnabled = NewRelic.getAgent()
+                .getConfig()
+                .getValue(JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED, JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT);
         if (weakKeyCachingEnabled) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is enabled. Using default Weak Keyed Cache for {0}", cacheName);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is enabled. Using default Weak Keyed Cache for {0}.", cacheName);
             return AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
         } else {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is disabled. Using a ConcurrentHashMap for {0}. All JDBC Statements MUST be closed when this setting is enabled.", cacheName);
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.INFO,
+                            "JDBC Statement weak key caching is disabled. Using a ConcurrentHashMap for {0}. All JDBC Statements MUST be closed when this setting is enabled.",
+                            cacheName);
             return AgentBridge.collectionFactory.createVanillaJavaConcurrentHashMap(INITIAL_STATEMENT_CACHE_CAPACITY);
         }
     }
