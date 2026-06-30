@@ -37,7 +37,6 @@ public abstract class SocketChannel_Instrumentation {
     public boolean connect(SocketAddress remote) throws IOException {
         boolean result = Weaver.callOriginal();
         if (DatastoreInstanceDetection.shouldDetectConnectionAddress() && (remote instanceof InetSocketAddress)) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Connection Debug: method=connect, storing address {0}", remote);
             this.address = (InetSocketAddress) remote;
         }
         return result;
@@ -46,7 +45,6 @@ public abstract class SocketChannel_Instrumentation {
     public boolean finishConnect() {
         boolean result = Weaver.callOriginal();
         if (isConnected() && DatastoreInstanceDetection.shouldDetectConnectionAddress() && this.address != null) {
-            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Connection Debug: method=finishConnect, saving address {0}", this.address);
             DatastoreInstanceDetection.saveAddress(this.address);
         }
         return result;
