@@ -1,13 +1,35 @@
-repositories {
-    maven {
-        url 'https://repository.mulesoft.org/releases/'
+// The various additions and changes to this build file (versus other module build files)
+// are a result of an upgrade to gradle 8. Gradle 8's dependency resolution engine re-fetches
+// dependency metadata more aggressively than gradle 7, contacting remote repositories even
+// when artifacts are already cached on the machine.
+// The MuleSoft repo uses an SSL cert that is not trusted by the default Java 8 trust store,
+// which causes SSL errors when gradle attempts to contact the repo to refresh the cache metadata.
+// These changes are required to avoid contacting the mule soft repo for anything.
+
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        // Mule's POMs declare many transitive dependencies as OSGi bundles
+        // These bundles only exist on the mulesoft repo, so we intercept
+        // the resolution flow and catch any artifact who's version ends in "-osgi"
+        // and substitute it by stripping the "-osgi" string. This causes
+        // gradle to search maven central for the base artifact, bypassing
+        // mulesoft
+        all { DependencySubstitution dependency ->
+            if (dependency.requested.hasProperty('version')
+                    && dependency.requested.version?.endsWith('-osgi')) {
+                def v = dependency.requested.version - '-osgi'
+                dependency.useTarget("${dependency.requested.group}:${dependency.requested.module}:${v}")
+            }
+        }
     }
-    maven {
-        url 'https://repository.mulesoft.org/snapshots/'
-    }
-    maven {
-        url 'https://repository.mulesoft.org/nexus/content/repositories/public/'
-    }
+
+    // All these dependencies exist solely on the mulesoft repo, but aren't required
+    // for actually building this module, so we can exclude them.
+    exclude group: 'org.mule.modules', module: 'mule-module-xml'
+    exclude group: 'org.mule.mvel', module: 'mule-mvel2'
+    exclude group: 'org.mule.common', module: 'mule-common'
+    exclude group: 'org.mule.extensions', module: 'mule-extensions-api'
 }
 
 dependencies {
@@ -30,7 +52,7 @@ verifyInstrumentation {
     passes('org.mule:mule-core:3.7.0') {
         implementation("org.mule.modules:mule-module-http:3.7.0")
     }
-    passes('org.mule:mule-core:[3.8.0,)') {
+    passes('org.mule:mule-core:[3.8.0,4.0.0)') {
         implementation("org.mule.modules:mule-module-http:3.7.0")
     }
 

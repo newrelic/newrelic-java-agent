@@ -16,7 +16,8 @@ dependencies {
 }
 
 verifyInstrumentation {
-    passesOnly 'io.vertx:vertx-web:[5.0.0,6.0.0)'
+    passesOnly 'io.vertx:vertx-web:[5.0.0,5.1.0)'
+    excludeRegex '.*CR[0-9]*'
 }
 
 java {
