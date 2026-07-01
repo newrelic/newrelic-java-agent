@@ -35,7 +35,7 @@ public class NRContinuationWrapper<T> implements Continuation<T> {
     }
 
     @Override
-    @Trace
+    @Trace(async = true)
     public void resumeWith(@NotNull Object o) {
         if(segment != null) {
             segment.end();

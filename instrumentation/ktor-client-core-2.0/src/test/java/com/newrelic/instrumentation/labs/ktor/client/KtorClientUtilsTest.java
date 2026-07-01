@@ -17,11 +17,6 @@ import static org.mockito.Mockito.mock;
 public class KtorClientUtilsTest {
 
     @Test
-    public void needsLeaf_trueForCIOEngine() {
-        assertTrue(KtorClientUtils.needsLeaf("CIOEngine"));
-    }
-
-    @Test
     public void needsLeaf_trueForJavaHttpEngine() {
         assertTrue(KtorClientUtils.needsLeaf("JavaHttpEngine"));
     }

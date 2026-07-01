@@ -18,7 +18,6 @@ public class KtorClientUtils {
     private static final Set<String> LEAF_CLIENTS = new HashSet<>();
 
     static {
-        LEAF_CLIENTS.add("CIOEngine");
         LEAF_CLIENTS.add("JavaHttpEngine");
     }
 
