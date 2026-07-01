@@ -1197,6 +1197,17 @@
             "additionalProperties": true,
             "description": "Circuit breaker protection settings."
         },
+        "jdbc_statement_weak_key_caching": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "JDBC Statements are cached in a weak key map by default. Set enabled:false to use a vanilla ConcurrentHashMap instead. Users who set enabled:false MUST call Statement.close() on every JDBC Statement."
+        },
         "class_transformer": {
             "type": "object",
             "properties": {
