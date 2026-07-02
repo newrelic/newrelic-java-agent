@@ -690,6 +690,11 @@ common: &default_settings
     # Default: 10
     gc_cpu_threshold: 10
 
+  # JDBC Statements are cached in a weak key map by default. Set enabled:false to use a vanilla ConcurrentHashMap instead.
+  # Users who set enabled:false MUST call Statement.close() on every JDBC Statement.
+  jdbc_statement_weak_key_caching:
+    enabled: true
+
   # Class transformer can be used to disable all agent instrumentation or specific instrumentation modules.
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
   class_transformer:
