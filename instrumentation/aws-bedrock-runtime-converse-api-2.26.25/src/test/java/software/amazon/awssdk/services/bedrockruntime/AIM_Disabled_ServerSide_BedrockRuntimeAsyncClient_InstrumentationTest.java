@@ -19,6 +19,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler;
 
 import java.util.Collection;
 import java.util.Map;
@@ -33,6 +35,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseRequest;
+import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseStreamRequest;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_disabled_server_side.yml")
@@ -48,8 +51,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeAsyncClient_InstrumentationTe
 
     @Test
     public void testConverseAsyncCompletion() throws ExecutionException, InterruptedException {
-        boolean isError = false; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest());
+        boolean isError = false;
+        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertNoLlmTransaction();
         assertNoLlmSupportabilityMetrics();
@@ -59,8 +62,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeAsyncClient_InstrumentationTe
 
     @Test
     public void testConverseAsyncCompletionError() throws ExecutionException, InterruptedException {
-        boolean isError = true; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest());
+        boolean isError = true;
+        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertNoLlmTransaction();
         assertNoLlmSupportabilityMetrics();
@@ -78,8 +81,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeAsyncClient_InstrumentationTe
     // TODO Stream support not implemented
 //    @Test
 //    public void testConverseStreamCompletion() throws ExecutionException, InterruptedException {
-//        boolean isError = false; // TODO might need to add a custom error flag on the request
-//        Void unused = converseStreamRequestInTransaction(converseStreamRequest());
+//        boolean isError = false;
+//        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
 ////        assertNotNull(converseResponse);
 //        assertNoLlmTransaction();
 //        assertNoLlmSupportabilityMetrics();
@@ -90,8 +93,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeAsyncClient_InstrumentationTe
     // TODO Stream support not implemented
 //    @Test
 //    public void testConverseStreamCompletionError() throws ExecutionException, InterruptedException {
-//        boolean isError = true; // TODO might need to add a custom error flag on the request
-//        Void unused = converseStreamRequestInTransaction(converseStreamRequest());
+//        boolean isError = true;
+//        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
 ////        assertNotNull(converseResponse);
 //        assertNoLlmTransaction();
 //        assertNoLlmSupportabilityMetrics();

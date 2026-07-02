@@ -19,6 +19,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
+import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,12 +35,14 @@ import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
 import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
 import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
 import static llm.converse.models.TestUtil.STOP_REASON;
+import static llm.converse.models.TestUtil.assertErrorEvent;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseRequest;
+import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseStreamRequest;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_enabled.yml")
@@ -54,24 +58,24 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
 
     @Test
     public void testConverseAsyncCompletion() throws ExecutionException, InterruptedException {
-        boolean isError = false; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest());
+        boolean isError = false;
+        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertTransaction();
         assertSupportabilityMetrics();
         assertLlmEvents();
-//        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertErrorEvent(isError, introspector.getErrorEvents());
     }
 
     @Test
     public void testConverseAsyncCompletionError() throws ExecutionException, InterruptedException {
-        boolean isError = true; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest());
+        boolean isError = true;
+        ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertTransaction();
         assertSupportabilityMetrics();
         assertLlmEvents();
-//        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertErrorEvent(isError, introspector.getErrorEvents());
     }
 
     @Trace(dispatcher = true)
@@ -84,8 +88,8 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
     // TODO Stream support not implemented
 //    @Test
 //    public void testConverseStreamCompletion() throws ExecutionException, InterruptedException {
-//        boolean isError = false; // TODO might need to add a custom error flag on the request
-//        Void unused = converseStreamRequestInTransaction(converseStreamRequest());
+//        boolean isError = false;
+//        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
 ////        assertNotNull(converseResponse);
 //        assertTransaction();
 //        assertSupportabilityMetrics();
@@ -98,7 +102,7 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
 //    public void testConverseStreamCompletionError() throws ExecutionException, InterruptedException {
 //        boolean isError = true; // TODO might need to add a custom error flag on the request
 //        Void unused = converseStreamRequestInTransaction(converseStreamRequest());
-//        //        assertNotNull(converseResponse);
+////        assertNotNull(converseResponse);
 //        assertTransaction();
 //        assertSupportabilityMetrics();
 //        assertLlmEvents();

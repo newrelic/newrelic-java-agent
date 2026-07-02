@@ -32,16 +32,16 @@ import static llm.converse.models.TestUtil.SUCCESS_STATUS_TEXT;
 import static llm.converse.models.TestUtil.TOTAL_TOKENS;
 
 public class MockConverseResponse {
-    public static SdkResponse sdkResponse(boolean success) {
+    public static SdkResponse sdkResponse(boolean isError) {
         HashMap<String, String> metadata = new HashMap<>();
         metadata.put("AWS_REQUEST_ID", AWS_REQUEST_ID);
         AwsResponseMetadata awsResponseMetadata = new BedrockRuntimeResponseMetadataMock(metadata);
 
         SdkHttpFullResponse sdkHttpFullResponse;
-        if (success) {
-            sdkHttpFullResponse = SdkHttpResponse.builder().statusCode(SUCCESS_STATUS_CODE).statusText(SUCCESS_STATUS_TEXT).build();
-        } else {
+        if (isError) {
             sdkHttpFullResponse = SdkHttpResponse.builder().statusCode(ERROR_STATUS_CODE).statusText(ERROR_STATUS_TEXT).build();
+        } else {
+            sdkHttpFullResponse = SdkHttpResponse.builder().statusCode(SUCCESS_STATUS_CODE).statusText(SUCCESS_STATUS_TEXT).build();
         }
         ContentBlock contentBlock = ContentBlock.builder().text(RESPONSE_CONTENT_TEXT).build();
         Message message = Message.builder().role(RESPONSE_ROLE).content(contentBlock).build();

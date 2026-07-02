@@ -7,6 +7,7 @@
 
 package software.amazon.awssdk.services.bedrockruntime;
 
+import software.amazon.awssdk.core.document.internal.BooleanDocument;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
@@ -23,7 +24,7 @@ import static llm.converse.models.TestUtil.REQUEST_ROLE;
 import static llm.converse.models.TestUtil.REQUEST_TEMPERATURE;
 
 public class MockConverseRequest {
-    public static ConverseRequest converseRequest() {
+    public static ConverseRequest converseRequest(boolean isError) {
         InferenceConfiguration inferenceConfiguration = InferenceConfiguration.builder().maxTokens(REQUEST_MAX_TOKENS).temperature(REQUEST_TEMPERATURE).build();
 
         List<Message> messages = new ArrayList<>();
@@ -33,11 +34,13 @@ public class MockConverseRequest {
         Message message = Message.builder().role(REQUEST_ROLE).content(content).build();
         messages.add(message);
 
-        return ConverseRequest.builder().modelId(REQUEST_MODEL_ID).inferenceConfig(inferenceConfiguration).messages(messages).build();
+        // Hijacking additionalModelRequestFields with a BooleanDocument to signal an error condition
+        BooleanDocument booleanDocument = new BooleanDocument(isError);
+        return ConverseRequest.builder().additionalModelRequestFields(booleanDocument).modelId(REQUEST_MODEL_ID).inferenceConfig(inferenceConfiguration).messages(messages).build();
     }
 
     // TODO Stream support not implemented
-    public static ConverseStreamRequest converseStreamRequest() {
+    public static ConverseStreamRequest converseStreamRequest(boolean isError) {
         InferenceConfiguration inferenceConfiguration = InferenceConfiguration.builder().maxTokens(REQUEST_MAX_TOKENS).temperature(REQUEST_TEMPERATURE).build();
 
         List<Message> messages = new ArrayList<>();
@@ -47,6 +50,8 @@ public class MockConverseRequest {
         Message message = Message.builder().role(REQUEST_ROLE).content(content).build();
         messages.add(message);
 
-        return ConverseStreamRequest.builder().modelId(REQUEST_MODEL_ID).inferenceConfig(inferenceConfiguration).messages(messages).build();
+        // Hijacking additionalModelRequestFields with a BooleanDocument to signal an error condition
+        BooleanDocument booleanDocument = new BooleanDocument(isError);
+        return ConverseStreamRequest.builder().additionalModelRequestFields(booleanDocument).modelId(REQUEST_MODEL_ID).inferenceConfig(inferenceConfiguration).messages(messages).build();
     }
 }

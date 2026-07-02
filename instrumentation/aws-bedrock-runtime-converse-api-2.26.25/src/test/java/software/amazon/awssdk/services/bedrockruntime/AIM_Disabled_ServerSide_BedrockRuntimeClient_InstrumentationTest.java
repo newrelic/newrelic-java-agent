@@ -46,8 +46,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeClient_InstrumentationTest {
 
     @Test
     public void testConverseCompletion() {
-        boolean isError = false; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest());
+        boolean isError = false;
+        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest(isError));
 
         assertNotNull(converseResponse);
         assertNoLlmTransaction();
@@ -58,8 +58,8 @@ public class AIM_Disabled_ServerSide_BedrockRuntimeClient_InstrumentationTest {
 
     @Test
     public void testConverseCompletionError() {
-        boolean isError = true; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest());
+        boolean isError = true;
+        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest(isError));
 
         assertNotNull(converseResponse);
         assertNoLlmTransaction();

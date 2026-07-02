@@ -31,6 +31,7 @@ import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
 import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
 import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
 import static llm.converse.models.TestUtil.STOP_REASON;
+import static llm.converse.models.TestUtil.assertErrorEvent;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
 import static org.junit.Assert.assertEquals;
@@ -52,24 +53,24 @@ public class BedrockRuntimeClient_InstrumentationTest {
 
     @Test
     public void testConverseCompletion() {
-        boolean isError = false; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest());
+        boolean isError = false;
+        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertTransaction();
         assertSupportabilityMetrics();
         assertLlmEvents();
-//        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertErrorEvent(isError, introspector.getErrorEvents());
     }
 
     @Test
     public void testConverseCompletionError() {
-        boolean isError = true; // TODO might need to add a custom error flag on the request
-        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest());
+        boolean isError = true;
+        ConverseResponse converseResponse = converseRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
         assertTransaction();
         assertSupportabilityMetrics();
         assertLlmEvents();
-//        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertErrorEvent(isError, introspector.getErrorEvents());
     }
 
     @Trace(dispatcher = true)

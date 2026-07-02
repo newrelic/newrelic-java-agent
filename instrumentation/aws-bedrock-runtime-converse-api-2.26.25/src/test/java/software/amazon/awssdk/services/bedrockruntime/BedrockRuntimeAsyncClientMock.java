@@ -28,7 +28,9 @@ public class BedrockRuntimeAsyncClientMock implements BedrockRuntimeAsyncClient 
 
     @Override
     public CompletableFuture<ConverseResponse> converse(ConverseRequest converseRequest) {
-        return CompletableFuture.completedFuture((ConverseResponse) sdkResponse(true));
+        // Hijacking additionalModelRequestFields with a BooleanDocument to signal an error condition
+        boolean isError = converseRequest.additionalModelRequestFields().asBoolean();
+        return CompletableFuture.completedFuture((ConverseResponse) sdkResponse(isError));
     }
 
     @Override

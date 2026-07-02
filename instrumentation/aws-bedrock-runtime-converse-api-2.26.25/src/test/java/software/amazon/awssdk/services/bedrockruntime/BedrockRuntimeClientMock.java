@@ -24,6 +24,8 @@ public class BedrockRuntimeClientMock implements BedrockRuntimeClient {
 
     @Override
     public ConverseResponse converse(ConverseRequest converseRequest) {
-        return (ConverseResponse) sdkResponse(true);
+        // Hijacking additionalModelRequestFields with a BooleanDocument to signal an error condition
+        boolean isError = converseRequest.additionalModelRequestFields().asBoolean();
+        return (ConverseResponse) sdkResponse(isError);
     }
 }
