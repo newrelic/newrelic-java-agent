@@ -7,14 +7,9 @@
 
 package llm.models;
 
-import com.newrelic.api.agent.NewRelic;
-
-import java.util.logging.Level;
-
 public interface ModelResponse {
     // Operation types
     String COMPLETION = "completion";
-    String EMBEDDING = "embedding";
 
     /**
      * Get the response message, potentially from a specific array index
@@ -61,13 +56,6 @@ public interface ModelResponse {
     String getLlmChatCompletionSummaryId();
 
     /**
-     * Get the ID for the associated LlmEmbedding event.
-     *
-     * @return String representing the ID for the associated LlmEmbedding event
-     */
-    String getLlmEmbeddingId();
-
-    /**
      * Determine whether the response resulted in an error or not.
      *
      * @return boolean true when the LLM response is an error, false when the response was successful
@@ -89,18 +77,18 @@ public interface ModelResponse {
     String getStatusText();
 
     /**
-     * Log when a parsing error occurs.
+     * Indicates whether the message is from a user or AI assistant.
      *
-     * @param e                Exception encountered when parsing the response
-     * @param fieldBeingParsed field that was being parsed
+     * @return boolean true if the message is from a user, else false
      */
-    static void logParsingFailure(Exception e, String fieldBeingParsed) {
-        if (e != null) {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, e, "AIM: Error parsing " + fieldBeingParsed + " from ModelResponse");
-        } else {
-            NewRelic.getAgent().getLogger().log(Level.FINEST, "AIM: Unable to parse empty/null " + fieldBeingParsed + " from ModelResponse");
-        }
-    }
+    boolean isUser();
+
+    /**
+     * Get the response organization.
+     *
+     * @return String representing the response organization
+     */
+    String getResponseOrganization();
 
     /**
      * Get the number of tokens in the prompt/request from the LLM response usage metadata.

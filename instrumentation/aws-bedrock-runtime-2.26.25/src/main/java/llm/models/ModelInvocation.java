@@ -9,15 +9,13 @@ package llm.models;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
-import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
-import static llm.vendor.Vendor.CONVERSE;
+import static llm.vendor.Vendor.BEDROCK;
 
 public interface ModelInvocation {
     /**
@@ -43,14 +41,6 @@ public interface ModelInvocation {
     void setSegmentName(Segment segment, String functionName);
 
     /**
-     * Record an LlmEmbedding event that captures data specific to the creation of an embedding.
-     *
-     * @param startTime start time of SDK invoke method
-     * @param index     of the input message in an array
-     */
-    void recordLlmEmbeddingEvent(long startTime, int index);
-
-    /**
      * Record an LlmChatCompletionSummary event that captures high-level data about
      * the creation of a chat completion including request, response, and call information.
      *
@@ -67,7 +57,7 @@ public interface ModelInvocation {
      * @param message  String representing the input/output message
      * @param isUser   boolean representing if the current message event is from a user input prompt or an assistant response message
      */
-    void recordLlmChatCompletionMessageEvent(int sequence, String message, boolean isUser);
+    void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser);
 
     /**
      * Record all LLM events when using the sync client.
@@ -130,7 +120,7 @@ public interface ModelInvocation {
      * @param vendorVersion version of vendor
      */
     static void incrementInstrumentedSupportabilityMetric(String vendorVersion) {
-        NewRelic.incrementCounter("Supportability/Java/ML/" + CONVERSE + "/" + vendorVersion);
+        NewRelic.incrementCounter("Supportability/Java/ML/" + BEDROCK + "/" + vendorVersion);
     }
 
     /**
@@ -177,5 +167,4 @@ public interface ModelInvocation {
     static String getRandomGuid() {
         return UUID.randomUUID().toString();
     }
-
 }

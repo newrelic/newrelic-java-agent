@@ -40,16 +40,17 @@ public class LlmEvent {
     private final String role;
     private final Boolean isResponse;
     private final String requestId;
-    private final String responseModel;
     private final Integer sequence;
     private final String completionId;
     private final Integer responseNumberOfMessages;
     private final Float duration;
     private final Boolean error;
-    private final String input;
     private final Float requestTemperature;
     private final Integer requestMaxTokens;
     private final String requestModel;
+    private final String responseModel;
+    private final String responseOrganization;
+    private final Integer timeToFirstToken;
     private final Integer tokenCount;
     private final String responseChoicesFinishReason;
     private final Integer responseUsagePromptTokens;
@@ -81,16 +82,17 @@ public class LlmEvent {
         private String role = null;
         private Boolean isResponse = null;
         private String requestId = null;
-        private String responseModel = null;
         private Integer sequence = null;
         private String completionId = null;
         private Integer responseNumberOfMessages = null;
         private Float duration = null;
         private Boolean error = null;
-        private String input = null;
         private Float requestTemperature = null;
         private Integer requestMaxTokens = null;
         private String requestModel = null;
+        private String responseModel = null;
+        private String responseOrganization = null;
+        private Integer timeToFirstToken = null;
         private Integer tokenCount = null;
         private String responseChoicesFinishReason = null;
         private Integer responseUsagePromptTokens = null;
@@ -154,7 +156,18 @@ public class LlmEvent {
         }
 
         public Builder responseModel() {
+            // Model ID is not available from response, so use request model
             responseModel = modelRequest.getModelId();
+            return this;
+        }
+
+        public Builder responseOrganization() {
+            responseOrganization = modelResponse.getResponseOrganization();
+            return this;
+        }
+
+        public Builder timeToFirstToken(int timeToFirstToken) {
+            this.timeToFirstToken = timeToFirstToken;
             return this;
         }
 
@@ -180,11 +193,6 @@ public class LlmEvent {
 
         public Builder error() {
             error = modelResponse.isErrorResponse();
-            return this;
-        }
-
-        public Builder input(int index) {
-            input = modelRequest.getInputText(index);
             return this;
         }
 
@@ -316,11 +324,6 @@ public class LlmEvent {
             eventAttributes.put("error", true);
         }
 
-        input = builder.input;
-        if (isAiMonitoringRecordContentEnabled() && input != null && !input.isEmpty()) {
-            eventAttributes.put("input", input);
-        }
-
         requestTemperature = builder.requestTemperature;
         if (requestTemperature != null && requestTemperature >= 0) {
             eventAttributes.put("request.temperature", requestTemperature);
@@ -334,6 +337,16 @@ public class LlmEvent {
         requestModel = builder.requestModel;
         if (requestModel != null && !requestModel.isEmpty()) {
             eventAttributes.put("request.model", requestModel);
+        }
+
+        responseOrganization = builder.responseOrganization;
+        if (responseOrganization != null && !responseOrganization.isEmpty()) {
+            eventAttributes.put("response.organization", responseOrganization);
+        }
+
+        timeToFirstToken = builder.timeToFirstToken;
+        if (timeToFirstToken != null && timeToFirstToken >= 0) {
+            eventAttributes.put("time_to_first_token", timeToFirstToken);
         }
 
         tokenCount = builder.tokenCount;
