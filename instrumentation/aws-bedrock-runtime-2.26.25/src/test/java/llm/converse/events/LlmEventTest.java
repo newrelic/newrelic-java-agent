@@ -5,7 +5,7 @@
  *
  */
 
-package llm.events;
+package llm.converse.events;
 
 import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountCallbackHolder;
 import com.newrelic.agent.introspec.Event;
@@ -13,23 +13,23 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.api.agent.LlmTokenCountCallback;
-import llm.models.ModelInvocation;
-import llm.models.converse.ConverseModelInvocation;
+import llm.converse.models.ModelInvocation;
+import llm.converse.models.converse.ConverseModelInvocation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
 
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
-import static llm.models.TestUtil.REQUEST_CONTENT_TEXT;
-import static llm.models.TestUtil.REQUEST_MODEL_ID;
-import static llm.models.TestUtil.RESPONSE_CONTENT_TEXT;
-import static llm.models.TestUtil.STOP_REASON;
-import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
-import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
-import static llm.models.TestUtil.mockConverseModelInvocation;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
+import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
+import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.STOP_REASON;
+import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
+import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
+import static llm.converse.models.TestUtil.mockConverseModelInvocation;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(InstrumentationTestRunner.class)

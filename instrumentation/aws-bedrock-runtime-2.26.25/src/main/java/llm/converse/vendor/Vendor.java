@@ -5,7 +5,7 @@
  *
  */
 
-package llm.vendor;
+package llm.converse.vendor;
 
 public class Vendor {
     public static final String VENDOR = "bedrock";

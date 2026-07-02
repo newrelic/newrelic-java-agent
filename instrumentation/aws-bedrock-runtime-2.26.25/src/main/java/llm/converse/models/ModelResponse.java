@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models;
+package llm.converse.models;
 
 public interface ModelResponse {
     // Operation types

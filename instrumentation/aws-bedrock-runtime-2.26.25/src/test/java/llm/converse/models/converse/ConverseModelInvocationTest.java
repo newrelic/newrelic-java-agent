@@ -1,4 +1,4 @@
-package llm.models.converse;
+package llm.converse.models.converse;
 /*
  *
  *  * Copyright 2026 New Relic Corporation. All rights reserved.
@@ -20,19 +20,19 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
-import static llm.models.TestUtil.INPUT_TOKENS;
-import static llm.models.TestUtil.OUTPUT_TOKENS;
-import static llm.models.TestUtil.REQUEST_CONTENT_TEXT;
-import static llm.models.TestUtil.REQUEST_MODEL_ID;
-import static llm.models.TestUtil.RESPONSE_CONTENT_TEXT;
-import static llm.models.TestUtil.STOP_REASON;
-import static llm.models.TestUtil.TOTAL_TOKENS;
-import static llm.models.TestUtil.assertErrorEvent;
-import static llm.models.TestUtil.assertLlmChatCompletionMessageAttributes;
-import static llm.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
-import static llm.models.TestUtil.mockConverseModelInvocation;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
+import static llm.converse.models.TestUtil.INPUT_TOKENS;
+import static llm.converse.models.TestUtil.OUTPUT_TOKENS;
+import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
+import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.STOP_REASON;
+import static llm.converse.models.TestUtil.TOTAL_TOKENS;
+import static llm.converse.models.TestUtil.assertErrorEvent;
+import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
+import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
+import static llm.converse.models.TestUtil.mockConverseModelInvocation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 

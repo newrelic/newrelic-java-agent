@@ -5,10 +5,10 @@
  *
  */
 
-package llm.models.converse;
+package llm.converse.models.converse;
 
 import com.newrelic.api.agent.NewRelic;
-import llm.models.ModelResponse;
+import llm.converse.models.ModelResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getRandomGuid;
+import static llm.converse.models.ModelInvocation.getRandomGuid;
 
 /**
  * Stores the required info from the Bedrock ConverseResponse.

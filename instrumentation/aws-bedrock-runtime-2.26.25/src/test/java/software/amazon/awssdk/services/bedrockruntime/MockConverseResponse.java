@@ -19,17 +19,17 @@ import software.amazon.awssdk.services.bedrockruntime.model.TokenUsage;
 
 import java.util.HashMap;
 
-import static llm.models.TestUtil.AWS_REQUEST_ID;
-import static llm.models.TestUtil.ERROR_STATUS_CODE;
-import static llm.models.TestUtil.ERROR_STATUS_TEXT;
-import static llm.models.TestUtil.INPUT_TOKENS;
-import static llm.models.TestUtil.OUTPUT_TOKENS;
-import static llm.models.TestUtil.RESPONSE_CONTENT_TEXT;
-import static llm.models.TestUtil.RESPONSE_ROLE;
-import static llm.models.TestUtil.STOP_REASON;
-import static llm.models.TestUtil.SUCCESS_STATUS_CODE;
-import static llm.models.TestUtil.SUCCESS_STATUS_TEXT;
-import static llm.models.TestUtil.TOTAL_TOKENS;
+import static llm.converse.models.TestUtil.AWS_REQUEST_ID;
+import static llm.converse.models.TestUtil.ERROR_STATUS_CODE;
+import static llm.converse.models.TestUtil.ERROR_STATUS_TEXT;
+import static llm.converse.models.TestUtil.INPUT_TOKENS;
+import static llm.converse.models.TestUtil.OUTPUT_TOKENS;
+import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.RESPONSE_ROLE;
+import static llm.converse.models.TestUtil.STOP_REASON;
+import static llm.converse.models.TestUtil.SUCCESS_STATUS_CODE;
+import static llm.converse.models.TestUtil.SUCCESS_STATUS_TEXT;
+import static llm.converse.models.TestUtil.TOTAL_TOKENS;
 
 public class MockConverseResponse {
     public static SdkResponse sdkResponse(boolean success) {

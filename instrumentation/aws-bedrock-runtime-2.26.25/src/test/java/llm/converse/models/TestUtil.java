@@ -5,11 +5,11 @@
  *
  */
 
-package llm.models;
+package llm.converse.models;
 
 import com.newrelic.agent.introspec.ErrorEvent;
 import com.newrelic.agent.introspec.Event;
-import llm.models.converse.ConverseModelInvocation;
+import llm.converse.models.converse.ConverseModelInvocation;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.BedrockRuntimeResponseMetadata;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
-import static llm.vendor.Vendor.INGEST_SOURCE;
-import static llm.vendor.Vendor.VENDOR;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
+import static llm.converse.vendor.Vendor.INGEST_SOURCE;
+import static llm.converse.vendor.Vendor.VENDOR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

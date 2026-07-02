@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;

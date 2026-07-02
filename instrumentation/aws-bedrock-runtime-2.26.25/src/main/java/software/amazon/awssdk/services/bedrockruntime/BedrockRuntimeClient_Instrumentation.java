@@ -15,15 +15,15 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import llm.models.ModelInvocation;
-import llm.models.converse.ConverseModelInvocation;
+import llm.converse.models.ModelInvocation;
+import llm.converse.models.converse.ConverseModelInvocation;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 
 import java.util.Map;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
-import static llm.vendor.Vendor.VENDOR_VERSION;
+import static llm.converse.vendor.Vendor.VENDOR_VERSION;
 
 /**
  * Service client for accessing Amazon Bedrock Runtime synchronously.

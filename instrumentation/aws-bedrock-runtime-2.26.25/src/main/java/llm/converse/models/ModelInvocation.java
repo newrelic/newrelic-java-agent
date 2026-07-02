@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models;
+package llm.converse.models;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
@@ -15,7 +15,7 @@ import com.newrelic.api.agent.Segment;
 import java.util.Map;
 import java.util.UUID;
 
-import static llm.vendor.Vendor.BEDROCK;
+import static llm.converse.vendor.Vendor.BEDROCK;
 
 public interface ModelInvocation {
     /**

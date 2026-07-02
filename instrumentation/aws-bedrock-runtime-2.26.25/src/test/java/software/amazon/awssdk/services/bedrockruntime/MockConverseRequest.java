@@ -16,11 +16,11 @@ import software.amazon.awssdk.services.bedrockruntime.model.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-import static llm.models.TestUtil.REQUEST_CONTENT_TEXT;
-import static llm.models.TestUtil.REQUEST_MAX_TOKENS;
-import static llm.models.TestUtil.REQUEST_MODEL_ID;
-import static llm.models.TestUtil.REQUEST_ROLE;
-import static llm.models.TestUtil.REQUEST_TEMPERATURE;
+import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.REQUEST_MAX_TOKENS;
+import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
+import static llm.converse.models.TestUtil.REQUEST_ROLE;
+import static llm.converse.models.TestUtil.REQUEST_TEMPERATURE;
 
 public class MockConverseRequest {
     public static ConverseRequest converseRequest() {

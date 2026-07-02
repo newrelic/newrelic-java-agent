@@ -5,13 +5,13 @@
  *
  */
 
-package llm.events;
+package llm.converse.events;
 
 import com.newrelic.api.agent.NewRelic;
-import llm.models.ModelInvocation;
-import llm.models.ModelRequest;
-import llm.models.ModelResponse;
-import llm.vendor.Vendor;
+import llm.converse.models.ModelInvocation;
+import llm.converse.models.ModelRequest;
+import llm.converse.models.ModelResponse;
+import llm.converse.vendor.Vendor;
 
 import java.util.HashMap;
 import java.util.Map;

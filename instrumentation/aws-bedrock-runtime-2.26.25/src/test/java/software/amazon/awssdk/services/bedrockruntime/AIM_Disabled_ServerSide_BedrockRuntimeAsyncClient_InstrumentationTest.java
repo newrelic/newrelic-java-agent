@@ -19,8 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
-import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
-import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler;
 
 import java.util.Collection;
 import java.util.Map;
@@ -28,14 +26,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
-import static llm.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
+import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseRequest;
-import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseStreamRequest;
 
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_disabled_server_side.yml")

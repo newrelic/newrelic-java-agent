@@ -5,7 +5,7 @@
  *
  */
 
-package llm.models.converse;
+package llm.converse.models.converse;
 
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
@@ -13,10 +13,10 @@ import com.newrelic.agent.bridge.aimonitoring.LlmTokenCountResolver;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
-import llm.events.LlmEvent;
-import llm.models.ModelInvocation;
-import llm.models.ModelRequest;
-import llm.models.ModelResponse;
+import llm.converse.events.LlmEvent;
+import llm.converse.models.ModelInvocation;
+import llm.converse.models.ModelRequest;
+import llm.converse.models.ModelResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 
-import static llm.models.ModelInvocation.getRandomGuid;
-import static llm.models.ModelResponse.COMPLETION;
-import static llm.vendor.Vendor.BEDROCK;
+import static llm.converse.models.ModelInvocation.getRandomGuid;
+import static llm.converse.models.ModelResponse.COMPLETION;
+import static llm.converse.vendor.Vendor.BEDROCK;
 
 public class ConverseModelInvocation implements ModelInvocation {
     Map<String, String> linkingMetadata;
