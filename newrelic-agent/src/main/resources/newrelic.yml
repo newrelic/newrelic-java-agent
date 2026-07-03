@@ -451,6 +451,12 @@ common: &default_settings
     com.newrelic.instrumentation.jdbc-resultset:
       enabled: false
 
+    # This instrumentation emits per-cluster Kafka metrics (MessageBroker/Kafka/Cluster/{id}/...).
+    # Requires an AdminClient DescribeCluster call to resolve the cluster ID; opt in when the
+    # overhead is acceptable.
+    kafka-clients-cluster-metrics:
+      enabled: false
+
     # Classes loaded by classloaders in this list will not be instrumented.
     # This is a useful optimization for runtimes which use classloaders to
     # load dynamic classes which the agent would not instrument.
