@@ -47,7 +47,4 @@ public class Pipeline_Instrumentation<TSubject, TContext> {
         }
         return Weaver.callOriginal();
     }
-
-
-
 }

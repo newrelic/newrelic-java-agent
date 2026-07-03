@@ -5,11 +5,11 @@
  *
  */
 
-package io.ktor.util.pipeline
+package io.ktor.util
 
 import com.newrelic.api.agent.weaver.SkipIfPresent
 
-@SkipIfPresent(originalName = "io.ktor.util.pipeline.PipelineExecutor")
-class PipelineExecutor_SkipIfPresent<R> {
+@SkipIfPresent(originalName = "io.ktor.util.InternalAPI")
+class InternalAPI_SkipIfPresent {
 
 }
