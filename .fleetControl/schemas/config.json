@@ -1200,6 +1200,14 @@
         "class_transformer": {
             "type": "object",
             "properties": {
+                "kafka-clients-cluster-metrics": {
+                    "type": "object",
+                    "properties": {
+                        
+                    },
+                    "additionalProperties": true,
+                    "description": "This instrumentation emits per-cluster Kafka metrics (MessageBroker/Kafka/Cluster/{id}/...). Requires an AdminClient DescribeCluster call to resolve the cluster ID; opt in when the overhead is acceptable."
+                },
                 "classloader_excludes": {
                     "anyOf": [
                         {
