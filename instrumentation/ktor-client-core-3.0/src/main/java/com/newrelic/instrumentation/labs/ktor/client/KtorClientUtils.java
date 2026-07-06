@@ -19,6 +19,7 @@ public class KtorClientUtils {
 
     static {
         LEAF_CLIENTS.add("JavaHttpEngine");
+        LEAF_CLIENTS.add("CIOEngine");
     }
 
     public static boolean needsLeaf(String engine) {

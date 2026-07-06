@@ -7,6 +7,7 @@
 
 package io.ktor.server.netty;
 
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
@@ -23,11 +24,20 @@ public class NettyApplicationCall_Instrumentation {
 	public Token token = null;
 
 	@NewField
+	public Token routingToken = null;
+
+	@NewField
 	public HttpHeaders nrHttpHeaders = null;
 
 	public NettyApplicationCall_Instrumentation(Application application, ChannelHandlerContext context, Object requestMessage) {
 		if (requestMessage instanceof HttpRequest) {
 			nrHttpHeaders = ((HttpRequest) requestMessage).headers();
+		}
+		Token t = NewRelic.getAgent().getTransaction().getToken();
+		if (t != null && t.isActive()) {
+			routingToken = t;
+		} else if (t != null) {
+			t.expire();
 		}
 	}
 }
