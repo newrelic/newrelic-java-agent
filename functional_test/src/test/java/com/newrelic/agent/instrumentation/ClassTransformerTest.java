@@ -9,8 +9,6 @@ package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.instrumentation.pointcuts.MathCSConcurrentPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.container.JasperCompilerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.ProcessActionPortletPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.RenderPortletPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
@@ -55,9 +53,6 @@ public class ClassTransformerTest {
                 new CXFPointCut(classTransformer),
                 new CXFInvokerPointCut(classTransformer),
                 new ClientProxyPointCut(classTransformer),
-                // portlet
-                new ProcessActionPortletPointCut(classTransformer),
-                new RenderPortletPointCut(classTransformer),
                 // Tomcat
                 new JasperCompilerPointCut(classTransformer),
                 // java concurrent

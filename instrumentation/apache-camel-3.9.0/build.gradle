@@ -14,6 +14,42 @@ jar {
 
 verifyInstrumentation {
     passesOnly 'org.apache.camel:camel-core:[3.9.0,)'
+
+    /*
+        Now, exclude the ranges we know have passed verification
+        previously. We set the range such that the last revision
+        of each minor version will still get verified.
+
+        For the last known minor version, we leave the verify
+        range open ended to catch any new versions released
+        (including any new major/minor versions). The verify
+        ranges will probably need to be manually inspected
+        every so often to keep the task runtime in check.
+
+        This dramatically reduces the runtime of the verification
+        task. For this module, there were 100's of artifacts that
+        were being downloaded for each version verification.
+
+        This pattern can be applied to any module that suffers from
+        large numbers of artifacts.
+     */
+    excludeRegex ".*(RC|M)[0-9]*"
+    exclude 'org.apache.camel:camel-core:[1.0.0,3.8.0]'
+    exclude 'org.apache.camel:camel-core:[3.11.0,3.11.6]'
+    exclude 'org.apache.camel:camel-core:[3.14.0,3.14.9]'
+    exclude 'org.apache.camel:camel-core:[3.18.0,3.18.7]'
+    exclude 'org.apache.camel:camel-core:[3.20.0,3.20.8]'
+    exclude 'org.apache.camel:camel-core:[3.21.0,3.21.4]'
+    exclude 'org.apache.camel:camel-core:[3.22.0,3.22.3]'
+    exclude 'org.apache.camel:camel-core:[4.0.0,4.0.5]'
+    exclude 'org.apache.camel:camel-core:[4.4.0,4.4.4]'
+    exclude 'org.apache.camel:camel-core:[4.8.0,4.8.8]'
+    exclude 'org.apache.camel:camel-core:[4.10.0,4.10.8]'
+    exclude 'org.apache.camel:camel-core:[4.14.0,4.14.6]'
+    exclude 'org.apache.camel:camel-core:[4.18.0,4.18.1]'
+
+    // The next excludes will be 4.20.x -- leaving this out so the verifier has something
+    // current to run against.
 }
 
 site {
