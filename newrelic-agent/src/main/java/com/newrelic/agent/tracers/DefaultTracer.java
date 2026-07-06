@@ -428,8 +428,7 @@ public class DefaultTracer extends AbstractTracer {
         // or cross-thread completion arriving after this tracer already finished -- can subtract
         // more than remains, leaving the field negative with no subsequent correction. Clamp the
         // reported value so callers never observe a negative exclusive duration.
-//        return Math.max(0, exclusiveDuration);
-        return exclusiveDuration;
+        return Math.max(0, exclusiveDuration);
     }
 
     @Override
