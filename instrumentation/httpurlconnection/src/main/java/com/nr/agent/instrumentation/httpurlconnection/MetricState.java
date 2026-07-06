@@ -177,7 +177,8 @@ public class MetricState {
                         .inboundHeaders(inboundWrapper)
                         .status(responseCode, responseMessage)
                         .build());
-                externalTracer.setHttpMethod(connection.getRequestMethod());
+                String httpMethod = connection.getRequestMethod();
+                externalTracer.setHttpMethod(httpMethod);
 
                 // need to call this method to set addedOutboundRequestHeaders in the Tracer
                 externalTracer.addOutboundRequestHeaders(DummyHeaders.INSTANCE);

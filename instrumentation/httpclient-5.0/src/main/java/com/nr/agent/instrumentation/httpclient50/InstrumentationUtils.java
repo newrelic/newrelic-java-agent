@@ -65,8 +65,10 @@ public class InstrumentationUtils {
         HttpParameters params = createInboundParams(requestURI, method, response);
         if (segment != null) {
             segment.reportAsExternal(params);
+            AgentBridge.getAgent().setHttpMethod(segment, method);
         } else {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
+            AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         }
     }
 

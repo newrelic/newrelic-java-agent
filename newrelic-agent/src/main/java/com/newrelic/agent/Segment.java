@@ -58,7 +58,7 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
     public void setHttpMethod(String httpMethod) {
         Tracer tracer = underlyingTracer;
         if (tracer != null && httpMethod != null) {
-            tracer.setHttpMethod(httpMethod);
+            tracer.setHttpMethod(httpMethod.toUpperCase());
         }
     }
 

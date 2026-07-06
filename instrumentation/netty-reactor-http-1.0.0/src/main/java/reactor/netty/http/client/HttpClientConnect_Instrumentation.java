@@ -95,6 +95,7 @@ final class HttpClientConnect_Instrumentation {
                             .inboundHeaders(new InboundResponseWrapper(response))
                             .status(response.status().code(), response.status().reasonPhrase())
                             .build());
+                    AgentBridge.getAgent().setHttpMethod(data.segment, data.httpMethod);
                     data.segment.end();
                 }
             }

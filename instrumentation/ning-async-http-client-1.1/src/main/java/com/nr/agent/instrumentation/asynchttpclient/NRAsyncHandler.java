@@ -7,6 +7,7 @@
 
 package com.nr.agent.instrumentation.asynchttpclient;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.Segment;
@@ -44,6 +45,8 @@ public class NRAsyncHandler<T> {
     @NewField
     public URI uri;
     @NewField
+    public String httpMethod;
+    @NewField
     private InboundWrapper inboundHeaders;
     @NewField
     private HttpResponseStatus responseStatus;
@@ -76,6 +79,7 @@ public class NRAsyncHandler<T> {
         uri = null;
         inboundHeaders = null;
         userAbortedOnStatusReceived = null;
+        httpMethod = null;
 
         Weaver.callOriginal();
     }
@@ -105,6 +109,7 @@ public class NRAsyncHandler<T> {
                     .inboundHeaders(inboundHeaders)
                     .status(getStatusCode(), getReasonMessage())
                     .build());
+            AgentBridge.getAgent().setHttpMethod(segment, httpMethod);
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
         }
@@ -113,6 +118,7 @@ public class NRAsyncHandler<T> {
         uri = null;
         inboundHeaders = null;
         userAbortedOnStatusReceived = null;
+        httpMethod = null;
 
         return Weaver.callOriginal();
     }

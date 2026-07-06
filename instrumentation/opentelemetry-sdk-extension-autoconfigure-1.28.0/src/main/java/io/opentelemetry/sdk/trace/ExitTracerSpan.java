@@ -75,10 +75,12 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private static final AttributeKey<String> STATUS_CODE = AttributeKey.stringKey("status.code");
     private static final AttributeKey<String> STATUS_DESCRIPTION = AttributeKey.stringKey("status.description");
 
+    private static final AttributeKey<String> HTTP_REQUEST_METHOD = AttributeKey.stringKey("http.request.method");
+
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
-                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT, STATUS_CODE, STATUS_DESCRIPTION)
+                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT, STATUS_CODE, STATUS_DESCRIPTION, HTTP_REQUEST_METHOD)
                             .map(AttributeKey::getKey)
                             .collect(Collectors.toSet()));
 
@@ -424,9 +426,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 final URI uri = getUri();
                 if (uri != null) {
                     final String libraryName = getAttribute(OTEL_LIBRARY_NAME);
+                    String procedure = getProcedure();
                     HttpParameters genericParameters = HttpParameters.library(libraryName).uri(uri)
-                            .procedure(getProcedure()).noInboundHeaders().build();
+                            .procedure(procedure).noInboundHeaders().build();
                     tracer.reportAsExternal(genericParameters);
+                    AgentBridge.getAgent().getTracedMethod().setHttpMethod(procedure);
                 }
             } catch (URISyntaxException e) {
                 NewRelic.getAgent().getLogger().log(Level.FINER, "Error parsing client span uri", e);
@@ -444,6 +448,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 attributeMapper.findProperOtelKey(spanKind, attributeType, attributes.keySet()));
     }
 
+    // Retrieves the http method reported by OpenTelemetry
     String getProcedure() {
         AttributeKey<String> key = generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.ExternalProcedure);
         if (key.getKey().isEmpty()) {
