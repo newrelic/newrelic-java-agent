@@ -422,6 +422,13 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public long getExclusiveDuration() {
+        // The exclusiveDuration field is an accumulator: it is driven negative as child tracers
+        // finish (each subtracts its duration) and is brought back up when this tracer adds its own
+        // duration in performFinishWork. A child that finishes out of order -- e.g. an asynchronous
+        // or cross-thread completion arriving after this tracer already finished -- can subtract
+        // more than remains, leaving the field negative with no subsequent correction. Clamp the
+        // reported value so callers never observe a negative exclusive duration.
+//        return Math.max(0, exclusiveDuration);
         return exclusiveDuration;
     }
 

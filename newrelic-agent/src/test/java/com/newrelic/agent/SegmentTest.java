@@ -260,6 +260,47 @@ public class SegmentTest implements ExtendedTransactionListener {
     }
 
     /**
+     * A segment started on one thread and ended on another must never report a negative or absurd
+     * duration. This guards against the "extremely large positive and negative" call times observed
+     * for asynchronous instrumentation (e.g. cassandra-datastax-4.0.0).
+     */
+    @Test
+    public void testAsyncSegmentDurationsNonNegative() throws InterruptedException {
+        final Tracer root = makeTransaction();
+        Assert.assertNotNull(root);
+        Assert.assertNotNull(root.getTransactionActivity().getTransaction());
+        final Segment segment = root.getTransactionActivity()
+                .getTransaction()
+                .startSegment(MetricNames.CUSTOM, "Custom Async Segment");
+        Assert.assertNotNull(segment);
+        final Tracer segmentTracer = segment.getTracer();
+
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                segment.end();
+            }
+        };
+        t.start();
+        t.join();
+
+        root.finish(Opcodes.ARETURN, null);
+        assertTrue(root.getTransactionActivity().getTransaction().isFinished());
+
+        assertTrue("segment duration must be non-negative, was " + segmentTracer.getDuration(),
+                segmentTracer.getDuration() >= 0);
+        assertTrue("segment exclusive duration must be non-negative, was " + segmentTracer.getExclusiveDuration(),
+                segmentTracer.getExclusiveDuration() >= 0);
+        assertTrue("root exclusive duration must be non-negative, was " + root.getExclusiveDuration(),
+                root.getExclusiveDuration() >= 0);
+    }
+
+    /**
      * tracer(dispatcher) start
      * --tracedActivity start
      * --tracedActivity finish (On a different thread)

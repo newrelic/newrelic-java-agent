@@ -194,6 +194,34 @@ public class DefaultTracerTest {
         assertClmAbsent(parentTracer);
     }
 
+    /**
+     * Reproduces the "absurd metric values" scenario (negative durations) described in
+     * {@link com.newrelic.agent.TransactionActivity}. When a child tracer completes out of order
+     * relative to its parent -- as happens with asynchronous / cross-thread completions -- the
+     * child's duration is subtracted from the parent's exclusive time. That subtraction happens
+     * outside of {@code performFinishWork}, so it is not re-clamped and can drive the parent's
+     * exclusive duration negative.
+     */
+    @Test
+    public void exclusiveDurationNeverGoesNegative() {
+        Transaction tx = Transaction.getTransaction();
+        ClassMethodSignature sig = new ClassMethodSignature(getClass().getName(), "dude", "()V");
+
+        DefaultTracer parent = new OtherRootTracer(tx, sig, this, new SimpleMetricNameFormat("parent"));
+        tx.getTransactionActivity().tracerStarted(parent);
+        parent.finish(Opcodes.RETURN, null);
+
+        long exclusiveAfterFinish = parent.getExclusiveDuration();
+        Assert.assertTrue("exclusiveDuration should be non-negative after finish", exclusiveAfterFinish >= 0);
+
+        // A child completes late (e.g. on another thread) with a duration larger than the parent's
+        // remaining exclusive time. Prior to the fix this subtraction is unclamped.
+        parent.childTracerFinished(exclusiveAfterFinish + TimeConversion.NANOSECONDS_PER_SECOND);
+
+        Assert.assertTrue("exclusiveDuration must never be negative, was " + parent.getExclusiveDuration(),
+                parent.getExclusiveDuration() >= 0);
+    }
+
     @Test
     public void testParameters() {
         try {

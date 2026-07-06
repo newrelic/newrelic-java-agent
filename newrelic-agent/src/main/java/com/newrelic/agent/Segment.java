@@ -24,7 +24,6 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
     private volatile Tracer parent;
     private volatile WeakRefTransaction weakRefTransaction;
 
-    private final long parentInitialExclusiveDuration;
     private final AtomicBoolean isFinished = new AtomicBoolean(false);
     private final String initiatingThread;
 
@@ -43,7 +42,6 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
         this.parent = parent;
         this.underlyingTracer = tracer;
         this.weakRefTransaction = new WeakRefTransaction(parent.getTransactionActivity().getTransaction());
-        this.parentInitialExclusiveDuration = parent.getExclusiveDuration();
     }
 
     public Transaction getTransaction() {
@@ -103,10 +101,6 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
 
     public Tracer getTracer() {
         return underlyingTracer;
-    }
-
-    public long getParentInitialExclusiveDuration() {
-        return this.parentInitialExclusiveDuration;
     }
 
     public boolean isFinished() {
