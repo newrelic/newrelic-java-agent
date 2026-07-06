@@ -7,6 +7,7 @@
 
 package com.sun.jersey.api.client;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -32,6 +33,7 @@ public class ClientHandler_Instrumentation {
                 .procedure(request.getMethod())
                 .inboundHeaders(new InboundWrapper(response))
                 .build());
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(request.getMethod());
 
         return response;
     }

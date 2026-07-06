@@ -263,6 +263,11 @@ public class UltraLightTracer implements Tracer {
     }
 
     @Override
+    public void setHttpMethod(String httpVerb) {
+
+    }
+
+    @Override
     public String getTransactionSegmentUri() {
         return null;
     }

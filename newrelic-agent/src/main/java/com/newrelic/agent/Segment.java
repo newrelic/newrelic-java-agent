@@ -55,6 +55,13 @@ public class Segment implements com.newrelic.agent.bridge.TracedActivity, Attrib
         ignoreIfUnfinished();
     }
 
+    public void setHttpMethod(String httpMethod) {
+        Tracer tracer = underlyingTracer;
+        if (tracer != null && httpMethod != null) {
+            tracer.setHttpMethod(httpMethod);
+        }
+    }
+
     @Override
     public void reportAsExternal(ExternalParameters externalParameters) {
         Tracer tracer = underlyingTracer;

@@ -12,6 +12,7 @@ import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.TransactionErrorPriority;
+import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.attributes.AttributeValidator;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.TransactionNamePriority;
@@ -255,6 +256,11 @@ public abstract class AbstractTracer implements Tracer, AttributeHolder {
             return false;
         }
         return parent.isTrackCallbackRunnable();
+    }
+
+    @Override
+    public void setHttpMethod(String httpVerb) {
+        Agent.LOG.severe("addHttpMethod is only supported on subclasses of DefaultTracer: {0}");
     }
 
     @Override

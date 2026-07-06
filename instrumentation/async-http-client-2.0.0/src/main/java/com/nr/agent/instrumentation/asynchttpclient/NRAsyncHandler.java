@@ -10,6 +10,7 @@ package com.nr.agent.instrumentation.asynchttpclient;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.Segment;
@@ -43,6 +44,7 @@ public class NRAsyncHandler<T> {
     public Segment segment;
     @NewField
     public URI uri;
+    public String method;
     @NewField
     private InboundWrapper inboundHeaders;
     @NewField
@@ -69,6 +71,7 @@ public class NRAsyncHandler<T> {
             segment.end();
             segment = null;
             uri = null;
+            method = null;
         }
         Weaver.callOriginal();
     }
@@ -98,10 +101,12 @@ public class NRAsyncHandler<T> {
                     .inboundHeaders(inboundHeaders)
                     .status(getStatusCode(), getStatusText())
                     .build());
+            AgentBridge.getAgent().setHttpMethod(segment, method);
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
             segment = null;
             uri = null;
+            method = null;
         }
 
         return Weaver.callOriginal();

@@ -9,6 +9,7 @@ package com.newrelic.agent.bridge;
 
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 
 /**
  * The internal bridge version of the Agent API.
@@ -27,6 +28,12 @@ public interface Agent extends com.newrelic.api.agent.Agent {
     @Override
     @Deprecated
     TracedMethod getTracedMethod();
+
+    /**
+     * Reports the HTTP method to a segment's underlying tracer. This should ONLY be used if the segment is reported as an external HTTP trace.
+     *
+     */
+    void setHttpMethod(Segment segment, String httpMethod);
 
     /**
      * Returns the current transaction.

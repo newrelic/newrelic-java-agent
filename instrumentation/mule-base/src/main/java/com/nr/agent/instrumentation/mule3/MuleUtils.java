@@ -269,6 +269,7 @@ public class MuleUtils {
         }
 
         NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(muleRequest.getMethod());
 
         final Transaction txn = AgentBridge.getAgent().getTransaction(false);
         txn.setWebRequest(muleRequest);
