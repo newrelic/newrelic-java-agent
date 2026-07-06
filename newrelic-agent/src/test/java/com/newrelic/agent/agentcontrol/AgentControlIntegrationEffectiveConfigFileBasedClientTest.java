@@ -15,9 +15,12 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,9 +44,15 @@ public class AgentControlIntegrationEffectiveConfigFileBasedClientTest {
 
     @After
     public void cleanup() {
-        File[] effectiveConfigFiles = getGeneratedEffectiveConfigFiles();
-        if (effectiveConfigFiles != null) {
-            for (File f : effectiveConfigFiles) {
+        deleteMatchingFiles("effective_config\\.yml");
+        deleteMatchingFiles("effective_config\\.yml\\.gz");
+    }
+
+    private void deleteMatchingFiles(String pattern) {
+        File dir = new File(EFFECTIVE_CONFIG_FILE_LOCATION);
+        File[] files = dir.listFiles((d, name) -> name.matches(pattern));
+        if (files != null) {
+            for (File f : files) {
                 f.delete();
             }
         }
@@ -76,6 +85,36 @@ public class AgentControlIntegrationEffectiveConfigFileBasedClientTest {
     }
 
     @Test
+    public void sendEffectiveConfig_withLargeConfig_createsGzipAndDeletesYaml() throws IOException {
+        when(mockConfig.getEffectiveConfigDeliveryLocation()).thenReturn(EFFECTIVE_CONFIG_FILE_LOCATION);
+        AgentControlIntegrationEffectiveConfigFileBasedClient client = new AgentControlIntegrationEffectiveConfigFileBasedClient(mockConfig);
+
+        // Build a config large enough to exceed the 1000-byte threshold
+        Map<String, Object> largeConfig = new HashMap<>();
+        for (int i = 0; i < 50; i++) {
+            largeConfig.put("key_" + i, "this_is_a_sufficiently_long_value_to_push_past_the_threshold_" + i);
+        }
+
+        client.sendEffectiveConfigMessage(largeConfig);
+
+        // Original .yml should have been deleted after successful gzip
+        assertNull("effective_config.yml should have been deleted after gzip", getGeneratedEffectiveConfigFiles());
+
+        // .gz file should exist
+        File[] gzipFiles = getGeneratedGzipFiles();
+        assertNotNull("effective_config.yml.gz should have been created", gzipFiles);
+        assertEquals(1, gzipFiles.length);
+
+        // Decompress and verify the content is valid YAML with expected values
+        Yaml yaml = new Yaml();
+        try (GZIPInputStream gzipIS = new GZIPInputStream(Files.newInputStream(gzipFiles[0].toPath()))) {
+            Map<String, Object> parsed = yaml.load(gzipIS);
+            assertNotNull(parsed);
+            assertEquals("this_is_a_sufficiently_long_value_to_push_past_the_threshold_0", parsed.get("key_0"));
+        }
+    }
+
+    @Test
     public void constructor_withInvalidLocation_setsValidToFalse() throws URISyntaxException {
         when(mockConfig.getEffectiveConfigDeliveryLocation()).thenReturn(new URI("file:///foo/bar/zzzzzzzz"));
         AgentControlIntegrationEffectiveConfigFileBasedClient client =
@@ -85,8 +124,14 @@ public class AgentControlIntegrationEffectiveConfigFileBasedClientTest {
     }
 
     private File[] getGeneratedEffectiveConfigFiles() {
-        File yamlFile = new File(EFFECTIVE_CONFIG_FILE_LOCATION);
-        File[] files = yamlFile.listFiles((dir, name) -> name.matches( "effective_config-.*\\.yml" ));
+        File dir = new File(EFFECTIVE_CONFIG_FILE_LOCATION);
+        File[] files = dir.listFiles((d, name) -> name.matches("effective_config\\.yml"));
+        return (files != null && files.length > 0) ? files : null;
+    }
+
+    private File[] getGeneratedGzipFiles() {
+        File dir = new File(EFFECTIVE_CONFIG_FILE_LOCATION);
+        File[] files = dir.listFiles((d, name) -> name.matches("effective_config\\.yml\\.gz"));
         return (files != null && files.length > 0) ? files : null;
     }
 }

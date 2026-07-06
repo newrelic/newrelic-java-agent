@@ -35,6 +35,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -366,6 +367,77 @@ public class ConfigServiceTest {
     }
 
     @Test
+    public void getExplicitlySetConfig_hasCommonTopLevelKeyWithNestedStructure() throws Exception {
+        Map<String, Object> transactionTracerConfig = new HashMap<>();
+        transactionTracerConfig.put("record_sql", "obfuscated");
+
+        Map<String, Object> jfrConfig = new HashMap<>();
+        jfrConfig.put("enabled", true);
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("app_name", "test");
+        configMap.put("agent_enabled", true);
+        configMap.put("transaction_tracer", transactionTracerConfig);
+        configMap.put("jfr", jfrConfig);
+
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        ConfigServiceImpl configService = new ConfigServiceImpl(agentConfig, null, configMap, false);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+
+        // only "common" at the top level
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("common"));
+
+        Map<String, Object> common = (Map<String, Object>) result.get("common");
+
+        // flat key with underscore stays flat under common
+        assertEquals(true, common.get("agent_enabled"));
+        assertEquals("test", common.get("app_name"));
+
+        // single-level nested key
+        Map<String, Object> jfr = (Map<String, Object>) common.get("jfr");
+        assertNotNull("jfr section should be present", jfr);
+        assertEquals(true, jfr.get("enabled"));
+
+        // multi-level nested key
+        Map<String, Object> transactionTracer = (Map<String, Object>) common.get("transaction_tracer");
+        assertNotNull("transaction_tracer section should be present", transactionTracer);
+        assertEquals("obfuscated", transactionTracer.get("record_sql"));
+
+        // keys not in the reference YAML are filtered out
+        assertNull(common.get("totally_bogus_key"));
+    }
+
+    @Test
+    public void getExplicitlySetConfig_serverDataOverridesLocalAndIsNested() throws Exception {
+        Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(configMap);
+
+        ConfigService configService = ServiceFactory.getConfigService();
+        MockRPMServiceManager rpmServiceManager = (MockRPMServiceManager) ServiceFactory.getRPMServiceManager();
+        ConnectionConfigListener connectionConfigListener = rpmServiceManager.getConnectionConfigListener();
+        MockRPMService rpmService = (MockRPMService) rpmServiceManager.getRPMService();
+
+        Map<String, Object> agentData = new HashMap<>();
+        agentData.put("transaction_tracer.record_sql", "off");
+        Map<String, Object> serverData = new HashMap<>();
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
+
+        connectionConfigListener.connected(rpmService, serverData);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+        Map<String, Object> common = (Map<String, Object>) result.get("common");
+        assertNotNull(common);
+
+        // server-supplied transaction_tracer.record_sql should appear nested
+        Map<String, Object> transactionTracer = (Map<String, Object>) common.get("transaction_tracer");
+        assertNotNull("transaction_tracer section should be present after server connect", transactionTracer);
+        assertEquals("off", transactionTracer.get("record_sql"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void shouldDeobfuscateLicenseKey() throws Exception {
         Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
         obscuringKeyConfigProps.put("obscuring_key", "abc123");

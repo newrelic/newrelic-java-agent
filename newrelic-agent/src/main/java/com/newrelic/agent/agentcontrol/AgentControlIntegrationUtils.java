@@ -17,14 +17,13 @@ import org.json.simple.JSONValue;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.zip.GZIPOutputStream;
 
 public class AgentControlIntegrationUtils {
     public enum FileType {
@@ -87,11 +86,35 @@ public class AgentControlIntegrationUtils {
         }
     }
 
-    public static String generateAgentControlFilename(FileType fileType) {
-        StringBuilder sb = new StringBuilder(fileType + "-")
-                .append(UUID.randomUUID().toString().replace("-", ""))
-                .append(".yml");
-        return sb.toString();
+    public static boolean gzipFile(File target) {
+        // GZip the supplied File into <filename>.<ext>.gz into the same
+        // location as the original
+        File destination = new File(target.getAbsolutePath() + ".gz");
+
+        try {
+            try (FileInputStream fis = new FileInputStream(target);
+                 FileOutputStream fos = new FileOutputStream(destination);
+                 GZIPOutputStream gzipOS = new GZIPOutputStream(fos)) {
+
+                byte[] buffer = new byte[1024];
+                int len;
+
+                // Read source data and stream it through the compressor
+                while ((len = fis.read(buffer)) > 0) {
+                    gzipOS.write(buffer, 0, len);
+                }
+            }
+        } catch (IOException e) {
+            Agent.LOG.log(Level.WARNING, "Error compressing agenct control file: {0}; cause: {1}", target.getAbsolutePath(), e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    public static String generateAgentControlFilename(FileType fileType, boolean includeUuidSuffix) {
+        String uuidSuffix = includeUuidSuffix ?  "-" + UUID.randomUUID().toString().replace("-", "") : "";
+        return fileType + uuidSuffix + ".yml";
     }
 
     public static File createAgentControlFileFolderInstance(URI location, FileType fileType) {

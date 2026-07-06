@@ -32,7 +32,7 @@ public class AgentControlIntegrationHealthFileBasedClient implements AgentContro
         File fileFolder = createAgentControlFileFolderInstance(locationFromConfig, FileType.health);
         if (fileFolder != null) {
             this.healthFile = new File(fileFolder,
-                    generateAgentControlFilename(AgentControlIntegrationUtils.FileType.health));
+                    generateAgentControlFilename(AgentControlIntegrationUtils.FileType.health, true));
 
             yamlWriter = createYamlWriter();
             isValid = true;

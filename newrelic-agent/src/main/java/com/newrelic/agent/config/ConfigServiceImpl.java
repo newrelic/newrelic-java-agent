@@ -191,23 +191,41 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         Map<String, Object> mergedSettings = new HashMap<>(flattenLocalSettingsConfigMap("", localSettings));
         mergedSettings.putAll(systemProperties);
 
-        // Environment variables are stored "as-is" -- not normalized in dot notation.
-        // This will loop through all existing keys we've stored, convert "." to "_"
-        // and see if that key exists in the env var map. If so, we overwrite the value
-        // in the mergedKey map with the value from the env var map
-        Map<String, Object> envVarOverrides = new HashMap<>();
-        for (Map.Entry<String, Object> entry : mergedSettings.entrySet()) {
-            String convertedKey = entry.getKey().replace(".", "_");
-            if (envVars.containsKey(convertedKey)) {
-                envVarOverrides.put(entry.getKey(), envVars.get(convertedKey));
+        // This uses the non-prefixed env var --> dot notation map to convert configs supplied via
+        // env vars to dot notation.
+        Map<String, String> envVarKeyToConfigKey = ReferenceConfigLookup.getEnvVarKeyToConfigKeyMap();
+        for (Map.Entry<String, Object> envEntry : envVars.entrySet()) {
+            String configKey = envVarKeyToConfigKey.get(envEntry.getKey());
+            if (configKey != null) {
+                mergedSettings.put(configKey, envEntry.getValue());
             }
         }
-        mergedSettings.putAll(envVarOverrides);
 
-        return mergedSettings;
+        // Server-side config is highest priority — overlay last.
+        if (savedServerData != null) {
+            mergedSettings.putAll(flattenLocalSettingsConfigMap("", AgentConfigFactory.getAgentData(savedServerData)));
+        }
+
+        mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("common", unflattenToNestedMap(mergedSettings));
+        return result;
     }
 
-    @SuppressWarnings("unchecked")
+    private Map<String, Object> unflattenToNestedMap(Map<String, Object> flatMap) {
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : flatMap.entrySet()) {
+            String[] parts = entry.getKey().split("\\.");
+            Map<String, Object> current = result;
+            for (int i = 0; i < parts.length - 1; i++) {
+                current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new HashMap<>());
+            }
+            current.put(parts[parts.length - 1], entry.getValue());
+        }
+        return result;
+    }
+
     private Map<String, Object> flattenLocalSettingsConfigMap(String prefix, Map<String, Object> settings) {
         Map<String, Object> mergedSettings = new HashMap<>();
 

@@ -83,11 +83,11 @@ public class AgentControlIntegrationUtilsTest {
     @Test
     public void generateAgentControlFilename_createsValidFilename() {
         String filename = AgentControlIntegrationUtils.generateAgentControlFilename(
-                AgentControlIntegrationUtils.FileType.effective_config);
-        assertTrue(filename.matches("effective_config-[a-z0-9]{32}.yml"));
+                AgentControlIntegrationUtils.FileType.effective_config, false);
+        assertTrue(filename.matches("effective_config.yml"));
 
         filename = AgentControlIntegrationUtils.generateAgentControlFilename(
-                AgentControlIntegrationUtils.FileType.health);
+                AgentControlIntegrationUtils.FileType.health, true);
         assertTrue(filename.matches("health-[a-z0-9]{32}.yml"));
     }
 
@@ -103,7 +103,7 @@ public class AgentControlIntegrationUtilsTest {
 
         File file = new File(AgentControlIntegrationUtils
                 .createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.effective_config),
-                AgentControlIntegrationUtils.generateAgentControlFilename(AgentControlIntegrationUtils.FileType.effective_config));
+                AgentControlIntegrationUtils.generateAgentControlFilename(AgentControlIntegrationUtils.FileType.effective_config, false));
         file.deleteOnExit();
 
         AgentControlIntegrationUtils.writeMapPayloadToFile(configMap, file,

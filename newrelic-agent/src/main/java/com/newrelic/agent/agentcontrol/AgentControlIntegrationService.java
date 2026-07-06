@@ -14,6 +14,7 @@ import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.agentcontrol.health.HealthDataChangeListener;
 import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.util.DefaultThreadFactory;
@@ -24,7 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class AgentControlIntegrationService extends AbstractService implements HealthDataChangeListener {
+public class AgentControlIntegrationService extends AbstractService implements HealthDataChangeListener, AgentConfigListener {
     private final AgentConfig agentConfig;
     private final AgentControlIntegrationHealthClient healthClient;
     private final AgentControlIntegrationEffectiveConfigClient effectiveConfigClient;
@@ -64,16 +65,24 @@ public class AgentControlIntegrationService extends AbstractService implements H
             this.scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic Agent Control Integration Service", true));
             this.scheduler.scheduleWithFixedDelay(() -> healthClient.sendHealthMessage(agentHealth), messageSendFrequency, messageSendFrequency, TimeUnit.SECONDS);
 
-            effectiveConfigClient.sendEffectiveConfigMessage(ServiceFactory.getConfigService().getExplicitlySetConfig());
+            ServiceFactory.getConfigService().addIAgentConfigListener(this);
         }
     }
 
     @Override
     protected void doStop() throws Exception {
         if (isEnabled()) {
+            ServiceFactory.getConfigService().removeIAgentConfigListener(this);
             scheduler.shutdown();
             agentHealth.setUnhealthyStatus(AgentHealth.Status.SHUTDOWN);
             healthClient.sendHealthMessage(agentHealth);
+        }
+    }
+
+    @Override
+    public void configChanged(String appName, AgentConfig agentConfig) {
+        if (isEnabled()) {
+            effectiveConfigClient.sendEffectiveConfigMessage(ServiceFactory.getConfigService().getExplicitlySetConfig());
         }
     }
 
