@@ -26,7 +26,6 @@ import com.newrelic.api.agent.Segment;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -71,6 +70,12 @@ public class CassandraUtils {
 
     public static void metrics(String queryString, String collection, String operation, String host, Integer port,
             String keyspace, Transaction tx, Segment segment) {
+
+        // startSegment may return null (segment/tracer limit reached, circuit breaker tripped,
+        // ignored transaction, or no eligible parent tracer). Nothing to report in that case.
+        if (segment == null) {
+            return;
+        }
 
         segment.reportAsExternal(DatastoreParameters
                 .product(DatastoreVendor.Cassandra.name())
@@ -117,19 +122,28 @@ public class CassandraUtils {
     }
 
     public static CompletionStage<AsyncResultSet> wrapAsyncRequest(Statement request, CompletionStage<AsyncResultSet> completionStage, CqlIdentifier keyspace, Segment segment) {
-        return Objects.requireNonNull(completionStage).whenComplete(
+        // If the driver returned no stage we cannot observe completion; end the segment now so it
+        // does not leak until the segment timeout (which would report an inflated duration).
+        if (completionStage == null) {
+            if (segment != null) {
+                segment.end();
+            }
+            return completionStage;
+        }
+        return completionStage.whenComplete(
                 (result, throwable) -> {
                     if (throwable instanceof CompletionException) {
                         throwable = throwable.getCause();
                     }
                     if (throwable != null) {
-                        System.out.println(throwable);
                         AgentBridge.privateApi.reportException(throwable);
                     }
                     if(result != null) {
                         reportMetric(request, keyspace, result.getExecutionInfo().getCoordinator(), segment);
                     }
-                    segment.end();
+                    if (segment != null) {
+                        segment.end();
+                    }
                 });
     }
 

@@ -21,6 +21,9 @@ import java.util.concurrent.CompletionStage;
 public class DefaultSession_Instrumentation {
     public <RequestT extends Request, ResultT> ResultT execute(RequestT request, GenericType<ResultT> resultType) {
         Segment segment = null;
+        // For the async path the completion callback owns ending the segment. This flag records that
+        // the segment was successfully handed off so the finally block does not end it prematurely.
+        boolean asyncSegmentHandedOff = false;
 
         if (request instanceof Statement && (resultType.equals(Statement.SYNC) || resultType.equals(Statement.ASYNC)) ) {
             segment = NewRelic.getAgent().getTransaction().startSegment("execute");
@@ -31,7 +34,9 @@ public class DefaultSession_Instrumentation {
             if (request instanceof Statement && (resultType.equals(Statement.SYNC))) {
                 return (ResultT) CassandraUtils.wrapSyncRequest((Statement) request, (ResultSet) result, getKeyspace().orElse(null), segment);
             } else if (request instanceof Statement && (resultType.equals(Statement.ASYNC))) {
-                return (ResultT) CassandraUtils.wrapAsyncRequest((Statement) request, (CompletionStage<AsyncResultSet>) result, getKeyspace().orElse(null), segment);
+                ResultT wrapped = (ResultT) CassandraUtils.wrapAsyncRequest((Statement) request, (CompletionStage<AsyncResultSet>) result, getKeyspace().orElse(null), segment);
+                asyncSegmentHandedOff = true;
+                return wrapped;
             } else {
                 return (ResultT) result;
             }
@@ -39,7 +44,11 @@ public class DefaultSession_Instrumentation {
             AgentBridge.privateApi.reportException(e);
             throw e;
         } finally {
-            if(request instanceof Statement && (resultType.equals(Statement.SYNC) && segment != null)) {
+            // End the segment for the synchronous path, and for any path where a segment was started
+            // but not handed to the async completion callback (e.g. the original call threw). This
+            // avoids leaking the segment until the segment timeout, which would report an inflated
+            // duration.
+            if (segment != null && !asyncSegmentHandedOff) {
                 segment.end();
             }
         }
