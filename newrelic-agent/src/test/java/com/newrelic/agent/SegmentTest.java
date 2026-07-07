@@ -301,6 +301,57 @@ public class SegmentTest implements ExtendedTransactionListener {
     }
 
     /**
+     * A tracer finished out of order (not at the top of its activity's stack) -- the signature of a
+     * concurrent/async finish on a shared activity -- must be reconciled without discarding the whole
+     * activity. Previously this hit failedDueToInconsistentTracerState, which threw away the activity
+     * and could emit absurd metric values.
+     */
+    @Test
+    public void testOutOfOrderTracerFinishRecovers() {
+        Tracer root = makeTransaction();
+        TransactionActivity txa = root.getTransactionActivity();
+        Assert.assertSame(root, txa.getLastTracer());
+
+        // Build a nested stack on the root activity: root -> childA -> childB
+        ExitTracer childA = AgentBridge.instrumentation.createTracer(null, 0, "childA",
+                DefaultTracer.DEFAULT_TRACER_FLAGS);
+        ExitTracer childB = AgentBridge.instrumentation.createTracer(null, 0, "childB",
+                DefaultTracer.DEFAULT_TRACER_FLAGS);
+        Assert.assertSame(childB, txa.getLastTracer());
+
+        // Finish childA even though childB is on top of the stack.
+        txa.tracerFinished((Tracer) childA, Opcodes.ARETURN);
+
+        // The activity survived (still current on this thread) and the stack top reconciled to
+        // childA's parent, which is the root tracer.
+        Assert.assertSame("Activity must not be discarded on a reconcilable finish", txa,
+                TransactionActivity.get());
+        Assert.assertSame("Stack top should reconcile to the finished tracer's parent", root,
+                txa.getLastTracer());
+    }
+
+    /**
+     * An unreconcilable out-of-order finish (e.g. the root tracer finishing while a child is still on
+     * the stack) must preserve the existing last-resort behavior: the activity is discarded.
+     */
+    @Test
+    public void testUnreconcilableTracerFinishStillFails() {
+        Tracer root = makeTransaction();
+        TransactionActivity txa = root.getTransactionActivity();
+
+        ExitTracer child = AgentBridge.instrumentation.createTracer(null, 0, "child",
+                DefaultTracer.DEFAULT_TRACER_FLAGS);
+        Assert.assertSame(child, txa.getLastTracer());
+
+        // Finish the root out of order while the child is still on top. The root has no parent to
+        // reconcile to, so this must fall back to the last-resort discard path.
+        txa.tracerFinished(root, Opcodes.ARETURN);
+
+        Assert.assertNull("Activity should be removed from thread local on an unreconcilable finish",
+                TransactionActivity.get());
+    }
+
+    /**
      * tracer(dispatcher) start
      * --tracedActivity start
      * --tracedActivity finish (On a different thread)

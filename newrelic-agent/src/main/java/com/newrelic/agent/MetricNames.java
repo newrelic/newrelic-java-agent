@@ -273,6 +273,10 @@ public class MetricNames {
 
     public static final String SUPPORTABILITY_ASYNC_FINISH_SEGMENT_NOT_CALLED = "Supportability/Timeout/finishSegmentNotCalled";
 
+    // Incremented when a tracer is finished but does not match the top of its activity's tracer stack,
+    // the signature of a concurrent or out-of-order finish on an activity touched by multiple threads.
+    public static final String SUPPORTABILITY_TXA_INCONSISTENT_TRACER_STACK = "Supportability/TransactionActivity/InconsistentTracerStack";
+
     public static final String SUPPORTABILITY_TRANSACTION_SIZE = "Supportability/TransactionSize";
     public static final String SUPPORTABILITY_TRANSACTION_SIZE_CLAMP = "Supportability/TransactionSizeClamp";
     public static final String SUPPORTABILITY_TRANSACTION_SEGMENT_CLAMP = "Supportability/TransactionSegmentClamp";

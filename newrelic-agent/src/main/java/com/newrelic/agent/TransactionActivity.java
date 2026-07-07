@@ -10,6 +10,7 @@ package com.newrelic.agent;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.SimpleStatsEngine;
+import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracers.DefaultTracer;
@@ -364,7 +365,21 @@ public class TransactionActivity {
             return;
         }
         if (tracer != lastTracer) {
-            failedDueToInconsistentTracerState(tracer, opcode);
+            // The tracer being finished is not at the top of the stack. This is the signature of a
+            // concurrent or out-of-order finish on an activity that is being touched by more than one
+            // thread (e.g. @Trace(async=true) with tokens, or reactive/CompletableFuture chains that
+            // hop threads). Record it and try to recover by popping to this tracer's parent, rather
+            // than discarding the whole activity -- the discard path historically produced absurd
+            // metric values (negative durations, huge call counts).
+            recordInconsistentTracerStack();
+            if (canRecoverFromOutOfOrderFinish(tracer)) {
+                lastTracer = tracer.getParentTracer();
+                Agent.LOG.log(Level.FINE,
+                        "Recovered from out-of-order tracer finish in {0}; lastTracer set to {1}, tracer finished = {2}",
+                        this, lastTracer, tracer);
+            } else {
+                failedDueToInconsistentTracerState(tracer, opcode);
+            }
         } else if (tracer == rootTracer) {
             finished(rootTracer, opcode);
         } else {
@@ -372,6 +387,32 @@ public class TransactionActivity {
             if (Agent.isDebugEnabled() && Agent.LOG.isFinestEnabled()) {
                 Agent.LOG.log(Level.FINEST, "Tracer Debug: called tracerFinished to pop tracer off stack, lastTracer (pointer to top of stack) set to {0}, tracer (actual tracer popped off stack) = {1}", lastTracer, tracer);
             }
+        }
+    }
+
+    /**
+     * Determine whether an out-of-order tracer finish can be reconciled without discarding the
+     * activity. We only recover a non-root tracer whose parent is still a valid tracer belonging to
+     * this activity, so that {@link #lastTracer} remains a valid pointer into this activity's stack.
+     * Anything else (a corrupted parent pointer, or the root tracer finishing while a child is still
+     * open) falls back to the existing last-resort handling.
+     */
+    private boolean canRecoverFromOutOfOrderFinish(Tracer tracer) {
+        if (tracer == rootTracer) {
+            return false;
+        }
+        Tracer parent = tracer.getParentTracer();
+        return parent != null && parent.getTransactionActivity() == this;
+    }
+
+    private void recordInconsistentTracerStack() {
+        try {
+            ServiceFactory.getStatsService().doStatsWork(
+                    StatsWorks.getIncrementCounterWork(MetricNames.SUPPORTABILITY_TXA_INCONSISTENT_TRACER_STACK, 1),
+                    MetricNames.SUPPORTABILITY_TXA_INCONSISTENT_TRACER_STACK);
+        } catch (Throwable t) {
+            // Never let supportability accounting interfere with finishing a tracer.
+            Agent.LOG.log(Level.FINEST, "Unable to record inconsistent tracer stack metric: {0}", t);
         }
     }
 
