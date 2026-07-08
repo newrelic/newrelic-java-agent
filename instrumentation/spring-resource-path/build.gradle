@@ -1,0 +1,15 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-core:3.0.0.RELEASE")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-resource-path' }
+}
+
+verifyInstrumentation {
+    passes 'org.springframework:spring-core:[3.0.0.RELEASE,)'
+    excludeRegex 'org.springframework:spring-core:.*(RC|SEC|M)[0-9]*$'
+}
+
+//This should not go into the site as it is a utility module, rather than an instrumented framework.
