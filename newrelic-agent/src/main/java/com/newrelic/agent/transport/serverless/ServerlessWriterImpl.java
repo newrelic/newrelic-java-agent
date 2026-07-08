@@ -14,12 +14,14 @@ public class ServerlessWriterImpl implements ServerlessWriter {
 
     public ServerlessWriterImpl(IAgentLogger logger, String filePath) {
         this.logger = logger;
+        logger.log(Level.FINEST, "Serverless Writer attempting to create a pipe file of path {0}", filePath);
         try {
             pathFile = new File(filePath);
             fileCreated = true;
         } catch (Throwable t) {
             fileCreated = false;
             pathFile = null;
+            logger.log(Level.FINEST, "Failed to create pipe file " + filePath + " for Serverless Mode, writing to console instead", t);
         }
 
     }
