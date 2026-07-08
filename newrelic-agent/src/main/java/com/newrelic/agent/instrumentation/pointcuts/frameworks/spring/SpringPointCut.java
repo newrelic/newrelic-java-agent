@@ -125,7 +125,7 @@ public class SpringPointCut extends TracerFactoryPointCut {
 
             private String getControllerName(Class<?> controller) {
                 String controllerName = controller.getName();
-                int indexOf = controllerName.indexOf(MethodInvokerPointCut.TO_REMOVE);
+                int indexOf = controllerName.indexOf("$$EnhancerBy");
                 if (indexOf > 0) {
                     controllerName = controllerName.substring(0, indexOf);
                 }

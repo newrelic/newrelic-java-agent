@@ -8,6 +8,7 @@ package org.springframework.web.bind.annotation.support;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
@@ -33,6 +34,8 @@ public class HandlerMethodInvoker_Instrumentation {
             }
 
             transaction.getTracedMethod().setMetricName("Spring", "Java", controllerName, methodName);
+            transaction.setTransactionName(TransactionNamePriority.FRAMEWORK, true,
+                    "SpringController", "/" + controllerName + "/" + methodName);
         }
 
         return Weaver.callOriginal();
