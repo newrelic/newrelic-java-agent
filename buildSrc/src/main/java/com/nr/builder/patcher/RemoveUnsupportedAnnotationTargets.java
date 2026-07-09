@@ -16,8 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Removes ElementType.MODULE and ElementType.RECORD_COMPONENT from the @Target annotation on
- * shaded jspecify NullMarked. Both enum values were introduced after Java 8 and cause
- * ArrayStoreException in Java 8's AnnotationParser when a Spring scans the agent JAR.
+ * the shaded jspecify NullMarked class. Both enum values were introduced after Java 8 and cause
+ * ArrayStoreException in Java 8's AnnotationParser when Spring scans the agent JAR because of
+ * the presence of the shaded Caffeine v3 jar.
  */
 public class RemoveUnsupportedAnnotationTargets implements Patcher {
 
@@ -26,7 +27,7 @@ public class RemoveUnsupportedAnnotationTargets implements Patcher {
     private static final String TARGET_DESCRIPTOR = "Ljava/lang/annotation/Target;";
 
     /**
-     * This will set shouldTransform() to true if this is our target NullMarked class
+     * This will set shouldTransform to true if this is our target NullMarked class
      */
     @Override
     public ClassVisitor getVerificationVisitor(ClassVisitor next, AtomicBoolean shouldTransform) {
@@ -41,10 +42,6 @@ public class RemoveUnsupportedAnnotationTargets implements Patcher {
         };
     }
 
-    /**
-     * Register visitors for the class, @Target annotation, @Target array and enum to
-     * strip out the unneeded enum values.
-     */
     @Override
     public ClassVisitor getRewritingVisitor(ClassVisitor next) {
         return new ClassVisitor(Const.ASM_API, next) {
