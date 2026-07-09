@@ -18,8 +18,8 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
-import shadow.org.apache.tools.zip.ZipEntry;
-import shadow.org.apache.tools.zip.ZipOutputStream;
+import org.apache.tools.zip.ZipEntry;
+import org.apache.tools.zip.ZipOutputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -52,6 +52,11 @@ public class DependencyPatcher implements Transformer {
     );
 
     private final List<TransformedFile> transformedFiles = new LinkedList<>();
+
+    @Override
+    public String getName() {
+        return "DependencyPatcher";
+    }
 
     /**
      * This method should return true for any file we might transform. Note that

@@ -1,0 +1,23 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.springframework:spring-context:3.0.0.RELEASE")
+    implementation("org.springframework:spring-web:3.0.0.RELEASE")
+    implementation("org.springframework:spring-webmvc:3.0.0.RELEASE")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-handler-method-invoker-3.0.0'}
+}
+
+verifyInstrumentation {
+    passesOnly('org.springframework:spring-web:[3.0.0.RELEASE,5.0.0.RELEASE)') {
+        implementation("org.springframework:spring-webmvc:3.0.0.RELEASE")
+    }
+
+    excludeRegex 'org.springframework:spring-web:.*(RC|SEC|M)[0-9]*$'
+}
+
+site {
+    title 'Spring'
+    type 'Framework'
+}

@@ -34,7 +34,7 @@ val writeCachedWeaveAttributes = tasks.create<JavaExec>("writeCachedWeaveAttribu
     outputs.cacheIf { true }
 
     classpath = instrumentationBuildConfiguration
-    main = "com.nr.instrumentation.builder.CacheWeaveAttributesInManifest"
+    mainClass = "com.nr.instrumentation.builder.CacheWeaveAttributesInManifest"
     argumentProviders.add(AttributeCommandLineArgumentProvider(project, outputFile))
 }
 

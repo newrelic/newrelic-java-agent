@@ -68,7 +68,7 @@ agentmain(String agentArgs, Instrumentation inst)  ← dynamic attach
 |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `newrelic-agent`         | Main agent implementation; ServiceManager, configuration, harvest cycle, data transport. Built as a shadow JAR with all dependencies relocated.           |
 | `newrelic-weaver`        | Bytecode weaving engine using ASM. Matches weave classes to target classes and applies transformations at class-load time.                                |
-| `newrelic-weaver-api`    | Annotations for authoring weave classes (`@Weave`, `@WeaveAllImplementations`, `@NewField`, `@WeaveWithAnnotation`).                                      |
+| `newrelic-weaver-api`    | Annotations for authoring weave classes (`@Weave`, `@NewField`, `@WeaveWithAnnotation`).                                      |
 | `newrelic-api`           | Public API for custom instrumentation (`@Trace`, `NewRelic.getAgent()`, custom events/metrics). Ships with no-op implementations.                         |
 | `agent-bridge`           | Runtime bridge between instrumentation modules and agent core. Provides `AgentBridge` static facade with volatile references swapped in when agent loads. |
 | `agent-bridge-datastore` | Datastore-specific bridge interfaces (connection URL parsing, vendor detection, instance metrics).                                                        |

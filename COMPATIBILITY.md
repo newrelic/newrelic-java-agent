@@ -75,6 +75,7 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 2.13: 1.0.0 to latest
     * Scala 3: 1.0.0 to latest
   * Play 2.4.0-M3 to latest
+  * Portlet 3.0.0 to latest
   * Quartz Scheduler 1.7.2 to latest
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
@@ -226,6 +227,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## Other instrumented features
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
+  * Java Server Faces 1.0 to latest
   * Java XML RPC 8 to latest
   * JSP 2.0 to latest
   * OpenEJB 3.0 to latest

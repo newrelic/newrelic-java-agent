@@ -396,9 +396,9 @@ public class ReinstrumentAnnotationTest {
         InstrumentedMethod annotation = test.newrelic.test.agent.TestLifecycle.class.getDeclaredMethod(
                 "execute", javax.faces.context.FacesContext.class).getAnnotation(InstrumentedMethod.class);
         Assert.assertNotNull(annotation);
-        Assert.assertEquals(1, annotation.instrumentationTypes().length);
-        Assert.assertEquals(InstrumentationType.Pointcut, annotation.instrumentationTypes()[0]);
-        Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut",
+        Assert.assertEquals(4, annotation.instrumentationTypes().length);
+        Assert.assertEquals(InstrumentationType.TracedWeaveInstrumentation, annotation.instrumentationTypes()[0]);
+        Assert.assertEquals("com.newrelic.instrumentation.java-server-faces-2.0.7",
                 annotation.instrumentationNames()[0]);
 
         // reinstrument with more instrumentation
@@ -424,12 +424,12 @@ public class ReinstrumentAnnotationTest {
         annotation = test.newrelic.test.agent.TestLifecycle.class.getDeclaredMethod(
                 "execute", javax.faces.context.FacesContext.class).getAnnotation(InstrumentedMethod.class);
         Assert.assertNotNull(annotation);
-        Assert.assertEquals(2, annotation.instrumentationTypes().length);
+        Assert.assertEquals(5, annotation.instrumentationTypes().length);
 
         for (int i = 0; i < annotation.instrumentationTypes().length; i++) {
-            if (annotation.instrumentationTypes()[i] == InstrumentationType.Pointcut) {
-                Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut",
-                        annotation.instrumentationNames()[i]);
+            if (annotation.instrumentationTypes()[i] == InstrumentationType.TracedWeaveInstrumentation ||
+                    annotation.instrumentationTypes()[i] == InstrumentationType.WeaveInstrumentation) {
+                Assert.assertTrue(annotation.instrumentationNames()[i].contains("com.newrelic.instrumentation.java-server-faces-"));
             } else if (annotation.instrumentationTypes()[i] == InstrumentationType.RemoteCustomXml) {
                 Assert.assertEquals("Not A Pointcut", annotation.instrumentationNames()[i]);
             } else {
