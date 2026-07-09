@@ -11,6 +11,7 @@ import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
 import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext;
 import com.nr.builder.patcher.ModifyReferencesToLog4j2Plugins;
 import com.nr.builder.patcher.RedirectGetLoggerCalls;
+import com.nr.builder.patcher.RemoveUnsupportedAnnotationTargets;
 import com.nr.builder.patcher.UnmappedDependencyErrorGenerator;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.logging.Logging;
@@ -48,6 +49,7 @@ public class DependencyPatcher implements Transformer {
     private static final List<Patcher> patchers = Arrays.asList(
             new ModifyReferencesToLog4j2Plugins(),
             new RedirectGetLoggerCalls(),
+            new RemoveUnsupportedAnnotationTargets(),
             new UnmappedDependencyErrorGenerator()
     );
 
