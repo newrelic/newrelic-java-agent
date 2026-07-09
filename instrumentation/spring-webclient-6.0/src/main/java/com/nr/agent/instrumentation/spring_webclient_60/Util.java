@@ -46,13 +46,14 @@ public class Util {
             return response;
         }
         URI uri = request.url();
+        String method = request.method() != null ? request.method().toString() : null;
         return response
-                .doOnSuccess(reportSucceeded(segment, uri))
+                .doOnSuccess(reportSucceeded(segment, uri, method))
                 .doOnError(reportFailed(segment))
-                .doOnCancel(reportCancelled(segment, uri));
+                .doOnCancel(reportCancelled(segment, uri, method));
     }
 
-    private static Consumer<ClientResponse> reportSucceeded(Segment segment, final URI uri) {
+    private static Consumer<ClientResponse> reportSucceeded(Segment segment, final URI uri, final String method) {
         return new Consumer<ClientResponse>() {
             @Override
             public void accept(ClientResponse clientResponse) {
@@ -64,6 +65,7 @@ public class Util {
                             .inboundHeaders(new InboundResponseWrapper(clientResponse))
                             .status(clientResponse.statusCode().value(), null)
                             .build());
+                    AgentBridge.getAgent().setHttpMethod(segment, method);
                 } catch (Throwable e) {
                     reportInstrumentationError(e);
                 } finally {
@@ -94,7 +96,7 @@ public class Util {
         };
     }
 
-    private static Runnable reportCancelled(Segment segment, final URI uri) {
+    private static Runnable reportCancelled(Segment segment, final URI uri, final String method) {
         return new Runnable() {
             @Override
             public void run() {
@@ -105,6 +107,7 @@ public class Util {
                             .procedure("exchange")
                             .noInboundHeaders()
                             .build());
+                    AgentBridge.getAgent().setHttpMethod(segment, method);
                 } catch (Throwable e) {
                     reportInstrumentationError(e);
                 } finally {

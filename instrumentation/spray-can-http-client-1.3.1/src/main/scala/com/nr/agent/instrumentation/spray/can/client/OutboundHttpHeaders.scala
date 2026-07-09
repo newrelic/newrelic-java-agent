@@ -26,11 +26,12 @@ class OutboundHttpHeaders(originalRequest: HttpRequest_Instrumentation) extends 
     request = request.withHeaders(request.headers ++ List(HttpHeaders.RawHeader(name, value)))
   }
 
-  def getRequest(segment: Segment, remoteAddress: InetSocketAddress, isSSL: Boolean): HttpRequest_Instrumentation = {
+  def getRequest(segment: Segment, remoteAddress: InetSocketAddress, isSSL: Boolean, method: String): HttpRequest_Instrumentation = {
     request.headersAdded = true
     request.segment = segment
     request.remoteAddress = remoteAddress
     request.isSSL = isSSL
+    request.method = method
     request
   }
 }
