@@ -1,4 +1,6 @@
 import com.nr.builder.publish.PublishConfig
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.plugins.signing.Sign
 
 plugins {
     `maven-publish`
@@ -46,6 +48,10 @@ listOf("2.12", "2.13").forEach { scalaVersion ->
         artifact(sourcesJar)
         artifact(javadocJar)
     }
+}
+
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    mustRunAfter(tasks.withType<Sign>())
 }
 
 tasks {
