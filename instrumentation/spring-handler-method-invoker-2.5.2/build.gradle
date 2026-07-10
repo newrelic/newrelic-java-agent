@@ -6,11 +6,11 @@ dependencies {
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-handler-method-invoker-3.0.0'}
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.spring-handler-method-invoker-2.5.2'}
 }
 
 verifyInstrumentation {
-    passesOnly('org.springframework:spring-web:[3.0.0.RELEASE,5.0.0.RELEASE)') {
+    passesOnly('org.springframework:spring-web:[2.5.2,5.0.0.RELEASE)') {
         implementation("org.springframework:spring-webmvc:3.0.0.RELEASE")
     }
 
