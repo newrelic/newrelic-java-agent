@@ -192,6 +192,22 @@ public class AbstractTracerTest {
     }
 
     @Test
+    public void testSetHttpMethodLowerCase() {
+        // setup
+        AbstractTracer target = createTxnAndTracer();
+        // execution
+        target.setHttpMethod("get");
+        // assertions
+        assertEquals(0, target.getCustomAttributes().size());
+        assertEquals(2, target.getAgentAttributes().size());
+        assertEquals(1, target.getAgentAttributeNamesForSpans().size());
+        assertEquals("The attribute http.request.method needs to be uppercase even if the input in target.setHttpMethod(...) is lowercase",
+                "GET", target.getAgentAttributes().get("http.request.method"));
+        assertTrue("The attribute http.request.method needs to be marked for spans",
+                target.getAgentAttributeNamesForSpans().contains("http.request.method"));
+    }
+
+    @Test
     public void testAddCustomAttributeCheckLimit() {
         // setup
         Transaction txn = mock(Transaction.class, RETURNS_DEEP_STUBS);
