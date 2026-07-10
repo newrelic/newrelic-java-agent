@@ -30,7 +30,7 @@ public interface Agent extends com.newrelic.api.agent.Agent {
     TracedMethod getTracedMethod();
 
     /**
-     * Reports the HTTP method to a segment's underlying tracer. This should ONLY be used if the segment is reported as an external HTTP trace.
+     * Reports the HTTP method (i.e. GET, POST, PUT, etc) for external HTTP segments as an agent & span attribute named `http.request.method`
      *
      */
     void setHttpMethod(Segment segment, String httpMethod);
