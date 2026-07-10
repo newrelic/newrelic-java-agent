@@ -177,6 +177,21 @@ public class AbstractTracerTest {
     }
 
     @Test
+    public void testSetHttpMethod() {
+        // setup
+        AbstractTracer target = createTxnAndTracer();
+        // execution
+        target.setHttpMethod("GET");
+        // assertions
+        assertEquals(0, target.getCustomAttributes().size());
+        assertEquals(2, target.getAgentAttributes().size());
+        assertEquals(1, target.getAgentAttributeNamesForSpans().size());
+        assertEquals("GET", target.getAgentAttributes().get("http.request.method"));
+        assertTrue("The attribute http.request.method needs to be marked for spans",
+                target.getAgentAttributeNamesForSpans().contains("http.request.method"));
+    }
+
+    @Test
     public void testAddCustomAttributeCheckLimit() {
         // setup
         Transaction txn = mock(Transaction.class, RETURNS_DEEP_STUBS);

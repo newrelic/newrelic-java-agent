@@ -24,6 +24,8 @@ public interface SpanEvent {
 
     String getHttpUrl();
 
+    String getProcedure();
+
     String getHttpMethod();
 
     String getHttpComponent();
