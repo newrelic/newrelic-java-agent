@@ -57,7 +57,7 @@ public class DockerData {
 
     private static final Pattern VALID_CONTAINER_ID = Pattern.compile("^[0-9a-f]{64}$");
     private static final Pattern DOCKER_CONTAINER_STRING_V1 = Pattern.compile("^.*[^0-9a-f]+([0-9a-f]{64,}).*");
-    private static final Pattern DOCKER_CONTAINER_STRING_V2 = Pattern.compile(".*(?/docker/containers/|containerd-)([0-9a-f]{64,}).*");
+    private static final Pattern DOCKER_CONTAINER_STRING_V2 = Pattern.compile(".*(?:/docker/containers/|containerd-)([0-9a-f]{64,}).*");
 
     private final CloudConfig cloudConfig;
 
