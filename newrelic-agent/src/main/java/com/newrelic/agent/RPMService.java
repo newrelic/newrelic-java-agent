@@ -368,8 +368,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private void logForceRestartException(ForceRestartException e) {
-        Agent.LOG.log(Level.WARNING, "Received a ForceRestartException: {0}. The agent will attempt to reconnect for"
-                + " data reporting. If this message continues, please contact support via https://support.newrelic.com/.", e.toString());
+        Agent.LOG.log(Level.INFO, "Received a ForceRestartException (reconnect request): {0}. The agent will attempt to reconnect for"
+                + " data reporting. If this message occurs repeatedly, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void reconnectSync() throws Exception {
