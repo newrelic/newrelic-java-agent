@@ -44,6 +44,7 @@ public class NRAsyncHandler<T> {
     public Segment segment;
     @NewField
     public URI uri;
+    @NewField
     public String method;
     @NewField
     private InboundWrapper inboundHeaders;
