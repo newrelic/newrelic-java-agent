@@ -12,7 +12,6 @@ import com.newrelic.agent.instrumentation.pointcuts.container.JasperCompilerPoin
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,9 +43,6 @@ public class ClassTransformerTest {
         }
 
         List<? extends PointCut> manual = Arrays.asList(
-                // Spring
-                new SpringPointCut(classTransformer),
-                // new SpringWildcardPathPointCut(classTransformer),
                 // CXF
                 new CXFPointCut(classTransformer),
                 new CXFInvokerPointCut(classTransformer),
