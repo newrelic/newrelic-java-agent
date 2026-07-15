@@ -200,6 +200,18 @@ Example of OpenTelemetry APIs being used to record dimensional metrics:
 
 Any recorded dimensional metrics can be found in the Metrics Explorer for the associated APM entity and can be used to build custom dashboards.
 
+### OTLP Proxy Support
+
+Dimensional metrics are exported to New Relic over OTLP via the OTel SDK. The Java OTel SDK does not directly support proxy configuration (see [opentelemetry-java-instrumentation/issues/12240](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/12240)) and instead recommends using [JVM-level proxy properties](https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html) for defining the proxy host/port.
+
+```
+-Dhttp.proxyHost=proxy.hostname
+-Dhttp.proxyPort=8080
+
+-Dhttps.proxyHost=proxy.hostname
+-Dhttps.proxyPort=8080
+```
+
 ## OpenTelemetry Traces Signals
 
 Documented below are several approaches for incorporating OpenTelemetry Traces (aka Spans) into New Relic Java agent traces.

@@ -560,10 +560,10 @@ common: &default_settings
       enabled: true
 
     # OpenTelemetry Metrics signals.
-    # Dimensional metrics are exported to New Relic over OTLP. If the top-level proxy_host/proxy_port
-    # settings above are configured, the OTLP metric export is routed through that proxy. Note that
-    # proxy authentication (proxy_user/proxy_password) and proxy_scheme are NOT applied to the OTLP
-    # metric export, since the OpenTelemetry SDK cannot express them.
+    # Dimensional metrics are exported to New Relic over OTLP. With OpenTelemetry 1.59.0 or later,
+    # the agent's top-level proxy_host/proxy_port settings will be used to configure the OTLP metric
+    # exporter. Note that proxy authentication (proxy_user/proxy_password) and proxy_scheme are NOT
+    # applied to the OTLP metric exporter, as the OpenTelemetry SDK does not support proxy authentication.
     metrics:
 
       # Set to true to enable OpenTelemetry Metrics signals.
