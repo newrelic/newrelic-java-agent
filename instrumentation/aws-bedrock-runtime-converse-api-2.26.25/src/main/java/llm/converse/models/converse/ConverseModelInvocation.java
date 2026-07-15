@@ -57,11 +57,11 @@ public class ConverseModelInvocation implements ModelInvocation {
      * Construct a ConverseModelInvocation representing the
      * request and response for a streaming API.
      *
-     * @param linkingMetadata            agent's context linking data
-     * @param userCustomAttributes       user custom attributes
-     * @param converseStreamRequest      stream request
+     * @param linkingMetadata             agent's context linking data
+     * @param userCustomAttributes        user custom attributes
+     * @param converseStreamRequest       stream request
      * @param converseStreamModelResponse response accumulated from the stream events
-     * @param timeToFirstToken           duration in milliseconds from request start to the first token being streamed.
+     * @param timeToFirstToken            duration in milliseconds from request start to the first token being streamed.
      */
     public ConverseModelInvocation(Map<String, String> linkingMetadata, Map<String, Object> userCustomAttributes, ConverseStreamRequest converseStreamRequest,
             ConverseStreamModelResponse converseStreamModelResponse, long timeToFirstToken) {
