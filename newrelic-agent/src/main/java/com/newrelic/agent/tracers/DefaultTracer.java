@@ -639,8 +639,9 @@ public class DefaultTracer extends AbstractTracer {
 
     @Override
     public void setHttpMethod(String httpVerb) {
-        String upperCaseHttpVerb = httpVerb != null ? httpVerb.toUpperCase() : null;
-        setAgentAttribute(AttributeNames.HTTP_REQUEST_METHOD, upperCaseHttpVerb, true);
+        if (httpVerb != null) {
+            setAgentAttribute(AttributeNames.HTTP_REQUEST_METHOD, httpVerb.toUpperCase(), true);
+        }
     }
 
     @Override
