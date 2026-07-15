@@ -134,6 +134,23 @@ public class TestUtil {
         }
     }
 
+    public static void assertStreamErrorEvent(boolean isError, Collection<ErrorEvent> errorEvents) {
+        if (isError) {
+            assertEquals(1, errorEvents.size());
+            ErrorEvent errorEvent = errorEvents.iterator().next();
+
+            assertEquals("LlmError: " + SUCCESS_STATUS_TEXT, errorEvent.getErrorClass());
+            assertEquals("LlmError: " + SUCCESS_STATUS_TEXT, errorEvent.getErrorMessage());
+
+            Map<String, Object> errorEventAttributes = errorEvent.getAttributes();
+            assertFalse(errorEventAttributes.isEmpty());
+            assertEquals(SUCCESS_STATUS_CODE, errorEventAttributes.get("error.code"));
+            assertEquals(SUCCESS_STATUS_CODE, errorEventAttributes.get("http.statusCode"));
+        } else {
+            assertTrue(errorEvents.isEmpty());
+        }
+    }
+
     public static ConverseModelInvocation mockConverseModelInvocation(String modelId, String requestBody, String responseBody, boolean isError, boolean completeUsage) {
         // Given
         Map<String, String> linkingMetadata = new HashMap<>();
