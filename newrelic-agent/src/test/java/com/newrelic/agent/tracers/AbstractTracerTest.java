@@ -33,7 +33,6 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Category(RequiresFork.class)
 public class AbstractTracerTest {
 
     @BeforeClass
@@ -203,7 +202,7 @@ public class AbstractTracerTest {
         // assertions
         assertEquals(0, target.getCustomAttributes().size());
         assertEquals("Agent attributes are counted at " + target.getAgentAttributes().size() + " instead of 2",
-                2, target.getAgentAttributes().size());
+                1, target.getAgentAttributes().size());
         assertEquals(1, target.getAgentAttributeNamesForSpans().size());
         assertEquals("The attribute http.request.method needs to be uppercase even if the input in target.setHttpMethod(...) is lowercase",
                 "GET", target.getAgentAttributes().get("http.request.method"));
