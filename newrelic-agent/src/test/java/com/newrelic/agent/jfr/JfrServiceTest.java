@@ -6,11 +6,13 @@ import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.JfrConfig;
+import com.newrelic.agent.config.LabelsConfig;
 import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.jfr.ThreadNameNormalizer;
 import com.newrelic.jfr.daemon.DaemonConfig;
 import com.newrelic.jfr.daemon.JfrRecorderException;
+import com.newrelic.telemetry.Attributes;
 import com.newrelic.test.marker.Flaky;
 import com.newrelic.test.marker.IBMJ9IncompatibleTest;
 import org.junit.Before;
@@ -19,10 +21,15 @@ import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_EVENT_INGEST_URI;
 import static com.newrelic.agent.config.AgentConfigImpl.DEFAULT_METRIC_INGEST_URI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
@@ -228,5 +235,281 @@ public class JfrServiceTest {
 
         String result = spyJfr.getJfrHostnameOrDisplayName();
         assertEquals(defaultHostname, result);
+    }
+
+    @Test
+    public void addLabelsEnabledAddsLabelsAsAttrs() {
+        /*
+         * labels:
+         *   team: java-agent
+         *   environment: production
+         *   region: us-east-1
+         *
+         * jfr:
+         *   labels:
+         *     enabled: true
+         */
+        LabelsConfig labelsConfig = mock(LabelsConfig.class);
+        Map<String, String> labels = mockLabelsMap();
+        when(labelsConfig.getLabels()).thenReturn(labels);
+        when(agentConfig.getLabelsConfig()).thenReturn(labelsConfig);
+        when(jfrConfig.labelsEnabled()).thenReturn(true);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+
+        Attributes attrsToModify = new Attributes();
+        jfrService.addLabelsIfEnabled(attrsToModify);
+
+        assertEquals(3, attrsToModify.asMap().size());
+        assertEquals("java-agent", attrsToModify.asMap().get("tags.team"));
+        assertEquals("production", attrsToModify.asMap().get("tags.environment"));
+        assertEquals("us-east-1", attrsToModify.asMap().get("tags.region"));
+    }
+
+    @Test
+    public void addLabelsDisabledDoesNotAddLabelsAsAttrs() {
+        /*
+         * labels:
+         *   team: java-agent
+         *   environment: production
+         *   region: us-east-1
+         *
+         * jfr:
+         *   labels:
+         *     enabled: false
+         */
+        LabelsConfig labelsConfig = mock(LabelsConfig.class);
+        Map<String, String> labels = mockLabelsMap();
+        when(labelsConfig.getLabels()).thenReturn(labels);
+        when(agentConfig.getLabelsConfig()).thenReturn(labelsConfig);
+        when(jfrConfig.labelsEnabled()).thenReturn(false);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+
+        // Test addLabelsIfEnabled
+        Attributes attrs = new Attributes();
+        jfrService.addLabelsIfEnabled(attrs);
+
+        // Verify no labels are added
+        assertEquals(0, attrs.asMap().size());
+    }
+
+    @Test
+    public void addLabelsEnabledLabelsEmptyIsNoop(){
+        /*
+        * labels:
+        *   //nothing
+        *
+        * jfr:
+        *   labels:
+        *     enabled: true
+         */
+
+        LabelsConfig labelsConfig = mock(LabelsConfig.class);
+        when(labelsConfig.getLabels()).thenReturn(Collections.emptyMap());
+        when(agentConfig.getLabelsConfig()).thenReturn(labelsConfig);
+        when(jfrConfig.labelsEnabled()).thenReturn(true);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+
+        Attributes attrs = new Attributes();
+        jfrService.addLabelsIfEnabled(attrs);
+
+        assertEquals(0, attrs.asMap().size());
+    }
+
+    @Test
+    public void addLabelsEnabledNullLabelsDoesNotThrow() {
+        //The labels map should never be null, but still good to check.
+        LabelsConfig labelsConfig = mock(LabelsConfig.class);
+        when(labelsConfig.getLabels()).thenReturn(null);
+        when(agentConfig.getLabelsConfig()).thenReturn(labelsConfig);
+        when(jfrConfig.labelsEnabled()).thenReturn(true);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+
+        Attributes attrs = new Attributes();
+        try {
+            jfrService.addLabelsIfEnabled(attrs);
+            assertEquals(0, attrs.asMap().size());
+        } catch (NullPointerException e) {
+            fail("Should not throw if labels map is null.");
+        }
+    }
+
+    @Test
+    public void configChangedFromEnabledToDisabledDoesStop() {
+        //Initial config: JFR enabled
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        //Updated config: JFR disabled
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(false);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // Verify doStop was called and doStart was not.
+        verify(spyJfr).doStop();
+        verify(spyJfr, times(0)).doStart();
+    }
+
+    @Test
+    public void configChangedFromDisabledToEnabledDoesStart() {
+        //Initial config: JFR disabled.
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        //Updated config: JFR enabled.
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // Verify doStart was called
+        verify(spyJfr).doStart();
+        verify(spyJfr, times(0)).doStop();
+    }
+
+    @Test
+    public void configChanged_NoChange_DoesNotCallStartOrStop() {
+        when(jfrConfig.isEnabled()).thenReturn(true);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // Verify neither doStart nor doStop was called
+        verify(spyJfr, times(0)).doStart();
+        verify(spyJfr, times(0)).doStop();
+    }
+
+    @Test
+    public void configChanged_ReplacesJfrConfigReference() {
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        // Prevent actual execution
+        when(spyJfr.coreApisExist()).thenReturn(false);
+
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // Verify the new jfrConfig was retrieved from newAgentConfig
+        verify(newAgentConfig, times(2)).getJfrConfig(); // Called twice: once for check, once for assignment
+    }
+
+    @Test
+    public void configChanged_ReplacesDefaultAgentConfig() {
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        // Prevent actual execution
+        when(spyJfr.coreApisExist()).thenReturn(false);
+
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // Verify the new agentConfig is retrieved
+        verify(newAgentConfig, times(2)).getJfrConfig(); // Once to check enabled, once to replace
+    }
+
+    @Test
+    public void configChanged_MultipleConfigChanges_HandlesCorrectly() {
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        // Prevent actual execution
+        when(spyJfr.coreApisExist()).thenReturn(false);
+
+        // First change: disabled -> enabled
+        AgentConfig newAgentConfig1 = mock(AgentConfig.class);
+        JfrConfig newJfrConfig1 = mock(JfrConfig.class);
+        when(newAgentConfig1.getJfrConfig()).thenReturn(newJfrConfig1);
+        when(newJfrConfig1.isEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig1);
+        verify(spyJfr, times(1)).doStart();
+        verify(spyJfr, times(0)).doStop();
+
+        // Second change: enabled -> disabled
+        AgentConfig newAgentConfig2 = mock(AgentConfig.class);
+        JfrConfig newJfrConfig2 = mock(JfrConfig.class);
+        when(newAgentConfig2.getJfrConfig()).thenReturn(newJfrConfig2);
+        when(newJfrConfig2.isEnabled()).thenReturn(false);
+
+        spyJfr.configChanged("my-app", newAgentConfig2);
+        verify(spyJfr, times(1)).doStart();
+        verify(spyJfr, times(1)).doStop();
+    }
+
+    @Test
+    public void configChanged_WithNewLabels_LabelsAvailableForNewStart() {
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        when(jfrConfig.labelsEnabled()).thenReturn(true);
+
+        // Initial labels
+        LabelsConfig initialLabelsConfig = mock(LabelsConfig.class);
+        Map<String, String> initialLabels = new HashMap<>();
+        initialLabels.put("team", "old-team");
+        when(initialLabelsConfig.getLabels()).thenReturn(initialLabels);
+        when(agentConfig.getLabelsConfig()).thenReturn(initialLabelsConfig);
+
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        // Prevent actual execution
+        when(spyJfr.coreApisExist()).thenReturn(false);
+
+        // New config with updated labels
+        AgentConfig newAgentConfig = mock(AgentConfig.class);
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        LabelsConfig newLabelsConfig = mock(LabelsConfig.class);
+        Map<String, String> newLabels = new HashMap<>();
+        newLabels.put("team", "new-team");
+        newLabels.put("region", "us-west-2");
+        when(newLabelsConfig.getLabels()).thenReturn(newLabels);
+
+        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
+        when(newAgentConfig.getLabelsConfig()).thenReturn(newLabelsConfig);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+        when(newJfrConfig.labelsEnabled()).thenReturn(true);
+
+        spyJfr.configChanged("my-app", newAgentConfig);
+
+        // After configChanged, doStart should be called
+        verify(spyJfr).doStart();
+        // Verify the new jfrConfig was retrieved
+        verify(newAgentConfig, times(2)).getJfrConfig();
+    }
+
+    private Map<String, String> mockLabelsMap(){
+        Map<String, String> labels = new HashMap<>();
+        labels.put("team", "java-agent");
+        labels.put("environment", "production");
+        labels.put("region", "us-east-1");
+        return labels;
     }
 }
