@@ -10,6 +10,7 @@ package llm.converse.models;
 import com.newrelic.agent.introspec.ErrorEvent;
 import com.newrelic.agent.introspec.Event;
 import llm.converse.models.converse.ConverseModelInvocation;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.BedrockRuntimeResponseMetadata;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
@@ -18,6 +19,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.InferenceConfiguration;
 import software.amazon.awssdk.services.bedrockruntime.model.Message;
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningContentBlock;
+import software.amazon.awssdk.services.bedrockruntime.model.ReasoningTextBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.TokenUsage;
 
 import java.util.ArrayList;
@@ -60,6 +63,31 @@ public class TestUtil {
     public static final int OUTPUT_TOKENS = 23;
     public static final int TOTAL_TOKENS = 40;
 
+    // Reasoning content
+    public static final String RESPONSE_REASONING_TEXT = "The sky appears blue due to Rayleigh scattering of sunlight.";
+    public static final String RESPONSE_REASONING_SIGNATURE = "reasoning-signature-abc123";
+
+    /**
+     * Build a ContentBlock carrying non-redacted reasoning content, mirroring what a Claude model with thinking
+     * enabled returns from the Converse API.
+     */
+    public static ContentBlock buildReasoningContentBlock(String text, String signature) {
+        ReasoningTextBlock reasoningTextBlock = ReasoningTextBlock.builder().text(text).signature(signature).build();
+        ReasoningContentBlock reasoningContentBlock = ReasoningContentBlock.builder().reasoningText(reasoningTextBlock).build();
+        return ContentBlock.builder().reasoningContent(reasoningContentBlock).build();
+    }
+
+    /**
+     * Build a ContentBlock carrying redacted reasoning content, i.e. the provider encrypted the reasoning and
+     * returned only an opaque blob instead of readable text.
+     */
+    public static ContentBlock buildRedactedReasoningContentBlock() {
+        ReasoningContentBlock reasoningContentBlock = ReasoningContentBlock.builder()
+                .redactedContent(SdkBytes.fromUtf8String("encrypted-reasoning-blob"))
+                .build();
+        return ContentBlock.builder().reasoningContent(reasoningContentBlock).build();
+    }
+
     public static void assertLlmChatCompletionMessageAttributes(Event event, String modelId, String requestInput, String responseContent, boolean isResponse) {
         assertEquals(LLM_CHAT_COMPLETION_MESSAGE, event.getType());
 
@@ -88,6 +116,41 @@ public class TestUtil {
         if (attributes.containsKey("token_count")) {
             Object tokenCount = attributes.get("token_count");
             assertTrue("token_count should be 0 or 13, was: " + tokenCount, tokenCount.equals(0) || tokenCount.equals(13));
+        }
+    }
+
+    public static void assertLlmChatCompletionReasoningMessageAttributes(Event event, String modelId, String reasoningContent, String signature,
+            boolean redacted, int sequence) {
+        assertEquals(LLM_CHAT_COMPLETION_MESSAGE, event.getType());
+
+        Map<String, Object> attributes = event.getAttributes();
+        assertEquals(INGEST_SOURCE, attributes.get("ingest_source"));
+        assertFalse(((String) attributes.get("completion_id")).isEmpty());
+        assertFalse(((String) attributes.get("id")).isEmpty());
+        assertFalse(((String) attributes.get("request_id")).isEmpty());
+        assertEquals(VENDOR, attributes.get("vendor"));
+        assertEquals(modelId, attributes.get("response.model"));
+        assertEquals(RESPONSE_ROLE, attributes.get("role"));
+        assertEquals(true, attributes.get("is_response"));
+        assertEquals(sequence, attributes.get("sequence"));
+        assertFalse("content should not be set on a reasoning message event", attributes.containsKey("content"));
+
+        if (reasoningContent != null && !reasoningContent.isEmpty()) {
+            assertEquals(reasoningContent, attributes.get("reasoning_content"));
+        } else {
+            assertFalse(attributes.containsKey("reasoning_content"));
+        }
+
+        if (signature != null && !signature.isEmpty()) {
+            assertEquals(signature, attributes.get("reasoning_content_signature"));
+        } else {
+            assertFalse(attributes.containsKey("reasoning_content_signature"));
+        }
+
+        if (redacted) {
+            assertEquals(true, attributes.get("reasoning_content_redacted"));
+        } else {
+            assertFalse(attributes.containsKey("reasoning_content_redacted"));
         }
     }
 
@@ -221,5 +284,60 @@ public class TestUtil {
         // Instantiate ModelInvocation
         return new ConverseModelInvocation(linkingMetadata, userAttributes, mockConverseRequest,
                 mockConverseResponse);
+    }
+
+    /**
+     * Build a ConverseModelInvocation whose response message contains a reasoning content block followed by a
+     * text content block, mirroring a Claude Converse response with thinking enabled.
+     */
+    public static ConverseModelInvocation mockConverseModelInvocationWithReasoning(String modelId, String requestBody, ContentBlock reasoningBlock,
+            String responseBody) {
+        Map<String, String> linkingMetadata = new HashMap<>();
+        linkingMetadata.put("span.id", "span-id-123");
+        linkingMetadata.put("trace.id", "trace-id-xyz");
+
+        Map<String, Object> userAttributes = new HashMap<>();
+        userAttributes.put("llm.conversation_id", "conversation-id-value");
+        userAttributes.put("llm.testPrefix", "testPrefix");
+        userAttributes.put("test", "test");
+
+        ConverseRequest mockConverseRequest = mock(ConverseRequest.class);
+        InferenceConfiguration mockInferenceConfiguration = mock(InferenceConfiguration.class);
+        when(mockInferenceConfiguration.maxTokens()).thenReturn(REQUEST_MAX_TOKENS);
+        when(mockInferenceConfiguration.temperature()).thenReturn(REQUEST_TEMPERATURE);
+        when(mockConverseRequest.inferenceConfig()).thenReturn(mockInferenceConfiguration);
+        when(mockConverseRequest.modelId()).thenReturn(modelId);
+        when(mockConverseRequest.hasMessages()).thenReturn(true);
+
+        List<ContentBlock> requestContent = new ArrayList<>();
+        requestContent.add(ContentBlock.builder().text(requestBody).build());
+        List<Message> requestMessages = new ArrayList<>();
+        requestMessages.add(Message.builder().role(REQUEST_ROLE).content(requestContent).build());
+        when(mockConverseRequest.messages()).thenReturn(requestMessages);
+
+        ConverseResponse mockConverseResponse = mock(ConverseResponse.class);
+        when(mockConverseResponse.stopReasonAsString()).thenReturn(STOP_REASON);
+
+        List<ContentBlock> responseContent = new ArrayList<>();
+        responseContent.add(reasoningBlock);
+        responseContent.add(ContentBlock.builder().text(responseBody).build());
+        Message responseMessage = Message.builder().role(RESPONSE_ROLE).content(responseContent).build();
+        ConverseOutput converseOutput = ConverseOutput.builder().message(responseMessage).build();
+
+        TokenUsage tokenUsage = TokenUsage.builder().inputTokens(INPUT_TOKENS).outputTokens(OUTPUT_TOKENS).totalTokens(TOTAL_TOKENS).build();
+        when(mockConverseResponse.usage()).thenReturn(tokenUsage);
+        when(mockConverseResponse.output()).thenReturn(converseOutput);
+
+        SdkHttpResponse mockSdkHttpResponse = mock(SdkHttpResponse.class);
+        when(mockConverseResponse.sdkHttpResponse()).thenReturn(mockSdkHttpResponse);
+        when(mockSdkHttpResponse.statusCode()).thenReturn(SUCCESS_STATUS_CODE);
+        when(mockSdkHttpResponse.statusText()).thenReturn(Optional.of(SUCCESS_STATUS_TEXT));
+        when(mockSdkHttpResponse.isSuccessful()).thenReturn(true);
+
+        BedrockRuntimeResponseMetadata mockBedrockRuntimeResponseMetadata = mock(BedrockRuntimeResponseMetadata.class);
+        when(mockConverseResponse.responseMetadata()).thenReturn(mockBedrockRuntimeResponseMetadata);
+        when(mockBedrockRuntimeResponseMetadata.requestId()).thenReturn(REQUEST_ID);
+
+        return new ConverseModelInvocation(linkingMetadata, userAttributes, mockConverseRequest, mockConverseResponse);
     }
 }

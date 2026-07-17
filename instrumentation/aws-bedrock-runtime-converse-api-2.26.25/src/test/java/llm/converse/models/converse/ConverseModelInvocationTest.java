@@ -15,6 +15,7 @@ import com.newrelic.api.agent.LlmTokenCountCallback;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,12 +28,18 @@ import static llm.converse.models.TestUtil.OUTPUT_TOKENS;
 import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
 import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
 import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
+import static llm.converse.models.TestUtil.RESPONSE_REASONING_SIGNATURE;
+import static llm.converse.models.TestUtil.RESPONSE_REASONING_TEXT;
 import static llm.converse.models.TestUtil.STOP_REASON;
 import static llm.converse.models.TestUtil.TOTAL_TOKENS;
 import static llm.converse.models.TestUtil.assertErrorEvent;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
+import static llm.converse.models.TestUtil.assertLlmChatCompletionReasoningMessageAttributes;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
+import static llm.converse.models.TestUtil.buildRedactedReasoningContentBlock;
+import static llm.converse.models.TestUtil.buildReasoningContentBlock;
 import static llm.converse.models.TestUtil.mockConverseModelInvocation;
+import static llm.converse.models.TestUtil.mockConverseModelInvocationWithReasoning;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -180,5 +187,57 @@ public class ConverseModelInvocationTest {
             Map<String, Object> attributes = messageEvent.getAttributes();
             assertEquals(0, attributes.get("token_count"));
         }
+    }
+
+    @Test
+    public void testCompletionWithReasoning() {
+        ContentBlock reasoningBlock = buildReasoningContentBlock(RESPONSE_REASONING_TEXT, RESPONSE_REASONING_SIGNATURE);
+        ConverseModelInvocation converseModelInvocation = mockConverseModelInvocationWithReasoning(REQUEST_MODEL_ID, REQUEST_CONTENT_TEXT,
+                reasoningBlock, RESPONSE_CONTENT_TEXT);
+        converseModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        // Request message, reasoning message, and text message
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(3, llmChatCompletionMessageEvents.size());
+        Iterator<Event> llmChatCompletionMessageEventIterator = llmChatCompletionMessageEvents.iterator();
+
+        Event requestMessageEvent = llmChatCompletionMessageEventIterator.next();
+        assertLlmChatCompletionMessageAttributes(requestMessageEvent, REQUEST_MODEL_ID, REQUEST_CONTENT_TEXT, RESPONSE_CONTENT_TEXT, false);
+
+        Event reasoningMessageEvent = llmChatCompletionMessageEventIterator.next();
+        assertLlmChatCompletionReasoningMessageAttributes(reasoningMessageEvent, REQUEST_MODEL_ID, RESPONSE_REASONING_TEXT,
+                RESPONSE_REASONING_SIGNATURE, false, 1);
+
+        // The shared assertLlmChatCompletionMessageAttributes helper assumes a response message is always at
+        // sequence 1 (request=0, response=1), which doesn't hold here since the reasoning message occupies
+        // sequence 1 and pushes the text message to sequence 2 -- so its attributes are asserted directly instead.
+        Event textMessageEvent = llmChatCompletionMessageEventIterator.next();
+        Map<String, Object> textMessageAttributes = textMessageEvent.getAttributes();
+        assertEquals(RESPONSE_CONTENT_TEXT, textMessageAttributes.get("content"));
+        assertEquals(true, textMessageAttributes.get("is_response"));
+        assertEquals(2, textMessageAttributes.get("sequence"));
+        assertFalse(textMessageAttributes.containsKey("reasoning_content"));
+
+        Collection<Event> llmChatCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmChatCompletionSummaryEvents.size());
+        Event summaryEvent = llmChatCompletionSummaryEvents.iterator().next();
+        assertEquals(3, summaryEvent.getAttributes().get("response.number_of_messages"));
+    }
+
+    @Test
+    public void testCompletionWithRedactedReasoning() {
+        ContentBlock reasoningBlock = buildRedactedReasoningContentBlock();
+        ConverseModelInvocation converseModelInvocation = mockConverseModelInvocationWithReasoning(REQUEST_MODEL_ID, REQUEST_CONTENT_TEXT,
+                reasoningBlock, RESPONSE_CONTENT_TEXT);
+        converseModelInvocation.recordLlmEvents(System.currentTimeMillis());
+
+        Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
+        assertEquals(3, llmChatCompletionMessageEvents.size());
+        Iterator<Event> llmChatCompletionMessageEventIterator = llmChatCompletionMessageEvents.iterator();
+
+        llmChatCompletionMessageEventIterator.next(); // request message, not under test here
+
+        Event reasoningMessageEvent = llmChatCompletionMessageEventIterator.next();
+        assertLlmChatCompletionReasoningMessageAttributes(reasoningMessageEvent, REQUEST_MODEL_ID, null, null, true, 1);
     }
 }

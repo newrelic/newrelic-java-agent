@@ -150,6 +150,38 @@ public class ConverseModelInvocation implements ModelInvocation {
     }
 
     @Override
+    public void recordLlmChatCompletionReasoningMessageEvent(int sequence, String reasoningContent, String signature, boolean redacted,
+            String modelId) {
+        boolean hasCompleteUsage = LlmTokenCountResolver.hasCompleteUsageData(
+                modelResponse.getResponseUsagePromptTokens(),
+                modelResponse.getResponseUsageCompletionTokens(),
+                modelResponse.getResponseUsageTotalTokens()
+        );
+
+        LlmEvent.Builder builder = new LlmEvent.Builder(this);
+
+        LlmEvent llmChatCompletionReasoningMessageEvent = builder
+                .spanId()
+                .traceId()
+                .vendor()
+                .ingestSource()
+                .id(getRandomGuid())
+                .reasoningContent(reasoningContent)
+                .reasoningContentSignature(signature)
+                .reasoningContentRedacted(redacted)
+                .role(false)
+                .isResponse(false)
+                .requestId()
+                .responseModel() // uses request model in builder
+                .sequence(sequence)
+                .completionId()
+                .tokenCount(LlmTokenCountResolver.getMessageTokenCount(hasCompleteUsage, modelId, reasoningContent))
+                .build();
+
+        llmChatCompletionReasoningMessageEvent.recordLlmChatCompletionMessageEvent();
+    }
+
+    @Override
     public void recordLlmEvents(long startTime) {
         String operationType = modelResponse.getOperationType();
         if (operationType.equals(COMPLETION)) {
@@ -179,7 +211,12 @@ public class ConverseModelInvocation implements ModelInvocation {
         // Second, record all LlmChatCompletionMessage events representing the completion message from the LLM response
         for (int i = 0; i < numberOfResponseMessages; i++) {
             // The ConverseResponse doesn't contain a model ID, so use the ConverseRequest model ID
-            recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), modelRequest.getModelId(), modelResponse.isUser());
+            if (modelResponse.isReasoningMessage(i)) {
+                recordLlmChatCompletionReasoningMessageEvent(sequence, modelResponse.getResponseReasoningContent(i),
+                        modelResponse.getResponseReasoningSignature(i), modelResponse.isResponseReasoningRedacted(i), modelRequest.getModelId());
+            } else {
+                recordLlmChatCompletionMessageEvent(sequence, modelResponse.getResponseMessage(i), modelRequest.getModelId(), modelResponse.isUser());
+            }
             sequence++;
         }
 

@@ -6,7 +6,11 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation 'software.amazon.awssdk:bedrockruntime:2.26.25'
 
-    testImplementation 'software.amazon.awssdk:bedrockruntime:2.26.25'
+    // Bumped beyond the module's minimum supported version (2.26.25, see verifyInstrumentation below) so tests can
+    // construct real ContentBlock/ContentBlockDelta reasoningContent objects. 2.30.27 is the exact bedrockruntime
+    // version that introduced reasoningContent support; ReasoningContentSupport accesses it reflectively so the
+    // module keeps supporting older SDKs at runtime.
+    testImplementation 'software.amazon.awssdk:bedrockruntime:2.30.27'
     testImplementation 'org.mockito:mockito-inline:4.11.0'
     testImplementation 'org.json:json:20240303'
 }

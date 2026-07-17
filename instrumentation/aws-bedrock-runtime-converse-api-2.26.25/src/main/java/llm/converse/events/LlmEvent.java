@@ -37,6 +37,9 @@ public class LlmEvent {
     private final String ingestSource;
     private final String id;
     private final String content;
+    private final String reasoningContent;
+    private final String reasoningContentSignature;
+    private final Boolean reasoningContentRedacted;
     private final String role;
     private final Boolean isResponse;
     private final String requestId;
@@ -79,6 +82,9 @@ public class LlmEvent {
         private String ingestSource = null;
         private String id = null;
         private String content = null;
+        private String reasoningContent = null;
+        private String reasoningContentSignature = null;
+        private Boolean reasoningContentRedacted = null;
         private String role = null;
         private Boolean isResponse = null;
         private String requestId = null;
@@ -133,6 +139,21 @@ public class LlmEvent {
 
         public Builder content(String message) {
             content = message;
+            return this;
+        }
+
+        public Builder reasoningContent(String reasoningMessage) {
+            reasoningContent = reasoningMessage;
+            return this;
+        }
+
+        public Builder reasoningContentSignature(String signature) {
+            reasoningContentSignature = signature;
+            return this;
+        }
+
+        public Builder reasoningContentRedacted(boolean redacted) {
+            reasoningContentRedacted = redacted;
             return this;
         }
 
@@ -277,6 +298,24 @@ public class LlmEvent {
         content = builder.content;
         if (isAiMonitoringRecordContentEnabled() && content != null && !content.isEmpty()) {
             eventAttributes.put("content", content);
+        }
+
+        reasoningContent = builder.reasoningContent;
+        if (isAiMonitoringRecordContentEnabled() && reasoningContent != null && !reasoningContent.isEmpty()) {
+            eventAttributes.put("reasoning_content", reasoningContent);
+        }
+
+        // Unlike content/reasoning_content, the signature and redacted flag carry no semantic content of their
+        // own (they're an opaque provider continuation token and a structural fact respectively), so they are
+        // captured regardless of ai_monitoring.record_content.enabled.
+        reasoningContentSignature = builder.reasoningContentSignature;
+        if (reasoningContentSignature != null && !reasoningContentSignature.isEmpty()) {
+            eventAttributes.put("reasoning_content_signature", reasoningContentSignature);
+        }
+
+        reasoningContentRedacted = builder.reasoningContentRedacted;
+        if (reasoningContentRedacted != null && reasoningContentRedacted) {
+            eventAttributes.put("reasoning_content_redacted", true);
         }
 
         role = builder.role;

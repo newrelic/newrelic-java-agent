@@ -79,11 +79,8 @@ public class ConverseModelResponse implements ModelResponse {
     @Override
     public String getResponseMessage(int index) {
         // Response message for chat completion request
-        StringBuilder messageBuilder = new StringBuilder();
-        for (ContentBlock contentBlock : contentList) {
-            messageBuilder.append(contentBlock.text());
-        }
-        return messageBuilder.toString();
+        String text = contentList.get(index).text();
+        return text != null ? text : "";
     }
 
     @Override
@@ -150,5 +147,28 @@ public class ConverseModelResponse implements ModelResponse {
     @Override
     public Integer getResponseUsageTotalTokens() {
         return totalTokens;
+    }
+
+    @Override
+    public boolean isReasoningMessage(int index) {
+        return ReasoningContentSupport.isReasoningBlock(contentList.get(index));
+    }
+
+    @Override
+    public String getResponseReasoningContent(int index) {
+        ReasoningContentSupport.ReasoningData reasoningData = ReasoningContentSupport.fromContentBlock(contentList.get(index));
+        return reasoningData != null ? reasoningData.getText() : null;
+    }
+
+    @Override
+    public String getResponseReasoningSignature(int index) {
+        ReasoningContentSupport.ReasoningData reasoningData = ReasoningContentSupport.fromContentBlock(contentList.get(index));
+        return reasoningData != null ? reasoningData.getSignature() : null;
+    }
+
+    @Override
+    public boolean isResponseReasoningRedacted(int index) {
+        ReasoningContentSupport.ReasoningData reasoningData = ReasoningContentSupport.fromContentBlock(contentList.get(index));
+        return reasoningData != null && reasoningData.isRedacted();
     }
 }

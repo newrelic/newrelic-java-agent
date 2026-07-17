@@ -29,8 +29,13 @@ public class LlmEventAttributeValidator extends AttributeValidator {
          * without being truncated as per the LLMs agent spec. This is because the
          * backend will use these attributes to calculate LLM token usage in cases
          * where token counts aren't available on LLM events.
+         *
+         * 'reasoning_content' is the model's chain-of-thought/thinking text and is exempted for the same reason
+         * as 'content'. 'reasoning_content_signature' is an opaque provider continuation token (not semantic
+         * content); truncating it would silently corrupt it, making it useless for the audit-replay/cross-turn
+         * echo purposes it exists for, so it's exempted as well.
          */
-        if (key.equals("content") || key.equals("input")) {
+        if (key.equals("content") || key.equals("input") || key.equals("reasoning_content") || key.equals("reasoning_content_signature")) {
             return value;
         }
         String truncatedVal = truncateString(value, MAX_CUSTOM_EVENT_ATTRIBUTE_SIZE);

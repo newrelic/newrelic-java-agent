@@ -60,6 +60,19 @@ public interface ModelInvocation {
     void recordLlmChatCompletionMessageEvent(int sequence, String message, String modelId, boolean isUser);
 
     /**
+     * Record an LlmChatCompletionMessage event for a reasoning/thinking content block returned by the model. This
+     * is a sibling to {@link #recordLlmChatCompletionMessageEvent(int, String, String, boolean)} for the case where
+     * the content block represents reasoning content rather than regular text content.
+     *
+     * @param sequence         index starting at 0 associated with each message
+     * @param reasoningContent String representing the reasoning/thinking text, may be null or empty when redacted
+     * @param signature        String representing the opaque reasoning signature/continuation token, may be null
+     * @param redacted         boolean true if the provider redacted the reasoning content
+     * @param modelId          String representing the model ID used for the request
+     */
+    void recordLlmChatCompletionReasoningMessageEvent(int sequence, String reasoningContent, String signature, boolean redacted, String modelId);
+
+    /**
      * Record all LLM events when using the sync client.
      *
      * @param startTime start time of SDK invoke method

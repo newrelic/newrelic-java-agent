@@ -50,13 +50,32 @@ An `llm: true` agent attribute will be set on all Transaction events where one o
 
 #### LLM Event Attributes
 
-Attributes on LLM events use the same configuration and size limits as `custom_insights_events` with two notable exceptions being that the following two LLM
+Attributes on LLM events use the same configuration and size limits as `custom_insights_events` with a few notable exceptions being that the following LLM
 event attributes will not be truncated at all:
 
 * `content`
 * `input`
+* `reasoning_content` - so that token usage can be calculated on the backend based on the full reasoning text, same as `content`/`input`
+* `reasoning_content_signature` - truncating this opaque, provider-issued blob would silently corrupt it, making it useless for the cross-turn echo/audit
+  purposes it exists for
 
 This is done so that token usage can be calculated on the backend based on the full input and output content.
+
+#### Reasoning Content
+
+When a model returns Bedrock Converse's `reasoningContent` (e.g. Claude's extended thinking), each reasoning content block is recorded as its own
+`LlmChatCompletionMessage` event (the same one-message-per-content-block granularity used for regular text content) with the following attributes instead of
+`content`:
+
+* `reasoning_content` - The reasoning/thinking text. Gated by `ai_monitoring.record_content.enabled`, same as `content`.
+* `reasoning_content_signature` - An opaque, provider-issued continuation token for the reasoning content. Captured regardless of
+  `ai_monitoring.record_content.enabled` since it carries no semantic content.
+* `reasoning_content_redacted` - `true` when the provider returned redacted/encrypted-only reasoning content (no readable text). Captured regardless of
+  `ai_monitoring.record_content.enabled` since it's a structural fact, not content.
+
+Reasoning content support requires bedrockruntime SDK `2.30.27` or later, since that's the version `ContentBlock`/`ContentBlockDelta` gained
+`reasoningContent()`. This is accessed reflectively so the module continues to support its full existing version range (`bedrockruntime:[2.26.25,)`);
+on an older SDK, reasoning content is silently unavailable and content/tool-use blocks behave exactly as before.
 
 #### Custom LLM Attributes
 

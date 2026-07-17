@@ -10,6 +10,7 @@ package llm.converse.models.converse;
 import com.newrelic.api.agent.NewRelic;
 import llm.converse.models.ModelResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockDelta;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockDeltaEvent;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockStartEvent;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlockStopEvent;
@@ -42,6 +43,9 @@ public class ConverseStreamModelResponse implements ModelResponse, ConverseStrea
     private String stopReason = "";
     private String role = "";
     private final StringBuilder content = new StringBuilder();
+    private final StringBuilder reasoning = new StringBuilder();
+    private String reasoningSignature = null;
+    private boolean reasoningRedacted = false;
     private Integer inputTokens = 0;
     private Integer outputTokens = 0;
     private Integer totalTokens = 0;
@@ -116,8 +120,25 @@ public class ConverseStreamModelResponse implements ModelResponse, ConverseStrea
 
     @Override
     public void visitContentBlockDelta(ContentBlockDeltaEvent event) {
-        if (event.delta() != null && event.delta().text() != null) {
-            content.append(event.delta().text());
+        ContentBlockDelta delta = event.delta();
+        if (delta == null) {
+            return;
+        }
+        if (delta.text() != null) {
+            content.append(delta.text());
+            return;
+        }
+        ReasoningContentSupport.ReasoningData reasoningData = ReasoningContentSupport.fromContentBlockDelta(delta);
+        if (reasoningData != null) {
+            if (reasoningData.getText() != null) {
+                reasoning.append(reasoningData.getText());
+            }
+            if (reasoningData.getSignature() != null) {
+                reasoningSignature = reasoningData.getSignature();
+            }
+            if (reasoningData.isRedacted()) {
+                reasoningRedacted = true;
+            }
         }
     }
 
@@ -143,12 +164,23 @@ public class ConverseStreamModelResponse implements ModelResponse, ConverseStrea
 
     @Override
     public String getResponseMessage(int index) {
+        if (isReasoningMessage(index)) {
+            return "";
+        }
         return content.toString();
     }
 
     @Override
     public int getNumberOfResponseMessages() {
-        return 1;
+        return hasReasoning() ? 2 : 1;
+    }
+
+    /**
+     * Whether any reasoning content was observed on the stream. When true, the response is modeled as two
+     * messages: index 0 is the reasoning message, index 1 is the text message.
+     */
+    private boolean hasReasoning() {
+        return reasoning.length() > 0 || reasoningRedacted;
     }
 
     @Override
@@ -209,5 +241,25 @@ public class ConverseStreamModelResponse implements ModelResponse, ConverseStrea
     @Override
     public Integer getResponseUsageTotalTokens() {
         return totalTokens;
+    }
+
+    @Override
+    public boolean isReasoningMessage(int index) {
+        return hasReasoning() && index == 0;
+    }
+
+    @Override
+    public String getResponseReasoningContent(int index) {
+        return isReasoningMessage(index) ? reasoning.toString() : null;
+    }
+
+    @Override
+    public String getResponseReasoningSignature(int index) {
+        return isReasoningMessage(index) ? reasoningSignature : null;
+    }
+
+    @Override
+    public boolean isResponseReasoningRedacted(int index) {
+        return isReasoningMessage(index) && reasoningRedacted;
     }
 }

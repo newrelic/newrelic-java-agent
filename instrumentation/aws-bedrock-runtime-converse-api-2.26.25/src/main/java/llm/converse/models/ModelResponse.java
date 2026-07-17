@@ -110,4 +110,39 @@ public interface ModelResponse {
      * @return Integer representing the total token count or null if not provided by the model
      */
     Integer getResponseUsageTotalTokens();
+
+    /**
+     * Determine whether the response message at the given index represents reasoning/thinking content rather than
+     * regular text content.
+     *
+     * @param index int indicating the index of a message in an array.
+     * @return boolean true if the message at the given index is reasoning content
+     */
+    boolean isReasoningMessage(int index);
+
+    /**
+     * Get the reasoning/thinking text for the response message at the given index.
+     *
+     * @param index int indicating the index of a message in an array.
+     * @return String representing the reasoning text, or null if this index isn't a reasoning message or no
+     * reasoning text was returned (e.g. redacted)
+     */
+    String getResponseReasoningContent(int index);
+
+    /**
+     * Get the opaque reasoning signature/continuation token for the response message at the given index.
+     *
+     * @param index int indicating the index of a message in an array.
+     * @return String representing the reasoning signature, or null if not present
+     */
+    String getResponseReasoningSignature(int index);
+
+    /**
+     * Determine whether the reasoning content for the response message at the given index was redacted by the
+     * provider (encrypted, content not visible).
+     *
+     * @param index int indicating the index of a message in an array.
+     * @return boolean true if the reasoning content at the given index was redacted
+     */
+    boolean isResponseReasoningRedacted(int index);
 }
