@@ -27,15 +27,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-/**
- * Lifecycle primitive tests for ReactorNettyContext and ReactorNettyHelper.
- */
 public class ReactorNettyHelperTest {
 
-    /**
-     * When ReactorNettyContext.put() displaces an existing SegmentData, the prior Segment must have end().
-     * This prevents it from pinning its parent Transaction in runningChildren.
-     */
     @Test
     public void testPutEndsPriorSegmentOnOverwrite() {
         Connection conn = mock(Connection.class);
@@ -49,9 +42,6 @@ public class ReactorNettyHelperTest {
         verify(second, never()).end();
     }
 
-    /**
-     * When put() does NOT displace an existing entry, no segment should be ended.
-     */
     @Test
     public void testPutWithoutPriorIsCleanInsert() {
         Connection conn = mock(Connection.class);
@@ -62,9 +52,6 @@ public class ReactorNettyHelperTest {
         verify(only, never()).end();
     }
 
-    /**
-     * The put() method must safely ignore null connection or null segmentData without throwing an exception.
-     */
     @Test
     public void testPutNullArgsIsNoOp() {
         ReactorNettyContext.put(null, new ReactorNettyContext.SegmentData(mock(Segment.class), URI.create("http://x/"), "GET"));
@@ -72,10 +59,6 @@ public class ReactorNettyHelperTest {
         ReactorNettyContext.put(null, null);
     }
 
-    /**
-     * cleanupOrphanedSegment must remove the entry AND call Segment.end() on lingering Segments.
-     * This is what RESPONSE_COMPLETED, DISCONNECTING, RELEASED and onUncaughtException delegate to.
-     */
     @Test
     public void testCleanupOrphanedSegmentEndsLingeringSegment() {
         Connection conn = mock(Connection.class);
@@ -88,18 +71,12 @@ public class ReactorNettyHelperTest {
         assertNull("Map entry should be removed after cleanup", ReactorNettyContext.remove(conn));
     }
 
-    /**
-     * cleanupOrphanedSegment on a Connection with no map entry must be a safe no-op, not a NullPointerException.
-     */
     @Test
     public void testCleanupOrphanedSegmentNoEntryIsNoOp() {
         Connection conn = mock(Connection.class);
         ReactorNettyHelper.cleanupOrphanedSegment(conn);
     }
 
-    /**
-     * ReactorNettyContext.remove() returns the previously stored entry and removes it from the map.
-     */
     @Test
     public void testRemoveReturnsAndRemovesEntry() {
         Connection conn = mock(Connection.class);
@@ -115,9 +92,6 @@ public class ReactorNettyHelperTest {
         verify(segment, never()).end();
     }
 
-    /**
-     * SegmentData constructed with a null Segment should not cause cleanupOrphanedSegment to throw an NPE.
-     */
     @Test
     public void testCleanupOrphanedSegmentWithNullSegmentInData() {
         Connection conn = mock(Connection.class);
@@ -127,9 +101,6 @@ public class ReactorNettyHelperTest {
         assertNull("Entry should still be removed even if segment was null", ReactorNettyContext.remove(conn));
     }
 
-    /**
-     * Defends against a put-overwrite of a SegmentData whose Segment field is null.
-     */
     @Test
     public void testPutOverwriteWithNullPriorSegmentIsClean() {
         Connection conn = mock(Connection.class);
@@ -141,10 +112,6 @@ public class ReactorNettyHelperTest {
         verify(newSegment, never()).end();
     }
 
-    /**
-     * cleanupOrphanedSegment must be safe to call multiple times. The same Connection can have cleanup fire multiple times in sequence.
-     * Only one call should end the segment.
-     */
     @Test
     public void testCleanupOrphanedSegmentIsIdempotent() {
         Connection conn = mock(Connection.class);
@@ -152,15 +119,12 @@ public class ReactorNettyHelperTest {
         ReactorNettyContext.put(conn, new ReactorNettyContext.SegmentData(segment, URI.create("http://x/"), "GET"));
 
         ReactorNettyHelper.cleanupOrphanedSegment(conn);
-        ReactorNettyHelper.cleanupOrphanedSegment(conn);   // second fire should be safe no-op
+        ReactorNettyHelper.cleanupOrphanedSegment(conn);
 
         verify(segment, times(1)).end();
         assertNull(ReactorNettyContext.remove(conn));
     }
 
-    /**
-     * Under concurrent put and cleanup on the same Connection, every Segment must be ended exactly once.
-     */
     @Test
     public void testConcurrentPutAndCleanupEndsAllSegments() throws InterruptedException {
         final int threadCount = 16;
@@ -200,10 +164,6 @@ public class ReactorNettyHelperTest {
         assertNull("Map should be empty after all threads finish", ReactorNettyContext.remove(conn));
     }
 
-    /**
-     * reactor-netty pools connections so the same Connection instance can be reused later in unrelated transactions.
-     * Each transaction's Segment must end at the right time with no cross talk between transactions.
-     */
     @Test
     public void testCrossTransactionConnectionReuse() {
         Connection conn = mock(Connection.class);

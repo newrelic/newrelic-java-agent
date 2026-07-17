@@ -20,11 +20,6 @@ import reactor.util.context.Context;
 
 import java.net.URI;
 
-/**
- * Helper class for netty-reactor-http instrumentation. Holds the per-state @Trace(async=true) work so that
- * async tracers are only created for the two states that do meaningful work (REQUEST_PREPARED, RESPONSE_RECEIVED),
- * not for every state transition fired through the observer's onStateChange method.
- */
 public class ReactorNettyHelper {
 
     @Trace(async = true, excludeFromTransactionTrace = true)
@@ -76,7 +71,6 @@ public class ReactorNettyHelper {
             return;
         }
 
-        // Always end the segment and only report when URI is present
         if (data.requestUri != null) {
             HttpClientResponse response = (HttpClientResponse) connection;
             String procedure = (data.httpMethod != null && !data.httpMethod.isEmpty())
@@ -93,10 +87,6 @@ public class ReactorNettyHelper {
         data.segment.end();
     }
 
-    /**
-     * Defensive cleanup for any lingering Segment. No @Trace is applied because no meaningful work is done here.
-     * Ends the Segment so it stops retaining its parent Transaction.
-     */
     public static void cleanupOrphanedSegment(Connection connection) {
         ReactorNettyContext.SegmentData data = ReactorNettyContext.remove(connection);
         if (data != null && data.segment != null) {
