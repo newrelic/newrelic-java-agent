@@ -243,6 +243,11 @@ public class Transaction {
     // count of active tokens and tracers
     private final AtomicInteger activeCount;
 
+    // TODO - remove before publish.
+    // This is a convenience counter at the moment (used for debugging only).
+    // It tracks how many tokens from secondary (linked and discarded) transactions had their ownership transferred to this transaction.
+    private final AtomicInteger tokensTransferred = new AtomicInteger(0);
+
     private final SecurityMetaData securityMetaData;
 
     private final MetricAggregator metricAggregator = new AbstractMetricAggregator() {
@@ -1553,6 +1558,20 @@ public class Transaction {
                         newTx.getIntrinsicAttributes().putAll(oldTx.getIntrinsicAttributes());
                         newTx.getUserAttributes().putAll(oldTx.getUserAttributes());
                         newTx.getErrorAttributes().putAll(oldTx.getErrorAttributes());
+
+                        //TODO
+                        //Migrate over oldTx's tokens if they were successfully reparented during oldTxa.startAsyncActivity() above.
+                        //I'm not 100% sure if this needs to happen under lock on oldTx's token cache (or if doing so is potentially dangerous).
+                        //Instead of moving over all of oldTx's tokens, I move over only the ones that are currently pointing to newTx
+                        //after the reparenting operation.
+                        for (TokenImpl t : oldTx.activeTokensCache.get().getTokens()) {
+                            if (t.getTransaction().getTransactionIfExists() == newTx) {
+                                oldTx.activeTokensCache.get().transferOwnership(t, newTx.activeTokensCache.get());
+                                oldTx.activeCount.decrementAndGet();
+                                newTx.activeCount.incrementAndGet();
+                                newTx.tokensTransferred.incrementAndGet();
+                            }
+                        }
 
                         // Now allow the "old" transaction to execute the cancellation
                         // cleanup path. In the trivial case where the "old" transaction

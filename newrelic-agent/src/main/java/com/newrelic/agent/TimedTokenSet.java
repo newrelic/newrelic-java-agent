@@ -13,6 +13,7 @@ import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.util.TimeConversion;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -107,6 +108,18 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
     @Override
     public void refresh(TokenImpl token) {
         activeTokens.get(token);
+    }
+
+    @Override
+    public Set<TokenImpl> getTokens() {
+        return activeTokens.keySet();
+    }
+
+    @Override
+    public void transferOwnership(TokenImpl token, TimedSet<TokenImpl> targetCache){
+        //TODO maybe this should only put the token into the targetCache if it actually was in this one.
+        activeTokens.remove(token);
+        targetCache.put(token);
     }
 
 }

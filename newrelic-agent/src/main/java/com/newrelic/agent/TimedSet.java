@@ -7,6 +7,8 @@
 
 package com.newrelic.agent;
 
+import java.util.Set;
+
 /**
  * A timed set interface that should act like a set that can time out values. The time out period is set during
  * creation, and all entries adhere to it.
@@ -18,7 +20,7 @@ package com.newrelic.agent;
  *
  * @param <K> type of the object being stored
  */
-interface TimedSet<K> {
+public interface TimedSet<K> {
     /**
      * The exact number of entries that were removed due to hitting a time out limit.
      */
@@ -50,4 +52,17 @@ interface TimedSet<K> {
      * Refresh the last access time of a token.
      */
     void refresh(TokenImpl token);
+
+    /**
+     * Get the set of active tokens held by this cache.
+     * @return
+     */
+    Set<TokenImpl> getTokens();
+
+    /**
+     * Move the token from this TimedSet to the targetTimedSet.
+     * @param token
+     * @param targetTimedSet
+     */
+    void transferOwnership(TokenImpl token, TimedSet<K> targetTimedSet);
 }
