@@ -18,13 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
-// TODO nothing in this class has been tested as streaming support isn't yet implemented. It seems that
-//  ConverseStreamRequest provides the same APIs as ConverseRequest, so perhaps this class isn't necessary
-//  and ConverseModelRequest can just handle both request types (ConverseStreamRequest and ConverseRequest).
-//  Might just need to modify the constructor of ConverseModelRequest to accept a more generic
-//  shared interface/abstract class (e.g. BedrockRuntimeRequest, AwsRequest, or SdkRequest) and
-//  just cast to the appropriate request type if need be.
-
 /**
  * Stores the required info from the Bedrock ConverseRequest.
  * Avoids holding a reference to the request object to prevent potential memory issues.

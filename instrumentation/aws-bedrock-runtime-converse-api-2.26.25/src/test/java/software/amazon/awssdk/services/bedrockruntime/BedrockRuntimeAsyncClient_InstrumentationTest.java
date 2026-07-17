@@ -38,8 +38,10 @@ import static llm.converse.models.TestUtil.STOP_REASON;
 import static llm.converse.models.TestUtil.assertErrorEvent;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
 import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
+import static llm.converse.models.TestUtil.assertStreamErrorEvent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseRequest;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseStreamRequest;
@@ -85,38 +87,48 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         return converseResponseFuture.get();
     }
 
-    // TODO Stream support not implemented
-//    @Test
-//    public void testConverseStreamCompletion() throws ExecutionException, InterruptedException {
-//        boolean isError = false;
-//        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
-////        assertNotNull(converseResponse);
-//        assertTransaction();
-//        assertSupportabilityMetrics();
-//        assertLlmEvents();
-//        assertTrue(introspector.getErrorEvents().isEmpty());
-//    }
+    @Test
+    public void testConverseStreamCompletion() throws ExecutionException, InterruptedException {
+        boolean isError = false;
+        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
+        assertNull(unused);
+        assertStreamTransaction();
+        assertSupportabilityMetrics();
+        assertLlmEvents();
+        assertErrorEvent(isError, introspector.getErrorEvents());
+    }
 
-    // TODO Stream support not implemented
-//    @Test
-//    public void testConverseStreamCompletionError() throws ExecutionException, InterruptedException {
-//        boolean isError = true; // TODO might need to add a custom error flag on the request
-//        Void unused = converseStreamRequestInTransaction(converseStreamRequest());
-////        assertNotNull(converseResponse);
-//        assertTransaction();
-//        assertSupportabilityMetrics();
-//        assertLlmEvents();
-//        assertTrue(introspector.getErrorEvents().isEmpty());
-//    }
+    @Test
+    public void testConverseStreamCompletionError() throws ExecutionException, InterruptedException {
+        boolean isError = true;
+        Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
+        assertNull(unused);
+        assertStreamTransaction();
+        assertSupportabilityMetrics();
+        assertStreamErrorEvent(isError, introspector.getErrorEvents());
 
-    // TODO Stream support not implemented
-//    @Trace(dispatcher = true)
-//    private Void converseStreamRequestInTransaction(ConverseStreamRequest converseStreamRequest) throws ExecutionException, InterruptedException {
-//        addCustomParameters();
-//        ConverseStreamResponseHandler converseStreamResponseHandler = ConverseStreamResponseHandler.builder().build();
-//        CompletableFuture<Void> converseResponseFuture = mockBedrockRuntimeAsyncClient.converseStream(converseStreamRequest, converseStreamResponseHandler);
-//        return converseResponseFuture.get();
-//    }
+        Collection<Event> llmCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
+        assertEquals(1, llmCompletionSummaryEvents.size());
+        assertEquals(true, llmCompletionSummaryEvents.iterator().next().getAttributes().get("error"));
+    }
+
+    @Trace(dispatcher = true)
+    private Void converseStreamRequestInTransaction(ConverseStreamRequest converseStreamRequest) throws ExecutionException, InterruptedException {
+        addCustomParameters();
+
+        ConverseStreamResponseHandler converseStreamResponseHandler = ConverseStreamResponseHandler.builder().subscriber(event -> { }).build();
+        CompletableFuture<Void> converseResponseFuture = mockBedrockRuntimeAsyncClient.converseStream(converseStreamRequest, converseStreamResponseHandler);
+        return converseResponseFuture.get();
+    }
+
+    private void assertStreamTransaction() {
+        assertEquals(1, introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(2)));
+        Collection<String> transactionNames = introspector.getTransactionNames();
+        String transactionName = transactionNames.iterator().next();
+        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(transactionName);
+        assertTrue(metrics.containsKey("Llm/completion/Bedrock/converseStream"));
+        assertEquals(1, metrics.get("Llm/completion/Bedrock/converseStream").getCallCount());
+    }
 
     private void addCustomParameters() {
         NewRelic.addCustomParameter("llm.conversation_id", "conversation-id-value"); // Will be added to LLM events

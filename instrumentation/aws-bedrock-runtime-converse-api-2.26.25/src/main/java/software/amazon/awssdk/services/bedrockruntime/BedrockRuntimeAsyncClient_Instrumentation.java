@@ -18,7 +18,9 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import llm.converse.models.ModelInvocation;
+import llm.converse.models.ModelResponse;
 import llm.converse.models.converse.ConverseModelInvocation;
+import llm.converse.models.converse.ConverseStreamResponseHandlerWrapper;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
@@ -29,6 +31,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringEnabled;
+import static com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils.isAiMonitoringStreamingEnabled;
+import static llm.converse.vendor.Vendor.BEDROCK;
 import static llm.converse.vendor.Vendor.VENDOR_VERSION;
 
 /**
@@ -92,11 +96,31 @@ public abstract class BedrockRuntimeAsyncClient_Instrumentation {
     @Trace
     public CompletableFuture<Void> converseStream(ConverseStreamRequest converseStreamRequest, ConverseStreamResponseHandler asyncResponseHandler) {
         long startTime = System.currentTimeMillis();
-        CompletableFuture<Void> voidFuture = Weaver.callOriginal();
 
-        // TODO figure out strategy for creating modelResponse from stream chunks - See Spring AI instrumentation for example
-        //  If streaming support is not possible, then log that as we do in the aws-bedrock-runtime-2.20 instrumentation module
+        if (isAiMonitoringEnabled()) {
+            Transaction txn = AgentBridge.getAgent().getTransaction();
+            ModelInvocation.incrementInstrumentedSupportabilityMetric(VENDOR_VERSION);
 
-        return voidFuture;
+            if (!(txn instanceof NoOpTransaction)) {
+                Segment segment = txn.startSegment("");
+                ModelInvocation.setLlmTrueAgentAttribute(txn);
+                segment.setMetricName("Llm", ModelResponse.COMPLETION, BEDROCK, "converseStream");
+
+                if (asyncResponseHandler == null) {
+                    segment.end();
+                } else if (isAiMonitoringStreamingEnabled()) {
+                    Map<String, Object> userAttributes = txn.getUserAttributes();
+                    Map<String, String> linkingMetadata = NewRelic.getAgent().getLinkingMetadata();
+                    Token token = txn.getToken();
+
+                    asyncResponseHandler = new ConverseStreamResponseHandlerWrapper(asyncResponseHandler, converseStreamRequest, linkingMetadata,
+                            userAttributes, segment, token, startTime, Weaver.getImplementationTitle());
+                } else {
+                    segment.end();
+                }
+            }
+        }
+
+        return Weaver.callOriginal();
     }
 }

@@ -7,6 +7,7 @@
 
 package software.amazon.awssdk.services.bedrockruntime;
 
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseRequest;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseResponse;
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRequest;
@@ -14,6 +15,8 @@ import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamRespon
 
 import java.util.concurrent.CompletableFuture;
 
+import static software.amazon.awssdk.services.bedrockruntime.MockConverseResponse.converseStreamEvents;
+import static software.amazon.awssdk.services.bedrockruntime.MockConverseResponse.converseStreamResponse;
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseResponse.sdkResponse;
 
 public class BedrockRuntimeAsyncClientMock implements BedrockRuntimeAsyncClient {
@@ -35,7 +38,15 @@ public class BedrockRuntimeAsyncClientMock implements BedrockRuntimeAsyncClient 
 
     @Override
     public CompletableFuture<Void> converseStream(ConverseStreamRequest converseStreamRequest, ConverseStreamResponseHandler asyncResponseHandler) {
-        // TODO Stream support not implemented
+        boolean isError = converseStreamRequest.additionalModelRequestFields().asBoolean();
+
+        asyncResponseHandler.responseReceived(converseStreamResponse());
+        if (isError) {
+            asyncResponseHandler.exceptionOccurred(new RuntimeException("Simulated ConverseStream failure"));
+        } else {
+            asyncResponseHandler.onEventStream(SdkPublisher.fromIterable(converseStreamEvents()));
+            asyncResponseHandler.complete();
+        }
         return CompletableFuture.completedFuture(null);
     }
 }
