@@ -129,6 +129,11 @@ public interface TracedMethod extends com.newrelic.api.agent.TracedMethod {
     public boolean isTrackCallbackRunnable();
 
     /**
+     * Reports the HTTP method (i.e. GET, POST, PUT, etc) for external HTTP traces as an agent & span attribute named `http.request.method`
+     */
+    void setHttpMethod(String httpVerb);
+
+    /**
      * Mark a leaf tracer as excluded, similar to how excludeFromTransactionTrace works.
      */
     void excludeLeaf();

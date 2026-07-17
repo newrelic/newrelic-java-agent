@@ -10,6 +10,7 @@ package org.asynchttpclient;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.Segment;
@@ -45,6 +46,8 @@ public class AsyncHandler_Instrumentation<T> {
     private InboundWrapper inboundHeaders;
     @NewField
     private HttpResponseStatus responseStatus;
+    @NewField
+    public String method;
 
     public AsyncHandler.State onStatusReceived(HttpResponseStatus responseStatus) {
         AsyncHandler.State userState = Weaver.callOriginal();
@@ -72,6 +75,7 @@ public class AsyncHandler_Instrumentation<T> {
             uri = null;
             inboundHeaders = null;
             userAbortedOnStatusReceived = null;
+            method = null;
         }
         Weaver.callOriginal();
     }
@@ -99,12 +103,14 @@ public class AsyncHandler_Instrumentation<T> {
                     .inboundHeaders(inboundHeaders)
                     .status(getStatusCode(), getStatusText())
                     .build());
+            AgentBridge.getAgent().setHttpMethod(segment, method);
             //This used to be segment.finish(t), but the agent doesn't automatically report t.
             segment.end();
             segment = null;
             uri = null;
             inboundHeaders = null;
             userAbortedOnStatusReceived = null;
+            method = null;
         }
 
         return Weaver.callOriginal();

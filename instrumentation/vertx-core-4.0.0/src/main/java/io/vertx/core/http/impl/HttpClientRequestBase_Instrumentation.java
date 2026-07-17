@@ -68,7 +68,8 @@ public abstract class HttpClientRequestBase_Instrumentation {
             final String host = resp.request().getHost();
             final int port = resp.request().getPort();
             final String scheme = resp.request().ssl ? "https" : "http";
-            VertxCoreUtil.processResponse(segment, resp, host, port, scheme);
+            final String method =  resp.request().getMethod() != null ? resp.request().getMethod().name() : null;
+            VertxCoreUtil.processResponse(segment, resp, host, port, scheme, method);
         }
     }
 }

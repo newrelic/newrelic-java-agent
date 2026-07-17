@@ -10,6 +10,7 @@ package com.newrelic.instrumentation.micronaut.http.client4;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import org.reactivestreams.Subscription;
 
 import com.newrelic.api.agent.HttpParameters;
@@ -22,10 +23,12 @@ public class ReactorListener implements Runnable, Consumer<Subscription> {
 	private Segment segment = null;
 	private Transaction txn = null;
 	private HttpParameters params = null;
+	private String method = null;
 	
-	public ReactorListener(Transaction t, HttpParameters p) {
+	public ReactorListener(Transaction t, HttpParameters p, String httpMethod) {
 		txn = t;
 		params = p;
+		method = httpMethod;
 	}
 
 	@Override
@@ -49,6 +52,7 @@ public class ReactorListener implements Runnable, Consumer<Subscription> {
 				String proc = params.getProcedure();
 				segment = txn.startSegment("MicronautClient/"+proc);
 				segment.reportAsExternal(params);
+				AgentBridge.getAgent().setHttpMethod(segment, method);
 			}
 		}
 	}

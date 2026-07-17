@@ -41,6 +41,7 @@ abstract class ClientRuntime_Instrumentation {
                         .procedure(JerseyClientUtils.FAILED)
                         .noInboundHeaders()
                         .build());
+                AgentBridge.getAgent().getTracedMethod().setHttpMethod(request.getMethod());
             }
             throw ex;
         }
@@ -51,6 +52,7 @@ abstract class ClientRuntime_Instrumentation {
                 .procedure(request.getMethod())
                 .inboundHeaders(new InboundWrapper(response))
                 .build());
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(request.getMethod());
 
         return response;
     }

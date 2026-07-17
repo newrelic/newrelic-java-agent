@@ -7,6 +7,7 @@
 
 package com.nr.agent.instrumentation.okhttp44;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -44,7 +45,7 @@ public class OkUtils {
         }
     }
 
-    public static void processResponse(URI requestUri, Response response) {
+    public static void processResponse(URI requestUri, String method, Response response) {
         if (response != null) {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
                     .library(LIBRARY)
@@ -53,6 +54,7 @@ public class OkUtils {
                     .inboundHeaders(new InboundWrapper(response))
                     .status(response.code(), response.message())
                     .build());
+            AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         }
     }
 

@@ -50,7 +50,7 @@ abstract class RealCall_Instrumentation {
             throw e;
         }
 
-        OkUtils.processResponse(originalRequest.url().uri(), response);
+        OkUtils.processResponse(originalRequest.url().uri(), originalRequest.method(), response);
 
         return response;
     }
