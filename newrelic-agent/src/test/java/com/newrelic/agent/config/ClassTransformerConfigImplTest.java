@@ -15,7 +15,6 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.instrumentation.PointCutConfiguration;
 import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.module.JarCollectorService;
@@ -431,83 +430,6 @@ public class ClassTransformerConfigImplTest {
     }
 
     @Test
-    public void testSpringPointcutDisabled() {
-        Map<String, Object> classTransformerMap = new HashMap<>();
-        Map<String, Object> defaultInstrumentationSettings = new HashMap<>();
-
-        defaultInstrumentationSettings.put("enabled", false);
-
-        classTransformerMap.put(ClassTransformerConfigImpl.DEFAULT_INSTRUMENTATION, defaultInstrumentationSettings);
-
-        Map<String, Object> configSettings = new HashMap<>();
-        configSettings.put(AgentConfigImpl.CLASS_TRANSFORMER, classTransformerMap);
-        configSettings.put(AgentConfigImpl.APP_NAME, "Unit Test");
-        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(configSettings);
-
-        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
-        ServiceManager serviceManager = new MockServiceManager(configService);
-        ServiceFactory.setServiceManager(serviceManager);
-
-        SpringPointCut springPointCut = new SpringPointCut(null, agentConfig);
-        assertFalse(springPointCut.isEnabled());
-    }
-
-    @Test
-    public void testSpringPointcutEnabledDefaultDisabled() {
-        Map<String, Object> configuration = new HashMap<>();
-        configuration.put("class_transformer:instrumentation_default:enabled", false);
-        configuration.put("enable_spring_tracing", true);
-        configuration.put("app_name", "Unit Test");
-        configuration = buildConfigMap(configuration);
-
-        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(configuration);
-
-        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
-        ServiceManager serviceManager = new MockServiceManager(configService);
-        ServiceFactory.setServiceManager(serviceManager);
-
-        SpringPointCut springPointCut = new SpringPointCut(null, agentConfig);
-        assertTrue(springPointCut.isEnabled());
-    }
-
-    @Test
-    public void testSpringPointcutDisabledDefaultEnabled() {
-        Map<String, Object> configuration = new HashMap<>();
-        configuration.put("class_transformer:instrumentation_default:enabled", true);
-        configuration.put("enable_spring_tracing", false);
-        configuration.put("app_name", "Unit Test");
-        configuration = buildConfigMap(configuration);
-
-        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(configuration);
-
-        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
-        ServiceManager serviceManager = new MockServiceManager(configService);
-        ServiceFactory.setServiceManager(serviceManager);
-
-        SpringPointCut springPointCut = new SpringPointCut(null, agentConfig);
-        assertFalse(springPointCut.isEnabled());
-    }
-
-    @Test
-    public void testSpringPointcutEnabled() {
-        Map<String, Object> configuration = new HashMap<>();
-        configuration.put("lite_mode", true);
-        configuration.put("class_transformer:instrumentation_default:enabled", true);
-        configuration.put("enable_spring_tracing", true);
-        configuration.put("app_name", "Unit Test");
-        configuration = buildConfigMap(configuration);
-
-        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(configuration);
-        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
-
-        ServiceManager serviceManager = new MockServiceManager(configService);
-        ServiceFactory.setServiceManager(serviceManager);
-
-        SpringPointCut springPointCut = new SpringPointCut(null, agentConfig);
-        assertTrue(springPointCut.isEnabled());
-    }
-
-    @Test
     public void testBuiltinExtension() {
         Map<String, Object> configuration = new HashMap<>();
         configuration.put("class_transformer:instrumentation_default:enabled", false);
@@ -521,7 +443,6 @@ public class ClassTransformerConfigImplTest {
         ServiceManager serviceManager = new MockServiceManager(configService);
         ServiceFactory.setServiceManager(serviceManager);
 
-//        SpringPointCut springPointCut = new SpringPointCut(agentConfig);
         assertTrue(agentConfig.getClassTransformerConfig().isBuiltinExtensionEnabled());
     }
 
