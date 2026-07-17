@@ -20,10 +20,12 @@ public class TokenImpl implements Token {
 
     private volatile Tracer initiatingTracer;
     private final AtomicBoolean active;
+    public final AtomicBoolean isInTransfer;
 
     public TokenImpl(Tracer tracer) {
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
+        isInTransfer = new AtomicBoolean(false);
 
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();

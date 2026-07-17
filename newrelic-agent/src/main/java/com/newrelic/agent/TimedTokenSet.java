@@ -66,7 +66,12 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
                         // In the case of a token being expired we *must* spin off the work on to a
                         // second thread in order to prevent a possible deadlock between the expire code
                         // and other tx usages.
-                        expirationService.expireToken(token::markExpired);
+                        if (!token.isInTransfer.get()) {
+                            expirationService.expireToken(token::markExpired);
+                        } else {
+                            //don't expire the token, just unset the transfer op
+                            token.isInTransfer.set(false);
+                        }
                     }
                 });
     }
@@ -118,6 +123,7 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
     @Override
     public void transferOwnership(TokenImpl token, TimedSet<TokenImpl> targetCache){
         //TODO maybe this should only put the token into the targetCache if it actually was in this one.
+        token.isInTransfer.set(true);
         activeTokens.remove(token);
         targetCache.put(token);
     }
