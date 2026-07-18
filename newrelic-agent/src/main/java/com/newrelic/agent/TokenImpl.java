@@ -11,6 +11,7 @@ import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.NewRelic;
 
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -148,6 +149,7 @@ public class TokenImpl implements Token {
         active.set(Boolean.FALSE);
         Transaction tx = getTransaction().getTransactionIfExists();
         if (tx != null) {
+            NewRelic.getAgent().getLogger().log(Level.SEVERE, "Token {0} calling onRemoval against tx {1}", this, tx);
             tx.onRemoval();
         }
         initiatingTracer = null;

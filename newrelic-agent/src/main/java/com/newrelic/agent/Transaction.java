@@ -98,6 +98,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -242,6 +243,12 @@ public class Transaction {
 
     // count of active tokens and tracers
     private final AtomicInteger activeCount;
+    private final AtomicInteger tokensStarted = new AtomicInteger(0);
+    private final AtomicInteger tokensFinished = new AtomicInteger(0);
+    private final AtomicInteger activitiesStarted = new AtomicInteger(0);
+    private final AtomicInteger activitiesFinished = new AtomicInteger(0);
+    private final AtomicBoolean isPrimaryTransaction = new AtomicBoolean(true);
+
 
     // TODO - remove before publish.
     // This is a convenience counter at the moment (used for debugging only).
@@ -1003,6 +1010,7 @@ public class Transaction {
         synchronized (lock) {
             runningChildren.put(activity.hashCode(), activity);
             activeCount.incrementAndGet();
+            activitiesStarted.incrementAndGet();
         }
     }
 
@@ -1539,6 +1547,7 @@ public class Transaction {
 
                     int oldTxaId = oldTxa.hashCode();
                     oldTxa.startAsyncActivity(newTx, newTx.nextActivityId.getAndIncrement(), tracer);
+                    NewRelic.getAgent().getLogger().log(Level.SEVERE, "Just reparented oldTxa from oldTx {0} to newTx {1}", oldTx, newTx);
                     if (oldTx != null) {
                         // We migrate state from the source to the target transactions of the migration.
                         // It's never been completely clear whether or not this is the correct behavior.
@@ -1564,14 +1573,25 @@ public class Transaction {
                         //I'm not 100% sure if this needs to happen under lock on oldTx's token cache (or if doing so is potentially dangerous).
                         //Instead of moving over all of oldTx's tokens, I move over only the ones that are currently pointing to newTx
                         //after the reparenting operation.
+
+                        NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Processing tokens for: oldTx {0}, guid {1}; newTx {2}, guid {3}", oldTx, oldTx.guid,  newTx, newTx.guid);
                         for (TokenImpl t : oldTx.activeTokensCache.get().getTokens()) {
-                            if (t.getTransaction().getTransactionIfExists() == newTx) {
+                            Transaction tokenOwner = t.getTransaction().getTransactionIfExists();
+                            if (tokenOwner == newTx) {
                                 oldTx.activeTokensCache.get().transferOwnership(t, newTx.activeTokensCache.get());
                                 oldTx.activeCount.decrementAndGet();
                                 newTx.activeCount.incrementAndGet();
                                 newTx.tokensTransferred.incrementAndGet();
+                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is newTx {0}, token is {1}", tokenOwner, t);
+                            } else if (tokenOwner == oldTx) {
+                                //if this token has not been reparented, forcibly expire it.
+                                t.expire();
+                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is oldTx {0}, token is {1}", tokenOwner, t);
+                            } else {
+                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is neither new nor old {0}, token is {1}", tokenOwner, t);
                             }
                         }
+                        oldTx.isPrimaryTransaction.set(false);
 
                         // Now allow the "old" transaction to execute the cancellation
                         // cleanup path. In the trivial case where the "old" transaction
@@ -2306,6 +2326,7 @@ public class Transaction {
             if (!isFinished()) {
                 token = new TokenImpl(parent);
                 activeCount.incrementAndGet();
+                tokensStarted.incrementAndGet();
                 counts.getToken();
                 TimedSet<TokenImpl> tokenCache = activeTokensCache.get();
                 if (tokenCache == null) {
@@ -2318,7 +2339,7 @@ public class Transaction {
         }
 
         if (wasAdded) {
-            Agent.LOG.log(Level.FINEST, "Transaction {0}: created active token {1}", this, token);
+            Agent.LOG.log(Level.SEVERE, "Transaction {0}: created active token {1}", this, token);
         } else {
             Agent.LOG.log(Level.FINER, "Transaction {0}: already finished. cannot create token", this);
             // return NoOpToken here to prevent case where execution gets to the synchronized block above but the
@@ -2347,9 +2368,9 @@ public class Transaction {
                 TimedSet<TokenImpl> tokenCache = tx.activeTokensCache.get();
                 if (!tx.isFinished() && tokenCache != null) {
                     tokenWasActive = tokenCache.remove(token);
-                    Agent.LOG.log(Level.FINEST, "Transaction {0}: expired token {1}", tx, token);
+                    Agent.LOG.log(Level.SEVERE, "Transaction {0}: expired token {1}", tx, token);
                 } else {
-                    Agent.LOG.log(Level.FINER, "Transaction {0}: token {1} is not active and so cannot be expired", tx, token);
+                    Agent.LOG.log(Level.SEVERE, "Transaction {0}: token {1} is not active and so cannot be expired", tx, token);
                 }
             }
         }
@@ -2532,14 +2553,17 @@ public class Transaction {
 
     private void checkFinishTransactionFromToken() {
         checkFinishTransaction(null, null);
+        tokensFinished.incrementAndGet();
     }
 
     public void checkFinishTransactionFromActivity(TransactionActivity txa) {
       checkFinishTransaction(txa, null);
+      activitiesFinished.incrementAndGet();
     }
 
     private void checkFinishTransaction(TransactionActivity txa) {
         checkFinishTransaction(txa, txa.hashCode());
+        activitiesFinished.incrementAndGet();
     }
 
     // This secondary method exists only because when we link a Transaction we need to change the hashCode of the
