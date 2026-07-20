@@ -9,14 +9,9 @@ package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.instrumentation.pointcuts.MathCSConcurrentPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.container.JasperCompilerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.ProcessActionPortletPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.RenderPortletPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.HandlerMethodInvokerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.spring.SpringPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,20 +43,10 @@ public class ClassTransformerTest {
         }
 
         List<? extends PointCut> manual = Arrays.asList(
-                // Spring
-                new SpringPointCut(classTransformer),
-                // new SpringWildcardPathPointCut(classTransformer),
-                new HandlerMethodInvokerPointCut(classTransformer),
-                // Faces
-                new LifecyclePointCut(classTransformer),
-                // new PhasePointCut(), // In pointcuts.yml
                 // CXF
                 new CXFPointCut(classTransformer),
                 new CXFInvokerPointCut(classTransformer),
                 new ClientProxyPointCut(classTransformer),
-                // portlet
-                new ProcessActionPortletPointCut(classTransformer),
-                new RenderPortletPointCut(classTransformer),
                 // Tomcat
                 new JasperCompilerPointCut(classTransformer),
                 // java concurrent

@@ -638,6 +638,13 @@ public class DefaultTracer extends AbstractTracer {
     }
 
     @Override
+    public void setHttpMethod(String httpVerb) {
+        if (httpVerb != null) {
+            setAgentAttribute(AttributeNames.HTTP_REQUEST_METHOD, httpVerb.toUpperCase(), true);
+        }
+    }
+
+    @Override
     public void setMetricNameFormatInfo(String metricName, String transactionSegmentName, String transactionSegmentUri) {
         MetricNameFormat format = new SimpleMetricNameFormat(metricName, transactionSegmentName, transactionSegmentUri);
         setMetricNameFormat(format);

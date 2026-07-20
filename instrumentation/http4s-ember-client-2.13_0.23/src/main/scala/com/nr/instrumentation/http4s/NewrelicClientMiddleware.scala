@@ -34,6 +34,7 @@ object NewrelicClientMiddleware {
               .procedure(req.method.toString())
               .inboundHeaders(new InboundResponseWrapper(response.headers))
               .build())
+            AgentBridge.agent.setHttpMethod(seg, req.method.toString())
             seg.end()
             response
           })(_ => construct(response))

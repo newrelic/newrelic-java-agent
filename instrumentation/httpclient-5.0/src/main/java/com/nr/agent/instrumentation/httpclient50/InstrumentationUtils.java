@@ -57,24 +57,26 @@ public class InstrumentationUtils {
         }
     }
 
-    public static void processResponse(URI requestURI, HttpResponse response, Segment segment) {
+    public static void processResponse(URI requestURI, String method, HttpResponse response, Segment segment) {
         if (response == null) {
             NewRelic.getAgent().getLogger().log(Level.INFO,"httpclient-5.0: null response received. No external recorded.");
             return;
         }
-        HttpParameters params = createInboundParams(requestURI, response);
+        HttpParameters params = createInboundParams(requestURI, method, response);
         if (segment != null) {
             segment.reportAsExternal(params);
+            AgentBridge.getAgent().setHttpMethod(segment, method);
         } else {
             NewRelic.getAgent().getTracedMethod().reportAsExternal(params);
+            AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         }
     }
 
-    public static void processResponse(URI requestURI, HttpResponse response) {
-        processResponse(requestURI, response, null);
+    public static void processResponse(URI requestURI, String method, HttpResponse response) {
+        processResponse(requestURI, method, response, null);
     }
 
-    private static  HttpParameters createInboundParams(URI requestURI, HttpResponse response) {
+    private static  HttpParameters createInboundParams(URI requestURI, String method, HttpResponse response) {
         InboundWrapper inboundCatWrapper = new InboundWrapper(response);
         HttpParameters params = HttpParameters
                 .library(LIBRARY)

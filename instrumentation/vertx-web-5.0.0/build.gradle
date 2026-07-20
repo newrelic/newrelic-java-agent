@@ -1,0 +1,39 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.vertx-web-5.0.0'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.vertx:vertx-web:5.0.0")
+
+    testImplementation("com.jayway.restassured:rest-assured:2.7.0")
+    testImplementation("jakarta.xml.ws:jakarta.xml.ws-api:2.3.3")
+
+    testImplementation("io.vertx:vertx-web:5.0.0")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+}
+
+verifyInstrumentation {
+    passesOnly 'io.vertx:vertx-web:[5.0.0,5.1.0)'
+    excludeRegex '.*CR[0-9]*'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+test {
+    // Vert.x 5.0.0 requires Java 11+; skip when running on Java 8.
+    onlyIf {
+        !project.hasProperty('test8')
+    }
+}
+
+site {
+    title 'Vertx'
+    type 'Framework'
+}

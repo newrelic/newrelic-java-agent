@@ -8,7 +8,6 @@
 package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 
@@ -16,7 +15,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class JdbcHelper {
 
@@ -43,32 +40,62 @@ public class JdbcHelper {
         }
     };
 
+    //statement cache settings
+    /**
+     * In extreme high-throughput scenarios, weak keyed eviction may throttle the CPU when it tries to perform maintenance on statement caches.
+     * Setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will convert the caches to ordinary ConcurrentHashMaps
+     * to alleviate this maintenance overhead.
+     * <p>
+     * Statements are only removed from the caches on Statement.close(), so this config MUST be enabled with caution. If the user does not properly close their
+     * statements, setting -Dnewrelic.config.jdbc_statement_weak_key_caching.enabled=false will cause memory issues. The user MUST explicitly call
+     * Statement.close() (not the implicit Statement.closeOnCompletion()) for cleanup to be guaranteed.
+     */
+    private static final String JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED = "jdbc_statement_weak_key_caching.enabled";
+    private static final boolean JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT = Boolean.TRUE;
+    private static final int INITIAL_STATEMENT_CACHE_CAPACITY = 1024;
+    private static final Map<Statement, Object[]> statementToParams = initStatementCache("statementToParams");
+    private static final Map<Statement, String> statementToSql = initStatementCache("statementToSql");
+
     // This will contain every vendor type that we detected on the client system
     private static final Map<String, DatabaseVendor> typeToVendorLookup = new ConcurrentHashMap<>(10);
     private static final Map<Class<?>, DatabaseVendor> classToVendorLookup = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
-    private static final Map<Statement, String> statementToSql = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToIdentifier = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     private static final Map<Connection, String> connectionToURL = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
     public static final String UNKNOWN = "unknown";
 
     private static final int cacheExpireTime = NewRelic.getAgent().getConfig().getValue("jdbc_helper_cache_expire_time", 7200);
-    private static volatile Set<String> metadataCommentConfig = null;
     private static final Map<String, ConnectionFactory> urlToFactory = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
     private static final Map<String, String> urlToDatabaseName = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(cacheExpireTime);
 
     public static final String SQL_METADATA_COMMENTS_SVC_GUID = "nr_service_guid";
-    public static final String SQL_METADATA_COMMENTS_SVC_NAME = "nr_service";
-    public static final String SQL_METADATA_COMMENTS_TXN_NAME = "nr_txn";
-    public static final String SQL_METADATA_COMMENTS_TRACE_ID = "nr_trace_id";
-    private static final Set<String> VALID_SQL_METADATA_COMMENTS_OPTIONS = new HashSet<>(Arrays.asList(
-            SQL_METADATA_COMMENTS_SVC_GUID,
-            SQL_METADATA_COMMENTS_SVC_NAME,
-            SQL_METADATA_COMMENTS_TXN_NAME,
-            SQL_METADATA_COMMENTS_TRACE_ID
-    ));
 
-    private static volatile String cachedAppName = null;
-    private static volatile String cachedEntityGuid = null;
+    private static volatile Boolean isSqlMetadataCommentsEnabled = null;
+    private static volatile String cachedServiceGuid = null;
+
+    public static Object[] getParams(Statement statement) {
+        return statementToParams.get(statement);
+    }
+
+    public static void putParams(Statement statement, Object[] params) {
+        statementToParams.put(statement, params);
+    }
+
+    public static String getSql(Statement statement) {
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting sql for statement: {0}", statement);
+        return statementToSql.get(statement);
+    }
+
+    public static void putSql(Statement statement, String sql) {
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
+        statementToSql.put(statement, sql);
+    }
+
+    public static void removeStatement(Statement statement) {
+        if (statement != null) {
+            statementToParams.remove(statement);
+            statementToSql.remove(statement);
+        }
+    }
 
     public static void putVendor(Class<?> driverOrDatastoreClass, DatabaseVendor databaseVendor) {
         classToVendorLookup.put(driverOrDatastoreClass, databaseVendor);
@@ -80,7 +107,7 @@ public class JdbcHelper {
 
     public static DatabaseVendor getVendor(Class<?> driverOrDatastoreClass, String url) {
         DatabaseVendor vendor = classToVendorLookup.get(driverOrDatastoreClass);
-        AgentBridge.getAgent().getLogger().log(Level.FINEST,"Getting class: {0}, url: {1}, vendor: {2}", driverOrDatastoreClass, url, vendor);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting class: {0}, url: {1}, vendor: {2}", driverOrDatastoreClass, url, vendor);
 
         if (vendor != null) {
             return vendor;
@@ -162,16 +189,6 @@ public class JdbcHelper {
         return null;
     }
 
-    public static void putSql(Statement statement, String sql) {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing sql for statement: {0}", statement);
-        statementToSql.put(statement, sql);
-    }
-
-    public static String getSql(Statement statement) {
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Getting sql for statement: {0}", statement);
-        return statementToSql.get(statement);
-    }
-
     public static Object[] growParameterArray(Object[] params, int missingIndex) {
         int length = Math.max(10, (int) (missingIndex * 1.2));
         Object[] newParams = new Object[length];
@@ -236,7 +253,7 @@ public class JdbcHelper {
      *
      * @param connectionString URL connection string to parse.
      * @return identifier parsed from connection string if vendor is part of supported in-memory JDBC drivers,
-     *         {@link JdbcHelper#UNKNOWN} otherwise.
+     * {@link JdbcHelper#UNKNOWN} otherwise.
      */
     public static String parseInMemoryIdentifier(String connectionString) {
         if (connectionString == null) {
@@ -268,8 +285,6 @@ public class JdbcHelper {
 
         return UNKNOWN;
     }
-
-
 
     /**
      * Parse and cache identifier of in-memory database from Connection string url.
@@ -328,7 +343,7 @@ public class JdbcHelper {
      * visible to the bridge projects.
      */
     public static void invalidateMetadataCommentConfig() {
-        metadataCommentConfig = null;
+        isSqlMetadataCommentsEnabled = null;
     }
 
     /**
@@ -337,7 +352,6 @@ public class JdbcHelper {
      * the original SQL statement.
      *
      * @param sql the target SQL statement
-     *
      * @return a SQL statement which might have the metadata comment prepended to it
      */
     public static String addSqlMetadataCommentIfNeeded(String sql) {
@@ -345,14 +359,14 @@ public class JdbcHelper {
             return sql;
         }
 
-        Set<String> config = getMetadataCommentConfig();
-        if (!config.isEmpty()) {
+        Boolean isEnabled = isSqlMetadataCommentsEnabled();
+        if (isEnabled) {
             // Check if comment already exists
             if (sql.startsWith("/*nr_")) {
                 return sql;
             }
 
-            String comment = generateSqlMetadataComment(config);
+            String comment = generateSqlMetadataComment();
             if (comment.isEmpty()) {
                 return sql;
             } else {
@@ -364,54 +378,29 @@ public class JdbcHelper {
     }
 
     /**
-     * If a transaction is in progress, create a comment to be prepended to the statement that contains the
-     * attributes specified by the configuration.
+     * If a transaction is in progress and isSqlMetadataCommentsEnabled is true, create a comment to be prepended to the
+     * statement that contains the service GUID
      *
      * @return the SQL metadata comment if a transaction is in progress, an empty String otherwise
      */
-    private static String generateSqlMetadataComment(Set<String> metadataCommentConfig) {
-        com.newrelic.api.agent.Transaction transaction = NewRelic.getAgent().getTransaction();
-        if (transaction == NoOpTransaction.INSTANCE) {
+    private static String generateSqlMetadataComment() {
+        // The check of isSqlMetadataCommentsEnabled happens in the addSqlMetadataCommentIfNeeded method
+        // which gates the execution of this method
+        StringBuilder comment = new StringBuilder(64);
+        String guid = getEntityGuid();
+
+        // Prevent SQL comment injection if GUID contains comment-closing sequence
+        if (guid != null && guid.contains("*/")) {
             return "";
         }
 
-        boolean attributeAdded = false;
-        StringBuilder comment = new StringBuilder(64);
-        comment.append("/*");
-
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_NAME)) {
-            String appName = getAppName();
-            if (!appName.contains("*/")) {
-                comment.append(SQL_METADATA_COMMENTS_SVC_NAME).append("=\"").append(appName).append("\"");
-                attributeAdded = true;
-            }
-        }
-
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_SVC_GUID)) {
-            String guid = getEntityGuid();
-            if ((guid != null) && (!guid.isEmpty())) {
-                comment.append(attributeAdded ? "," : "");
-                comment.append(SQL_METADATA_COMMENTS_SVC_GUID).append("=\"").append(guid).append("\"");
-                attributeAdded = true;
-            }
-        }
-
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TXN_NAME)) {
-            String txnName = transaction.getTransactionName();
-            if (!txnName.contains("*/")) {
-                comment.append(attributeAdded ? "," : "");
-                comment.append(SQL_METADATA_COMMENTS_TXN_NAME).append("=\"").append(txnName).append("\"");
-                attributeAdded = true;
-            }
-        }
-
-        if (metadataCommentConfig.contains(SQL_METADATA_COMMENTS_TRACE_ID)) {
-            comment.append(attributeAdded ? "," : "");
-            comment.append(SQL_METADATA_COMMENTS_TRACE_ID).append("=\"").append(NewRelic.getAgent().getTraceMetadata().getTraceId()).append("\"");
+        if ((guid != null) && (!guid.isEmpty())) {
+            comment.append("/*");
+            comment.append(SQL_METADATA_COMMENTS_SVC_GUID).append("=\"").append(guid).append("\"");
         }
 
         // Only return comment if metadata was added
-        if (comment.length() > 2) {
+        if (comment.length() > 0) {
             comment.append("*/");
 
             Logger logger = AgentBridge.getAgent().getLogger();
@@ -430,15 +419,15 @@ public class JdbcHelper {
      * return an empty config set. If it is initialized, cache the result and return
      * it on subsequent calls.
      */
-    private static Set<String> getMetadataCommentConfig() {
-        if (metadataCommentConfig == null) {
+    private static Boolean isSqlMetadataCommentsEnabled() {
+        if (isSqlMetadataCommentsEnabled == null) {
             synchronized (JdbcHelper.class) {
-                if (metadataCommentConfig == null) {
+                if (isSqlMetadataCommentsEnabled == null) {
                     try {
-                        Set<String> config = parseSqlMetadataCommentsConfig();
+                        Boolean isEnabled = NewRelic.getAgent().getConfig().getValue("transaction_tracer.sql_metadata_comments.enabled");
                         // Only cache if we got a non-null value (config service is ready)
-                        if (config != null) {
-                            metadataCommentConfig = config;
+                        if (isEnabled != null) {
+                            isSqlMetadataCommentsEnabled = isEnabled;
                         }
                     } catch (Exception ignored) {
                         // Config service not ready yet, will retry on next call
@@ -446,41 +435,30 @@ public class JdbcHelper {
                 }
             }
         }
-        return (metadataCommentConfig != null) ? metadataCommentConfig : Collections.emptySet();
+        return (isSqlMetadataCommentsEnabled != null) ? isSqlMetadataCommentsEnabled : Boolean.FALSE;
     }
 
     /**
-     * Parse the sql_metadata_comments config and return a Set of valid values contained in
-     * the supplied configuration String. If no valid options are present, an empty Set
-     * will be returned.
-     *
-     * @return a Set of valid sql_metadata_comment Strings
+     * Checks the config to see whether weak key caching is enabled.
+     * <p>
+     * If weak key caching is enabled (default) a Caffeine-backed Weak Keyed cache will be returned.
+     * If weak key caching is not enabled a vanilla Concurrent Hash Map will be returned.
      */
-    private static Set<String> parseSqlMetadataCommentsConfig() {
-        String options = NewRelic.getAgent().getConfig().getValue("transaction_tracer.sql_metadata_comments");
-        if (options == null) {
-            return null;
+    static <V> Map<Statement, V> initStatementCache(String cacheName) {
+        boolean weakKeyCachingEnabled = NewRelic.getAgent()
+                .getConfig()
+                .getValue(JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED, JDBC_STATEMENT_WEAK_KEY_CACHING_ENABLED_DEFAULT);
+        if (weakKeyCachingEnabled) {
+            NewRelic.getAgent().getLogger().log(Level.INFO, "JDBC Statement weak key caching is enabled. Using default Weak Keyed Cache for {0}.", cacheName);
+            return AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
+        } else {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.INFO,
+                            "JDBC Statement weak key caching is disabled. Using a ConcurrentHashMap for {0}. All JDBC Statements MUST be closed when this setting is enabled.",
+                            cacheName);
+            return AgentBridge.collectionFactory.createVanillaJavaConcurrentHashMap(INITIAL_STATEMENT_CACHE_CAPACITY);
         }
-
-        return Arrays.stream(options.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty() && VALID_SQL_METADATA_COMMENTS_OPTIONS.contains(s))
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * Retrieves the cached app_name value and initialize the value on first access.
-     */
-    private static String getAppName() {
-        if (cachedAppName == null) {
-            synchronized (JdbcHelper.class) {
-                if (cachedAppName == null) {
-                    cachedAppName = NewRelic.getAgent().getConfig().getValue("app_name");
-                }
-            }
-        }
-
-        return cachedAppName;
     }
 
     /**
@@ -490,16 +468,16 @@ public class JdbcHelper {
      */
     static String getEntityGuid() {
         // Check for both null and empty string - empty string indicates the RPM service
-        // hasn't connected yet and we should retry on the next call
-        if (cachedEntityGuid == null || cachedEntityGuid.isEmpty()) {
+        // hasn't connected yet, and we should retry on the next call
+        if (cachedServiceGuid == null || cachedServiceGuid.isEmpty()) {
             synchronized (JdbcHelper.class) {
-                if (cachedEntityGuid == null || cachedEntityGuid.isEmpty()) {
-                    cachedEntityGuid = AgentBridge.getAgent().getEntityGuid(false);
+                if (cachedServiceGuid == null || cachedServiceGuid.isEmpty()) {
+                    cachedServiceGuid = AgentBridge.getAgent().getEntityGuid(false);
                 }
             }
         }
 
-        return cachedEntityGuid;
+        return cachedServiceGuid;
     }
 
     /**
@@ -507,7 +485,7 @@ public class JdbcHelper {
      */
     static void resetEntityGuidCache() {
         synchronized (JdbcHelper.class) {
-            cachedEntityGuid = null;
+            cachedServiceGuid = null;
         }
     }
 }

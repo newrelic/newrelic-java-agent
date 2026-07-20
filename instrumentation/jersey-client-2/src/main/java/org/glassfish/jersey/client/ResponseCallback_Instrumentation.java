@@ -7,6 +7,7 @@
 
 package org.glassfish.jersey.client;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
@@ -41,6 +42,7 @@ class ResponseCallback_Instrumentation {
                 .procedure(response.getRequestContext().getMethod())
                 .inboundHeaders(new InboundWrapper(response))
                 .build());
+        AgentBridge.getAgent().setHttpMethod(segment, response.getRequestContext().getMethod());
         segment.end();
         segment = null;
         Weaver.callOriginal();

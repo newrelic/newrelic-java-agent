@@ -249,6 +249,7 @@ public class SpanTest {
         agentAttributes.put("http.url", "https://www.foo.bar:8080/search");
         agentAttributes.put("peer.hostname", "www.foo.bar");
         agentAttributes.put("http.method", "GET");
+        agentAttributes.put("http.request.method", "GET");
         agentAttributes.put("status.code", "unset");
 
         assertEquals(agentAttributes.size(), httpSpan.getAgentAttributes().size());

@@ -13,7 +13,6 @@ import com.newrelic.agent.profile.TestFileWithLineNumbers;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
 import org.junit.Test;
-import test.newrelic.test.agent.TestLifecycle;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -380,42 +379,6 @@ public class MethodInfoWithLineNumbersTest {
         Assert.assertEquals("testing2", (types.get(InstrumentationType.RemoteCustomXml.toString()).get(0)));
         Assert.assertEquals(1, (types.get(InstrumentationType.RemoteCustomXml.toString()).size()));
         Assert.assertEquals("MyTestFile.java", (types.get(InstrumentationType.TraceAnnotation.toString()).get(0)));
-    }
-
-    @Test
-    public void testPointCutWithReinstrument() {
-        TestLifecycle lifecycle = new TestLifecycle();
-
-        // reinstrument with more instrumentation
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        sb.append("<extension xmlns=\"https://newrelic.com/docs/java/xsd/v1.0\"");
-        sb.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-        sb.append(" xsi:schemaLocation=\"newrelic-extension extension.xsd \" name=\"Not A Pointcut\">");
-        sb.append("<instrumentation>");
-        sb.append("<pointcut transactionStartPoint=\"true\" >");
-        sb.append("<className>test.newrelic.test.agent.TestLifecycle");
-        sb.append("</className>");
-        sb.append("<method>");
-        sb.append("<name>execute</name>");
-        sb.append("</method>");
-        sb.append("</pointcut>");
-        sb.append("</instrumentation>");
-        sb.append("</extension>");
-
-        // reinstrument for the first time
-        ServiceFactory.getRemoteInstrumentationService().processXml(sb.toString());
-
-        MethodInfo info = MethodInfoUtil.createMethodInfo(test.newrelic.test.agent.TestLifecycle.class,
-                "execute", -1);
-        Map<String, Object> actual = verifyBasicsInstrumented(info, false);
-        Map<String, Object> inst = (Map<String, Object>) actual.get("traced_instrumentation");
-        Map<String, Object> types = (Map<String, Object>) inst.get("types");
-        Assert.assertEquals(2, types.keySet().size());
-        Assert.assertEquals("Not A Pointcut",
-                ((List<String>) types.get(InstrumentationType.RemoteCustomXml.toString())).get(0));
-        Assert.assertEquals("com.newrelic.agent.instrumentation.pointcuts.frameworks.faces.LifecyclePointCut",
-                ((List<String>) types.get(InstrumentationType.Pointcut.toString())).get(0));
     }
 
     @Test

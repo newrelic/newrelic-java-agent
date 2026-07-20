@@ -142,9 +142,10 @@ public class WebClientDtTest {
         SpanEvent httpSpan = httpSpans.iterator().next();
         assertEquals(200, httpSpan.getStatusCode().intValue());
         assertEquals("Spring-WebClient", httpSpan.getHttpComponent());
-        assertEquals("exchange", httpSpan.getHttpMethod());
+        assertEquals("exchange", httpSpan.getProcedure());
         assertEquals(dtEndpoint.toString(), httpSpan.getHttpUrl());
         assertNull(httpSpan.getStatusText()); // Spring Webclient does not provide the status text
+        assertEquals("GET", httpSpan.getHttpMethod());
     }
 
     private static void verifyExternalRequest(Introspector introspector, String txName) {

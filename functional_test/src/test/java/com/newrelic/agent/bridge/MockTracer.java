@@ -138,6 +138,11 @@ public class MockTracer implements ExitTracer {
     }
 
     @Override
+    public void setHttpMethod(String httpVerb) {
+
+    }
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
     }
 

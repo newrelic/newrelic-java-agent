@@ -75,18 +75,19 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 2.13: 1.0.0 to latest
     * Scala 3: 1.0.0 to latest
   * Play 2.4.0-M3 to latest
+  * Portlet 3.0.0 to latest
   * Quartz Scheduler 1.7.2 to latest
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
   * Spray 1.3.1 to latest
-  * Spring 3.0.0.RELEASE to latest
+  * Spring 3.0.0 to latest
   * Spring AOP 2.0.3 to latest
   * Spring Batch 4.0.0.RELEASE to 6.0.0 (exclusive)
   * Spring Boot Actuator 3.0.0 to 4.0.0-M1 (exclusive)
   * Spring Web Services 1.5.7 to 4.0.0 (exclusive)
   * Spring WebFlux 5.0.0.RELEASE to latest
   * Struts 2.0 to latest
-  * Vertx 3.2.0 to 5.0.0.CR1 (exclusive)
+  * Vertx 3.2.0 to 5.1.0 (exclusive)
   * ZIO 1.0.9 to latest
     * Scala 2.13: 1.0.9 to latest
   * JSF (Java Server Faces)
@@ -226,6 +227,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## Other instrumented features
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
+  * Java Server Faces 1.0 to latest
   * Java XML RPC 8 to latest
   * JSP 2.0 to latest
   * OpenEJB 3.0 to latest

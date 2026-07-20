@@ -18,7 +18,7 @@ public class SpanEventImplTest {
                 .putIntrinsic("name", "name").putIntrinsic("traceId", "traceid").putIntrinsic("guid", "guid")
                 .putIntrinsic("parentId", "parentid").putAgentAttribute("http.url", "url").putAgentAttribute("http.statusCode", 200)
                 .putIntrinsic("component", "component").putAgentAttribute("http.statusText", "statustext")
-                .putAgentAttribute("http.method", "method").build();
+                .putAgentAttribute("http.method", "method").putAgentAttribute("http.request.method", "GET").build();
         com.newrelic.agent.introspec.SpanEvent instance = new SpanEventImpl(spanEvent);
 
         assertEquals("name", instance.getName());
@@ -28,12 +28,13 @@ public class SpanEventImplTest {
         assertEquals("http", instance.category());
         assertEquals("name", instance.getName());
         assertEquals("url", instance.getHttpUrl());
-        assertEquals("method", instance.getHttpMethod());
+        assertEquals("method", instance.getProcedure());
+        assertEquals("GET", instance.getHttpMethod());
         assertEquals("component", instance.getHttpComponent());
         assertEquals("transactionid", instance.getTransactionId());
         assertEquals(new Integer(200), instance.getStatusCode());
         assertEquals("statustext", instance.getStatusText());
-        assertEquals(4, instance.getAgentAttributes().size());
+        assertEquals(5, instance.getAgentAttributes().size());
     }
 
 

@@ -45,7 +45,7 @@ public abstract class DefaultHttpClient_Instrumentation {
                 .noInboundHeaders()
                 .build();
         Transaction txn = NewRelic.getAgent().getTransaction();
-        ReactorListener listener = new ReactorListener(txn, params);
+        ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
         return result.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener).doOnNext(new ResponseConsumer(txn));
     }
 
@@ -61,7 +61,7 @@ public abstract class DefaultHttpClient_Instrumentation {
                 .noInboundHeaders()
                 .build();
         Transaction txn = NewRelic.getAgent().getTransaction();
-        ReactorListener listener = new ReactorListener(txn, params);
+        ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
         return result.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener).doOnNext(new ResponseConsumer(txn));
     }
 
@@ -82,7 +82,7 @@ public abstract class DefaultHttpClient_Instrumentation {
                 .noInboundHeaders()
                 .build();
         Transaction txn = NewRelic.getAgent().getTransaction();
-        ReactorListener listener = new ReactorListener(txn, params);
+        ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
         return result.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener).doOnNext(new ResponseConsumer(txn));
     }
 
