@@ -1547,7 +1547,6 @@ public class Transaction {
 
                     int oldTxaId = oldTxa.hashCode();
                     oldTxa.startAsyncActivity(newTx, newTx.nextActivityId.getAndIncrement(), tracer);
-                    NewRelic.getAgent().getLogger().log(Level.SEVERE, "Just reparented oldTxa from oldTx {0} to newTx {1}", oldTx, newTx);
                     if (oldTx != null) {
                         // We migrate state from the source to the target transactions of the migration.
                         // It's never been completely clear whether or not this is the correct behavior.
@@ -1574,7 +1573,6 @@ public class Transaction {
                         //Instead of moving over all of oldTx's tokens, I move over only the ones that are currently pointing to newTx
                         //after the reparenting operation.
 
-                        NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Processing tokens for: oldTx {0}, guid {1}; newTx {2}, guid {3}", oldTx, oldTx.guid,  newTx, newTx.guid);
                         for (TokenImpl t : oldTx.activeTokensCache.get().getTokens()) {
                             Transaction tokenOwner = t.getTransaction().getTransactionIfExists();
                             if (tokenOwner == newTx) {
@@ -1582,13 +1580,6 @@ public class Transaction {
                                 oldTx.activeCount.decrementAndGet();
                                 newTx.activeCount.incrementAndGet();
                                 newTx.tokensTransferred.incrementAndGet();
-                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is newTx {0}, token is {1}", tokenOwner, t);
-                            } else if (tokenOwner == oldTx) {
-                                //if this token has not been reparented, forcibly expire it.
-                                t.expire();
-                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is oldTx {0}, token is {1}", tokenOwner, t);
-                            } else {
-                                NewRelic.getAgent().getLogger().log(Level.SEVERE, "TOKEN DEBUG: Owner is neither new nor old {0}, token is {1}", tokenOwner, t);
                             }
                         }
                         oldTx.isPrimaryTransaction.set(false);
@@ -2339,7 +2330,7 @@ public class Transaction {
         }
 
         if (wasAdded) {
-            Agent.LOG.log(Level.SEVERE, "Transaction {0}: created active token {1}", this, token);
+            Agent.LOG.log(Level.FINE, "Transaction {0}: created active token {1}", this, token);
         } else {
             Agent.LOG.log(Level.FINER, "Transaction {0}: already finished. cannot create token", this);
             // return NoOpToken here to prevent case where execution gets to the synchronized block above but the
@@ -2368,9 +2359,9 @@ public class Transaction {
                 TimedSet<TokenImpl> tokenCache = tx.activeTokensCache.get();
                 if (!tx.isFinished() && tokenCache != null) {
                     tokenWasActive = tokenCache.remove(token);
-                    Agent.LOG.log(Level.SEVERE, "Transaction {0}: expired token {1}", tx, token);
+                    Agent.LOG.log(Level.FINE, "Transaction {0}: expired token {1}", tx, token);
                 } else {
-                    Agent.LOG.log(Level.SEVERE, "Transaction {0}: token {1} is not active and so cannot be expired", tx, token);
+                    Agent.LOG.log(Level.FINE, "Transaction {0}: token {1} is not active and so cannot be expired", tx, token);
                 }
             }
         }

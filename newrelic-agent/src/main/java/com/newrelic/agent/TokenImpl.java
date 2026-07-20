@@ -144,12 +144,20 @@ public class TokenImpl implements Token {
 
     /**
      * This is used by the transaction to expire tokens when removed from its token cache.
+     * <p>
+     * When an old transaction migrates its state onto a new transaction as the result of a token link, there is a rare race condition that can occur
+     * where a token begins its expiration on the old transaction, but completes it here on the new transaction. The symptom is a memory leak where
+     * the old transaction, new transaction, or both are never able to finish.
+     * <p>
+     * To patch this loophole, txAtExpiration is passed in as the transaction on which the expiration actually started. The vast majority of the time, this should be the same
+     * transaction obtained by Token.getTransaction().getTransactionIfExists() - in the case of the race condition described above, they may be different,
+     * and txAtExpiration should be used.
      */
-    void markExpired() {
+    void markExpired(Transaction txAtExpiration) {
         active.set(Boolean.FALSE);
-        Transaction tx = getTransaction().getTransactionIfExists();
+        Transaction tx = txAtExpiration != null ? txAtExpiration : getTransaction().getTransactionIfExists();
         if (tx != null) {
-            NewRelic.getAgent().getLogger().log(Level.SEVERE, "Token {0} calling onRemoval against tx {1}", this, tx);
+            NewRelic.getAgent().getLogger().log(Level.FINE, "Token {0} calling onRemoval against tx {1}", this, tx);
             tx.onRemoval();
         }
         initiatingTracer = null;
