@@ -61,6 +61,11 @@ public class DockerDataTest {
         line = "886 322 5:997 /docker/containers/d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1 / rw - opts ro";
         Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V2));
         Assert.assertEquals("d340a98bd7761414d6b3b8fabd2917c74d85155af1477b584bcc4adf4b94eaf1", sb.toString());
+
+        sb = new StringBuilder();
+        line = "3798 3797 0:25 /kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod01c130b2_45db_44b3_9f82_782cf91c1219.slice/cri-containerd-bff561381c85069f7b48c507556d799376ef8a16e88abe4779332aae7ab5fa16.scope /sys/fs/cgroup/systemd ro,nosuid,nodev,noexec,relatime master:9 - cgroup cgroup rw,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd";
+        Assert.assertTrue(dockerData.checkLineAndGetResult(line, sb, CGroup.V2));
+        Assert.assertEquals("bff561381c85069f7b48c507556d799376ef8a16e88abe4779332aae7ab5fa16", sb.toString());
     }
 
     @Test
