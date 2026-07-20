@@ -253,7 +253,6 @@ class NRSpanBuilder implements SpanBuilder {
     private Span startServerSpan(SpanContext parentSpanContext) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(true);
         final ExtendedRequest request = generateExtendedRequestForServerSpan();
-
         final ExtendedResponse response = generateExtendedResponseForServerSpan();
 
         transaction.requestInitialized(request, response);
@@ -469,7 +468,6 @@ class NRSpanBuilder implements SpanBuilder {
     }
 
     Span onStart(ReadWriteSpan span) {
-        // FIXME
         Context parent = Context.current();
         if (sharedState.getActiveSpanProcessor().isStartRequired()) {
             sharedState.getActiveSpanProcessor().onStart(parent, span);

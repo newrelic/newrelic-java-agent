@@ -17,6 +17,7 @@ import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.nr.agent.instrumentation.utils.AttributesHelper;
 import com.nr.agent.instrumentation.utils.span.AttributeMapper;
@@ -85,6 +86,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
                             .collect(Collectors.toSet()));
 
     final ExitTracer tracer;
+    private final Segment segment;
     private final SpanKind spanKind;
     private final InstrumentationScopeInfo instrumentationScopeInfo;
     private final Map<String, Object> attributes;
@@ -112,7 +114,15 @@ public class ExitTracerSpan implements ReadWriteSpan {
     ExitTracerSpan(ExitTracer tracer, InstrumentationScopeInfo instrumentationScopeInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
             Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
             int totalNumberOfLinksAdded, long userStartEpochNanos) {
+        this(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext,
+                resource, tracerClock, attributes, onEnd, links, totalNumberOfLinksAdded, userStartEpochNanos, null);
+    }
+
+    ExitTracerSpan(ExitTracer tracer, InstrumentationScopeInfo instrumentationScopeInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
+            Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
+            int totalNumberOfLinksAdded, long userStartEpochNanos, Segment segment) {
         this.tracer = tracer;
+        this.segment = segment;
         this.spanKind = spanKind;
         this.spanName = spanName;
         this.parentSpanContext = parentSpanContext;
@@ -287,7 +297,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
         copySpanLinksToTracer(links);
         List<EventData> immutableEvents = this.events == null ? Collections.emptyList() : Collections.unmodifiableList(this.events);
         copySpanEventsToTracer(immutableEvents);
-        tracer.finish();
+        if (segment != null) {
+            segment.end();
+        } else {
+            tracer.finish();
+        }
         endEpochNanos = System.nanoTime();
         ended = true;
         onEnd.accept(this);

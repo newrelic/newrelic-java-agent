@@ -10,6 +10,7 @@ package io.opentelemetry.sdk.trace;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
 import com.newrelic.agent.bridge.Instrumentation;
+import com.newrelic.agent.bridge.NoOpSegment;
 import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.tracers.TracerFlags;
@@ -18,6 +19,7 @@ import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;
 import com.newrelic.api.agent.Headers;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TracedMethod;
 import com.newrelic.api.agent.TransportType;
 import com.nr.agent.instrumentation.utils.header.W3CTraceParentHeader;
@@ -223,14 +225,27 @@ class NRSpanBuilder implements SpanBuilder {
             acceptMessageQueueNotSampledHeaderIfNecessary(tx);
         }
 
+        Segment segment = null;
+        ExitTracer tracer;
         if (SpanKind.PRODUCER == spanKind) {
             insertMessageQueueNotSampledHeaderIfNecessary();
+            segment = NewRelic.getAgent().getTransaction().startSegment(spanName);
+            if (segment == null || segment == NoOpSegment.INSTANCE) {
+                return NO_OP_SPAN;
+            }
+            tracer = ((com.newrelic.agent.Segment)segment).getTracer();
+            if (tracer == null) {
+                // no active transaction
+                segment.end();
+                return NO_OP_SPAN;
+            }
+        } else {
+            tracer = instrumentation.createTracer(spanName, getTracerFlags(dispatcher));
+            if (tracer == null) {
+                return NO_OP_SPAN;
+            }
         }
 
-        final ExitTracer tracer = instrumentation.createTracer(spanName, getTracerFlags(dispatcher));
-        if (tracer == null) {
-            return NO_OP_SPAN;
-        }
         if (SpanKind.INTERNAL != spanKind) {
             tracer.addCustomAttribute("span.kind", spanKind.name());
         }
@@ -239,12 +254,11 @@ class NRSpanBuilder implements SpanBuilder {
         return onStart(
                 new ExitTracerSpan(tracer, instrumentationScopeInfo, spanKind, spanName, parentSpanContext, sharedState.getResource(), sharedState.getClock(),
                         attributes,
-                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos));
+                        endHandler, immutableLinks, totalNumberOfLinksAdded, startEpochNanos, segment));
     }
 
     private Span startServerSpan(SpanContext parentSpanContext) {
         Transaction transaction = AgentBridge.getAgent().getTransaction(true);
-
         final ExtendedRequest request = generateExtendedRequestForServerSpan();
         final ExtendedResponse response = generateExtendedResponseForServerSpan();
 
@@ -346,7 +360,6 @@ class NRSpanBuilder implements SpanBuilder {
                 return 0;
             }
         };
-
     }
 
     private void acceptMessageQueueNotSampledHeaderIfNecessary(Transaction tx) {
