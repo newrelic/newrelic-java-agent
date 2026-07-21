@@ -61,11 +61,6 @@ public interface JfrConfig {
     /**
      * If true, all JFR Event and Metric data will be decorated with labels. These labels are added as custom attributes prefixed
      * with "tags", eg "tags.team".
-     * <p>
-     * This is NOT a hot setting - it cannot be changed after agent startup.
-     * <p>
-     * Labels, however, are hot. If labels are updated locally in config, or via the UI, and this setting is "true", JFR Events
-     * and Metrics will be decorated with the new labels.
      *
      * @return <code>true</code> if JFR data should be decorated with labels, else <code>false</code> (default).
      */
