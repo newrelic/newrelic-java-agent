@@ -2,10 +2,13 @@
 dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.apache.kafka:kafka-clients:0.11.0.0")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-spans-0.11.0.0', 'Enabled': 'false',
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.kafka-clients-spans-0.11.0.0', 'Enabled': 'true',
             'Implementation-Title-Alias': 'kafka-clients-spans' }
 }
 

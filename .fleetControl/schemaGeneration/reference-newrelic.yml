@@ -714,6 +714,12 @@ common: &default_settings
     com.newrelic.instrumentation.jdbc-resultset:
       enabled: false
 
+    # This instrumentation emits per-cluster Kafka metrics (MessageBroker/Kafka/Cluster/{id}/...).
+    # Requires an AdminClient DescribeCluster call to resolve the cluster ID; opt in when the
+    # overhead is acceptable.
+    kafka-clients-cluster-metrics:
+      enabled: false
+
     # HttpURLConnection instrumentation verbosity setting.
     # When true, captures every response handler method as a segment.
     # When false, suppresses segments that don't make external calls.
