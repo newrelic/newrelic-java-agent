@@ -1290,6 +1290,17 @@
                     "type": "boolean",
                     "default": false,
                     "description": "If true, the JFR host name will be set to the value in the process_host.display_name config. Note that if the process_host.display_name value is empty/null, the default hostname resolution logic will be used. Default is false."
+                },
+                "labels": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "If true, JFR data will be decorated with APM labels. This will add labels as attributes prefixed with \"tags.\" Default is false."
+                        }
+                    },
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
