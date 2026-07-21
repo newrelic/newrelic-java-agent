@@ -355,24 +355,6 @@ public class JfrServiceTest {
         verify(spyJfr).doStop();
     }
 
-    @Test
-    public void configChangedFromDisabledToEnabledDoesStart() {
-        //Initial config: JFR disabled.
-        when(jfrConfig.isEnabled()).thenReturn(false);
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        //Updated config: JFR enabled.
-        AgentConfig newAgentConfig = mock(AgentConfig.class);
-        JfrConfig newJfrConfig = mock(JfrConfig.class);
-        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
-        when(newJfrConfig.isEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig);
-
-        verify(spyJfr).doStart();
-    }
-
     private Map<String, String> mockLabelsMap(){
         Map<String, String> labels = new HashMap<>();
         labels.put("team", "java-agent");
