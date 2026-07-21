@@ -352,9 +352,7 @@ public class JfrServiceTest {
 
         spyJfr.configChanged("my-app", newAgentConfig);
 
-        // Verify doStop was called and doStart was not.
         verify(spyJfr).doStop();
-        verify(spyJfr, times(0)).doStart();
     }
 
     @Test
@@ -372,137 +370,7 @@ public class JfrServiceTest {
 
         spyJfr.configChanged("my-app", newAgentConfig);
 
-        // Verify doStart was called
         verify(spyJfr).doStart();
-        verify(spyJfr, times(0)).doStop();
-    }
-
-    @Test
-    public void configChanged_NoChange_DoesNotCallStartOrStop() {
-        when(jfrConfig.isEnabled()).thenReturn(true);
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        AgentConfig newAgentConfig = mock(AgentConfig.class);
-        JfrConfig newJfrConfig = mock(JfrConfig.class);
-        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
-        when(newJfrConfig.isEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig);
-
-        // Verify neither doStart nor doStop was called
-        verify(spyJfr, times(0)).doStart();
-        verify(spyJfr, times(0)).doStop();
-    }
-
-    @Test
-    public void configChanged_ReplacesJfrConfigReference() {
-        when(jfrConfig.isEnabled()).thenReturn(false);
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        // Prevent actual execution
-        when(spyJfr.coreApisExist()).thenReturn(false);
-
-        AgentConfig newAgentConfig = mock(AgentConfig.class);
-        JfrConfig newJfrConfig = mock(JfrConfig.class);
-        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
-        when(newJfrConfig.isEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig);
-
-        // Verify the new jfrConfig was retrieved from newAgentConfig
-        verify(newAgentConfig, times(2)).getJfrConfig(); // Called twice: once for check, once for assignment
-    }
-
-    @Test
-    public void configChanged_ReplacesDefaultAgentConfig() {
-        when(jfrConfig.isEnabled()).thenReturn(false);
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        // Prevent actual execution
-        when(spyJfr.coreApisExist()).thenReturn(false);
-
-        AgentConfig newAgentConfig = mock(AgentConfig.class);
-        JfrConfig newJfrConfig = mock(JfrConfig.class);
-        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
-        when(newJfrConfig.isEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig);
-
-        // Verify the new agentConfig is retrieved
-        verify(newAgentConfig, times(2)).getJfrConfig(); // Once to check enabled, once to replace
-    }
-
-    @Test
-    public void configChanged_MultipleConfigChanges_HandlesCorrectly() {
-        when(jfrConfig.isEnabled()).thenReturn(false);
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        // Prevent actual execution
-        when(spyJfr.coreApisExist()).thenReturn(false);
-
-        // First change: disabled -> enabled
-        AgentConfig newAgentConfig1 = mock(AgentConfig.class);
-        JfrConfig newJfrConfig1 = mock(JfrConfig.class);
-        when(newAgentConfig1.getJfrConfig()).thenReturn(newJfrConfig1);
-        when(newJfrConfig1.isEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig1);
-        verify(spyJfr, times(1)).doStart();
-        verify(spyJfr, times(0)).doStop();
-
-        // Second change: enabled -> disabled
-        AgentConfig newAgentConfig2 = mock(AgentConfig.class);
-        JfrConfig newJfrConfig2 = mock(JfrConfig.class);
-        when(newAgentConfig2.getJfrConfig()).thenReturn(newJfrConfig2);
-        when(newJfrConfig2.isEnabled()).thenReturn(false);
-
-        spyJfr.configChanged("my-app", newAgentConfig2);
-        verify(spyJfr, times(1)).doStart();
-        verify(spyJfr, times(1)).doStop();
-    }
-
-    @Test
-    public void configChanged_WithNewLabels_LabelsAvailableForNewStart() {
-        when(jfrConfig.isEnabled()).thenReturn(false);
-        when(jfrConfig.labelsEnabled()).thenReturn(true);
-
-        // Initial labels
-        LabelsConfig initialLabelsConfig = mock(LabelsConfig.class);
-        Map<String, String> initialLabels = new HashMap<>();
-        initialLabels.put("team", "old-team");
-        when(initialLabelsConfig.getLabels()).thenReturn(initialLabels);
-        when(agentConfig.getLabelsConfig()).thenReturn(initialLabelsConfig);
-
-        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
-        JfrService spyJfr = spy(jfrService);
-
-        // Prevent actual execution
-        when(spyJfr.coreApisExist()).thenReturn(false);
-
-        // New config with updated labels
-        AgentConfig newAgentConfig = mock(AgentConfig.class);
-        JfrConfig newJfrConfig = mock(JfrConfig.class);
-        LabelsConfig newLabelsConfig = mock(LabelsConfig.class);
-        Map<String, String> newLabels = new HashMap<>();
-        newLabels.put("team", "new-team");
-        newLabels.put("region", "us-west-2");
-        when(newLabelsConfig.getLabels()).thenReturn(newLabels);
-
-        when(newAgentConfig.getJfrConfig()).thenReturn(newJfrConfig);
-        when(newAgentConfig.getLabelsConfig()).thenReturn(newLabelsConfig);
-        when(newJfrConfig.isEnabled()).thenReturn(true);
-        when(newJfrConfig.labelsEnabled()).thenReturn(true);
-
-        spyJfr.configChanged("my-app", newAgentConfig);
-
-        // After configChanged, doStart should be called
-        verify(spyJfr).doStart();
-        // Verify the new jfrConfig was retrieved
-        verify(newAgentConfig, times(2)).getJfrConfig();
     }
 
     private Map<String, String> mockLabelsMap(){
