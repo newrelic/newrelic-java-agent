@@ -11,9 +11,8 @@ import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
 import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -23,24 +22,20 @@ public class Utils implements CoroutineConfigListener {
 	private static final List<Pattern> ignoredContinuationPatterns = new ArrayList<>();
 	private static final List<String> ignoredScopes = new ArrayList<>();
 	private static final List<Pattern> ignoredScopePatterns = new ArrayList<>();
+	private static final Set<String> ignoredFrameworks = new HashSet<>();
 
 	public static final String CREATE_METHOD_1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
 	public static final String CREATE_METHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
 	private static final String CONT_LOC = "Continuation at";
 	public static boolean DELAYED_ENABLED = true;
-	private static final Utils INSTANCE = new Utils();
-
-	public static Utils getInstance() {
-		return INSTANCE;
-	}
 
 	static {
 		/*
-		 * Register this class with the KotlinCoroutinesService to initialize and update
-		 * the ignored items
-		 */
+		* Register this class with the KotlinCoroutinesService to initialize and update
+		* the ignored items
+		*/
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
-		service.addCoroutineConfigListener(INSTANCE);
+		service.addCoroutineConfigListener(new Utils());
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
@@ -57,12 +52,12 @@ public class Utils implements CoroutineConfigListener {
 		if(r instanceof DispatchedTask) {
 			DispatchedTask<?> task = (DispatchedTask<?>)r;
 			Continuation<?> cont = task.getDelegate$kotlinx_coroutines_core();
-			String cont_string = getContinuationString(cont);
-			if(cont_string == null || DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
-				return null;
-			}
-		}
-
+            String cont_string = getContinuationString(cont);
+            if(cont_string == null || DispatchedTaskIgnores.ignoreDispatchedTask(cont_string)) {
+                return null;
+            }
+        }
+		
 		Token t = NewRelic.getAgent().getTransaction().getToken();
 		if(t != null && t.isActive()) {
 			return new NRRunnable(r, t);
@@ -85,9 +80,9 @@ public class Utils implements CoroutineConfigListener {
 	}
 
 	/*
-	 * Allows certain Coroutine scopes to be ignored
-	 * coroutineScope can be a Coroutine name or CoroutineScope class name
-	 */
+	* Allows certain Coroutine scopes to be ignored
+	* coroutineScope can be a Coroutine name or CoroutineScope class name
+	*/
 	public static boolean continueWithScope(String coroutineScope) {
 		if(coroutineScope == null) {
 			return true;
@@ -105,11 +100,13 @@ public class Utils implements CoroutineConfigListener {
 		 *	Don't trace internal Coroutines Continuations
 		 */
 		String className = continuation.getClass().getName();
-		if(className.startsWith("kotlin")) return false;
+		for(String framework : ignoredFrameworks) {
+			if(className.startsWith(framework)) return false;
+		}
 
 		/*
-		 * Get the continuation string and check if it should be ignored
-		 */
+		* Get the continuation string and check if it should be ignored
+		*/
 		String cont_string = getContinuationString(continuation);
 		if(cont_string == null) { return false; }
 
@@ -129,9 +126,9 @@ public class Utils implements CoroutineConfigListener {
 	public static String sub = "createCoroutineFromSuspendFunction";
 
 	/*
-	 * Set the async token in the CoroutineContext
-	 * Used to track the transaction across multiple threads
-	 */
+	* Set the async token in the CoroutineContext
+	* Used to track the transaction across multiple threads
+	*/
 	public static void setToken(CoroutineContext context) {
 		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
 		if (tokenContext == null) {
@@ -165,11 +162,11 @@ public class Utils implements CoroutineConfigListener {
 		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
 		if(tokenContext != null) {
 			Token token = tokenContext.getToken();
-			token.expire();
+            token.expire();
 			NRTokenContextKt.removeTokenContext(context);
-		}
+        }
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	public static <T> String getCoroutineName(CoroutineContext context, Continuation<T> continuation) {
 
@@ -192,24 +189,24 @@ public class Utils implements CoroutineConfigListener {
 
 	public static <T> String getContinuationString(Continuation<T> continuation) {
 		String contString = continuation.toString();
-
+		
 		if(contString.equals(CREATE_METHOD_1) || contString.equals(CREATE_METHOD_2)) {
 			return sub;
 		}
-
+		
 		if(contString.startsWith(CONT_LOC)) {
 			return contString;
 		}
-
+		
 		if(continuation instanceof AbstractCoroutine_Instrumentation) {
 			return ((AbstractCoroutine_Instrumentation<?>)continuation).nameString$kotlinx_coroutines_core();
 		}
-
+		
 		int index = contString.indexOf('@');
 		if(index > -1) {
 			return contString.substring(0, index);
 		}
-
+		
 		return null;
 	}
 
@@ -259,5 +256,13 @@ public class Utils implements CoroutineConfigListener {
 	@Override
 	public void configureDelay(boolean enabled) {
 		DELAYED_ENABLED = enabled;
+	}
+
+	@Override
+	public void configureIgnoredFrameworks(String[] ignores) {
+		if (ignores != null && ignores.length > 0) {
+			ignoredFrameworks.clear();
+			ignoredFrameworks.addAll(Arrays.asList(ignores));
+		}
 	}
 }
