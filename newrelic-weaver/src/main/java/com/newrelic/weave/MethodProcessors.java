@@ -56,11 +56,27 @@ public class MethodProcessors {
      */
     public static MethodNode inlineMethods(final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
             final String subjectOwnerClassName, final MethodNode subjectMethod) {
+        return inlineMethods(inlineOwnerClassName, inlineMethods, subjectOwnerClassName, subjectMethod, false);
+    }
+
+    /**
+     * Inline all of the specified method calls in the subject method.
+     *
+     * @param inlineOwnerClassName owner class of the methods to inline
+     * @param inlineMethods methods to inline
+     * @param subjectOwnerClassName owner class of the subject method that will have calls inlined in
+     * @param subjectMethod subject method to inline calls into
+     * @param clearReturnStacksDefault whether to default return-stack normalization on for inlined methods, absent
+     * an explicit system property override
+     * @return new subject method with all specified methods inlined
+     */
+    public static MethodNode inlineMethods(final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
+            final String subjectOwnerClassName, final MethodNode subjectMethod, final boolean clearReturnStacksDefault) {
 
         MethodNode result = WeaveUtils.newMethodNode(subjectMethod);
 
         subjectMethod.accept(getInlineMethodsVisitor(subjectOwnerClassName, subjectMethod.access, subjectMethod.name,
-                subjectMethod.desc, result, inlineOwnerClassName, inlineMethods));
+                subjectMethod.desc, result, inlineOwnerClassName, inlineMethods, clearReturnStacksDefault));
 
         return result;
     }
@@ -79,8 +95,28 @@ public class MethodProcessors {
      */
     public static MethodVisitor getInlineMethodsVisitor(String owner, int access, String name, String desc,
             MethodVisitor delegate, final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods) {
+        return getInlineMethodsVisitor(owner, access, name, desc, delegate, inlineOwnerClassName, inlineMethods, false);
+    }
 
-        return new MethodCallInlinerAdapter(owner, access, name, desc, delegate, false) {
+    /**
+     * Get a visitor that inlines all of the specified method calls into a subject method.
+     *
+     * @param owner subject method owner
+     * @param access subject method access
+     * @param name subject method name
+     * @param desc subject method desc
+     * @param delegate delegate to collect results
+     * @param inlineOwnerClassName owner of methods to inline
+     * @param inlineMethods methods to inline
+     * @param clearReturnStacksDefault whether to default return-stack normalization on for inlined methods, absent
+     * an explicit system property override
+     * @return visitor that inlines all of the specified method calls into a subject method
+     */
+    public static MethodVisitor getInlineMethodsVisitor(String owner, int access, String name, String desc,
+            MethodVisitor delegate, final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
+            final boolean clearReturnStacksDefault) {
+
+        return new MethodCallInlinerAdapter(owner, access, name, desc, delegate, false, clearReturnStacksDefault) {
 
             @Override
             protected InlinedMethod mustInline(String owner, String name, String desc) {

@@ -280,8 +280,9 @@ public class ClassWeave {
         }
 
         // inline original invocation
+        boolean clearReturnStacksDefault = weavePackage != null && weavePackage.getConfig().isClearReturnStacksDefault();
         composite = MethodProcessors.inlineMethods(WeaveUtils.INLINER_PREFIX + weaveClassName, toInline, target.name,
-                composite);
+                composite, clearReturnStacksDefault);
         // the inliner sometimes like to sneak in some jsr instructions. Sneaky inliner!
         composite = MethodProcessors.removeJSRInstructions(composite);
 

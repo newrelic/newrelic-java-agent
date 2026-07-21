@@ -377,6 +377,23 @@ public class WeaveTestUtils {
         return weaveAndAddToContextClassloader(originalName, weaveName, originalName);
     }
 
+    /**
+     * Same as {@link #weaveAndAddToContextClassloader(String, String)}, but weaves using the given
+     * {@link WeavePackage} so that per-package config (e.g. clear-return-stacks default) is honored.
+     */
+    public static ClassWeave weaveAndAddToContextClassloader(String originalName, String weaveName,
+            WeavePackage weavePackage) throws IOException {
+        ClassNode errorHandlerClassNode = WeaveTestUtils.readClass(ERROR_TRAP);
+        ClassNode originalClass = readClass(originalName);
+        ClassNode weaveClass = readClass(weaveName);
+        ClassCache contextCache = createContextCache();
+        ClassWeave weave = weave(originalClass, weaveClass, originalClass, false,
+                Collections.<String>emptySet(), Collections.<String>emptySet(), errorHandlerClassNode,
+                ExtensionClassTemplate.DEFAULT_EXTENSION_TEMPLATE, contextCache, weavePackage);
+        addToContextClassloader(weave, contextCache);
+        return weave;
+    }
+
     public static ClassWeave weaveAndAddToContextClassloader(ClassNode originalClass, ClassNode weaveClass)
             throws IOException {
         ClassNode errorHandlerClassNode = WeaveTestUtils.readClass(
@@ -424,6 +441,19 @@ public class WeaveTestUtils {
             ClassNode target, boolean isBaseMatch, Set<String> requiredClassAnnotations,
             Set<String> requiredMethodAnnotations, ClassNode errorHandlerClassNode, ClassNode extensionTemplate,
             ClassCache contextCache) throws IOException {
+        return weave(originalClass, weaveClass, target, isBaseMatch, requiredClassAnnotations,
+                requiredMethodAnnotations, errorHandlerClassNode, extensionTemplate, contextCache, null);
+    }
+
+    /**
+     * Same as {@link #weave(ClassNode, ClassNode, ClassNode, boolean, Set, Set, ClassNode, ClassNode, ClassCache)},
+     * but weaves using the given {@link WeavePackage} instead of no weave package (null), so that per-package
+     * config (e.g. {@code WeavePackageConfig#isClearReturnStacksDefault()}) is honored during weaving.
+     */
+    public static ClassWeave weave(ClassNode originalClass, ClassNode weaveClass,
+            ClassNode target, boolean isBaseMatch, Set<String> requiredClassAnnotations,
+            Set<String> requiredMethodAnnotations, ClassNode errorHandlerClassNode, ClassNode extensionTemplate,
+            ClassCache contextCache, WeavePackage weavePackage) throws IOException {
 
         // match original and weave only if we haven't already done so
         PreparedMatch preparedMatch = MATCHES_ADDED_TO_CLASSLOADER.get(originalClass.name, weaveClass.name);
@@ -458,7 +488,7 @@ public class WeaveTestUtils {
         }
 
         // weave target using the specified match and add composite class to classloader
-        return ClassWeave.weave(preparedMatch, target, null, Collections.emptyMap());
+        return ClassWeave.weave(preparedMatch, target, weavePackage, Collections.emptyMap());
     }
 
     /**

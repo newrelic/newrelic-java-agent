@@ -28,6 +28,9 @@ import java.util.Map;
 import java.util.ArrayList;
 
 public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
+
+    private static final String CLEAR_RETURN_STACKS_PROPERTY = "newrelic.config.class_transformer.clear_return_stacks";
+
     /**
      * try/catch blocks which originated from the inlined method.
      */
@@ -39,6 +42,12 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
      * stack maps with the callee ones).
      */
     private final AnalyzerAdapter analyzerAdapter;
+
+    /*
+     * Whether return-instruction stack normalization (see ReturnInsnProcessor.clearReturnStacks) should be applied
+     * by default when weaving methods, absent an explicit CLEAR_RETURN_STACKS_PROPERTY system property override.
+     */
+    private final boolean clearReturnStacksDefault;
 
     /*
      * If a method to be inlined is called several times from the same caller method, we don't want to allocate new
@@ -75,14 +84,25 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     // they must be computed from scratch in the ClassWriter.
     public MethodCallInlinerAdapter(String owner, int access, String name, String desc, MethodVisitor next,
             boolean inlineFrames) {
-        this(WeaveUtils.ASM_API_LEVEL, owner, access, name, desc, next, inlineFrames);
+        this(owner, access, name, desc, next, inlineFrames, false);
+    }
+
+    public MethodCallInlinerAdapter(String owner, int access, String name, String desc, MethodVisitor next,
+            boolean inlineFrames, boolean clearReturnStacksDefault) {
+        this(WeaveUtils.ASM_API_LEVEL, owner, access, name, desc, next, inlineFrames, clearReturnStacksDefault);
     }
 
     protected MethodCallInlinerAdapter(int api, String owner, int access, String name, String desc, MethodVisitor next,
             boolean inlineFrames) {
+        this(api, owner, access, name, desc, next, inlineFrames, false);
+    }
+
+    protected MethodCallInlinerAdapter(int api, String owner, int access, String name, String desc, MethodVisitor next,
+            boolean inlineFrames, boolean clearReturnStacksDefault) {
         super(api, access, desc, getNext(owner, access, name, desc, next, inlineFrames));
         this.analyzerAdapter = inlineFrames ? (AnalyzerAdapter) mv : null;
         this.mv = new InlinedTryCatchBlockSorter(WeaveUtils.ASM_API_LEVEL, this.mv, access, name, desc, null, null);
+        this.clearReturnStacksDefault = clearReturnStacksDefault;
     }
 
     private static MethodVisitor getNext(String owner, int access, String name, String desc, MethodVisitor next,
@@ -135,8 +155,13 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
                 //Feature flag for method nodes that require additional return insn processing.
                 //Introduced because some Kotlin code throws ArrayIndexOutOfBoundsException when weaved.
-                //To enable this feature, set -Dnewrelic.config.class_transformer.clear_return_stacks=true
-                if (Boolean.getBoolean("newrelic.config.class_transformer.clear_return_stacks")) {
+                //Defaults on for weave packages that set clearReturnStacksDefault (e.g. Kotlin-coroutines/Ktor
+                //modules); an explicit -Dnewrelic.config.class_transformer.clear_return_stacks system property
+                //always overrides that default in either direction.
+                String clearReturnStacksProp = System.getProperty(CLEAR_RETURN_STACKS_PROPERTY);
+                boolean clearReturnStacks = clearReturnStacksProp != null
+                        ? Boolean.parseBoolean(clearReturnStacksProp) : clearReturnStacksDefault;
+                if (clearReturnStacks) {
                     MethodNode result = WeaveUtils.newMethodNode(methodNodeCopy);
                     methodNodeCopy.accept(new ClearReturnAdapter(owner, methodNodeCopy, result));
                     methodNodeCopy = result;
