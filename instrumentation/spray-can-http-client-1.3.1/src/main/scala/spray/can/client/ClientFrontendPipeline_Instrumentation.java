@@ -52,7 +52,7 @@ public class ClientFrontendPipeline_Instrumentation {
                                 .procedure("connection")
                                 .inboundHeaders(new InboundHttpHeaders(((HttpResponse) httpMessageEnd).headers()))
                                 .build());
-                        AgentBridge.getAgent().setHttpMethod(segment, ((HttpRequest_Instrumentation) request).method);
+                        AgentBridge.getAgent().setHttpMethod(segment, ((HttpRequest_Instrumentation) request).httpMethod);
                         segment.end();
                     } catch (Exception e) {
                         NewRelic.getAgent().getLogger().log(Level.FINE, e, "Unable to record SprayCanClient externals");
