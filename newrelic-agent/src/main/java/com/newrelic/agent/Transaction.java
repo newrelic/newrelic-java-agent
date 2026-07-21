@@ -1543,12 +1543,15 @@ public class Transaction {
                         //finishing.
                         //
                         //The downstream effect is a transaction and memory leak.
-                        for (TokenImpl oldToken : oldTx.activeTokensCache.get().getTokens()) {
-                            //Only move over the tokens that were updated to point to newTx.
-                            if (oldToken.getTransaction().getTransactionIfExists() == newTx) {
-                                oldTx.activeCount.decrementAndGet();
-                                newTx.activeCount.incrementAndGet();
-                                oldTx.activeTokensCache.get().transferToken(oldToken, newTx.activeTokensCache.get());
+                        TimedSet<TokenImpl> oldTokensCache = oldTx.activeTokensCache.get();
+                        if (oldTokensCache != null) {
+                            for (TokenImpl oldToken : oldTokensCache.getTokens()) {
+                                //Only move over the tokens that were updated to point to newTx.
+                                if (oldToken.getTransaction().getTransactionIfExists() == newTx) {
+                                    oldTx.activeCount.decrementAndGet();
+                                    newTx.activeCount.incrementAndGet();
+                                    oldTx.activeTokensCache.get().transferToken(oldToken, newTx.activeTokensCache.get());
+                                }
                             }
                         }
 
