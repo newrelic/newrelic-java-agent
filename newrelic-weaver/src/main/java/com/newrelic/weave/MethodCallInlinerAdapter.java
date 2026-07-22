@@ -9,6 +9,7 @@ package com.newrelic.weave;
 
 import com.newrelic.weave.utils.ReturnInsnProcessor;
 import com.newrelic.weave.utils.WeaveUtils;
+import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -44,10 +45,12 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     private final AnalyzerAdapter analyzerAdapter;
 
     /*
-     * Whether return-instruction stack normalization (see ReturnInsnProcessor.clearReturnStacks) should be applied
-     * by default when weaving methods, absent an explicit CLEAR_RETURN_STACKS_PROPERTY system property override.
+     * Config of the weave package whose methods are being inlined, or null if none is available (e.g. some test
+     * call paths). Threaded through so that per-package defaults (e.g. whether return-instruction stack
+     * normalization should be applied by default, see ReturnInsnProcessor.clearReturnStacks) can be read here
+     * without requiring a new constructor parameter for each new default this class needs to consult.
      */
-    private final boolean clearReturnStacksDefault;
+    private final WeavePackageConfig weavePackageConfig;
 
     /*
      * If a method to be inlined is called several times from the same caller method, we don't want to allocate new
@@ -84,25 +87,25 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
     // they must be computed from scratch in the ClassWriter.
     public MethodCallInlinerAdapter(String owner, int access, String name, String desc, MethodVisitor next,
             boolean inlineFrames) {
-        this(owner, access, name, desc, next, inlineFrames, false);
+        this(owner, access, name, desc, next, inlineFrames, null);
     }
 
     public MethodCallInlinerAdapter(String owner, int access, String name, String desc, MethodVisitor next,
-            boolean inlineFrames, boolean clearReturnStacksDefault) {
-        this(WeaveUtils.ASM_API_LEVEL, owner, access, name, desc, next, inlineFrames, clearReturnStacksDefault);
+            boolean inlineFrames, WeavePackageConfig weavePackageConfig) {
+        this(WeaveUtils.ASM_API_LEVEL, owner, access, name, desc, next, inlineFrames, weavePackageConfig);
     }
 
     protected MethodCallInlinerAdapter(int api, String owner, int access, String name, String desc, MethodVisitor next,
             boolean inlineFrames) {
-        this(api, owner, access, name, desc, next, inlineFrames, false);
+        this(api, owner, access, name, desc, next, inlineFrames, null);
     }
 
     protected MethodCallInlinerAdapter(int api, String owner, int access, String name, String desc, MethodVisitor next,
-            boolean inlineFrames, boolean clearReturnStacksDefault) {
+            boolean inlineFrames, WeavePackageConfig weavePackageConfig) {
         super(api, access, desc, getNext(owner, access, name, desc, next, inlineFrames));
         this.analyzerAdapter = inlineFrames ? (AnalyzerAdapter) mv : null;
         this.mv = new InlinedTryCatchBlockSorter(WeaveUtils.ASM_API_LEVEL, this.mv, access, name, desc, null, null);
-        this.clearReturnStacksDefault = clearReturnStacksDefault;
+        this.weavePackageConfig = weavePackageConfig;
     }
 
     private static MethodVisitor getNext(String owner, int access, String name, String desc, MethodVisitor next,
@@ -155,9 +158,11 @@ public abstract class MethodCallInlinerAdapter extends LocalVariablesSorter {
                 MethodNode methodNodeCopy = WeaveUtils.copy(method.method);
                 //Feature flag for method nodes that require additional return insn processing.
                 //Introduced because some Kotlin code throws ArrayIndexOutOfBoundsException when weaved.
-                //Defaults on for weave packages that set clearReturnStacksDefault (e.g. Kotlin-coroutines/Ktor
-                //modules); an explicit -Dnewrelic.config.class_transformer.clear_return_stacks system property
+                //Defaults on for weave packages whose config sets clearReturnStacksDefault (e.g. Kotlin-coroutines/
+                //Ktor modules); an explicit -Dnewrelic.config.class_transformer.clear_return_stacks system property
                 //always overrides that default in either direction.
+                boolean clearReturnStacksDefault = weavePackageConfig != null
+                        && weavePackageConfig.isClearReturnStacksDefault();
                 String clearReturnStacksProp = System.getProperty(CLEAR_RETURN_STACKS_PROPERTY);
                 boolean clearReturnStacks = clearReturnStacksProp != null
                         ? Boolean.parseBoolean(clearReturnStacksProp) : clearReturnStacksDefault;

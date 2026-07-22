@@ -11,6 +11,7 @@ import com.google.common.collect.ObjectArrays;
 import com.newrelic.weave.utils.SynchronizedClassNode;
 import com.newrelic.weave.utils.WeaveUtils;
 import com.newrelic.weave.weavepackage.WeavePackage;
+import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -280,9 +281,9 @@ public class ClassWeave {
         }
 
         // inline original invocation
-        boolean clearReturnStacksDefault = weavePackage != null && weavePackage.getConfig().isClearReturnStacksDefault();
+        WeavePackageConfig weavePackageConfig = weavePackage != null ? weavePackage.getConfig() : null;
         composite = MethodProcessors.inlineMethods(WeaveUtils.INLINER_PREFIX + weaveClassName, toInline, target.name,
-                composite, clearReturnStacksDefault);
+                composite, weavePackageConfig);
         // the inliner sometimes like to sneak in some jsr instructions. Sneaky inliner!
         composite = MethodProcessors.removeJSRInstructions(composite);
 
