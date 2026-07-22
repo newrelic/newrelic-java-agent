@@ -8,6 +8,7 @@
 package spray.can.client;
 
 import akka.io.Tcp;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
@@ -51,6 +52,7 @@ public class ClientFrontendPipeline_Instrumentation {
                                 .procedure("connection")
                                 .inboundHeaders(new InboundHttpHeaders(((HttpResponse) httpMessageEnd).headers()))
                                 .build());
+                        AgentBridge.getAgent().setHttpMethod(segment, ((HttpRequest_Instrumentation) request).httpMethod);
                         segment.end();
                     } catch (Exception e) {
                         NewRelic.getAgent().getLogger().log(Level.FINE, e, "Unable to record SprayCanClient externals");

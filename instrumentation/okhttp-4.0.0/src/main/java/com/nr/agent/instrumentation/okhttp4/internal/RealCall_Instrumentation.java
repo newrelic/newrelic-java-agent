@@ -53,7 +53,7 @@ public abstract class RealCall_Instrumentation {
             throw e;
         }
 
-        OkUtils.processResponse(getOriginalRequest().url().uri(), response);
+        OkUtils.processResponse(getOriginalRequest().url().uri(), getOriginalRequest().method(), response);
 
         return response;
     }

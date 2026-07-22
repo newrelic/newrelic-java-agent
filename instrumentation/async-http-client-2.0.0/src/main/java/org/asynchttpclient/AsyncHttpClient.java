@@ -44,6 +44,7 @@ public class AsyncHttpClient {
 
                     handler.uri = uri;
                     handler.segment = segment;
+                    handler.method = request.getMethod();
                 }
             }
         } catch (URISyntaxException uriSyntaxException) {

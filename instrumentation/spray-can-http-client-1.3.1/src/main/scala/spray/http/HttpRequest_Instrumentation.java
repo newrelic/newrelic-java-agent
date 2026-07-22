@@ -30,6 +30,9 @@ public class HttpRequest_Instrumentation {
     @NewField
     public boolean isSSL;
 
+    @NewField
+    public String httpMethod;
+
     public HttpRequest_Instrumentation withHeaders(final List<HttpHeader> headers) {
         return Weaver.callOriginal();
     }
@@ -48,6 +51,7 @@ public class HttpRequest_Instrumentation {
         result.segment = this.segment;
         result.remoteAddress = this.remoteAddress;
         result.isSSL = this.isSSL;
+        result.httpMethod = this.httpMethod;
         return result;
     }
 

@@ -51,6 +51,7 @@ public abstract class HttpRequestToMuleEvent_Instrumentation {
                 .procedure("writeResponse")
                 .inboundHeaders(muleRequest)
                 .build());
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(muleRequest.getMethod());
 
         final Transaction txn = AgentBridge.getAgent().getTransaction(false);
         txn.setWebRequest(muleRequest);

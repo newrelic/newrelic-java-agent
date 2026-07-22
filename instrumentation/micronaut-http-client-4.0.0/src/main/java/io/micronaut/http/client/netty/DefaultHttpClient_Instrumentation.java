@@ -43,7 +43,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 		if(isFlux || isMono) {
 			HttpParameters params = HttpParameters.library("Micronaut").uri(Utils.getRequestURI(request)).procedure(request.getMethodName()).noInboundHeaders().build();
 			Transaction txn = NewRelic.getAgent().getTransaction();
-			ReactorListener listener = new ReactorListener(txn, params);
+			ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
 			if(result instanceof Mono) {
 				Mono<ByteBuffer<?>> mono = (Mono<ByteBuffer<?>>)result;
 				result = mono.doOnSubscribe(listener).doOnCancel(listener).doOnTerminate(listener);
@@ -69,7 +69,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 		if(isFlux || isMono) {
 			HttpParameters params = HttpParameters.library("Micronaut").uri(Utils.getRequestURI(request)).procedure(request.getMethodName()).noInboundHeaders().build();
 			Transaction txn = NewRelic.getAgent().getTransaction();
-			ReactorListener listener = new ReactorListener(txn, params);
+			ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
 			ResponseConsumer respConsumer = new ResponseConsumer(txn);
 			if(result instanceof Mono) {
 				Mono<io.micronaut.http.HttpResponse<O>> mono = (Mono<io.micronaut.http.HttpResponse<O>>)result;
@@ -94,7 +94,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 		if(isFlux || isMono) {
 			HttpParameters params = HttpParameters.library("Micronaut").uri(Utils.getRequestURI(request)).procedure(request.getMethodName()).noInboundHeaders().build();
 			Transaction txn = NewRelic.getAgent().getTransaction();
-			ReactorListener listener = new ReactorListener(txn, params);
+			ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
 			ResponseConsumer respConsumer = new ResponseConsumer(txn);
 			if(result instanceof Mono) {
 				Mono<io.micronaut.http.HttpResponse<ByteBuffer<?>>> mono = (Mono<io.micronaut.http.HttpResponse<ByteBuffer<?>>>)result;
@@ -118,7 +118,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 		if(isFlux || isMono) {
 			HttpParameters params = HttpParameters.library("Micronaut").uri(Utils.getRequestURI(request)).procedure(request.getMethodName()).noInboundHeaders().build();
 			Transaction txn = NewRelic.getAgent().getTransaction();
-			ReactorListener listener = new ReactorListener(txn, params);
+			ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
 			
 			if(isMono) {
 				Mono<O> mono = (Mono<O>)result;
@@ -143,7 +143,7 @@ public abstract class DefaultHttpClient_Instrumentation {
 		if(isFlux || isMono) {
 			HttpParameters params = HttpParameters.library("Micronaut").uri(Utils.getRequestURI(request)).procedure(request.getMethodName()).noInboundHeaders().build();
 			Transaction txn = NewRelic.getAgent().getTransaction();
-			ReactorListener listener = new ReactorListener(txn, params);
+			ReactorListener listener = new ReactorListener(txn, params, request.getMethodName());
 			ResponseConsumer respConsumer = new ResponseConsumer(txn);
 			if(result instanceof Mono) {
 				Mono<MutableHttpResponse<?>> mono = (Mono<MutableHttpResponse<?>>)result;

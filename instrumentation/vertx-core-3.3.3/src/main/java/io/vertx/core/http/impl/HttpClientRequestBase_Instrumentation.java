@@ -51,7 +51,7 @@ abstract class HttpClientRequestBase_Instrumentation {
                 port = ((ConnectionBase) connection).localAddress().port();
             }
 
-            VertxCoreUtil.processResponse(segment, resp, resp.request().host, port, isSsl ? "https" : "http");
+            VertxCoreUtil.processResponse(segment, resp, resp.request().host, port, isSsl ? "https" : "http", resp.request().getRawMethod());
             final Token token = segment.getTransaction().getToken();
             segment.end();
             token.linkAndExpire();

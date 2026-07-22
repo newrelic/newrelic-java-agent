@@ -18,6 +18,7 @@ import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Collections;
@@ -62,6 +63,11 @@ class FakeExtensionAgent implements Agent {
 
     @Override
     public TracedMethod getTracedMethod() { throw new RuntimeException(); }
+
+    @Override
+    public void setHttpMethod(Segment segment, String httpMethod) {
+
+    }
 
     @Override
     public Transaction getTransaction() { throw new RuntimeException(); }

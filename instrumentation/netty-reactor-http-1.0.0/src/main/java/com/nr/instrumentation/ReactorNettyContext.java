@@ -16,10 +16,19 @@ public class ReactorNettyContext {
 
     public static void put(Connection connection, SegmentData segmentData) {
         if (connection != null && segmentData != null) {
-            connectionSegments.put(connection, segmentData);
+            SegmentData previous = connectionSegments.put(connection, segmentData);
+            // Connection reused midflight, end the misplaced segment to avoid orphaned segments in the parent transaction
+            if (previous != null && previous.segment != null) {
+                previous.segment.end();
+            }
         }
     }
 
+    /**
+     * Caller is responsible for ending the returned Segment ({@code data.segment.end()}).
+     * Otherwise, the Segment orphans in its parent Transaction until the agent's
+     * {@code segment_timeout} reaper force-ends it.
+     */
     public static SegmentData remove(Connection connection) {
         if (connection == null) return null;
         return connectionSegments.remove(connection);
@@ -35,12 +44,6 @@ public class ReactorNettyContext {
             this.segment = segment;
             this.requestUri = requestUri;
             this.httpMethod = httpMethod;
-        }
-
-        public void updateUri(URI uri) {
-            if (uri != null) {
-                this.requestUri = uri;
-            }
         }
     }
 }

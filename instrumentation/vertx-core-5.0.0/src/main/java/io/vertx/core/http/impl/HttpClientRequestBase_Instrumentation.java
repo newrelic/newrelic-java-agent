@@ -19,6 +19,7 @@ import com.nr.vertx.instrumentation.VertxCoreUtil;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpMethod;
 
 import java.net.UnknownHostException;
 
@@ -31,6 +32,8 @@ public abstract class HttpClientRequestBase_Instrumentation {
     public abstract MultiMap headers();
 
     public abstract String absoluteURI();
+
+    public abstract HttpMethod getMethod();
 
     @Trace(async = true)
     void handleResponse(Promise<HttpClientResponse> promise, HttpClientResponse resp, long timeoutMs) {
@@ -63,7 +66,8 @@ public abstract class HttpClientRequestBase_Instrumentation {
     private void reportExternal(HttpClientResponse response, Segment segment) {
         if (response instanceof HttpClientResponseImpl) {
             HttpClientResponseImpl resp = (HttpClientResponseImpl) response;
-            VertxCoreUtil.processResponse(segment, resp, absoluteURI());
+            final String method =  getMethod() != null ? getMethod().name() : null;
+            VertxCoreUtil.processResponse(segment, resp, absoluteURI(), method);
         }
     }
 }

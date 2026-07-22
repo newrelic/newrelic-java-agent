@@ -80,7 +80,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
   * Spray 1.3.1 to latest
-  * Spring 3.0.0.RELEASE to latest
+  * Spring 3.0.0 to latest
   * Spring AOP 2.0.3 to latest
   * Spring Batch 4.0.0.RELEASE to 6.0.0 (exclusive)
   * Spring Boot Actuator 3.0.0 to 4.0.0-M1 (exclusive)

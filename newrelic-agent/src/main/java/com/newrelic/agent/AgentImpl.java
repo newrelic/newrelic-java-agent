@@ -24,6 +24,7 @@ import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TraceMetadata;
 import org.crac.Context;
 import org.crac.Core;
@@ -65,6 +66,13 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
         }
         Tracer tracer = txa.getLastTracer();
         return (tracer == null) ? NoOpTracedMethod.INSTANCE : tracer;
+    }
+
+    @Override
+    public void setHttpMethod(Segment segment, String httpMethod) {
+        if (segment instanceof com.newrelic.agent.Segment) {
+            ((com.newrelic.agent.Segment)segment).setHttpMethod(httpMethod);
+        }
     }
 
     /**

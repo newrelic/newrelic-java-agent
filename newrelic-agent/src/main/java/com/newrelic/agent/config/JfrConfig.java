@@ -57,4 +57,12 @@ public interface JfrConfig {
      * @return <code>true</code> if the configured display name should be used for the JFR host name, else <code>false</code>.
      */
     boolean useDisplayName();
+
+    /**
+     * If true, all JFR Event and Metric data will be decorated with labels. These labels are added as custom attributes prefixed
+     * with "tags", eg "tags.team".
+     *
+     * @return <code>true</code> if JFR data should be decorated with labels, else <code>false</code> (default).
+     */
+    boolean labelsEnabled();
 }

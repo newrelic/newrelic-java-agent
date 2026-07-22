@@ -50,31 +50,34 @@ object PlayWSUtils {
     }
     var localSegment = segment
     localSegment.setMetricName("External", "PlayWS", if (request.method != null) request.method.toLowerCase else procedure)
-
     tryCatchWrapper({
       response onComplete {
         case Success(result) =>
           tryCatchWrapper({
+            val httpMethod = if (request.method != null) request.method.toLowerCase else procedure
             localSegment.reportAsExternal(
               HttpParameters
                 .library("PlayWS")
                 .uri(request.uri)
-                .procedure(if (request.method != null) request.method.toLowerCase else procedure)
+                .procedure(httpMethod)
                 .inboundHeaders(new InboundWrapper(result))
                 .build())
+            AgentBridge.agent.setHttpMethod(localSegment, httpMethod)
             localSegment.end()
             localSegment = null
           }, segment)
 
         case Failure(t) => {
           tryCatchWrapper({
+            val httpMethod = if (request.method != null) request.method.toLowerCase else procedure
             localSegment.reportAsExternal(
               HttpParameters
                 .library("PlayWS")
                 .uri(request.uri)
-                .procedure(if (request.method != null) request.method.toLowerCase else procedure)
+                .procedure(httpMethod)
                 .noInboundHeaders()
                 .build())
+            AgentBridge.agent.setHttpMethod(localSegment, httpMethod)
             localSegment.end()
             localSegment = null
           }, segment)

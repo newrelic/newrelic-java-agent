@@ -56,7 +56,7 @@ public abstract class HttpClient {
         }
     }
 
-    private static void processResponse(URI requestURI, HttpResponse response) {
+    private static void processResponse(URI requestURI, String method, HttpResponse response) {
         InboundWrapper inboundCatWrapper = new InboundWrapper(response);
         NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
                 .library(LIBRARY)
@@ -65,6 +65,7 @@ public abstract class HttpClient {
                 .inboundHeaders(inboundCatWrapper)
                 .status(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase())
                 .build());
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
     }
 
     @Trace(leaf = true)
@@ -77,7 +78,7 @@ public abstract class HttpClient {
             handleUnknownHost(e);
             throw e;
         }
-        processResponse(request.getURI(), response);
+        processResponse(request.getURI(), request.getMethod(), response);
         return response;
     }
 
@@ -91,7 +92,7 @@ public abstract class HttpClient {
             handleUnknownHost(e);
             throw e;
         }
-        processResponse(request.getURI(), response);
+        processResponse(request.getURI(), request.getMethod(), response);
         return response;
     }
 
@@ -106,7 +107,7 @@ public abstract class HttpClient {
             throw e;
         }
         URI actualURI = getUri(target, request);
-        processResponse(actualURI, response);
+        processResponse(actualURI, getMethod(request), response);
         return response;
     }
 
@@ -121,14 +122,14 @@ public abstract class HttpClient {
             throw e;
         }
         URI actualURI = getUri(target, request);
-        processResponse(actualURI, response);
+        processResponse(actualURI, getMethod(request), response);
         return response;
     }
 
     @Trace(leaf = true)
     public <T, R extends T> T execute(HttpUriRequest request, ResponseHandler<R> responseHandler)
             throws Exception {
-        responseHandler = new WrappedResponseHandler<>(request.getURI(), responseHandler);
+        responseHandler = new WrappedResponseHandler<>(request.getURI(), request.getMethod(), responseHandler);
         doOutboundCAT(request);
         T response;
         try {
@@ -143,7 +144,7 @@ public abstract class HttpClient {
     @Trace(leaf = true)
     public <T, R extends T> T execute(HttpUriRequest request, ResponseHandler<R> responseHandler, HttpContext context)
             throws Exception {
-        responseHandler = new WrappedResponseHandler<>(request.getURI(), responseHandler);
+        responseHandler = new WrappedResponseHandler<>(request.getURI(), request.getMethod(), responseHandler);
         doOutboundCAT(request);
         T response;
         try {
@@ -159,7 +160,7 @@ public abstract class HttpClient {
     public <T, R extends T> T execute(HttpHost target, HttpRequest request, ResponseHandler<R> responseHandler)
             throws Exception {
         URI actualURI = getUri(target, request);
-        responseHandler = new WrappedResponseHandler<>(actualURI, responseHandler);
+        responseHandler = new WrappedResponseHandler<>(actualURI, getMethod(request), responseHandler);
         doOutboundCAT(request);
         T response;
         try {
@@ -175,7 +176,7 @@ public abstract class HttpClient {
     public <T, R extends T> T execute(HttpHost target, HttpRequest request, ResponseHandler<R> responseHandler,
             HttpContext context) throws Exception {
         URI actualURI = getUri(target, request);
-        responseHandler = new WrappedResponseHandler<>(actualURI, responseHandler);
+        responseHandler = new WrappedResponseHandler<>(actualURI, getMethod(request), responseHandler);
         doOutboundCAT(request);
         T response;
         try {
@@ -185,6 +186,13 @@ public abstract class HttpClient {
             throw e;
         }
         return response;
+    }
+
+    private String getMethod(HttpRequest request) {
+        if (request != null && request.getRequestLine() != null) {
+            return request.getRequestLine().getMethod();
+        }
+        return null;
     }
 
     private static URI getUri(HttpHost target, HttpRequest request) throws URISyntaxException {
@@ -197,23 +205,25 @@ public abstract class HttpClient {
 
         private final URI uri;
         private final ResponseHandler<T> originalResponseHandler;
+        private final String method;
 
-        public WrappedResponseHandler(URI uri, ResponseHandler<T> originalResponseHandler) {
+        public WrappedResponseHandler(URI uri, String method, ResponseHandler<T> originalResponseHandler) {
             this.uri = uri;
             this.originalResponseHandler = originalResponseHandler;
+            this.method = method;
         }
 
         @Override
         public T handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
             try {
-                processResponse(uri, response);
+                processResponse(uri, method, response);
             } catch (Throwable t) {
                 AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to process response");
             }
             return originalResponseHandler.handleResponse(response);
         }
 
-        private static void processResponse(URI requestURI, HttpResponse response) {
+        private static void processResponse(URI requestURI, String method, HttpResponse response) {
             InboundWrapper inboundCatWrapper = new InboundWrapper(response);
             NewRelic.getAgent().getTracedMethod().reportAsExternal(HttpParameters
                     .library(LIBRARY)
@@ -222,6 +232,7 @@ public abstract class HttpClient {
                     .inboundHeaders(inboundCatWrapper)
                     .status(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase())
                     .build());
+            AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         }
     }
 }

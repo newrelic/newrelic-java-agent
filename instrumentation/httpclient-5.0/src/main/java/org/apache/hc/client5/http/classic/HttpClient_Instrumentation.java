@@ -41,7 +41,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            InstrumentationUtils.processResponse(request.getUri(), response);
+            InstrumentationUtils.processResponse(request.getUri(), request.getMethod(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -59,7 +59,7 @@ public class HttpClient_Instrumentation {
             throw e;
         }
         try {
-            InstrumentationUtils.processResponse(request.getUri(), response);
+            InstrumentationUtils.processResponse(request.getUri(), request.getMethod(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -78,7 +78,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            InstrumentationUtils.processResponse(actualURI, response);
+            InstrumentationUtils.processResponse(actualURI, request.getMethod(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
@@ -97,7 +97,7 @@ public class HttpClient_Instrumentation {
         }
         try {
             URI actualURI = getUri(target, request);
-            InstrumentationUtils.processResponse(actualURI, response);
+            InstrumentationUtils.processResponse(actualURI, request.getMethod(), response);
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }

@@ -12,8 +12,10 @@ import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionActivity;
 import com.newrelic.agent.tracers.metricname.SimpleMetricNameFormat;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.objectweb.asm.Opcodes;
 
 import java.util.Collections;
@@ -174,6 +176,38 @@ public class AbstractTracerTest {
         assertEquals(4, target.getCustomAttribute("numToppings"));
         assertTrue((Boolean) target.getCustomAttribute("cheese"));
         assertTrue((Boolean) target.getCustomAttribute("mayonnaise"));
+    }
+
+    @Test
+    public void testSetHttpMethod() {
+        // setup
+        AbstractTracer target = createTxnAndTracer();
+        // execution
+        target.setHttpMethod("GET");
+        // assertions
+        assertEquals(0, target.getCustomAttributes().size());
+        assertEquals(2, target.getAgentAttributes().size());
+        assertEquals(1, target.getAgentAttributeNamesForSpans().size());
+        assertEquals("GET", target.getAgentAttributes().get("http.request.method"));
+        assertTrue("The attribute http.request.method needs to be marked for spans",
+                target.getAgentAttributeNamesForSpans().contains("http.request.method"));
+    }
+
+    @Test
+    public void testSetHttpMethodLowerCase() {
+        // setup
+        AbstractTracer target = createTxnAndTracer();
+        // execution
+        target.setHttpMethod("get");
+        // assertions
+        assertEquals(0, target.getCustomAttributes().size());
+        assertEquals("Agent attributes are counted at " + target.getAgentAttributes().size() + " instead of 2",
+                1, target.getAgentAttributes().size());
+        assertEquals(1, target.getAgentAttributeNamesForSpans().size());
+        assertEquals("The attribute http.request.method needs to be uppercase even if the input in target.setHttpMethod(...) is lowercase",
+                "GET", target.getAgentAttributes().get("http.request.method"));
+        assertTrue("The attribute http.request.method needs to be marked for spans",
+                target.getAgentAttributeNamesForSpans().contains("http.request.method"));
     }
 
     @Test
