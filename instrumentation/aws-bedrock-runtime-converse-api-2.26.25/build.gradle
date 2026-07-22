@@ -1,0 +1,21 @@
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.aws-bedrock-runtime-converse-api-2.26.25' }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation 'software.amazon.awssdk:bedrockruntime:2.26.25'
+
+    testImplementation 'software.amazon.awssdk:bedrockruntime:2.26.25'
+    testImplementation 'org.mockito:mockito-inline:4.11.0'
+    testImplementation 'org.json:json:20240303'
+}
+
+verifyInstrumentation {
+    passesOnly 'software.amazon.awssdk:bedrockruntime:[2.26.25,)'
+}
+
+site {
+    title 'AWS Converse'
+    type 'AI'
+}
