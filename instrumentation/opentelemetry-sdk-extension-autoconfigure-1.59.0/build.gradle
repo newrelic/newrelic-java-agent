@@ -11,6 +11,9 @@ configurations.implementation.extendsFrom(configurations.shadowIntoJar)
 
 dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.59.0")
+    // Needed at compile time to rebuild the OTLP metric exporter with proxy options. Not bundled into
+    // the instrumentation jar; the OTel exporter is provided by the monitored application at runtime.
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.59.0")
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
@@ -21,7 +24,6 @@ dependencies {
     }
 
     testImplementation("junit:junit:4.12")
-    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:1.59.0")
     testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.25.0")
     testImplementation("com.google.guava:guava:30.1.1-jre")
     testImplementation("org.mockito:mockito-inline:4.11.0")
