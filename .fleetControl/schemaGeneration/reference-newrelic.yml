@@ -812,6 +812,11 @@ common: &default_settings
     # resolution logic will be used. Default is false.
     use_display_name: false
 
+    labels:
+      # If true, JFR data will be decorated with APM labels. This will add labels as attributes prefixed with "tags."
+      # Default is false.
+      enabled: false
+
   # Infinite Tracing configuration.
   infinite_tracing:
     trace_observer:
