@@ -117,7 +117,32 @@ public class ClassWeaverServiceTest {
 
             Assert.assertNotNull(target.getWeavePackageManger().getWeavePackage("com.newrelic.instrumentation.jms-1.1"));
             Assert.assertEquals(1, target.getWeavePackageManger().getRegisteredPackages().size());
+
+            // jms-1.1 is not a Kotlin-coroutines/Ktor module, so it should not default clear_return_stacks on
+            Assert.assertFalse(target.getWeavePackageManger().getWeavePackage("com.newrelic.instrumentation.jms-1.1")
+                    .getConfig().isClearReturnStacksDefault());
         }
+    }
+
+    @Test
+    public void test_isClearReturnStacksDefaultWeavePackage_matchesKnownKotlinCoroutinesAndKtorModules() {
+        for (String weavePackageName : Arrays.asList(
+                "com.newrelic.instrumentation.kotlin-coroutines-1.4",
+                "com.newrelic.instrumentation.kotlin-coroutines-1.7",
+                "com.newrelic.instrumentation.kotlin-coroutines-1.9",
+                "com.newrelic.instrumentation.kotlin-coroutines-suspends",
+                "com.newrelic.instrumentation.ktor-server-core-3.0.0",
+                "com.newrelic.instrumentation.ktor-server-netty-3.0.0",
+                "com.newrelic.instrumentation.labs.ktor-utils-3.0",
+                "com.newrelic.instrumentation.labs.ktor-client-core-3.0")) {
+            Assert.assertTrue(weavePackageName, ClassWeaverService.isClearReturnStacksDefaultWeavePackage(weavePackageName));
+        }
+    }
+
+    @Test
+    public void test_isClearReturnStacksDefaultWeavePackage_doesNotMatchOtherModules() {
+        Assert.assertFalse(ClassWeaverService.isClearReturnStacksDefaultWeavePackage("com.newrelic.instrumentation.jms-1.1"));
+        Assert.assertFalse(ClassWeaverService.isClearReturnStacksDefaultWeavePackage(null));
     }
 
     @Test
