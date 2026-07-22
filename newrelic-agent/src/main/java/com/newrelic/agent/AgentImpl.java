@@ -30,6 +30,7 @@ import org.crac.Context;
 import org.crac.Core;
 import org.crac.Resource;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -177,6 +178,18 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
             ServiceFactory.getRPMConnectionService().awaitConnectImmediate(rpmServiceManager, 1, TimeUnit.MINUTES);
         }
         return rpmService.getEntityGuid();
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        try {
+            final IRPMService rpmService = ServiceFactory.getServiceManager()
+                    .getRPMServiceManager().getRPMService();
+            return rpmService.getServiceMetadata();
+        } catch (Exception e) {
+            Agent.LOG.log(Level.SEVERE, "An error occurred trying to get Service Metadata. Returning an empty map instead.", e);
+            return Collections.emptyMap();
+        }
     }
 
     @Override
