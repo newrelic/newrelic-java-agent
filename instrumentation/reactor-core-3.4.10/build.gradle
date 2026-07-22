@@ -1,0 +1,12 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("io.projectreactor:reactor-core:3.4.10")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.reactor-core-3.4.10' }
+}
+
+verifyInstrumentation {
+    passesOnly 'io.projectreactor:reactor-core:[3.4.10,3.5.0)'
+}
