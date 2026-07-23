@@ -165,7 +165,7 @@ public class W3CTraceStateSupportTest extends BaseDistributedTraceTest {
         transaction.createDistributedTracePayload(newSpanId);
         String outboundPayload = new W3CTraceStateHeader(true, true).create(transaction.getSpanProxy());
         //timestamp is generated
-        assertTrue(outboundPayload.startsWith("190@nr=0-0-accountId-appID-" + newSpanId + "-" + transaction.getGuid() + "-0-0.789-"));
+        assertTrue(outboundPayload.startsWith("190@nr=0-0-accountId-appID--" + transaction.getGuid() + "-0-0.789-"));
     }
 
     @Test
