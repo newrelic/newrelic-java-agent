@@ -1,0 +1,20 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'com.newrelic.instrumentation.jboss-threads-2.3.0'
+    }
+}
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.jboss.threads:jboss-threads:2.3.0.Final")
+}
+
+verifyInstrumentation {
+    excludeRegex '.*Beta[0-9]'
+    passesOnly 'org.jboss.threads:jboss-threads:[2.3.0.Final,)'
+}
+
+site {
+    title 'JBoss Threads'
+    type 'Framework'
+}
