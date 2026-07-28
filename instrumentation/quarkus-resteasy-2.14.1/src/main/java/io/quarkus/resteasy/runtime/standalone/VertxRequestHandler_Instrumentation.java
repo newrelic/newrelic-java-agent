@@ -6,9 +6,7 @@
  */
 package io.quarkus.resteasy.runtime.standalone;
 
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Token;
-import com.newrelic.api.agent.Trace;
+import com.newrelic.api.agent.*;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
@@ -40,6 +38,15 @@ public class VertxRequestHandler_Instrumentation {
         // overwriting the JAX-RS template name set by jax-rs instrumentation.
         routingContext.data().remove("newrelic-path");
         Weaver.callOriginal();
-        NewRelic.getAgent().getTransaction().getTransactionName();
+
+        String txnName = NewRelic.getAgent().getTransaction().getTransactionName();
+        // This is here so we only rename a transaction that previously matched a valid JAX-RS
+        // route template and not something else (4xx status, etc)
+        if (txnName != null && txnName.startsWith("WebTransaction/RestWebService/")) {
+            int nameStart = txnName.indexOf('/', "WebTransaction/".length());
+            NewRelic.getAgent().getTransaction()
+                    .setTransactionName(TransactionNamePriority.FRAMEWORK_HIGH, true,
+                            "Quarkus", txnName.substring(nameStart + 1));
+        }
     }
 }
