@@ -27,7 +27,7 @@ public class W3CTraceStateHeaderTest extends BaseDistributedTraceTest {
         String traceStateHeader = new W3CTraceStateHeader(true, true).createTraceStateHeader(
                 new DistributedTracePayloadImpl(1234L, "parentType", "accountId", "trustKey", "appId", "guid", "traceId",
                         "txnId", 0.789f, Sampled.SAMPLED_NO), "0");
-        assertEquals("trustKey@nr=0-0-accountId-appId-guid-txnId-0-0.789-1234", traceStateHeader);
+        assertEquals("trustKey@nr=0-0-accountId-appId--txnId-0-0.789-1234", traceStateHeader);
     }
 
     @Test
@@ -47,7 +47,7 @@ public class W3CTraceStateHeaderTest extends BaseDistributedTraceTest {
         String traceStateHeader = testClass.createTraceStateHeader(
                 new DistributedTracePayloadImpl(1234L, "parentType", "accountId", "trustKey", "appId",
                         "667", "traceId", "NO_SOUP", 0.789f, Sampled.SAMPLED_NO ), "0");
-        assertEquals("trustKey@nr=0-0-accountId-appId-667--0-0.789-1234", traceStateHeader);
+        assertEquals("trustKey@nr=0-0-accountId-appId---0-0.789-1234", traceStateHeader);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class W3CTraceStateHeaderTest extends BaseDistributedTraceTest {
         String traceStateHeader = testClass.createTraceStateHeader(
                 new DistributedTracePayloadImpl(1234L, "parentType", "accountId", "trustKey", "appId",
                         "broop", "traceId", "txnid", 0.000001f, Sampled.SAMPLED_NO), "0");
-        assertEquals("trustKey@nr=0-0-accountId-appId-broop-txnid-0-0.000001-1234", traceStateHeader);
+        assertEquals("trustKey@nr=0-0-accountId-appId--txnid-0-0.000001-1234", traceStateHeader);
     }
 
     @Test
@@ -75,6 +75,6 @@ public class W3CTraceStateHeaderTest extends BaseDistributedTraceTest {
         String traceStateHeader = testClass.createTraceStateHeader(
                 new DistributedTracePayloadImpl(1234L, "parentType", "accountId", "trustKey", "appId",
                         "broop", "traceId", "txnid", 0.0000000000000000001f, Sampled.SAMPLED_NO), "0");
-        assertEquals("trustKey@nr=0-0-accountId-appId-broop-txnid-0-0.000000-1234", traceStateHeader);
+        assertEquals("trustKey@nr=0-0-accountId-appId--txnid-0-0.000000-1234", traceStateHeader);
     }
 }
