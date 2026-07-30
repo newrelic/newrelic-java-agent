@@ -1,0 +1,79 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation('io.quarkus:quarkus-resteasy-reactive:3.0.0.Final')
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.quarkus-rest-3.0.0',
+            'Implementation-Title-Alias': 'quarkus'}
+}
+
+verifyInstrumentation {
+    passesOnly 'io.quarkus:quarkus-resteasy-reactive:[3.0.0,3.9.0)'
+    passesOnly 'io.quarkus:quarkus-rest:[3.9.0,)'
+    excludeRegex '.*CR.*'
+    excludeRegex '.*Alpha[0-9]'
+    excludeRegex '.*Beta[0-9]'
+
+    // quarkus-resteasy-reactive: exclude all pre-3.x versions (module does not apply)
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[1.11.0.Final,3.0.0.Final)'
+    // quarkus-resteasy-reactive: keep only last patch of each minor
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.0.0.Final,3.0.3.Final]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.1.0.Final,3.1.2.Final]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.2.0.Final,3.2.11.Final]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.3.0,3.3.2]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.4.0,3.4.2]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.5.0,3.5.2]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.6.0,3.6.8]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.7.0,3.7.3]'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[3.8.0,3.8.6]'
+
+    // quarkus-rest: keep only last patch of each minor; 3.37.x left open to catch new releases
+    exclude 'io.quarkus:quarkus-rest:[3.9.0,3.9.4]'
+    exclude 'io.quarkus:quarkus-rest:[3.10.0,3.10.1]'
+    exclude 'io.quarkus:quarkus-rest:[3.11.0,3.11.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.12.0,3.12.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.13.0,3.13.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.14.0,3.14.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.15.0,3.15.6.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.16.0,3.16.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.17.0,3.17.7]'
+    exclude 'io.quarkus:quarkus-rest:[3.18.0,3.18.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.19.0,3.19.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.20.0,3.20.6.1]'
+    exclude 'io.quarkus:quarkus-rest:[3.21.0,3.21.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.22.0,3.22.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.23.0,3.23.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.24.0,3.24.4]'
+    exclude 'io.quarkus:quarkus-rest:[3.25.0,3.25.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.26.0,3.26.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.27.0,3.27.4]'
+    exclude 'io.quarkus:quarkus-rest:[3.28.0,3.28.4]'
+    exclude 'io.quarkus:quarkus-rest:[3.29.0,3.29.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.30.0,3.30.7]'
+    exclude 'io.quarkus:quarkus-rest:[3.31.0,3.31.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.32.0,3.32.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.33.0,3.33.2]'
+    exclude 'io.quarkus:quarkus-rest:[3.34.0,3.34.6]'
+    exclude 'io.quarkus:quarkus-rest:[3.35.0,3.35.3]'
+    exclude 'io.quarkus:quarkus-rest:[3.36.0,3.36.2]'
+    // The next excludes will be 3.37.x
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    // These instrumentation tests only run on Java 17+ regardless of the -PtestN gradle property that is set.
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
+site {
+    title 'Quarkus'
+    type 'Framework'
+}
