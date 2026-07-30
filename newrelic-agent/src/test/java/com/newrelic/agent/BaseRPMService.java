@@ -50,6 +50,11 @@ public abstract class BaseRPMService implements IRPMService {
     }
 
     @Override
+    public Map<String, String> getServiceMetadata() {
+        return Collections.emptyMap();
+    }
+
+    @Override
     public String getApplicationName() {
         return "test";
     }

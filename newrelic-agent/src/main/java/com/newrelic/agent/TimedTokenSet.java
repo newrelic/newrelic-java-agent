@@ -13,6 +13,7 @@ import com.newrelic.agent.bridge.CleanableMap;
 import com.newrelic.agent.model.TimeoutCause;
 import com.newrelic.agent.util.TimeConversion;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -65,7 +66,9 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
                         // In the case of a token being expired we *must* spin off the work on to a
                         // second thread in order to prevent a possible deadlock between the expire code
                         // and other tx usages.
-                        expirationService.expireToken(token::markExpired);
+                        if (!token.isInTransfer.get()) {
+                            expirationService.expireToken(() -> token.markExpired(tx));
+                        }
                     }
                 });
     }
@@ -107,6 +110,19 @@ public class TimedTokenSet implements TimedSet<TokenImpl> {
     @Override
     public void refresh(TokenImpl token) {
         activeTokens.get(token);
+    }
+
+    @Override
+    public Set<TokenImpl> getTokens() {
+        return activeTokens.keySet();
+    }
+
+    @Override
+    public void transferToken(TokenImpl token, TimedSet<TokenImpl> targetCache){
+        token.isInTransfer.set(true);
+        activeTokens.remove(token);
+        targetCache.put(token);
+        token.isInTransfer.set(false);
     }
 
 }

@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.CustomInsightsEvent;
@@ -19,7 +20,6 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
@@ -50,6 +50,18 @@ public interface IRPMService extends Service {
     void sendTransactionTraceData(List<TransactionTrace> traces) throws Exception;
 
     String getEntityGuid();
+
+    /**
+     * Returns service metadata from the most recent connect response.
+     * Values update on each agent reconnect.
+     * <p>
+     * While this is intended to decorate attributes onto OTel
+     * dimensional metrics, it may be generally useful anywhere access
+     * to agent metadata, tags, and host/entity attributes are needed.
+     *
+     * @return map of metadata key/value pairs (never null)
+     */
+    Map<String, String> getServiceMetadata();
 
     String getApplicationName();
 

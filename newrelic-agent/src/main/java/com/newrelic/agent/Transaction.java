@@ -285,7 +285,6 @@ public class Transaction {
         return Math.max(transportDurationInMillis, 0);
     }
 
-    // TODO does this contract work for everyone?
     public enum PartialSampleType {
         REDUCED("Reduced"),
         ESSENTIAL("Essential"),
@@ -1535,6 +1534,28 @@ public class Transaction {
                     int oldTxaId = oldTxa.hashCode();
                     oldTxa.startAsyncActivity(newTx, newTx.nextActivityId.getAndIncrement(), tracer);
                     if (oldTx != null) {
+                        //We MUST move tokens and their counts from oldTx to newTx where applicable.
+                        //
+                        //Any active tokens from oldTx that reside on oldTxa (token.getInitiatingTracer().getTransactionActivity() == oldTxa)
+                        //will have been reparented in the preceding line of code (oldTxa.startAsyncActivity(newTx)) to point to newTx.
+                        //When these tokens finish (whether properly expired or via timeout) they will do so on newTx instead of oldTx.
+                        //This messes up our accounting of the number of active tokens on both newTx and oldTx, which can prevent one or both transactions from
+                        //finishing.
+                        //
+                        //The downstream effect is a transaction and memory leak.
+                        TimedSet<TokenImpl> oldTokensCache = oldTx.activeTokensCache.get();
+                        TimedSet<TokenImpl> newTokensCache = newTx.activeTokensCache.get();
+                        if (oldTokensCache != null && newTokensCache != null) {
+                            for (TokenImpl oldToken : oldTokensCache.getTokens()) {
+                                //Only move over the tokens that were updated to point to newTx.
+                                if (oldToken.getTransaction().getTransactionIfExists() == newTx) {
+                                    oldTx.activeCount.decrementAndGet();
+                                    newTx.activeCount.incrementAndGet();
+                                    oldTokensCache.transferToken(oldToken, newTokensCache);
+                                }
+                            }
+                        }
+
                         // We migrate state from the source to the target transactions of the migration.
                         // It's never been completely clear whether or not this is the correct behavior.
                         PriorityApplicationName pan = oldTx.getPriorityApplicationName();

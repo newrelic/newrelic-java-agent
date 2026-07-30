@@ -7,6 +7,7 @@
 
 package io.opentelemetry.sdk.autoconfigure;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
@@ -31,6 +32,8 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +41,7 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN
 import static io.opentelemetry.sdk.autoconfigure.OpenTelemetrySDKCustomizer.SERVICE_INSTANCE_ID_ATTRIBUTE_KEY;
 import static io.opentelemetry.sdk.metrics.data.AggregationTemporality.DELTA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenTelemetrySDKCustomizerTest extends TestCase {
@@ -116,6 +120,102 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         assertEquals(2, collectedMetrics.size());
         assertTrue(actualMetricNames.contains("foo"));
         assertTrue(actualMetricNames.contains("bar"));
+    }
+
+    public void testWrapMetricExporterReturnsNonNullWrapper() {
+        DummyExporter delegate = new DummyExporter();
+        MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+        assertNotNull(wrapped);
+        assertNotSame(delegate, wrapped);
+    }
+
+    public void testWrapMetricExporterPassesMetricsThroughWhenMetadataEmpty() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        MetricData md = mock(MetricData.class);
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.singletonList(md));
+        }
+
+        Collection<MetricData> received = delegate.getLatestMetricData();
+        assertEquals(1, received.size());
+        // With empty metadata, the wrapper must forward the original MetricData unchanged (no Resource overlay).
+        assertSame(md, received.iterator().next());
+    }
+
+    public void testWrapMetricExporterInjectsServiceMetadataIntoResource() {
+        DummyExporter delegate = new DummyExporter();
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("entity.guid", "guid-123");
+        metadata.put("nr.tag.region", "us-east-1");
+
+        com.newrelic.agent.bridge.Agent mockAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockAgent.getServiceMetadata()).thenReturn(metadata);
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            MetricReader reader = PeriodicMetricReader.create(wrapped);
+            SdkMeterProvider provider = SdkMeterProvider.builder().registerMetricReader(reader).build();
+            provider.get("test-scope").counterBuilder("my-metric").build().add(1);
+            reader.forceFlush();
+        }
+
+        Collection<MetricData> exported = delegate.getLatestMetricData();
+        assertEquals(1, exported.size());
+        Resource resource = exported.iterator().next().getResource();
+        assertEquals("guid-123", resource.getAttribute(AttributeKey.stringKey("entity.guid")));
+        assertEquals("us-east-1", resource.getAttribute(AttributeKey.stringKey("nr.tag.region")));
+    }
+
+    public void testWrapMetricExporterRefreshesOverlayWhenMetadataChanges() {
+        DummyExporter delegate = new DummyExporter();
+        Map<String, String> first = Collections.singletonMap("entity.guid", "guid-1");
+        Map<String, String> second = Collections.singletonMap("entity.guid", "guid-2");
+
+        com.newrelic.agent.bridge.Agent mockAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockAgent.getServiceMetadata()).thenReturn(first, second);
+
+        MetricData md1 = mock(MetricData.class);
+        when(md1.getResource()).thenReturn(Resource.empty());
+        MetricData md2 = mock(MetricData.class);
+        when(md2.getResource()).thenReturn(Resource.empty());
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+
+            wrapped.export(Collections.singletonList(md1));
+            MetricData firstOut = delegate.getLatestMetricData().iterator().next();
+            assertEquals("guid-1", firstOut.getResource().getAttribute(AttributeKey.stringKey("entity.guid")));
+
+            wrapped.export(Collections.singletonList(md2));
+            MetricData secondOut = delegate.getLatestMetricData().iterator().next();
+            assertEquals("guid-2", secondOut.getResource().getAttribute(AttributeKey.stringKey("entity.guid")));
+        }
+    }
+
+    public void testWrapMetricExporterDelegatesPassThroughMethods() {
+        MetricExporter delegate = mock(MetricExporter.class);
+        when(delegate.getDefaultAggregation(InstrumentType.COUNTER)).thenReturn(Aggregation.sum());
+        when(delegate.getAggregationTemporality(InstrumentType.COUNTER)).thenReturn(DELTA);
+        when(delegate.flush()).thenReturn(CompletableResultCode.ofSuccess());
+        when(delegate.shutdown()).thenReturn(CompletableResultCode.ofSuccess());
+
+        MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+
+        assertSame(Aggregation.sum(), wrapped.getDefaultAggregation(InstrumentType.COUNTER));
+        assertEquals(DELTA, wrapped.getAggregationTemporality(InstrumentType.COUNTER));
+        assertTrue(wrapped.flush().isSuccess());
+        assertTrue(wrapped.shutdown().isSuccess());
+
+        wrapped.close();
+        verify(delegate).close();
     }
 
     private List<String> metricNames(Collection<MetricData> collectedMetrics) {

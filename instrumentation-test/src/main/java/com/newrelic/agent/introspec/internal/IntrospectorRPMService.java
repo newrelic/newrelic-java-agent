@@ -25,6 +25,7 @@ import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -176,6 +177,11 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     @Override
     public String getEntityGuid() {
         return "";
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        return Collections.emptyMap();
     }
 
     @Override

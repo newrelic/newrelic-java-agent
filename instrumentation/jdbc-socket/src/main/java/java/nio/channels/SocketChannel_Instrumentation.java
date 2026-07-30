@@ -22,32 +22,12 @@ import java.util.logging.Level;
 
 @Weave(originalName = "java.nio.channels.SocketChannel", type = MatchType.BaseClass)
 public abstract class SocketChannel_Instrumentation {
-
-    @NewField
-    InetSocketAddress address;
-
     public static SocketChannel_Instrumentation open(SocketAddress remote) {
         SocketChannel_Instrumentation channel = Weaver.callOriginal();
         if (channel.isConnected() && DatastoreInstanceDetection.shouldDetectConnectionAddress() && (remote instanceof InetSocketAddress)) {
             DatastoreInstanceDetection.saveAddress((InetSocketAddress) remote);
         }
         return channel;
-    }
-
-    public boolean connect(SocketAddress remote) throws IOException {
-        boolean result = Weaver.callOriginal();
-        if (DatastoreInstanceDetection.shouldDetectConnectionAddress() && (remote instanceof InetSocketAddress)) {
-            this.address = (InetSocketAddress) remote;
-        }
-        return result;
-    }
-
-    public boolean finishConnect() {
-        boolean result = Weaver.callOriginal();
-        if (isConnected() && DatastoreInstanceDetection.shouldDetectConnectionAddress() && this.address != null) {
-            DatastoreInstanceDetection.saveAddress(this.address);
-        }
-        return result;
     }
 
     public abstract boolean isConnected();
