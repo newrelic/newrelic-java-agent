@@ -1,23 +1,32 @@
 dependencies {
     implementation(project(":agent-bridge"))
-    implementation('io.quarkus:quarkus-resteasy-reactive:3.0.0.Final')
+    implementation('io.quarkus:quarkus-resteasy-reactive:2.11.0.Final')
 }
 
 jar {
-    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.quarkus-rest-3.0.0',
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.quarkus-resteasy-reactive-2.11',
             'Implementation-Title-Alias': 'quarkus'}
 }
 
 verifyInstrumentation {
-    passesOnly 'io.quarkus:quarkus-resteasy-reactive:[3.0.0,3.9.0)'
+    passesOnly 'io.quarkus:quarkus-resteasy-reactive:[2.11.0.Final,3.9.0)'
     passesOnly 'io.quarkus:quarkus-rest:[3.9.0,)'
     excludeRegex '.*CR.*'
     excludeRegex '.*Alpha[0-9]'
     excludeRegex '.*Beta[0-9]'
 
-    // quarkus-resteasy-reactive: exclude all pre-3.x versions (module does not apply)
-    exclude 'io.quarkus:quarkus-resteasy-reactive:[1.11.0.Final,3.0.0.Final)'
-    // quarkus-resteasy-reactive: keep only last patch of each minor
+    // quarkus-resteasy-reactive: exclude versions before the supported range
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[1.11.0.Final,2.11.0.Final)'
+
+    // quarkus-resteasy-reactive 2.x: keep only last patch ver of each minor
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.11.0.Final,2.11.3.Final)'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.12.0.Final,2.12.3.Final)'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.13.0.Final,2.13.8.Final)'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.14.0.Final,2.14.3.Final)'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.15.0.Final,2.15.3.Final)'
+    exclude 'io.quarkus:quarkus-resteasy-reactive:[2.16.0.Final,2.16.12.Final)'
+
+    // quarkus-resteasy-reactive 3.x: keep only last patch ver of each minor
     exclude 'io.quarkus:quarkus-resteasy-reactive:[3.0.0.Final,3.0.3.Final]'
     exclude 'io.quarkus:quarkus-resteasy-reactive:[3.1.0.Final,3.1.2.Final]'
     exclude 'io.quarkus:quarkus-resteasy-reactive:[3.2.0.Final,3.2.11.Final]'
@@ -28,7 +37,7 @@ verifyInstrumentation {
     exclude 'io.quarkus:quarkus-resteasy-reactive:[3.7.0,3.7.3]'
     exclude 'io.quarkus:quarkus-resteasy-reactive:[3.8.0,3.8.6]'
 
-    // quarkus-rest: keep only last patch of each minor; 3.37.x left open to catch new releases
+    // quarkus-rest: keep only last patch of each minor, 3.37.x left open to catch new releases
     exclude 'io.quarkus:quarkus-rest:[3.9.0,3.9.4]'
     exclude 'io.quarkus:quarkus-rest:[3.10.0,3.10.1]'
     exclude 'io.quarkus:quarkus-rest:[3.11.0,3.11.2]'
