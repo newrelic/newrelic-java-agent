@@ -15,7 +15,7 @@ import org.jboss.resteasy.reactive.server.core.ResteasyReactiveRequestContext;
 @Weave(originalName = "org.jboss.resteasy.reactive.server.handlers.InvocationHandler")
 public class InvocationHandler_Instrumentation {
 
-    @Trace(async = true)
+    @Trace
     public void handle(ResteasyReactiveRequestContext requestContext) {
         QuarkusUtils.setTransactionName(requestContext.getTarget());
         Weaver.callOriginal();
