@@ -21,6 +21,9 @@ public abstract class CommandBatchService_Instrumentation extends CommandAsyncSe
 
     public RFuture<BatchResult<?>> executeAsync() {
         RFuture<BatchResult<?>> mainPromise =  Weaver.callOriginal();
+        if (commands.values().isEmpty()) {
+            return mainPromise;
+        }
 
         StringBuilder operations = new StringBuilder("BATCH EXECUTE : ");
 
