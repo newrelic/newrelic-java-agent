@@ -24,6 +24,10 @@ public class ResteasyReactiveVertxHandler_Instrumentation {
         if (vertxToken != null) {
             vertxToken.link();
         }
+
+        // Clear the Vert.x path queue here so the vertx-web headers-end handler
+        // doesn't overwrite the JAX-RS route template name set in InvocationHandler.
+        event.data().remove(QuarkusUtils.VERTX_PATH_KEY);
         Weaver.callOriginal();
     }
 }
