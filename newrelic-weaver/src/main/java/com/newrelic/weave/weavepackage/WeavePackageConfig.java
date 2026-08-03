@@ -61,17 +61,6 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         }
 
         /**
-         * The name of the weave package as set so far, or null if not yet set. Useful for making decisions (e.g.
-         * about other builder parameters) based on the package name before calling {@link #build()}, since
-         * {@link WeavePackageConfig} itself is immutable once built.
-         *
-         * @return the package name as set so far, or null
-         */
-        public String getName() {
-            return name;
-        }
-
-        /**
          * Set the instance of {@link Instrumentation} to be used for weaving the bootstrap.
          * 
          * @param instrumentation {@link Instrumentation} to be used for weaving the bootstrap; has no effect if null
@@ -340,9 +329,16 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
             String priorityS = mainAttributes.getValue("Priority");
             long priority = priorityS == null ? 0 : Long.parseLong(priorityS);
 
+            boolean clearReturnStacksDefault = this.clearReturnStacksDefault;
+            String clearReturnStacksDefaultS = mainAttributes.getValue("Clear-Return-Stacks-Default");
+            if (null != clearReturnStacksDefaultS) {
+                clearReturnStacksDefault = Boolean.parseBoolean(clearReturnStacksDefaultS);
+            }
+
             String violationFilterToken = mainAttributes.getValue("Weave-Violation-Filter");
 
             return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled).priority(priority)
+                    .clearReturnStacksDefault(clearReturnStacksDefault)
                     .weaveViolationFilters(violationFilterToken);
         }
 

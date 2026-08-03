@@ -3,6 +3,7 @@ package com.newrelic.weave.weavepackage;
 import com.newrelic.weave.WeaveViolationFilter;
 import com.newrelic.weave.violation.WeaveViolation;
 import com.newrelic.weave.violation.WeaveViolationType;
+import com.newrelic.weave.weavepackage.testclasses.TestJarFile;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -49,11 +50,22 @@ public class WeavePackageConfigTest {
     }
 
     @Test
-    public void ConfigBuilder_getName_returnsNameSetSoFar() {
-        WeavePackageConfig.Builder builder = new WeavePackageConfig.Builder();
-        assertNull(builder.getName());
+    public void ConfigBuilder_jarInputStream_withClearReturnStacksDefaultAttributeTrue_setsClearReturnStacksDefaultTrue()
+            throws Exception {
+        TestJarFile testJar = new TestJarFile("clear_return_stacks_true_jar", null, null, null, null, "true");
+        WeavePackageConfig config = WeavePackageConfig.builder().jarInputStream(testJar.getInputStream())
+                .source("test_source").build();
 
-        builder.name("test");
-        assertEquals("test", builder.getName());
+        assertTrue(config.isClearReturnStacksDefault());
+    }
+
+    @Test
+    public void ConfigBuilder_jarInputStream_withClearReturnStacksDefaultAttributeFalse_setsClearReturnStacksDefaultFalse()
+            throws Exception {
+        TestJarFile testJar = new TestJarFile("clear_return_stacks_false_jar", null, null, null, null, "false");
+        WeavePackageConfig config = WeavePackageConfig.builder().jarInputStream(testJar.getInputStream())
+                .source("test_source").build();
+
+        assertFalse(config.isClearReturnStacksDefault());
     }
 }
