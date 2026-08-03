@@ -14,9 +14,11 @@ import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.export.MemoryMode;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
@@ -31,6 +33,9 @@ import junit.framework.TestCase;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +43,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.DEFAULT_PROXY_PORT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_METRICS_EXCLUDE;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROXY_HOST;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROXY_PORT;
 import static io.opentelemetry.sdk.autoconfigure.OpenTelemetrySDKCustomizer.SERVICE_INSTANCE_ID_ATTRIBUTE_KEY;
 import static io.opentelemetry.sdk.metrics.data.AggregationTemporality.DELTA;
 import static org.mockito.Mockito.mock;
@@ -219,6 +227,62 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
 
         wrapped.close();
         verify(delegate).close();
+    }
+
+    public void testBuildProxyOptions() throws Exception {
+        ProxyOptions options = OpenTelemetrySDKCustomizer.buildProxyOptions("myproxy", 3128);
+        assertNotNull(options);
+
+        List<Proxy> proxies = options.getProxySelector().select(new URI("https://collector.newrelic.com:443"));
+        assertEquals(1, proxies.size());
+        Proxy proxy = proxies.get(0);
+        assertEquals(Proxy.Type.HTTP, proxy.type());
+        InetSocketAddress address = (InetSocketAddress) proxy.address();
+        assertEquals("myproxy", address.getHostString());
+        assertEquals(3128, address.getPort());
+    }
+
+    public void testApplyProxyReturnsSameExporterWhenNoProxyConfigured() {
+        DummyExporter delegate = new DummyExporter();
+        Agent mockAgent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        when(mockAgent.getConfig().getValue(PROXY_HOST)).thenReturn(null);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            MetricExporter result = OpenTelemetrySDKCustomizer.applyProxy(delegate);
+            assertSame(delegate, result);
+        }
+    }
+
+    public void testApplyProxyReturnsSameExporterForNonOtlpExporter() {
+        DummyExporter delegate = new DummyExporter();
+        Agent mockAgent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        when(mockAgent.getConfig().getValue(PROXY_HOST)).thenReturn("myproxy");
+        when(mockAgent.getConfig().getValue(PROXY_PORT, DEFAULT_PROXY_PORT)).thenReturn(3128);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            MetricExporter result = OpenTelemetrySDKCustomizer.applyProxy(delegate);
+            // A non-OtlpHttpMetricExporter cannot be rebuilt with proxy options, so it is returned unchanged.
+            assertSame(delegate, result);
+        }
+    }
+
+    public void testApplyProxyRebuildsOtlpExporterWithProxy() {
+        OtlpHttpMetricExporter original =
+                OtlpHttpMetricExporter.builder().setEndpoint("http://example.test:4318/v1/metrics").build();
+        Agent mockAgent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        when(mockAgent.getConfig().getValue(PROXY_HOST)).thenReturn("myproxy");
+        when(mockAgent.getConfig().getValue(PROXY_PORT, DEFAULT_PROXY_PORT)).thenReturn(3128);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            MetricExporter result = OpenTelemetrySDKCustomizer.applyProxy(original);
+            // The exporter is rebuilt (new instance) while preserving the configured endpoint.
+            assertNotSame(original, result);
+            assertTrue(result instanceof OtlpHttpMetricExporter);
+            assertTrue(result.toString().contains("example.test"));
+        }
     }
 
     private List<String> metricNames(Collection<MetricData> collectedMetrics) {

@@ -200,6 +200,38 @@ Example of OpenTelemetry APIs being used to record dimensional metrics:
 
 Any recorded dimensional metrics can be found in the Metrics Explorer for the associated APM entity and can be used to build custom dashboards.
 
+### OTLP Proxy Support
+
+Dimensional metrics are exported to New Relic over OTLP via the OTel SDK. The Java OTel SDK does not directly support proxy configuration (see [opentelemetry-java-instrumentation/issues/12240](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/12240)) and instead recommends using [JVM-level proxy properties](https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html) for defining the proxy host/port.
+
+```
+-Dhttp.proxyHost=proxy.hostname
+-Dhttp.proxyPort=8080
+
+-Dhttps.proxyHost=proxy.hostname
+-Dhttps.proxyPort=8080
+```
+
+Alternatively, when using OpenTelemetry 1.59.0 or later, the Java agent's top-level `proxy_host`/`proxy_port` settings (if [configured](https://docs.newrelic.com/docs/apm/agents/java-agent/configuration/java-agent-configuration-config-file/#cfg-proxy_host)) will be passed through to the OTel SDK, allowing the exported OTLP metrics to be routed through the agent configured proxy.
+
+```yaml
+common: &default_settings
+  proxy_host: 127.0.0.1
+  proxy_port: 8888
+```
+
+```
+-Dnewrelic.config.proxy_host=127.0.0.1
+-Dnewrelic.config.proxy_port=8888
+```
+
+```
+NEW_RELIC_PROXY_HOST : 127.0.0.1
+NEW_RELIC_PROXY_PORT : 8888
+```
+
+Note that, as the OpenTelemetry SDK does not support proxy authentication, the (`proxy_user`/`proxy_password`) and `proxy_scheme` agent config settings are NOT applied to the OTLP metric exporter.
+
 ## OpenTelemetry Traces Signals
 
 Documented below are several approaches for incorporating OpenTelemetry Traces (aka Spans) into New Relic Java agent traces.

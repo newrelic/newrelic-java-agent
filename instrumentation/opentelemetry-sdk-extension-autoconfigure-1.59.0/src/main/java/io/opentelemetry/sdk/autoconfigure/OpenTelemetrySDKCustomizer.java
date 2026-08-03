@@ -13,7 +13,9 @@ import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
 import com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.common.export.ProxyOptions;
 import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.InstrumentSelector;
 import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
@@ -22,12 +24,16 @@ import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getOpenTelemetryProxyHost;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getOpenTelemetryProxyPort;
 
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.getOpenTelemetryMetricsExcludes;
 
@@ -116,9 +122,52 @@ final class OpenTelemetrySDKCustomizer {
 
     /**
      * Wrap the metric exporter to inject updated service metadata into exported MetricData resources.
+     * If a proxy is configured, the exporter is first rebuilt to route OTLP metric exports through it.
      */
     static MetricExporter wrapMetricExporter(MetricExporter exporter, ConfigProperties configProperties) {
-        return new NRMetricExporterWrapper(exporter);
+        return new NRMetricExporterWrapper(applyProxy(exporter));
+    }
+
+    /**
+     * Route OTLP dimensional metric exports through the agent's configured proxy (reusing the top-level
+     * {@code proxy_host}/{@code proxy_port} settings). The OpenTelemetry SDK cannot express proxy
+     * authentication or a proxy scheme, so {@code proxy_user}/{@code proxy_password}/{@code proxy_scheme}
+     * are not applied here.
+     *
+     * @param exporter the metric exporter built by the OpenTelemetry SDK
+     * @return the exporter rebuilt with proxy options when a proxy is configured, otherwise the original exporter
+     */
+    static MetricExporter applyProxy(MetricExporter exporter) {
+        final String proxyHost = getOpenTelemetryProxyHost();
+        if (proxyHost == null || proxyHost.trim().isEmpty()) {
+            return exporter;
+        }
+
+        final int proxyPort = getOpenTelemetryProxyPort();
+        if (exporter instanceof OtlpHttpMetricExporter) {
+            NewRelic.getAgent()
+                    .getLogger()
+                    .log(Level.INFO, "Routing OpenTelemetry dimensional metric exports through proxy {0}:{1}", proxyHost, proxyPort);
+            return ((OtlpHttpMetricExporter) exporter).toBuilder()
+                    .setProxyOptions(buildProxyOptions(proxyHost, proxyPort))
+                    .build();
+        }
+
+        NewRelic.getAgent()
+                .getLogger()
+                .log(Level.WARNING,
+                        "A proxy is configured but the OpenTelemetry metric exporter is not an OtlpHttpMetricExporter (found {0}). "
+                                + "Dimensional metric exports will not be routed through the proxy.",
+                        exporter.getClass().getName());
+        return exporter;
+    }
+
+    /**
+     * Build {@link ProxyOptions} for an unauthenticated HTTP proxy at the given host and port. The
+     * address is left unresolved so DNS resolution is deferred to export time.
+     */
+    static ProxyOptions buildProxyOptions(String host, int port) {
+        return ProxyOptions.create(InetSocketAddress.createUnresolved(host, port));
     }
 
     /**
