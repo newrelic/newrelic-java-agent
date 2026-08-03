@@ -8,6 +8,7 @@ import org.redisson.api.RFuture;
 import org.redisson.client.RedisException;
 import org.redisson.client.codec.Codec;
 import org.redisson.client.protocol.RedisCommand;
+import org.redisson.connection.ConnectionManager;
 import org.redisson.connection.NodeSource;
 import org.redisson.misc.CompletableFutureWrapper;
 
@@ -19,9 +20,12 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.instrumentation.labs.redisson.NRBiConsumer;
+import org.redisson.misc.RedisURI;
 
 @Weave(type=MatchType.BaseClass, originalName = "org.redisson.command.CommandAsyncService")
 public abstract class CommandAsyncService implements CommandAsyncExecutor {
+
+	final ConnectionManager connectionManager = Weaver.callOriginal();
 
 	public RedisException convertException(ExecutionException ee) {
 		RedisException e = Weaver.callOriginal();
@@ -45,9 +49,11 @@ public abstract class CommandAsyncService implements CommandAsyncExecutor {
 			String operationName = command.getName();
 
 
-			Segment segment = RedissonUtil.createSegment(collection, operationName);
+			Segment segment = RedissonUtil.createSegment("Redisson", operationName);
 
-			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(collection, operationName);
+			RedissonUtil.RedisAddr redisAddr = RedissonUtil.getHost(connectionManager);
+
+			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, redisAddr);
 			CompletableFutureWrapper<R> promise = (CompletableFutureWrapper<R>)mainPromise;
 			NRBiConsumer<R> listener = new NRBiConsumer<R>(segment, dsParams);
 			promise.whenComplete(listener);
@@ -61,19 +67,13 @@ public abstract class CommandAsyncService implements CommandAsyncExecutor {
 
 		RFuture<R> mainPromise = Weaver.callOriginal();
 		if(mainPromise instanceof CompletableFutureWrapper) {
-			StringBuilder keyStringBuilder = new StringBuilder();
-			for (Object key : keys) {
-				if (key instanceof String) {
-					keyStringBuilder.append((String) key);
-					keyStringBuilder.append(" ");
-				}}
 
-			String collections = keyStringBuilder.toString();
 			String operationName = evalCommandType.getName();
 
+			Segment segment = RedissonUtil.createSegment("Redisson", operationName);
+			RedissonUtil.RedisAddr redisAddr = RedissonUtil.getHost(connectionManager);
 
-			Segment segment = RedissonUtil.createSegment(collections, operationName);
-			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(collections, operationName);
+			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, redisAddr);
 
 			CompletableFutureWrapper<R> promise = (CompletableFutureWrapper<R>)mainPromise;
 			NRBiConsumer<R> listener = new NRBiConsumer<R>(segment, dsParams);
