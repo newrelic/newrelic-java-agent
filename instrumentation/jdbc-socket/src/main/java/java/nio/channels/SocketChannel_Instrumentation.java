@@ -28,6 +28,7 @@ public abstract class SocketChannel_Instrumentation {
 
     public static SocketChannel_Instrumentation open(SocketAddress remote) {
         SocketChannel_Instrumentation channel = Weaver.callOriginal();
+        NewRelic.getAgent().getLogger().log(Level.INFO, "T4C DEBUG: Calling open in SocketChannel with remote {0}", remote);
         if (channel.isConnected() && DatastoreInstanceDetection.shouldDetectConnectionAddress() && (remote instanceof InetSocketAddress)) {
             DatastoreInstanceDetection.saveAddress((InetSocketAddress) remote);
         }
@@ -36,6 +37,7 @@ public abstract class SocketChannel_Instrumentation {
 
     public boolean connect(SocketAddress remote) throws IOException {
         boolean result = Weaver.callOriginal();
+        NewRelic.getAgent().getLogger().log(Level.INFO, "T4C DEBUG: Calling connect in SocketChannel with remote {0}", remote);
         if (DatastoreInstanceDetection.shouldDetectConnectionAddress() && (remote instanceof InetSocketAddress)) {
             this.address = (InetSocketAddress) remote;
         }
@@ -44,6 +46,7 @@ public abstract class SocketChannel_Instrumentation {
 
     public boolean finishConnect() {
         boolean result = Weaver.callOriginal();
+        NewRelic.getAgent().getLogger().log(Level.INFO, "T4C DEBUG: Calling finishConnect in SocketChannel.");
         if (isConnected() && DatastoreInstanceDetection.shouldDetectConnectionAddress() && this.address != null) {
             DatastoreInstanceDetection.saveAddress(this.address);
         }

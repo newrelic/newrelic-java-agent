@@ -104,6 +104,7 @@ public final class DatastoreInstanceDetection {
     }
 
     public static void saveAddress(InetSocketAddress addressToStore) {
+        NewRelic.getAgent().getLogger().log(Level.INFO, "T4C DEBUG: Called saveAddress with socket address {0}", addressToStore);
         if (addressToStore == null || ConnectionState.DO_NOT_DETECT_ADDRESS.equals(state.get())) {
             return;
         }
@@ -132,7 +133,7 @@ public final class DatastoreInstanceDetection {
             }
         }
 
-        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing address: {0}", address);
+        AgentBridge.getAgent().getLogger().log(Level.FINEST, "Storing address: {0}", addressToStore);
         DatastoreInstanceDetection.address.set(addressToStore);
     }
 
