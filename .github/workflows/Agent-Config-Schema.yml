@@ -47,8 +47,14 @@ jobs:
         run: |
           before='${{ github.event.before }}'
           after='${{ github.event.after }}'
-          echo "Comparing $before...$after"
-          changed=$(git diff --name-only "$before" "$after")
+          if git cat-file -e "$before" 2>/dev/null; then
+            base="$before"
+          else
+            echo "before=$before isn't a valid object (new branch or force-push) — comparing against merge-base with origin/main instead"
+            base=$(git merge-base origin/main "$after")
+          fi
+          echo "Comparing $base...$after"
+          changed=$(git diff --name-only "$base" "$after")
           echo "Changed files:"
           echo "$changed" | sed 's/^/  /'
           agent_yml=$(echo "$changed" | grep -c '^newrelic-agent/src/main/resources/newrelic.yml$' || true)
