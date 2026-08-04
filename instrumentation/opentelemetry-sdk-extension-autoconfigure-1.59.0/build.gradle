@@ -71,7 +71,9 @@ java {
 }
 
 verifyInstrumentation {
-    passesOnly ("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:[1.59.0,)")
+    passesOnly ("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:[1.59.0,)") {
+        implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.59.0")
+    }
 }
 
 site {
