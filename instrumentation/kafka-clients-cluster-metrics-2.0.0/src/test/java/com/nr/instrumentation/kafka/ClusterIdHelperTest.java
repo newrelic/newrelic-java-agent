@@ -91,6 +91,18 @@ public class ClusterIdHelperTest {
     }
 
     @Test
+    public void fromProducer_repeatedCallsOnClassWithNoMetadataFieldStayConsistent() {
+        // The "field not found" result is cached via a sentinel (not null, since
+        // ConcurrentHashMap.computeIfAbsent never stores a null mapping) — repeated
+        // calls on the same class must keep returning null, not misbehave once cached.
+        StubProducerNoMetadataField first = new StubProducerNoMetadataField();
+        StubProducerNoMetadataField second = new StubProducerNoMetadataField();
+        assertNull(ClusterIdHelper.fromProducer(first));
+        assertNull(ClusterIdHelper.fromProducer(second));
+        assertNull(ClusterIdHelper.fromProducer(first));
+    }
+
+    @Test
     public void fromProducer_returnsNullWhenMetadataFieldIsNull() {
         assertNull(ClusterIdHelper.fromProducer(new StubProducerWithNullMetadata()));
     }
