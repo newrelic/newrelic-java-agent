@@ -11,6 +11,8 @@ configurations.implementation.extendsFrom(configurations.shadowIntoJar)
 
 dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.28.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp-common:1.28.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-common:1.28.0")
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))

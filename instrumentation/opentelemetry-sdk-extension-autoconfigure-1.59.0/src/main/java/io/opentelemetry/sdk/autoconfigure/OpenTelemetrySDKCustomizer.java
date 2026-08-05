@@ -118,7 +118,7 @@ final class OpenTelemetrySDKCustomizer {
      * Wrap the metric exporter to inject updated service metadata into exported MetricData resources.
      */
     static MetricExporter wrapMetricExporter(MetricExporter exporter, ConfigProperties configProperties) {
-        return new NRMetricExporterWrapper(exporter);
+        return new NRMetricExporterWrapper(exporter, configProperties.getString("otel.exporter.otlp.endpoint"));
     }
 
     /**
