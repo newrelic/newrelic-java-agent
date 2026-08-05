@@ -710,8 +710,8 @@ common: &default_settings
       enabled: false
 
     # This instrumentation emits per-cluster Kafka metrics (MessageBroker/Kafka/Cluster/{id}/...).
-    # Requires an AdminClient DescribeCluster call to resolve the cluster ID; opt in when the
-    # overhead is acceptable.
+    # The cluster ID is read from metadata the client already fetches as part of normal
+    # operation (no AdminClient, no extra network call), so opting in has no added cost.
     kafka-clients-cluster-metrics:
       enabled: false
 
