@@ -18,12 +18,8 @@ public class KafkaProducer_Instrumentation<K, V> {
     @NewField
     private volatile String nrClusterId;
 
-    @NewField
-    private volatile long nrClusterIdFetchedAt;
-
     private Future<RecordMetadata> doSend(ProducerRecord record, Callback callback) {
-        if (System.currentTimeMillis() - nrClusterIdFetchedAt > Utils.CLUSTER_ID_TTL_MS) {
-            nrClusterIdFetchedAt = System.currentTimeMillis();
+        if (nrClusterId == null) {
             String id = ClusterIdHelper.fromProducer(this);
             if (id != null) {
                 nrClusterId = id;
