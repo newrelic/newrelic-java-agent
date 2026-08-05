@@ -17,6 +17,7 @@ import java.util.Map;
 public class DistributedTracingConfig extends BaseConfig {
 
     private static final boolean DEFAULT_DISTRIBUTED_TRACING = true;
+    private static final boolean DEFAULT_MESSAGE_QUEUE_NOT_SAMPLED_HEADER = false;
     private static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.distributed_tracing.";
 
     //public setting names
@@ -29,6 +30,7 @@ public class DistributedTracingConfig extends BaseConfig {
     public static final String EXCLUDE_NEWRELIC_HEADER = "exclude_newrelic_header";
     public static final String FULL_GRANULARITY = "full_granularity";
     public static final String PARTIAL_GRANULARITY = "partial_granularity";
+    public static final String USE_MESSAGE_QUEUE_NOT_SAMPLED_HEADER = "send_message_queue_not_sampled_header";
 
     private final boolean enabled;
     private final String trustedAccountKey;
@@ -42,6 +44,7 @@ public class DistributedTracingConfig extends BaseConfig {
     // which will get assigned to transaction_events.target_samples_stored
     // so, even though it's not directly used in code here, it is necessary
     private final Integer adaptiveSamplingTarget;
+    private final boolean useMessageQueueNotSampleHeader;
 
     DistributedTracingConfig(Map<String, Object> props) {
         super(props, SYSTEM_PROPERTY_ROOT);
@@ -52,6 +55,7 @@ public class DistributedTracingConfig extends BaseConfig {
         this.includeNewRelicHeader = !getProperty(EXCLUDE_NEWRELIC_HEADER, false);
         this.baseSamplerConfig = new BaseSamplerCoreTracingConfig(nestedProps("sampler"), SYSTEM_PROPERTY_ROOT);
         this.adaptiveSamplingTarget = this.baseSamplerConfig.getSharedAdaptiveSamplingTarget();
+        this.useMessageQueueNotSampleHeader = getProperty(USE_MESSAGE_QUEUE_NOT_SAMPLED_HEADER, DEFAULT_MESSAGE_QUEUE_NOT_SAMPLED_HEADER);
     }
 
     public String getTrustedAccountKey() {
@@ -73,6 +77,8 @@ public class DistributedTracingConfig extends BaseConfig {
     public boolean isIncludeNewRelicHeader() {
         return includeNewRelicHeader;
     }
+
+    public boolean useMessageQueueNotSampleHeader() { return useMessageQueueNotSampleHeader; }
 
     public int getAdaptiveSamplingTarget() {
         return adaptiveSamplingTarget;

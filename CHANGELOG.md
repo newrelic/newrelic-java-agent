@@ -4,6 +4,34 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.4.0
+## New features and improvements
+
+- Remove linking metadata blob `@NewFields` from log4j-2.11 module [2917](https://github.com/newrelic/newrelic-java-agent/pull/2917)
+- Support for cluster mode in the `lettuce-6.0` and `lettuce-6.5` modules [2922](https://github.com/newrelic/newrelic-java-agent/pull/2922)
+- New instrumentation modules for Vert.x web and core 5.x [2920](https://github.com/newrelic/newrelic-java-agent/pull/2920)
+- Added new Java Server Faces instrumentation modules to replace legacy point cuts [2944](https://github.com/newrelic/newrelic-java-agent/pull/2944)
+- Added a new Portlet module to replace legacy point cuts [2953](https://github.com/newrelic/newrelic-java-agent/pull/2953)
+- Migrate shadow plugin from `com.github.johnrengelman` to `com.gradleup` [2945](https://github.com/newrelic/newrelic-java-agent/pull/2945)
+- Weave class instrumentation replacement for `HandlerMethodInvoker3PointCut` point cut [2967](https://github.com/newrelic/newrelic-java-agent/pull/2967)
+- Remove `@NewField` annotations from the `jdbc-generic` module [2963](https://github.com/newrelic/newrelic-java-agent/pull/2963)
+- Remove HandlerMethodInvokerPointCut point cut [2977](https://github.com/newrelic/newrelic-java-agent/pull/2977)
+- Remove SpringPointCut point cut [2990](https://github.com/newrelic/newrelic-java-agent/pull/2990)
+- Add new `http.request.method` attribute to all external call spans [2985](https://github.com/newrelic/newrelic-java-agent/pull/2985) [3010](https://github.com/newrelic/newrelic-java-agent/pull/3010)
+- Adds support for decorating JFR data with APM labels (as configured in the java agent) [3007](https://github.com/newrelic/newrelic-java-agent/pull/3007)
+- [Hybrid Agent] Decorate OpenTelemetry dimensional metrics with `otlp_resource_attributes` from connect response [2956](https://github.com/newrelic/newrelic-java-agent/pull/2956)
+
+## Fixes
+
+- Fix MDC leak issue in the `apache-log4j-2.11 module` [2926](https://github.com/newrelic/newrelic-java-agent/pull/2926)
+- Remove `java.rmi` namespaced exceptions [2932](https://github.com/newrelic/newrelic-java-agent/pull/2932)
+- Use Jakarta servlet exception attribute in the `wildfly-27` module [2929](https://github.com/newrelic/newrelic-java-agent/pull/2929)
+- Serverless mode now sends payload to the console if file pipe not written [2975](https://github.com/newrelic/newrelic-java-agent/pull/2975)
+- Change `ForceRestartException` log to `INFO` [2989](https://github.com/newrelic/newrelic-java-agent/pull/2989)
+- New build time `Patcher` instance to remove problem enum values from the shadowed jspecify library `@NullMarked` class [2982](https://github.com/newrelic/newrelic-java-agent/pull/2982)
+- Segment instance cleanup for Netty Reactor HTTP calls [3004](https://github.com/newrelic/newrelic-java-agent/pull/3004)
+- Fix transaction linking metadata during some async operations  [3006](https://github.com/newrelic/newrelic-java-agent/pull/3006)
+
 ## Version 9.3.0
 ## New features and improvements
 - Add log_level_denylist config to default yaml [2830](https://github.com/newrelic/newrelic-java-agent/pull/2830)
