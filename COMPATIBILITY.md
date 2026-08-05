@@ -55,6 +55,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
   * JAX-RS 1.0 to latest
+  * JBoss Threads 2.3.0.Final to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
@@ -76,6 +77,7 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 3: 1.0.0 to latest
   * Play 2.4.0-M3 to latest
   * Portlet 3.0.0 to latest
+  * Quarkus 1.0.0 to latest
   * Quartz Scheduler 1.7.2 to latest
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
