@@ -1,4 +1,4 @@
-package com.newrelic.instrumentation.labs.redisson;
+package com.nr.redisson40.instrumentation;
 
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -16,35 +16,35 @@ public class RedissonUtil {
         return NewRelic.getAgent().getTransaction().startSegment(prefix + "-" + operationName);
     }
 
-    public static DatastoreParameters createDatastoreParameters(String operationName, RedisAddr redisAddr) {
+    public static DatastoreParameters createDatastoreParameters(String operationName, NrRedisUri nrRedisUri) {
         DatastoreParameters.InstanceParameter param = DatastoreParameters.product("Redisson")
                 .collection(null)
                 .operation(operationName);
-        if (redisAddr != null) {
-            return param.instance(redisAddr.getHost(), redisAddr.getHost()).build();
+        if (nrRedisUri != null) {
+            return param.instance(nrRedisUri.getHost(), nrRedisUri.getPort()).build();
         }
         return param.build();
     }
 
-    public static RedisAddr getHost(ConnectionManager params) {
+    public static NrRedisUri extractUri(ConnectionManager params) {
         if (params instanceof MasterSlaveConnectionManager) {
             MasterSlaveConnectionManager masterSlaveConnectionManager = ((MasterSlaveConnectionManager)params);
             for (MasterSlaveEntry entry : masterSlaveConnectionManager.getEntrySet()) {
                 InetSocketAddress address = entry.getClient().getAddr();
-                return new RedisAddr(address.getHostString(), address.getPort());
+                return new NrRedisUri(address.getHostString(), address.getPort());
             }
         }
         RedisURI redisURI = params.getLastClusterNode();
         if (redisURI != null) {
-            return new RedisAddr(redisURI.getHost(), redisURI.getPort());
+            return new NrRedisUri(redisURI.getHost(), redisURI.getPort());
         }
         return null;
     }
 
-    public static class RedisAddr {
+    public static class NrRedisUri {
         private String host;
         private Integer port;
-        public RedisAddr(String host, Integer port) {
+        public NrRedisUri(String host, Integer port) {
             this.host = host;
             this.port = port;
         }

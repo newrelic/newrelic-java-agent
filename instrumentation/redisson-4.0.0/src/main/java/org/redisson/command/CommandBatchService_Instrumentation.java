@@ -5,8 +5,8 @@ import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.labs.redisson.NRBiConsumer;
-import com.newrelic.instrumentation.labs.redisson.RedissonUtil;
+import com.nr.redisson40.instrumentation.NRBiConsumer;
+import com.nr.redisson40.instrumentation.RedissonUtil;
 import org.redisson.api.BatchResult;
 import org.redisson.api.RFuture;
 import org.redisson.client.protocol.BatchCommandData;
@@ -21,17 +21,17 @@ public abstract class CommandBatchService_Instrumentation extends CommandAsyncSe
 
     public RFuture<BatchResult<?>> executeAsync() {
         RFuture<BatchResult<?>> mainPromise =  Weaver.callOriginal();
-        if (commands.values().isEmpty()) {
+        if (commands == null || commands.values().isEmpty()) {
             return mainPromise;
         }
 
-        StringBuilder operations = new StringBuilder("BATCH EXECUTE : ");
+        StringBuilder operations = new StringBuilder("BATCH-EXECUTE");
 
         if(mainPromise instanceof CompletableFutureWrapper) {
             for (CommandBatchService.Entry entry : commands.values()) {
                 for(BatchCommandData<?, ?> data: entry.getCommands()) {
                     String operation = data.getCommand().getName();
-                    operations.append(operation).append("; ");
+                    operations.append("_").append(operation);
                 }
             }
 
@@ -40,14 +40,13 @@ public abstract class CommandBatchService_Instrumentation extends CommandAsyncSe
 
             Segment segment = RedissonUtil.createSegment("Redisson", "batch-operation");
 
-            RedissonUtil.RedisAddr redisAddr = RedissonUtil.getHost(connectionManager);
+            RedissonUtil.NrRedisUri nrRedisUri = RedissonUtil.extractUri(connectionManager);
 
-            DatastoreParameters params = RedissonUtil.createDatastoreParameters(operation, redisAddr);
+            DatastoreParameters params = RedissonUtil.createDatastoreParameters(operation, nrRedisUri);
 
             NRBiConsumer<Object> listener = new NRBiConsumer<>(segment, params);
             promise.whenComplete(listener);
         }
-
 
         return mainPromise;
     }

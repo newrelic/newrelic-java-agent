@@ -1,4 +1,4 @@
-package com.newrelic.instrumentation.labs.redisson;
+package com.nr.redisson40.instrumentation;
 
 import java.util.function.BiConsumer;
 

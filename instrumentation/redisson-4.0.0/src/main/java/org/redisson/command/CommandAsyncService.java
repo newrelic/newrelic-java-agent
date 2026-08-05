@@ -3,7 +3,7 @@ package org.redisson.command;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import com.newrelic.instrumentation.labs.redisson.RedissonUtil;
+import com.nr.redisson40.instrumentation.RedissonUtil;
 import org.redisson.api.RFuture;
 import org.redisson.client.RedisException;
 import org.redisson.client.codec.Codec;
@@ -19,8 +19,7 @@ import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.labs.redisson.NRBiConsumer;
-import org.redisson.misc.RedisURI;
+import com.nr.redisson40.instrumentation.NRBiConsumer;
 
 @Weave(type=MatchType.BaseClass, originalName = "org.redisson.command.CommandAsyncService")
 public abstract class CommandAsyncService implements CommandAsyncExecutor {
@@ -51,9 +50,9 @@ public abstract class CommandAsyncService implements CommandAsyncExecutor {
 
 			Segment segment = RedissonUtil.createSegment("Redisson", operationName);
 
-			RedissonUtil.RedisAddr redisAddr = RedissonUtil.getHost(connectionManager);
+			RedissonUtil.NrRedisUri nrRedisUri = RedissonUtil.extractUri(connectionManager);
 
-			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, redisAddr);
+			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, nrRedisUri);
 			CompletableFutureWrapper<R> promise = (CompletableFutureWrapper<R>)mainPromise;
 			NRBiConsumer<R> listener = new NRBiConsumer<R>(segment, dsParams);
 			promise.whenComplete(listener);
@@ -71,9 +70,9 @@ public abstract class CommandAsyncService implements CommandAsyncExecutor {
 			String operationName = evalCommandType.getName();
 
 			Segment segment = RedissonUtil.createSegment("Redisson", operationName);
-			RedissonUtil.RedisAddr redisAddr = RedissonUtil.getHost(connectionManager);
+			RedissonUtil.NrRedisUri nrRedisUri = RedissonUtil.extractUri(connectionManager);
 
-			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, redisAddr);
+			DatastoreParameters dsParams = RedissonUtil.createDatastoreParameters(operationName, nrRedisUri);
 
 			CompletableFutureWrapper<R> promise = (CompletableFutureWrapper<R>)mainPromise;
 			NRBiConsumer<R> listener = new NRBiConsumer<R>(segment, dsParams);
