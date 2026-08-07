@@ -8,6 +8,7 @@
 package com.nr.instrumentation.kafka;
 
 import com.newrelic.api.agent.NewRelic;
+import org.apache.kafka.clients.Metadata;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.KafkaMetric;
@@ -36,9 +37,13 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     private final ConcurrentHashMap<MetricName, CachedKafkaMetric> metrics = new ConcurrentHashMap<>();
     private final FiniteMetricRecorder recorder = new FiniteMetricRecorder();
     private final NodeTopicRegistry nodeTopicRegistry;
+    private final ClusterTopicRegistry clusterTopicRegistry;
 
-    public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes) {
+    private boolean clusterMetricsEnabled = true; //TODO
+
+    public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes, Metadata metadata) {
         nodeTopicRegistry = new NodeTopicRegistry(clientType, nodes);
+        clusterTopicRegistry = new ClusterTopicRegistry(clientType, metadata);
     }
 
     @Override
@@ -99,6 +104,12 @@ public class NewRelicMetricsReporter implements MetricsReporter {
             debugLog("newrelic-kafka-clients-enhancements: register node topic metric for topic: {0}", topic);
         }
 
+        //TODO
+        if (clusterMetricsEnabled) {
+            clusterTopicRegistry.register(topic);
+        }
+
+
         final CachedKafkaMetric cachedMetric = CachedKafkaMetrics.newCachedKafkaMetric(metric);
         if (cachedMetric.isValid()) {
             debugLog("newrelic-kafka-clients-enhancements: register metric: {0}", cachedMetric.displayName());
@@ -117,6 +128,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         }
 
         nodeTopicRegistry.report(recorder);
+        clusterTopicRegistry.report(recorder);
     }
 
     private void debugLog(String message) {
