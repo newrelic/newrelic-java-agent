@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.labs.instrumentation.ktor.netty;
+package com.newrelic.instrumentation.ktor.netty;
 
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;

@@ -13,8 +13,8 @@ import com.newrelic.api.agent.TransactionNamePriority
 import com.newrelic.api.agent.TransportType
 import com.newrelic.api.agent.weaver.Weave
 import com.newrelic.api.agent.weaver.Weaver
-import com.newrelic.instrumentation.labs.ktor.netty.KtorNettyHeaders
-import com.newrelic.labs.instrumentation.ktor.netty.Utils
+import com.newrelic.instrumentation.ktor.netty.KtorNettyHeaders
+import com.newrelic.instrumentation.ktor.netty.Utils
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpRequest
 

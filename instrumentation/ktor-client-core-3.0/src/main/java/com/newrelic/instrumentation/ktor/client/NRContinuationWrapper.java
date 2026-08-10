@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.client;
+package com.newrelic.instrumentation.ktor.client;
 
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.HttpParameters;

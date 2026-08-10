@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.netty;
+package com.newrelic.instrumentation.ktor.netty;
 
 import com.newrelic.api.agent.HeaderType;
 import io.netty.handler.codec.http.DefaultHttpHeaders;

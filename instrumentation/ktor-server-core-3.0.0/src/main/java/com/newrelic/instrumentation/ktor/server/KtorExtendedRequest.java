@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.server;
+package com.newrelic.instrumentation.ktor.server;
 
 import java.util.Collections;
 import java.util.Enumeration;

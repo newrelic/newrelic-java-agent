@@ -5,9 +5,9 @@
  *
  */
 
-package com.newrelic.labs.instrumentation.ktor.netty;
+package com.newrelic.instrumentation.ktor.netty;
 
-import com.newrelic.instrumentation.labs.ktor.netty.CoroutineNameUtilsKt;
+import com.newrelic.instrumentation.ktor.netty.CoroutineNameUtilsKt;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import kotlin.coroutines.CoroutineContext;

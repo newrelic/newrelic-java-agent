@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.server;
+package com.newrelic.instrumentation.ktor.server;
 
 import com.newrelic.api.agent.ExtendedResponse;
 import com.newrelic.api.agent.HeaderType;

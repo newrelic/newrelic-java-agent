@@ -14,7 +14,7 @@ import com.newrelic.api.agent.TransportType;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
-import com.newrelic.instrumentation.labs.ktor.netty.KtorNettyHeaders;
+import com.newrelic.instrumentation.ktor.netty.KtorNettyHeaders;
 import io.ktor.server.netty.NettyApplicationCall_Instrumentation;
 
 @Weave(originalName = "io.ktor.server.netty.cio.NettyHttpResponsePipeline")

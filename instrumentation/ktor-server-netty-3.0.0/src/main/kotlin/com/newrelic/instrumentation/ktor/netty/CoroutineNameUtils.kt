@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.netty
+package com.newrelic.instrumentation.ktor.netty
 
 import kotlinx.coroutines.CoroutineName
 import kotlin.coroutines.CoroutineContext

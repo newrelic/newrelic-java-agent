@@ -5,7 +5,7 @@
  *
  */
 
-package com.newrelic.instrumentation.labs.ktor.client;
+package com.newrelic.instrumentation.ktor.client;
 
 import org.junit.Test;
 

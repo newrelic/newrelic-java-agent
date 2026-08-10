@@ -20,7 +20,7 @@ dependencies {
 tasks.jar {
     manifest {
         attributes(
-            "Implementation-Title" to "com.newrelic.instrumentation.labs.ktor-utils-3.0",
+            "Implementation-Title" to "com.newrelic.instrumentation.ktor-utils-3.0",
             "Clear-Return-Stacks-Default" to "true"
         )
     }

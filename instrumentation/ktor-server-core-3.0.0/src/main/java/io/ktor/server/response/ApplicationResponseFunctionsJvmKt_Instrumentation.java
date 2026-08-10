@@ -11,7 +11,7 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
-import com.newrelic.instrumentation.labs.ktor.server.KtorExtendedResponse;
+import com.newrelic.instrumentation.ktor.server.KtorExtendedResponse;
 import io.ktor.http.content.OutgoingContent;
 import io.ktor.server.application.ApplicationCall;
 import io.ktor.http.ContentType;
