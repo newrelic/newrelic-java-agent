@@ -11,6 +11,7 @@ import com.newrelic.api.agent.weaver.MatchType;
 import com.newrelic.api.agent.weaver.Weaver;
 import com.newrelic.weave.utils.WeaveUtils;
 import com.newrelic.weave.weavepackage.AnnotationProxyTemplate;
+import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -56,11 +57,29 @@ public class MethodProcessors {
      */
     public static MethodNode inlineMethods(final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
             final String subjectOwnerClassName, final MethodNode subjectMethod) {
+        return inlineMethods(inlineOwnerClassName, inlineMethods, subjectOwnerClassName, subjectMethod, null);
+    }
+
+    /**
+     * Inline all of the specified method calls in the subject method.
+     *
+     * @param inlineOwnerClassName owner class of the methods to inline
+     * @param inlineMethods methods to inline
+     * @param subjectOwnerClassName owner class of the subject method that will have calls inlined in
+     * @param subjectMethod subject method to inline calls into
+     * @param weavePackageConfig config of the weave package the subject method belongs to, used to look up
+     * per-package defaults (e.g. return-stack normalization) that apply absent an explicit system property
+     * override; may be null if unavailable
+     * @return new subject method with all specified methods inlined
+     */
+    public static MethodNode inlineMethods(final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
+            final String subjectOwnerClassName, final MethodNode subjectMethod,
+            final WeavePackageConfig weavePackageConfig) {
 
         MethodNode result = WeaveUtils.newMethodNode(subjectMethod);
 
         subjectMethod.accept(getInlineMethodsVisitor(subjectOwnerClassName, subjectMethod.access, subjectMethod.name,
-                subjectMethod.desc, result, inlineOwnerClassName, inlineMethods));
+                subjectMethod.desc, result, inlineOwnerClassName, inlineMethods, weavePackageConfig));
 
         return result;
     }
@@ -79,8 +98,28 @@ public class MethodProcessors {
      */
     public static MethodVisitor getInlineMethodsVisitor(String owner, int access, String name, String desc,
             MethodVisitor delegate, final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods) {
+        return getInlineMethodsVisitor(owner, access, name, desc, delegate, inlineOwnerClassName, inlineMethods, null);
+    }
 
-        return new MethodCallInlinerAdapter(owner, access, name, desc, delegate, false) {
+    /**
+     * Get a visitor that inlines all of the specified method calls into a subject method.
+     *
+     * @param owner subject method owner
+     * @param access subject method access
+     * @param name subject method name
+     * @param desc subject method desc
+     * @param delegate delegate to collect results
+     * @param inlineOwnerClassName owner of methods to inline
+     * @param inlineMethods methods to inline
+     * @param weavePackageConfig config of the weave package the subject method belongs to, used to look up
+     * per-package defaults that apply absent an explicit system property override; may be null if unavailable
+     * @return visitor that inlines all of the specified method calls into a subject method
+     */
+    public static MethodVisitor getInlineMethodsVisitor(String owner, int access, String name, String desc,
+            MethodVisitor delegate, final String inlineOwnerClassName, final Iterable<MethodNode> inlineMethods,
+            final WeavePackageConfig weavePackageConfig) {
+
+        return new MethodCallInlinerAdapter(owner, access, name, desc, delegate, false, weavePackageConfig) {
 
             @Override
             protected InlinedMethod mustInline(String owner, String name, String desc) {
