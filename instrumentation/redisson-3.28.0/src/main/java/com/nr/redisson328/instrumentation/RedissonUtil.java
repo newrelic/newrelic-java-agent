@@ -17,7 +17,7 @@ public class RedissonUtil {
     }
 
     public static DatastoreParameters createDatastoreParameters(String operationName, NrRedisUri nrRedisUri) {
-        DatastoreParameters.InstanceParameter param = DatastoreParameters.product("Redisson")
+        DatastoreParameters.InstanceParameter param = DatastoreParameters.product("Redis")
                 .collection(null)
                 .operation(operationName);
         if (nrRedisUri != null) {

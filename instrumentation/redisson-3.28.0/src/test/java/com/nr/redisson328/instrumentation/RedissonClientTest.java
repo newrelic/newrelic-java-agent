@@ -74,11 +74,11 @@ public class RedissonClientTest {
 		assertTrue(txnNames.contains(txnName));
 		
 		Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(txnName);
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/DEL"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/LPOP"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/LPUSH"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/LLEN"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/RPUSH"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/DEL"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/LPOP"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/LPUSH"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/LLEN"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/RPUSH"));
 	}
 	
 	@Trace(dispatcher=true)
@@ -115,10 +115,10 @@ public class RedissonClientTest {
 		String txnName = "OtherTransaction/Custom/com.nr.redisson328.instrumentation.RedissonClientTest/testQueue";
 		assertTrue(txnNames.contains(txnName));
 		Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(txnName);
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/EVAL"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/DEL"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/LLEN"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/RPUSH"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/EVAL"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/DEL"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/LLEN"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/RPUSH"));
 		
 	}
 	
@@ -134,12 +134,12 @@ public class RedissonClientTest {
 		String txnName = "OtherTransaction/Custom/com.nr.redisson328.instrumentation.RedissonClientTest/testBucket";
 		assertTrue(txnNames.contains(txnName));
 		Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(txnName);
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/SETNX"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/EVAL"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/STRLEN"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/GETSET"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/PSETEX"));
-		assertTrue(metrics.containsKey("Datastore/operation/Redisson/SET"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/SETNX"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/EVAL"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/STRLEN"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/GETSET"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/PSETEX"));
+		assertTrue(metrics.containsKey("Datastore/operation/Redis/SET"));
 	}
 	
 	@Trace(dispatcher=true)
@@ -196,8 +196,8 @@ public class RedissonClientTest {
 		assertTrue(txnNames.contains(txnName));
 
 		Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(txnName);
-		final String redisBatchMetricName = "Datastore/operation/Redisson/BATCH-EXECUTE_HSET_HSET_INCR";
-		final String redisGetMetricName = "Datastore/operation/Redisson/GET";
+		final String redisBatchMetricName = "Datastore/operation/Redis/BATCH-EXECUTE_HSET_HSET_INCR";
+		final String redisGetMetricName = "Datastore/operation/Redis/GET";
 		assertTrue(metrics.containsKey(redisBatchMetricName));
 		assertTrue(metrics.containsKey(redisGetMetricName));
 
