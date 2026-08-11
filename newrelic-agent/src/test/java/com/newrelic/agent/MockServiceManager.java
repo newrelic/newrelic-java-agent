@@ -26,6 +26,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
+import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.normalization.NormalizationServiceImpl;
@@ -100,6 +101,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile ExpirationService expirationService;
     private volatile  BrowserService browserService;
     private volatile KotlinCoroutinesService kotlinCoroutinesService;
+    private volatile KtorService ktorService;
 
     public MockServiceManager() {
         this(createConfigService());
@@ -161,6 +163,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         insights = Mockito.mock(InsightsServiceImpl.class);
         logSenderService = Mockito.mock(LogSenderServiceImpl.class);
         kotlinCoroutinesService = Mockito.mock(KotlinCoroutinesService.class);
+        ktorService = Mockito.mock(KtorService.class);
     }
 
     @Override
@@ -701,5 +704,13 @@ public class MockServiceManager extends AbstractService implements ServiceManage
 
     public void setKotlinCoroutinesService(KotlinCoroutinesService kotlinCoroutinesService) {
         this.kotlinCoroutinesService = kotlinCoroutinesService;
+    }
+
+    public KtorService getKtorService() {
+        return ktorService;
+    }
+
+    public void setKtorService(KtorService ktorService) {
+        this.ktorService = ktorService;
     }
 }

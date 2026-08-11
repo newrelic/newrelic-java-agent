@@ -1,0 +1,33 @@
+ plugins {
+    id("org.jetbrains.kotlin.jvm")
+}
+
+tasks.test {
+    systemProperty("newrelic.config.class_transformer.clear_return_stacks", "true")
+}
+
+
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":newrelic-agent"))
+    implementation("io.ktor:ktor-server-netty:3.0.0")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.8.0")
+
+}
+
+tasks.jar {
+    manifest {
+        attributes(
+            "Implementation-Title" to "com.newrelic.instrumentation.ktor-server-netty-3.4.3",
+            "Clear-Return-Stacks-Default" to "true"
+        )
+    }
+}
+
+verifyInstrumentation {
+    passesOnly("io.ktor:ktor-server-netty-jvm:[3.4.3,)")
+    excludeRegex(".*beta.*")
+    excludeRegex(".*rc.*")
+    verifyClasspath = false
+}

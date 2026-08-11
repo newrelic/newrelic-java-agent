@@ -27,6 +27,7 @@ import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
+import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.normalization.NormalizationService;
 import com.newrelic.agent.profile.ProfilerService;
@@ -217,5 +218,9 @@ public class ServiceFactory {
     }
 
     public static KotlinCoroutinesService getKotlinCoroutinesService() { return SERVICE_MANAGER.getKotlinCoroutinesService(); }
+
+    public static KtorService getKtorService() {
+        return SERVICE_MANAGER.getKtorService();
+    }
 
 }

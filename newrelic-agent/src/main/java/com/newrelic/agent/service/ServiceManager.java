@@ -10,6 +10,7 @@ package com.newrelic.agent.service;
 import com.newrelic.agent.ExpirationService;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TracerService;
@@ -131,6 +132,8 @@ public interface ServiceManager extends Service {
     ExpirationService getExpirationService();
 
     KotlinCoroutinesService getKotlinCoroutinesService();
+
+    KtorService getKtorService();
 
     void refreshDataForCRaCRestore();
 }

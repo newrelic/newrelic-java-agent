@@ -16,6 +16,7 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
         super("KotlinCoroutinesService");
         this.coroutinesConfig = coroutinesConfig;
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
+        KotlinIgnoresCache.addIgnoredFramework("kotlin");
     }
 
     public void addCoroutineConfigListener(CoroutineConfigListener listener) {
@@ -25,6 +26,7 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
             listener.configureScopeIgnores(coroutinesConfig.getIgnoredScopes(), coroutinesConfig.getIgnoredRegexScopes());
             listener.configureDispatchedTasksIgnores(coroutinesConfig.getIgnoredDispatched(), coroutinesConfig.getIgnoredRegexDispatched());
             listener.configureDelay(coroutinesConfig.isDelayedEnabled());
+            listener.configureIgnoredFrameworks(KotlinIgnoresCache.getIgnoredFrameworks());
         }
     }
 
@@ -32,6 +34,7 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
         if(listener != null) {
             suspendListeners.add(listener);
             listener.configureSuspendsIgnores(coroutinesConfig.getIgnoredSuspends(),coroutinesConfig.getIgnoredRegexSuspends());
+            listener.configureIgnoredFrameworks(KotlinIgnoresCache.getIgnoredFrameworks());
         }
     }
 
@@ -87,8 +90,10 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
             listener.configureDispatchedTasksIgnores(allIgnoredDispatched,allIgnoredRegexDispatched);
             listener.configureContinuationIgnores(allIgnoredContinuations,allIgnoredRegexContinuations);
         }
+        String[] ignoredFrameworks = KotlinIgnoresCache.getIgnoredFrameworks();
         for(SuspendsConfigListener listener : suspendListeners) {
             listener.configureSuspendsIgnores(allIgnoredSuspends,allIgnoredRegexSuspends);
+            listener.configureIgnoredFrameworks(ignoredFrameworks);
         }
     }
 
@@ -135,4 +140,16 @@ public class KotlinCoroutinesService extends AbstractService implements AgentCon
         KotlinIgnoresCache.addIgnoredRegexSuspend(suspendRegEx);
     }
 
+    public void addIgnoredFramework(String framework) {
+        if(framework != null && !framework.isEmpty()) {
+            KotlinIgnoresCache.addIgnoredFramework(framework);
+            String[] ignoredFrameworks = KotlinIgnoresCache.getIgnoredFrameworks();
+            for (CoroutineConfigListener listener : listeners) {
+                listener.configureIgnoredFrameworks(ignoredFrameworks);
+            }
+            for (SuspendsConfigListener listener : suspendListeners) {
+                listener.configureIgnoredFrameworks(ignoredFrameworks);
+            }
+        }
+    }
 }

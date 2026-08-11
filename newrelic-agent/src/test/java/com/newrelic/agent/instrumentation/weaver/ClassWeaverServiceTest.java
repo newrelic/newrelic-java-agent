@@ -117,6 +117,10 @@ public class ClassWeaverServiceTest {
 
             Assert.assertNotNull(target.getWeavePackageManger().getWeavePackage("com.newrelic.instrumentation.jms-1.1"));
             Assert.assertEquals(1, target.getWeavePackageManger().getRegisteredPackages().size());
+
+            // jms-1.1 is not a Kotlin-coroutines/Ktor module, so it should not default clear_return_stacks on
+            Assert.assertFalse(target.getWeavePackageManger().getWeavePackage("com.newrelic.instrumentation.jms-1.1")
+                    .getConfig().isClearReturnStacksDefault());
         }
     }
 
