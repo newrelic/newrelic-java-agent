@@ -126,7 +126,7 @@ entity tagging in the UI, if a metric isn't reported within the past day the LLM
 
 * `language`: Name of language agent (ex: `Java`)
 * `vendor_name`: Name of LLM vendor (ex: `Bedrock`)
-* `vendor_version`: Version of instrumented LLM library (ex: `2.26.25`)
+* `vendor_version`: Version of instrumented LLM library (ex: `2.25.63`)
 
 Note: The vendor version isn't obtainable from the AWS Bedrock SDK for Java so the instrumentation version is used instead.
 

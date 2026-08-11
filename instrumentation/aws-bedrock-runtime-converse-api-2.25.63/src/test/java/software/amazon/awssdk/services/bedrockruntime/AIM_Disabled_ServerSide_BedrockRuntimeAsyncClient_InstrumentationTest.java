@@ -23,7 +23,6 @@ import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamReques
 import software.amazon.awssdk.services.bedrockruntime.model.ConverseStreamResponseHandler;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -31,15 +30,8 @@ import java.util.concurrent.TimeUnit;
 
 import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_MESSAGE;
 import static llm.converse.events.LlmEvent.LLM_CHAT_COMPLETION_SUMMARY;
-import static llm.converse.models.TestUtil.REQUEST_CONTENT_TEXT;
-import static llm.converse.models.TestUtil.REQUEST_MODEL_ID;
-import static llm.converse.models.TestUtil.RESPONSE_CONTENT_TEXT;
-import static llm.converse.models.TestUtil.STOP_REASON;
-import static llm.converse.models.TestUtil.assertErrorEvent;
-import static llm.converse.models.TestUtil.assertLlmChatCompletionMessageAttributes;
-import static llm.converse.models.TestUtil.assertLlmChatCompletionSummaryAttributes;
-import static llm.converse.models.TestUtil.assertStreamErrorEvent;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -47,9 +39,9 @@ import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest
 import static software.amazon.awssdk.services.bedrockruntime.MockConverseRequest.converseStreamRequest;
 
 @RunWith(InstrumentationTestRunner.class)
-@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_enabled.yml")
+@InstrumentationTestConfig(includePrefixes = { "software.amazon.awssdk.services.bedrockruntime" }, configName = "llm_disabled_server_side.yml")
 
-public class BedrockRuntimeAsyncClient_InstrumentationTest {
+public class AIM_Disabled_ServerSide_BedrockRuntimeAsyncClient_InstrumentationTest {
     private static final BedrockRuntimeAsyncClientMock mockBedrockRuntimeAsyncClient = new BedrockRuntimeAsyncClientMock();
     private final Introspector introspector = InstrumentationTestRunner.getIntrospector();
 
@@ -63,10 +55,10 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         boolean isError = false;
         ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
-        assertTransaction();
-        assertSupportabilityMetrics();
-        assertLlmEvents();
-        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertNoLlmTransaction();
+        assertNoLlmSupportabilityMetrics();
+        assertNoLlmEvents();
+        assertTrue(introspector.getErrorEvents().isEmpty());
     }
 
     @Test
@@ -74,10 +66,10 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         boolean isError = true;
         ConverseResponse converseResponse = converseAsyncRequestInTransaction(converseRequest(isError));
         assertNotNull(converseResponse);
-        assertTransaction();
-        assertSupportabilityMetrics();
-        assertLlmEvents();
-        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertNoLlmTransaction();
+        assertNoLlmSupportabilityMetrics();
+        assertNoLlmEvents();
+        assertTrue(introspector.getErrorEvents().isEmpty());
     }
 
     @Trace(dispatcher = true)
@@ -92,10 +84,10 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         boolean isError = false;
         Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
         assertNull(unused);
-        assertStreamTransaction();
-        assertSupportabilityMetrics();
-        assertLlmEvents();
-        assertErrorEvent(isError, introspector.getErrorEvents());
+        assertNoLlmTransaction();
+        assertNoLlmSupportabilityMetrics();
+        assertNoLlmEvents();
+        assertTrue(introspector.getErrorEvents().isEmpty());
     }
 
     @Test
@@ -103,31 +95,20 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         boolean isError = true;
         Void unused = converseStreamRequestInTransaction(converseStreamRequest(isError));
         assertNull(unused);
-        assertStreamTransaction();
-        assertSupportabilityMetrics();
-        assertStreamErrorEvent(isError, introspector.getErrorEvents());
-
-        Collection<Event> llmCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
-        assertEquals(1, llmCompletionSummaryEvents.size());
-        assertEquals(true, llmCompletionSummaryEvents.iterator().next().getAttributes().get("error"));
+        assertNoLlmTransaction();
+        assertNoLlmSupportabilityMetrics();
+        assertNoLlmEvents();
+        assertTrue(introspector.getErrorEvents().isEmpty());
     }
 
     @Trace(dispatcher = true)
     private Void converseStreamRequestInTransaction(ConverseStreamRequest converseStreamRequest) throws ExecutionException, InterruptedException {
         addCustomParameters();
-
+        // A subscriber (or onEventStream) is required to build a ConverseStreamResponseHandler; a no-op
+        // one is enough here since AI monitoring is disabled and the handler is never wrapped
         ConverseStreamResponseHandler converseStreamResponseHandler = ConverseStreamResponseHandler.builder().subscriber(event -> { }).build();
         CompletableFuture<Void> converseResponseFuture = mockBedrockRuntimeAsyncClient.converseStream(converseStreamRequest, converseStreamResponseHandler);
         return converseResponseFuture.get();
-    }
-
-    private void assertStreamTransaction() {
-        assertEquals(1, introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(2)));
-        Collection<String> transactionNames = introspector.getTransactionNames();
-        String transactionName = transactionNames.iterator().next();
-        Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(transactionName);
-        assertTrue(metrics.containsKey("Llm/completion/Bedrock/converseStream"));
-        assertEquals(1, metrics.get("Llm/completion/Bedrock/converseStream").getCallCount());
     }
 
     private void addCustomParameters() {
@@ -136,43 +117,26 @@ public class BedrockRuntimeAsyncClient_InstrumentationTest {
         NewRelic.addCustomParameter("test", "test"); // Will NOT be added to LLM events
     }
 
-    private void assertTransaction() {
+    private void assertNoLlmTransaction() {
         assertEquals(1, introspector.getFinishedTransactionCount(TimeUnit.SECONDS.toMillis(2)));
         Collection<String> transactionNames = introspector.getTransactionNames();
         String transactionName = transactionNames.iterator().next();
         Map<String, TracedMetricData> metrics = introspector.getMetricsForTransaction(transactionName);
-        assertTrue(metrics.containsKey("Llm/completion/Bedrock/converse"));
-        assertEquals(1, metrics.get("Llm/completion/Bedrock/converse").getCallCount());
+        assertFalse(metrics.containsKey("Llm/completion/Bedrock/converse"));
     }
 
-    private void assertSupportabilityMetrics() {
+    private void assertNoLlmSupportabilityMetrics() {
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertTrue(unscopedMetrics.containsKey("Supportability/Java/ML/Bedrock/2.26.25"));
+        assertFalse(unscopedMetrics.containsKey("Supportability/Java/ML/Bedrock/2.25.63"));
     }
 
-    private void assertLlmEvents() {
+    private void assertNoLlmEvents() {
         // LlmChatCompletionMessage events
         Collection<Event> llmChatCompletionMessageEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_MESSAGE);
-        assertEquals(2, llmChatCompletionMessageEvents.size());
-
-        Iterator<Event> llmChatCompletionMessageEventIterator = llmChatCompletionMessageEvents.iterator();
-        // LlmChatCompletionMessage event for user request message
-        Event llmChatCompletionMessageEventOne = llmChatCompletionMessageEventIterator.next();
-        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventOne, REQUEST_MODEL_ID, REQUEST_CONTENT_TEXT, RESPONSE_CONTENT_TEXT,
-                false);
-
-        // LlmChatCompletionMessage event for assistant response message
-        Event llmChatCompletionMessageEventTwo = llmChatCompletionMessageEventIterator.next();
-        assertLlmChatCompletionMessageAttributes(llmChatCompletionMessageEventTwo, REQUEST_MODEL_ID, REQUEST_CONTENT_TEXT, RESPONSE_CONTENT_TEXT,
-                true);
+        assertEquals(0, llmChatCompletionMessageEvents.size());
 
         // LlmCompletionSummary events
         Collection<Event> llmCompletionSummaryEvents = introspector.getCustomEvents(LLM_CHAT_COMPLETION_SUMMARY);
-        assertEquals(1, llmCompletionSummaryEvents.size());
-
-        Iterator<Event> llmCompletionSummaryEventIterator = llmCompletionSummaryEvents.iterator();
-        // Summary event for both LlmChatCompletionMessage events
-        Event llmCompletionSummaryEvent = llmCompletionSummaryEventIterator.next();
-        assertLlmChatCompletionSummaryAttributes(llmCompletionSummaryEvent, REQUEST_MODEL_ID, STOP_REASON);
+        assertEquals(0, llmCompletionSummaryEvents.size());
     }
 }

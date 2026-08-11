@@ -96,7 +96,7 @@ public class BedrockRuntimeClient_InstrumentationTest {
 
     private void assertSupportabilityMetrics() {
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertTrue(unscopedMetrics.containsKey("Supportability/Java/ML/Bedrock/2.26.25"));
+        assertTrue(unscopedMetrics.containsKey("Supportability/Java/ML/Bedrock/2.25.63"));
     }
 
     private void assertLlmEvents() {
