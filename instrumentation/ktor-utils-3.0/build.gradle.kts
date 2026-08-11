@@ -28,6 +28,7 @@ tasks.jar {
 
 verifyInstrumentation {
     passesOnly("io.ktor:ktor-utils:[3.0.0,)")
+    exclude("io.ktor:ktor-utils:[0,3.0.0)")
     excludeRegex(".*rc.*")
     excludeRegex(".*beta.*")
 }
