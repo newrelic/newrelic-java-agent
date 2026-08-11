@@ -66,7 +66,7 @@ public class LogEventUtil {
             String errorClass = contextAttributes.get(OTEL_EXCEPTION_TYPE);
             String errorMessage = contextAttributes.get(OTEL_EXCEPTION_MESSAGE);
 
-            if (shouldCreateLogEvent(body, errorClass, errorMessage)) {
+            if (shouldCreateLogEvent(body, contextAttributes, errorClass, errorMessage)) {
                 // It is possible that logs are being emitted from OTel instrumentation of a logging framework that we also instrument (e.g. logback, log4j), which could lead to double reporting of LogEvents. We can prevent this by checking if the logs are coming from a known OTel instrumentation source and favoring our own framework instrumentation over it.
                 if (LogDuplicationChecker.shouldRecordLogFromOTelAPI()) {
                     Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextAttributes));
@@ -179,8 +179,11 @@ public class LogEventUtil {
      * @param errorMessage String to validate from OTel exception.message
      * @return true if a LogEvent should be created, otherwise false
      */
-    private static boolean shouldCreateLogEvent(Body body, String errorClass, String errorMessage) {
-        return (body != null) || (ExceptionUtil.getErrorClass(errorClass) != null) || (ExceptionUtil.getErrorMessage(errorMessage) != null);
+    private static boolean shouldCreateLogEvent(Body body, Attributes contextAttributes, String errorClass, String errorMessage) {
+        return (body != null && body.asString() != null && !body.asString().isEmpty()) ||
+                (contextAttributes != null && !contextAttributes.isEmpty()) ||
+                (ExceptionUtil.getErrorClass(errorClass) != null) ||
+                (ExceptionUtil.getErrorMessage(errorMessage) != null);
     }
 
     private static int calculateInitialMapSize(Attributes attributes) {
