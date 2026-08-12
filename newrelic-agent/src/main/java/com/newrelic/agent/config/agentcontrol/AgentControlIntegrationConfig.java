@@ -36,18 +36,4 @@ public interface AgentControlIntegrationConfig {
      * @return the client type
      */
     String getHealthClientType();
-
-    /**
-     * Get the effective config reporting location information
-     *
-     * @return the location for the effective config information
-     */
-    URI getEffectiveConfigDeliveryLocation();
-
-    /**
-     * Return the effective config client type ("file" or "noop" for example)
-     *
-     * @return the client type
-     */
-    String getEffectiveConfigClientType();
 }

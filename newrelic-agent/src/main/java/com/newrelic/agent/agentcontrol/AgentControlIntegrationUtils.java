@@ -27,7 +27,7 @@ import java.util.zip.GZIPOutputStream;
 
 public class AgentControlIntegrationUtils {
     public enum FileType {
-        health, effective_config
+        health
     }
 
     public static long getPseudoCurrentTimeNanos() {
@@ -84,32 +84,6 @@ public class AgentControlIntegrationUtils {
                 Agent.LOG.log(Level.WARNING, "Error writing agent control {0} message to file: {1}", fileType, e.getMessage());
             }
         }
-    }
-
-    public static boolean gzipFile(File target) {
-        // GZip the supplied File into <filename>.<ext>.gz into the same
-        // location as the original
-        File destination = new File(target.getAbsolutePath() + ".gz");
-
-        try {
-            try (FileInputStream fis = new FileInputStream(target);
-                 FileOutputStream fos = new FileOutputStream(destination);
-                 GZIPOutputStream gzipOS = new GZIPOutputStream(fos)) {
-
-                byte[] buffer = new byte[1024];
-                int len;
-
-                // Read source data and stream it through the compressor
-                while ((len = fis.read(buffer)) > 0) {
-                    gzipOS.write(buffer, 0, len);
-                }
-            }
-        } catch (IOException e) {
-            Agent.LOG.log(Level.WARNING, "Error compressing agenct control file: {0}; cause: {1}", target.getAbsolutePath(), e.getMessage());
-            return false;
-        }
-
-        return true;
     }
 
     public static String generateAgentControlFilename(FileType fileType, boolean includeUuidSuffix) {

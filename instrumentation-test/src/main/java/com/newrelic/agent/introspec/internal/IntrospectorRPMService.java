@@ -164,6 +164,10 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
     }
 
     @Override
+    public void sendAgentSettings(Map<String, Object> settings) {
+    }
+
+    @Override
     public HealthDataProducer getHttpDataSenderAsHealthDataProducer() {
         return null;
     }

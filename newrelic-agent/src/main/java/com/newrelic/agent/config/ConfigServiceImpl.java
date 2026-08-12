@@ -207,10 +207,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         }
 
         mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("common", unflattenToNestedMap(mergedSettings));
-        return result;
+        return mergedSettings;
     }
 
     private Map<String, Object> unflattenToNestedMap(Map<String, Object> flatMap) {

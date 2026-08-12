@@ -37,6 +37,8 @@ public class MockDataSender implements DataSender {
     private Exception exception;
     private boolean isConnected;
     private CountDownLatch latch;
+    private Map<String, Object> agentSettings;
+    private CountDownLatch agentSettingsLatch;
 
     public MockDataSender(DataSenderConfig config) {
         this(config, null);
@@ -136,6 +138,28 @@ public class MockDataSender implements DataSender {
 
     @Override
     public void sendModules(List<? extends JSONStreamAware> jarData) throws Exception {
+    }
+
+    @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception {
+        try {
+            if (exception != null) {
+                throw exception;
+            }
+            this.agentSettings = settings;
+        } finally {
+            if (agentSettingsLatch != null) {
+                agentSettingsLatch.countDown();
+            }
+        }
+    }
+
+    public void setAgentSettingsLatch(CountDownLatch latch) {
+        this.agentSettingsLatch = latch;
+    }
+
+    public Map<String, Object> getAgentSettings() {
+        return agentSettings;
     }
 
     @Override

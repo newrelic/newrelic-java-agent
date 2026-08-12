@@ -367,7 +367,7 @@ public class ConfigServiceTest {
     }
 
     @Test
-    public void getExplicitlySetConfig_hasCommonTopLevelKeyWithNestedStructure() throws Exception {
+    public void getExplicitlySetConfig_hasCommonTopLevelKeyWithFlatStructure() throws Exception {
         Map<String, Object> transactionTracerConfig = new HashMap<>();
         transactionTracerConfig.put("record_sql", "obfuscated");
 
@@ -385,32 +385,15 @@ public class ConfigServiceTest {
 
         Map<String, Object> result = configService.getExplicitlySetConfig();
 
-        // only "common" at the top level
-        assertEquals(1, result.size());
-        assertTrue(result.containsKey("common"));
-
-        Map<String, Object> common = (Map<String, Object>) result.get("common");
-
-        // flat key with underscore stays flat under common
-        assertEquals(true, common.get("agent_enabled"));
-        assertEquals("test", common.get("app_name"));
-
-        // single-level nested key
-        Map<String, Object> jfr = (Map<String, Object>) common.get("jfr");
-        assertNotNull("jfr section should be present", jfr);
-        assertEquals(true, jfr.get("enabled"));
-
-        // multi-level nested key
-        Map<String, Object> transactionTracer = (Map<String, Object>) common.get("transaction_tracer");
-        assertNotNull("transaction_tracer section should be present", transactionTracer);
-        assertEquals("obfuscated", transactionTracer.get("record_sql"));
-
-        // keys not in the reference YAML are filtered out
-        assertNull(common.get("totally_bogus_key"));
+        assertEquals(true, result.get("agent_enabled"));
+        assertEquals("test", result.get("app_name"));
+        assertEquals(true, result.get("jfr.enabled"));
+        assertEquals("obfuscated", result.get("transaction_tracer.record_sql"));
+        assertNull(result.get("totally_bogus_key"));
     }
 
     @Test
-    public void getExplicitlySetConfig_serverDataOverridesLocalAndIsNested() throws Exception {
+    public void getExplicitlySetConfig_serverDataOverridesLocalAndIsFlattened() throws Exception {
         Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
         createServiceManager(configMap);
 
@@ -427,13 +410,9 @@ public class ConfigServiceTest {
         connectionConfigListener.connected(rpmService, serverData);
 
         Map<String, Object> result = configService.getExplicitlySetConfig();
-        Map<String, Object> common = (Map<String, Object>) result.get("common");
-        assertNotNull(common);
 
-        // server-supplied transaction_tracer.record_sql should appear nested
-        Map<String, Object> transactionTracer = (Map<String, Object>) common.get("transaction_tracer");
-        assertNotNull("transaction_tracer section should be present after server connect", transactionTracer);
-        assertEquals("off", transactionTracer.get("record_sql"));
+        // server-supplied transaction_tracer.record_sql should be present
+        assertEquals("off", result.get("transaction_tracer.record_sql"));
     }
 
     @Test

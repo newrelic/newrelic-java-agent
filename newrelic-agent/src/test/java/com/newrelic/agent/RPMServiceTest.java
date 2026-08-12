@@ -759,6 +759,78 @@ public class RPMServiceTest {
     }
 
     @Test(timeout = 30000)
+    public void configChangedOnlyTriggersAgentSettingsForMainApp() throws Exception {
+        String appName = "My Application";
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTP_PORT);
+        map.put("license_key", "deadbeefcafebabe8675309babecafe1beefdead");
+        map.put(AgentConfigImpl.APP_NAME, appName);
+        createServiceManager(map);
+
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+
+        RPMService mainAppSvc = new RPMService(singletonList(appName), null, null,
+                Collections.<AgentConnectionEstablishedListener>emptyList());
+        MockDataSender mainAppDataSender = dataSenderFactory.getLastDataSender();
+
+        map.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
+        RPMService nonMainAppSvc = new RPMService(singletonList("Bogus"), null, null,
+                Collections.<AgentConnectionEstablishedListener>emptyList());
+        MockDataSender nonMainAppDataSender = dataSenderFactory.getLastDataSender();
+        assertFalse(nonMainAppSvc.isMainApp());
+
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+
+        // A non-main app's configChanged() must never schedule/send agent settings at all.
+        nonMainAppSvc.configChanged("Bogus", agentConfig);
+        assertNull(nonMainAppDataSender.getAgentSettings());
+
+        // The main app's configChanged() schedules the send asynchronously - wait for it.
+        CountDownLatch latch = new CountDownLatch(1);
+        mainAppDataSender.setAgentSettingsLatch(latch);
+        mainAppSvc.configChanged(appName, agentConfig);
+
+        assertTrue("Expected sendAgentSettings to be invoked for the main app",
+                latch.await(5, TimeUnit.SECONDS));
+        assertNotNull(mainAppDataSender.getAgentSettings());
+    }
+
+    @Test(timeout = 30000)
+    public void nonMainAppStopDoesNotBreakMainAppAgentSettingsScheduler() throws Exception {
+        String appName = "My Application";
+        Map<String, Object> map = new HashMap<>();
+        map.put("host", "localhost");
+        map.put("port", MOCK_COLLECTOR_HTTP_PORT);
+        map.put("license_key", "deadbeefcafebabe8675309babecafe1beefdead");
+        map.put(AgentConfigImpl.APP_NAME, appName);
+        createServiceManager(map);
+
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+
+        RPMService mainAppSvc = new RPMService(singletonList(appName), null, null,
+                Collections.<AgentConnectionEstablishedListener>emptyList());
+        MockDataSender mainAppDataSender = dataSenderFactory.getLastDataSender();
+
+        map.put(AgentConfigImpl.ENABLE_AUTO_APP_NAMING, true);
+        RPMService nonMainAppSvc = new RPMService(singletonList("Bogus"), null, null,
+                Collections.<AgentConnectionEstablishedListener>emptyList());
+        assertFalse(nonMainAppSvc.isMainApp());
+
+        // Stopping a non-main app must not tear down the static scheduler the main app relies on.
+        nonMainAppSvc.doStop();
+
+        CountDownLatch latch = new CountDownLatch(1);
+        mainAppDataSender.setAgentSettingsLatch(latch);
+        mainAppSvc.configChanged(appName, ServiceFactory.getConfigService().getDefaultAgentConfig());
+
+        assertTrue("Expected sendAgentSettings to still fire for the main app after a non-main app stopped",
+                latch.await(5, TimeUnit.SECONDS));
+    }
+
+    @Test(timeout = 30000)
     public void getAgentCommands() throws Exception {
         Map<String, Object> config = createStagingMap(true, false);
         createServiceManager(config);
@@ -1436,6 +1508,45 @@ public class RPMServiceTest {
             latch.await(10, TimeUnit.SECONDS);
             assertTrue(dataSender.isConnected());
         }
+    }
+
+    @Test(timeout = 30000)
+    public void sendAgentSettingsDoesNotReconnectOnForceRestart() throws Exception {
+        Map<String, Object> config = createStagingMap(false, false);
+        createServiceManager(config);
+        doSendAgentSettingsDoesNotReconnectOnForceRestart();
+    }
+
+    @Test(timeout = 30000)
+    public void sendAgentSettingsDoesNotReconnectOnForceRestartWithPut() throws Exception {
+        Map<String, Object> config = createStagingMap(false, false, true);
+        createServiceManager(config);
+        doSendAgentSettingsDoesNotReconnectOnForceRestart();
+    }
+
+    private void doSendAgentSettingsDoesNotReconnectOnForceRestart() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+
+        List<String> appNames = singletonList("MyApplication");
+        RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+
+        MockDataSender dataSender = dataSenderFactory.getLastDataSender();
+        dataSender.setConnected(false);
+        dataSender.setException(new ForceRestartException(""));
+
+        Map<String, Object> settings = Collections.<String, Object>singletonMap("test_key", "test_value");
+        try {
+            svc.sendAgentSettings(settings);
+            fail("Expected a ForceRestartException to be thrown");
+        } catch (ForceRestartException e) {
+            // expected
+        }
+
+        // Unlike sendTransactionTraceData/sendModules, sendAgentSettings must NOT trigger a
+        // reconnect on ForceRestartException - it's invoked from configChanged(), which fires
+        // on every connect, so reconnecting here could cause a connect/configChanged loop.
+        assertFalse(dataSender.isConnected());
     }
 
     private class LargeStackThrowableError extends ThrowableError {

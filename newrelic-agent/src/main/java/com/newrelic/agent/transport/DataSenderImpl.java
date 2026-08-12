@@ -483,6 +483,19 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         invokeRunId(CollectorMethods.UPDATE_LOADED_MODULES, compressedEncoding, runId, params);
     }
 
+    @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception {
+        Object runId = agentRunId;
+        if (runId == NO_AGENT_RUN_ID || settings == null || settings.isEmpty()) {
+            return;
+        }
+        InitialSizedJsonArray params = new InitialSizedJsonArray(1);
+
+        params.add(settings);
+
+        invokeRunId(CollectorMethods.AGENT_SETTINGS, compressedEncoding, runId, params);
+    }
+
     /**
      * Some of our data calls are json documents of base 64 encoded strings with gzipped json docs inside of them.
      * We normally send these requests with IDENTITY encoding because a large portion of the payload is already compressed.

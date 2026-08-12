@@ -94,6 +94,8 @@ public interface IRPMService extends Service {
 
     HealthDataProducer getHttpDataSenderAsHealthDataProducer();
 
+    void sendAgentSettings(Map<String, Object> settings) throws Exception;
+
     /**
      * Saves and flushes any buffered telemetry saved inside the DataSender. Used for finishing serverless harvests and is a No-Op in all other scenarios.
      */

@@ -180,6 +180,10 @@ public abstract class BaseRPMService implements IRPMService {
     }
 
     @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception {
+    }
+
+    @Override
     public ErrorService getErrorService() {
         return null;
     }

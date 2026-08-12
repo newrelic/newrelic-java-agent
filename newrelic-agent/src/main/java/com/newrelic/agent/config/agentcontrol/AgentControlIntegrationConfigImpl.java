@@ -24,7 +24,6 @@ public class AgentControlIntegrationConfigImpl extends BaseConfig implements Age
 
 
     private AgentControlIntegrationHealthConfig agentControlIntegrationHealthConfig;
-    private AgentControlIntegrationEffectiveConfigConfig agentControlIntegrationEffectiveConfigConfig;
 
     public AgentControlIntegrationConfigImpl(Map<String, Object> configProps) {
         super(configProps, SYSTEM_PROPERTY_ROOT);
@@ -37,24 +36,12 @@ public class AgentControlIntegrationConfigImpl extends BaseConfig implements Age
                         "Agent Control integration service will not be started");
                 enabled = false;
             }
-
-            agentControlIntegrationEffectiveConfigConfig = createEffectiveConfigConfig();
-            if (agentControlIntegrationEffectiveConfigConfig.getEffectiveConfigDeliveryLocation() == null) {
-                Agent.LOG.log(Level.WARNING, "Configured Agent Control effective config delivery location is not a valid URI; " +
-                        "Agent Control integration service will not be started");
-                enabled = false;
-            }
         }
     }
 
     private AgentControlIntegrationHealthConfig createHealthConfig() {
         Map<String, Object> healthProps = getProperty(AgentControlIntegrationHealthConfig.ROOT, Collections.emptyMap());
         return new AgentControlIntegrationHealthConfig(healthProps, SYSTEM_PROPERTY_ROOT);
-    }
-
-    private AgentControlIntegrationEffectiveConfigConfig createEffectiveConfigConfig() {
-        Map<String, Object> effectiveConfigProps = getProperty(AgentControlIntegrationEffectiveConfigConfig.ROOT, Collections.emptyMap());
-        return new AgentControlIntegrationEffectiveConfigConfig(effectiveConfigProps, SYSTEM_PROPERTY_ROOT);
     }
 
     @Override
@@ -75,15 +62,5 @@ public class AgentControlIntegrationConfigImpl extends BaseConfig implements Age
     @Override
     public String getHealthClientType() {
         return agentControlIntegrationHealthConfig == null ? null : agentControlIntegrationHealthConfig.getHealthClientType();
-    }
-
-    @Override
-    public URI getEffectiveConfigDeliveryLocation() {
-        return agentControlIntegrationEffectiveConfigConfig.getEffectiveConfigDeliveryLocation();
-    }
-
-    @Override
-    public String getEffectiveConfigClientType() {
-        return agentControlIntegrationEffectiveConfigConfig.getEffectiveConfigClientType();
     }
 }

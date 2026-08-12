@@ -38,9 +38,6 @@ public class AgentControlIntegrationConfigTest {
         assertEquals(5, config.getHealthReportingFrequency());
         assertEquals("file", config.getHealthClientType());
         assertEquals("/foo/bar", config.getHealthDeliveryLocation().getPath());
-        assertEquals("file", config.getEffectiveConfigClientType());
-        assertEquals("/foo/bar2", config.getEffectiveConfigDeliveryLocation().getPath());
-
     }
 
     @Test
@@ -58,8 +55,6 @@ public class AgentControlIntegrationConfigTest {
         AgentControlIntegrationConfig config = new AgentControlIntegrationConfigImpl(agentControlConfigProps);
         assertEquals("file", config.getHealthClientType());
         assertEquals("/newrelic/apm/health", config.getHealthDeliveryLocation().getPath());
-        assertEquals("file", config.getEffectiveConfigClientType());
-        assertEquals("/newrelic/apm/effective_config", config.getEffectiveConfigDeliveryLocation().getPath());
         assertTrue(config.isEnabled());
     }
 

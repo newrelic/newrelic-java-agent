@@ -19,7 +19,6 @@ import com.newrelic.agent.ServerlessHarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
-import com.newrelic.agent.agentcontrol.effectiveconfig.AgentControlIntegrationEffectiveConfigClient;
 import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.serverless.ServerlessServiceImpl;
@@ -377,7 +376,6 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private AgentControlIntegrationService buildAgentControlIntegrationService(AgentConfig config) {
         ArrayList<HealthDataProducer> healthDataProducers = new ArrayList<>();
         AgentControlIntegrationHealthClient healthClient = null;
-        AgentControlIntegrationEffectiveConfigClient effectiveConfigClient = null;
 
         if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
             AgentControlIntegrationConfig agentControlConfig = config.getAgentControlIntegrationConfig();
@@ -388,11 +386,9 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
             for (IRPMService service : ServiceFactory.getRPMServiceManager().getRPMServices()) {
                 healthDataProducers.add(service.getHttpDataSenderAsHealthDataProducer());
             }
-
-            effectiveConfigClient = AgentControlIntegrationClientFactory.createEffectiveConfigClient(agentControlConfig);
         }
 
-        return new AgentControlIntegrationService(healthClient, effectiveConfigClient, config,
+        return new AgentControlIntegrationService(healthClient, config,
                 healthDataProducers.toArray(new HealthDataProducer[]{}));
     }
 

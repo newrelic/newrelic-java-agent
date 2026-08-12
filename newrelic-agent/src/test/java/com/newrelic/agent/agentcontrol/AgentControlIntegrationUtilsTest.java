@@ -69,12 +69,7 @@ public class AgentControlIntegrationUtilsTest {
         } catch (URISyntaxException ignored) {
         }
 
-        File f = AgentControlIntegrationUtils.createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.effective_config);
-        assertEquals(System.getProperty("user.dir"), f.getAbsolutePath());
-        assertTrue(f.exists());
-        assertTrue(f.isDirectory());
-
-        f = AgentControlIntegrationUtils.createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.health);
+        File f = AgentControlIntegrationUtils.createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.health);
         assertEquals(System.getProperty("user.dir"), f.getAbsolutePath());
         assertTrue(f.exists());
         assertTrue(f.isDirectory());
@@ -83,10 +78,6 @@ public class AgentControlIntegrationUtilsTest {
     @Test
     public void generateAgentControlFilename_createsValidFilename() {
         String filename = AgentControlIntegrationUtils.generateAgentControlFilename(
-                AgentControlIntegrationUtils.FileType.effective_config, false);
-        assertTrue(filename.matches("effective_config.yml"));
-
-        filename = AgentControlIntegrationUtils.generateAgentControlFilename(
                 AgentControlIntegrationUtils.FileType.health, true);
         assertTrue(filename.matches("health-[a-z0-9]{32}.yml"));
     }
@@ -102,12 +93,12 @@ public class AgentControlIntegrationUtilsTest {
         configMap.put("foo", "bar");
 
         File file = new File(AgentControlIntegrationUtils
-                .createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.effective_config),
-                AgentControlIntegrationUtils.generateAgentControlFilename(AgentControlIntegrationUtils.FileType.effective_config, false));
+                .createAgentControlFileFolderInstance(uri, AgentControlIntegrationUtils.FileType.health),
+                AgentControlIntegrationUtils.generateAgentControlFilename(AgentControlIntegrationUtils.FileType.health, false));
         file.deleteOnExit();
 
         AgentControlIntegrationUtils.writeMapPayloadToFile(configMap, file,
-                AgentControlIntegrationUtils.createYamlWriter(),  AgentControlIntegrationUtils.FileType.effective_config);
+                AgentControlIntegrationUtils.createYamlWriter(),  AgentControlIntegrationUtils.FileType.health);
 
         assertTrue(file.exists());
         assertTrue(file.length() > 0);
