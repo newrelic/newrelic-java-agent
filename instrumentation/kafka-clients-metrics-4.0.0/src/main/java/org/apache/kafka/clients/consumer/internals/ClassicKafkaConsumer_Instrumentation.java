@@ -31,7 +31,7 @@ public class ClassicKafkaConsumer_Instrumentation<K, V> {
     public ClassicKafkaConsumer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes, metadata));
             initialized = true;
         }
     }
