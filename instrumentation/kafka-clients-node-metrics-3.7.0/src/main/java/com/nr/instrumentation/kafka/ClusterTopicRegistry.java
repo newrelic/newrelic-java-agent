@@ -11,6 +11,7 @@ import com.newrelic.api.agent.NewRelic;
 import org.apache.kafka.clients.Metadata;
 
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;

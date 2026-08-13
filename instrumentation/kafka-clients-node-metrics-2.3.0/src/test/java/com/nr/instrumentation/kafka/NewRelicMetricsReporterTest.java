@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -11,10 +11,20 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import com.newrelic.test.marker.Java11IncompatibleTest;
+import com.newrelic.test.marker.Java8IncompatibleTest;
+import org.apache.kafka.clients.Metadata;
+import org.apache.kafka.common.Cluster;
+import org.apache.kafka.common.ClusterResource;
+import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.Node;
+import org.apache.kafka.common.metrics.Gauge;
 import org.apache.kafka.common.metrics.KafkaMetric;
+import org.apache.kafka.common.metrics.MetricConfig;
+import org.apache.kafka.common.utils.Time;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 
 import java.lang.reflect.Method;
@@ -25,7 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,10 +50,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(InstrumentationTestRunner.class)
 @InstrumentationTestConfig(includePrefixes = "org.apache.kafka")
+@Category({ Java8IncompatibleTest.class, Java11IncompatibleTest.class })
 public class NewRelicMetricsReporterTest {
     private Introspector introspector;
-    private static final KafkaMetric METRIC1 = getMetricMock("metric1", 42.0f);
-    private static final KafkaMetric METRIC2 = getMetricMock("metric2", 11.0f);
+    private static final KafkaMetric METRIC1 = kafkaMetric("metric1", null, 42.0f);
+    private static final KafkaMetric METRIC2 = kafkaMetric("metric2", null, 11.0f);
 
     @Before
     public void setup() {
@@ -93,7 +105,8 @@ public class NewRelicMetricsReporterTest {
         NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
 
         Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
-        assertEquals(3, unscopedMetrics.size()); // metric1, metric2 and node metric
+        // Expecting: metric1, metric2, and node metric (cluster metrics disabled by default)
+        assertEquals(3, unscopedMetrics.size());
 
         introspector.clear();
         reporter.metricRemoval(METRIC2);
@@ -111,8 +124,7 @@ public class NewRelicMetricsReporterTest {
 
     @Test
     public void nodeTopicMetrics() throws InterruptedException{
-        KafkaMetric metricWithTopic = getMetricMock("topicMetric", 20.0f);
-        when(metricWithTopic.metricName().tags().get("topic")).thenReturn("hhgg");
+        KafkaMetric metricWithTopic = kafkaMetric("topicMetric", "hhgg", 20.0f);
         List<KafkaMetric> initialMetrics = Arrays.asList(metricWithTopic);
 
         NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
@@ -136,7 +148,9 @@ public class NewRelicMetricsReporterTest {
                 .thenReturn("localhost");
         when(node.port())
                 .thenReturn(42);
-        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter(ClientType.CONSUMER, Collections.singleton(node));
+
+        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter(ClientType.CONSUMER, Collections.singleton(node),
+                buildMockMetadataWithClusterId("cluster12345"));
         metricsReporter.init(initMetrics);
         // init triggers the first harvest that happens in a different thread. Sleeping to let it finish.
         Thread.sleep(100L);
@@ -147,17 +161,48 @@ public class NewRelicMetricsReporterTest {
         return metricsReporter;
     }
 
-    protected static KafkaMetric getMetricMock(String name, Object value) {
-        KafkaMetric metric = mock(KafkaMetric.class, RETURNS_DEEP_STUBS);
-        when(metric.metricName().group())
-                .thenReturn("group");
-        when(metric.metricName().name())
-                .thenReturn(name);
-        when(metric.metricValue())
+    private static KafkaMetric kafkaMetric(String name, String topic, float value) {
+        Gauge<Float> valueProvider = mock(Gauge.class);
+        when(valueProvider.value(any(), anyLong()))
                 .thenReturn(value);
-        return metric;
+
+        Map<String, String> tags = topic == null ?
+                Collections.emptyMap() :
+                Collections.singletonMap("topic", topic);
+
+        MetricName metricName = new MetricName(name, "group", "descr", tags);
+        MetricConfig config = new MetricConfig();
+        return new KafkaMetric(new Object(), metricName, valueProvider, config, Time.SYSTEM);
     }
 
+    private static Metadata buildMockMetadataWithClusterId(String clusterId) {
+        Metadata mockMetadata = mock(Metadata.class);
+        Cluster mockCluster = mock(Cluster.class);
+        ClusterResource mockClusterResource = mock(ClusterResource.class);
+
+        when(mockMetadata.fetch()).thenReturn(mockCluster);
+        when(mockCluster.clusterResource()).thenReturn(mockClusterResource);
+        when(mockClusterResource.clusterId()).thenReturn(clusterId);
+
+        return mockMetadata;
+    }
+
+
+    @Test
+    public void clusterTopicMetricsDisabledByDefault() throws InterruptedException {
+        KafkaMetric internalMetric = kafkaMetric("topicMetric", "testTopic", 20.0f);
+        List<KafkaMetric> initialMetrics = Arrays.asList(internalMetric);
+
+        NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
+
+        Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
+
+        // Verify cluster metric is NOT reported when disabled (default)
+        TracedMetricData clusterTopicMetric = unscopedMetrics.get("MessageBroker/Kafka/Cluster/cluster12345/Consume/testTopic");
+        assertEquals(null, clusterTopicMetric);
+
+        reporter.close();
+    }
 
     private void forceHarvest(NewRelicMetricsReporter reporter) throws Exception {
         Method report = NewRelicMetricsReporter.class.getDeclaredMethod("report");
