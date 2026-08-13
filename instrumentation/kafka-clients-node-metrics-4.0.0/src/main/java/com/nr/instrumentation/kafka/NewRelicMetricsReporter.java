@@ -30,6 +30,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     private static final boolean METRICS_DEBUG = NewRelic.getAgent().getConfig().getValue("kafka.metrics.debug.enabled", false);
     private static final boolean NODE_METRICS_DISABLED = NewRelic.getAgent().getConfig().getValue("kafka.metrics.node.metrics.disabled", false);
     private static final boolean TOPIC_METRICS_DISABLED = NewRelic.getAgent().getConfig().getValue("kafka.metrics.topic.metrics.disabled", false);
+    private static final boolean CLUSTER_METRICS_ENABLED = NewRelic.getAgent().getConfig().getValue("kafka.metrics.cluster.metrics.enabled", false);
     private static final long REPORTING_INTERVAL_IN_SECONDS = NewRelic.getAgent().getConfig().getValue("kafka.metrics.interval", 30);
     private static final ScheduledExecutorService SCHEDULER =
             Executors.newSingleThreadScheduledExecutor(ThreadFactories.build("NewRelicMetricsReporter-Kafka"));
@@ -43,7 +44,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes, Metadata metadata) {
         nodeTopicRegistry = new NodeTopicRegistry(clientType, nodes);
-        clusterTopicRegistry = new ClusterTopicRegistry(clientType, metadata);
+        clusterTopicRegistry = new ClusterTopicRegistry(clientType, metadata, CLUSTER_METRICS_ENABLED);
     }
 
     @Override
@@ -80,6 +81,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         }
         metrics.clear();
         nodeTopicRegistry.close();
+        clusterTopicRegistry.close();
     }
 
     @Override
