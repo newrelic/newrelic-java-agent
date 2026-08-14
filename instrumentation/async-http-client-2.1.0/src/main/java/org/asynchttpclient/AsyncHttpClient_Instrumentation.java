@@ -38,6 +38,7 @@ public class AsyncHttpClient_Instrumentation {
 
                 handler.uri = uri;
                 handler.segment = segment;
+                handler.method = request.getMethod();
             }
         } catch (URISyntaxException uriSyntaxException) {
             // if Java can't parse the URI, asynchttpclient won't be able to either

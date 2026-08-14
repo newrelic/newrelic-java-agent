@@ -17,6 +17,7 @@ import com.newrelic.agent.tracers.TracerFlags;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.nr.agent.instrumentation.utils.AttributesHelper;
 import com.nr.agent.instrumentation.utils.span.AttributeMapper;
@@ -75,14 +76,17 @@ public class ExitTracerSpan implements ReadWriteSpan {
     private static final AttributeKey<String> STATUS_CODE = AttributeKey.stringKey("status.code");
     private static final AttributeKey<String> STATUS_DESCRIPTION = AttributeKey.stringKey("status.description");
 
+    private static final AttributeKey<String> HTTP_REQUEST_METHOD = AttributeKey.stringKey("http.request.method");
+
     // these attributes are reported as agent attributes, we don't want to duplicate them in user attributes
     private static final Set<String> AGENT_ATTRIBUTE_KEYS =
             Collections.unmodifiableSet(
-                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT, STATUS_CODE, STATUS_DESCRIPTION)
+                    Stream.of(DB_STATEMENT, DB_SQL_TABLE, DB_SYSTEM, DB_OPERATION, SERVER_ADDRESS, SERVER_PORT, STATUS_CODE, STATUS_DESCRIPTION, HTTP_REQUEST_METHOD)
                             .map(AttributeKey::getKey)
                             .collect(Collectors.toSet()));
 
     final ExitTracer tracer;
+    private final Segment segment;
     private final SpanKind spanKind;
     private final InstrumentationLibraryInfo instrumentationLibraryInfo;
     private final Map<String, Object> attributes;
@@ -110,7 +114,15 @@ public class ExitTracerSpan implements ReadWriteSpan {
     ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
             Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
             int totalNumberOfLinksAdded, long userStartEpochNanos) {
+        this(tracer, instrumentationLibraryInfo, spanKind, spanName, parentSpanContext,
+                resource, tracerClock, attributes, onEnd, links, totalNumberOfLinksAdded, userStartEpochNanos, null);
+    }
+
+    ExitTracerSpan(ExitTracer tracer, InstrumentationLibraryInfo instrumentationLibraryInfo, SpanKind spanKind, String spanName, SpanContext parentSpanContext,
+            Resource resource, Clock tracerClock, Map<String, Object> attributes, Consumer<ExitTracerSpan> onEnd, List<LinkData> links,
+            int totalNumberOfLinksAdded, long userStartEpochNanos, Segment segment) {
         this.tracer = tracer;
+        this.segment = segment;
         this.spanKind = spanKind;
         this.spanName = spanName;
         this.parentSpanContext = parentSpanContext;
@@ -285,7 +297,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
         copySpanLinksToTracer(links);
         List<EventData> immutableEvents = this.events == null ? Collections.emptyList() : Collections.unmodifiableList(this.events);
         copySpanEventsToTracer(immutableEvents);
-        tracer.finish();
+        if (segment != null) {
+            segment.end();
+        } else {
+            tracer.finish();
+        }
         endEpochNanos = System.nanoTime();
         ended = true;
         onEnd.accept(this);
@@ -424,9 +440,11 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 final URI uri = getUri();
                 if (uri != null) {
                     final String libraryName = getAttribute(OTEL_LIBRARY_NAME);
+                    String procedure = getProcedure();
                     HttpParameters genericParameters = HttpParameters.library(libraryName).uri(uri)
-                            .procedure(getProcedure()).noInboundHeaders().build();
+                            .procedure(procedure).noInboundHeaders().build();
                     tracer.reportAsExternal(genericParameters);
+                    AgentBridge.getAgent().getTracedMethod().setHttpMethod(procedure);
                 }
             } catch (URISyntaxException e) {
                 NewRelic.getAgent().getLogger().log(Level.FINER, "Error parsing client span uri", e);
@@ -444,6 +462,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
                 attributeMapper.findProperOtelKey(spanKind, attributeType, attributes.keySet()));
     }
 
+    // Retrieves the http method reported by OpenTelemetry
     String getProcedure() {
         AttributeKey<String> key = generateStringAttributeKey(SpanKind.CLIENT, com.nr.agent.instrumentation.utils.span.AttributeType.ExternalProcedure);
         if (key.getKey().isEmpty()) {

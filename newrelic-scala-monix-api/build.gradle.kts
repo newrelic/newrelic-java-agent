@@ -1,4 +1,6 @@
 import com.nr.builder.publish.PublishConfig
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
+import org.gradle.plugins.signing.Sign
 
 plugins {
     `maven-publish`
@@ -34,28 +36,25 @@ dependencies {
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
 }
 
-val crossBuildScala_211Jar by tasks.getting
-val crossBuildScala_212Jar by tasks.getting
-val crossBuildScala_213Jar by tasks.getting
-
 val javadocJar by tasks.getting
 val sourcesJar by tasks.getting
 
-mapOf(
-    "2.11" to crossBuildScala_211Jar,
-    "2.12" to crossBuildScala_212Jar,
-    "2.13" to crossBuildScala_213Jar
-).forEach { (scalaVersion, versionedClassJar) ->
+listOf("2.11", "2.12", "2.13").forEach { scalaVersion ->
+    val componentName = "crossBuildScala_${scalaVersion.replace(".", "")}"
     PublishConfig.config(
-        "crossBuildScala_${scalaVersion.replace(".", "")}",
+        componentName,
         project,
         "New Relic Java agent Scala $scalaVersion Monix API",
         "The public Scala $scalaVersion API of the Java agent for Monix."
     ) {
+        from(components[componentName])
         artifact(sourcesJar)
         artifact(javadocJar)
-        artifact(versionedClassJar)
     }
+}
+
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    mustRunAfter(tasks.withType<Sign>())
 }
 
 tasks {

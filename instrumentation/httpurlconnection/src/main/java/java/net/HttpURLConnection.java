@@ -46,6 +46,8 @@ public abstract class HttpURLConnection extends URLConnection {
 
     public abstract URL getURL();
 
+    public abstract String getRequestMethod();
+
     // connect can be called explicitly, but it doesn't need to be as it will implicitly be called by other
     // methods that read or write over the connection such as getInputStream, getResponseCode, and getOutputStream.
     // Calling connect directly doesn't cause a request to happen over the wire.

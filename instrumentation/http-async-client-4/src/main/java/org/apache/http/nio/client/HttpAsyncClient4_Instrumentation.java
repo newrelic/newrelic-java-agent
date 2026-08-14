@@ -59,6 +59,9 @@ public class HttpAsyncClient4_Instrumentation {
                     // forward uri and segment to HttpAsyncResponseConsumer_Instrumentation
                     responseConsumer.segment = segment;
                     responseConsumer.uri = uri;
+                    if (httpRequest.getRequestLine() != null) {
+                        responseConsumer.method = httpRequest.getRequestLine().getMethod();
+                    }
                 } catch (IOException | HttpException e) {
                     AgentBridge.getAgent().getLogger().log(Level.FINEST, e, "Caught exception in HttpAsyncClient4 instrumentation: {0}");
                 }

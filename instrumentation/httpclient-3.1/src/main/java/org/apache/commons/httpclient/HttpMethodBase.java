@@ -76,6 +76,7 @@ public abstract class HttpMethodBase implements HttpMethod {
                         .inboundHeaders(inboundHeaders)
                         .status(responseCode, this.getStatusText())
                         .build());
+                method.setHttpMethod(getName());
             } catch (Throwable e) {
                 AgentBridge.getAgent().getLogger().log(Level.FINER, e,
                         "Unable to reportAsExternal for execute()");

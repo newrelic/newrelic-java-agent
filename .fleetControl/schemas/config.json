@@ -1197,6 +1197,17 @@
             "additionalProperties": true,
             "description": "Circuit breaker protection settings."
         },
+        "jdbc_statement_weak_key_caching": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "JDBC Statements are cached in a weak key map by default. Set enabled:false to use a vanilla ConcurrentHashMap instead. Users who set enabled:false MUST call Statement.close() on every JDBC Statement."
+        },
         "class_transformer": {
             "type": "object",
             "properties": {
@@ -1279,6 +1290,17 @@
                     "type": "boolean",
                     "default": false,
                     "description": "If true, the JFR host name will be set to the value in the process_host.display_name config. Note that if the process_host.display_name value is empty/null, the default hostname resolution logic will be used. Default is false."
+                },
+                "labels": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "If true, JFR data will be decorated with APM labels. This will add labels as attributes prefixed with \"tags.\" Default is false."
+                        }
+                    },
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
@@ -1397,7 +1419,7 @@
                         }
                     },
                     "additionalProperties": true,
-                    "description": "OpenTelemetry Metrics signals."
+                    "description": "OpenTelemetry Metrics signals. Dimensional metrics are exported to New Relic over OTLP. With OpenTelemetry 1.59.0 or later, the agent's top-level proxy_host/proxy_port settings will be used to configure the OTLP metric exporter. Note that proxy authentication (proxy_user/proxy_password) and proxy_scheme are NOT applied to the OTLP metric exporter, as the OpenTelemetry SDK does not support proxy authentication."
                 },
                 "traces": {
                     "type": "object",

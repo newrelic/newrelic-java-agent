@@ -6,6 +6,8 @@ dependencies {
     implementation(project(":agent-bridge"))
     implementation("org.springframework:spring-context:3.0.0.RELEASE")
     implementation("org.springframework:spring-web:3.0.0.RELEASE")
+    implementation("org.springframework:spring-webmvc:3.0.0.RELEASE")
+    implementation('jakarta.servlet:jakarta.servlet-api:4.0.4')
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.21")
 }
 
@@ -15,7 +17,10 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly 'org.springframework:spring-web:[3.0.0.RELEASE,4.0.0)'
+    passesOnly('org.springframework:spring-web:[3.0.0.RELEASE,4.0.0)') {
+        implementation('jakarta.servlet:jakarta.servlet-api:4.0.4')
+        implementation("org.springframework:spring-webmvc:3.0.0.RELEASE")
+    }
 
     // There is a random 2.5 version that passes, lets ignore it
     exclude 'org.springframework:spring-web:[0,2.5]'

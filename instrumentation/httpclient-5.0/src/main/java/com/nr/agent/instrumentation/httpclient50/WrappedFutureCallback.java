@@ -26,20 +26,23 @@ public class WrappedFutureCallback<T> implements FutureCallback<T> {
 
     private Segment segment;
 
+    private String method;
+
     public WrappedFutureCallback (HttpRequest request, FutureCallback origCallback, Segment segment) {
         this.request = request;
         this.origCallback = origCallback;
         this.segment = segment;
+        this.method = request.getMethod();
     }
 
     @Override
     public void completed(T response) {
         try {
             if (response instanceof HttpResponse) {
-                InstrumentationUtils.processResponse(request.getUri(), (HttpResponse) response, segment);
+                InstrumentationUtils.processResponse(request.getUri(), method, (HttpResponse) response, segment);
             } else if (response instanceof Message && ((Message)response).getHead() instanceof HttpResponse) {
                 HttpResponse resp2 = (HttpResponse)(((Message)response).getHead());
-                InstrumentationUtils.processResponse(request.getUri(), resp2, segment);
+                InstrumentationUtils.processResponse(request.getUri(), method, resp2, segment);
             } else {
                 AgentBridge.getAgent().getLogger().log(Level.FINER, "Unhandled response type: {0}", (response == null ? "null" : response.getClass()));
             }

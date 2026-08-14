@@ -427,6 +427,11 @@ public class NoOpTrackingSqlTracer implements SqlTracer {
     }
 
     @Override
+    public void setHttpMethod(String httpVerb) {
+
+    }
+
+    @Override
     public void addOutboundRequestHeaders(OutboundHeaders outboundHeaders) {
 
     }

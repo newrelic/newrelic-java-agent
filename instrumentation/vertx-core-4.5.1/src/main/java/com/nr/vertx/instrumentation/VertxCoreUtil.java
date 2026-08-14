@@ -59,7 +59,7 @@ public class VertxCoreUtil {
     }
 
     public static void processResponse(Segment segment, HttpClientResponseImpl resp, String host, int port,
-            String scheme) {
+            String scheme, String method) {
         try {
             URI uri = new URI(scheme, null, host, port, null, null, null);
             segment.reportAsExternal(HttpParameters.library(VERTX_CLIENT)
@@ -68,6 +68,7 @@ public class VertxCoreUtil {
                                                    .inboundHeaders(new InboundWrapper(resp))
                                                    .status(resp.statusCode(), resp.statusMessage())
                                                    .build());
+            AgentBridge.getAgent().setHttpMethod(segment, method);
         } catch (URISyntaxException e) {
             AgentBridge.instrumentation.noticeInstrumentationError(e, Weaver.getImplementationTitle());
         }

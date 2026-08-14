@@ -7,6 +7,7 @@
 
 package io.vertx.core.http.impl;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Token;
 import com.newrelic.api.agent.Trace;
@@ -61,7 +62,8 @@ public abstract class HttpClientRequestBase_Instrumentation {
             // request.getPort() != request.port
             final int port = resp.request().port;
             final String scheme = resp.request().ssl ? "https" : "http";
-            VertxCoreUtil.processResponse(segment, resp, host, port, scheme);
+            final String method =  resp.request().getRawMethod();
+            VertxCoreUtil.processResponse(segment, resp, host, port, scheme, method);
         }
     }
 }

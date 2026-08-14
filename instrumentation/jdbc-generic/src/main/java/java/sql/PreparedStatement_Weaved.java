@@ -12,7 +12,6 @@ import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
@@ -22,44 +21,24 @@ import java.util.logging.Level;
 @Weave(originalName = "java.sql.PreparedStatement", type = MatchType.Interface)
 public abstract class PreparedStatement_Weaved {
 
-    @NewField
-    private Object[] params;
-
-    @NewField
-    String preparedSql;
-
-    public void addBatch() throws SQLException {
-        // If we have SQL in our newfield but not in the shared map, store it
-        if (preparedSql != null && JdbcHelper.getSql((Statement) this) == null) {
-            JdbcHelper.putSql((Statement) this, preparedSql);
-        }
-        Weaver.callOriginal();
-    }
-
     @Trace(leaf = true)
     public ResultSet executeQuery() throws SQLException {
-        if (preparedSql == null) {
-            preparedSql = JdbcHelper.getSql((Statement) this);
-        }
-        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
+        String preparedSql = JdbcHelper.getSql((Statement) this);
+        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params());
         return Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public int executeUpdate() throws SQLException {
-        if (preparedSql == null) {
-            preparedSql = JdbcHelper.getSql((Statement) this);
-        }
-        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
+        String preparedSql = JdbcHelper.getSql((Statement) this);
+        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params());
         return Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public boolean execute() throws SQLException {
-        if (preparedSql == null) {
-            preparedSql = JdbcHelper.getSql((Statement) this);
-        }
-        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params);
+        String preparedSql = JdbcHelper.getSql((Statement) this);
+        DatastoreMetrics.noticeSql(getConnection(), preparedSql, params());
         return Weaver.callOriginal();
     }
 
@@ -139,14 +118,18 @@ public abstract class PreparedStatement_Weaved {
     }
 
     public void clearParameters() throws SQLException {
-        params = new Object[0];
-
+        JdbcHelper.putParams((Statement) this, new Object[0]);
         Weaver.callOriginal();
     }
 
     public abstract Connection getConnection() throws SQLException;
 
+    private Object[] params(){
+        return JdbcHelper.getParams((Statement) this);
+    }
+
     private void setParamValue(int index, Object value) {
+        Object[] params = JdbcHelper.getParams((Statement) this);
         if (params == null) {
             params = new Object[1];
         }
@@ -160,6 +143,7 @@ public abstract class PreparedStatement_Weaved {
             params = JdbcHelper.growParameterArray(params, index);
         }
         params[index] = value;
+        JdbcHelper.putParams((Statement) this, params);
     }
 
 }

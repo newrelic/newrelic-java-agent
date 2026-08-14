@@ -60,8 +60,13 @@ public class SpanEventImpl implements SpanEvent {
     }
 
     @Override
-    public String getHttpMethod() {
+    public String getProcedure() {
         return (String) spanEvent.getAgentAttributes().get("http.method");
+    }
+
+    @Override
+    public String getHttpMethod() {
+        return (String) spanEvent.getAgentAttributes().get("http.request.method");
     }
 
     @Override

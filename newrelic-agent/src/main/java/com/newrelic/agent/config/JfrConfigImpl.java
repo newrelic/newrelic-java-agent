@@ -21,9 +21,11 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     public static final Boolean AUDIT_LOGGING_DEFAULT = Boolean.FALSE;
     public static final Boolean USE_LICENSE_KEY_DEFAULT = Boolean.TRUE;
     public static final Boolean USE_DISPLAY_NAME_DEFAULT = Boolean.FALSE;
+    public static final Boolean LABELS_ENABLED_DEFAULT = Boolean.FALSE;
     public static final String HARVEST_INTERVAL = "harvest_interval";   //In seconds
     public static final String QUEUE_SIZE = "queue_size";
     public static final String USE_DISPLAY_NAME = "use_display_name";
+    public static final String LABELS = "labels";
 
     private boolean isEnabled;
     private final Integer harvestInterval;
@@ -76,5 +78,11 @@ class JfrConfigImpl extends BaseConfig implements JfrConfig {
     @Override
     public boolean useDisplayName() {
         return getProperty(USE_DISPLAY_NAME, USE_DISPLAY_NAME_DEFAULT);
+    }
+
+    @Override
+    public boolean labelsEnabled() {
+        BaseConfig labelsConfig = new BaseConfig(nestedProps(LABELS), SYSTEM_PROPERTY_ROOT + LABELS + ".");
+        return labelsConfig.getProperty(ENABLED, LABELS_ENABLED_DEFAULT);
     }
 }

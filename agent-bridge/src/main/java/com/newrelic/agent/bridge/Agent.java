@@ -9,6 +9,9 @@ package com.newrelic.agent.bridge;
 
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
+
+import java.util.Map;
 
 /**
  * The internal bridge version of the Agent API.
@@ -27,6 +30,12 @@ public interface Agent extends com.newrelic.api.agent.Agent {
     @Override
     @Deprecated
     TracedMethod getTracedMethod();
+
+    /**
+     * Reports the HTTP method (i.e. GET, POST, PUT, etc) for external HTTP segments as an agent & span attribute named `http.request.method`
+     *
+     */
+    void setHttpMethod(Segment segment, String httpMethod);
 
     /**
      * Returns the current transaction.
@@ -96,5 +105,19 @@ public interface Agent extends com.newrelic.api.agent.Agent {
     Logs getLogSender();
 
     String getEntityGuid(boolean wait);
+
+    /**
+     * Returns service metadata from the most recent connect response.
+     * Values update on each agent reconnect.
+     * <p>
+     * While this is intended to decorate attributes onto OTel
+     * dimensional metrics, it may be generally useful anywhere access
+     * to agent metadata, tags, and host/entity attributes are needed.
+     * <p>
+     * This AgentBridge API makes the attributes accessible in weave instrumentation modules.
+     *
+     * @return map of metadata key/value pairs (never null)
+     */
+    Map<String, String> getServiceMetadata();
 
 }

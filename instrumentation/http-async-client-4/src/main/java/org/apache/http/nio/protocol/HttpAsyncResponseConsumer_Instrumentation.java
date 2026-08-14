@@ -7,6 +7,7 @@
 
 package org.apache.http.nio.protocol;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -39,6 +40,8 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
     private Integer statusCode;
     @NewField
     private String reasonMessage;
+    @NewField
+    public String method;
 
     /**
      * Invoked when a HTTP response message is received.
@@ -66,6 +69,7 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
                     .inboundHeaders(inboundHeaders)
                     .status(getStatusCode(), getReasonMessage())
                     .build());
+            AgentBridge.getAgent().setHttpMethod(segment, method);
             segment.end();
         }
         segment = null;
@@ -73,6 +77,7 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
         inboundHeaders = null;
         statusCode = null;
         reasonMessage = null;
+        method = null;
         Weaver.callOriginal();
     }
 
@@ -94,6 +99,7 @@ public class HttpAsyncResponseConsumer_Instrumentation<T> {
             segment = null;
             uri = null;
             inboundHeaders = null;
+            method = null;
         }
         Weaver.callOriginal();
     }

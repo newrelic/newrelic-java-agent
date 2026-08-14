@@ -57,6 +57,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     public static final String COLLECT_TRACES_KEY = "collect_traces";
     public static final String COLLECT_ERRORS_KEY = "collect_errors";
     public static final String DATA_REPORT_PERIOD_KEY = "data_report_period";
+    public static final String OTLP_RESOURCE_ATTRIBUTES = "otlp_resource_attributes";
 
     /**
      * If the exception has occurred 5 times, then print out the message.
@@ -95,6 +97,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private final boolean isMainApp;
     private volatile boolean hasEverConnected = false;
     private volatile String entityGuid = "";
+    private volatile Map<String, String> serviceMetadata = Collections.emptyMap();
     private final DataSender dataSender;
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
@@ -296,6 +299,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                 config = connectionConfigListener.connected(this, data);
             }
 
+            connectionTimestamp = System.nanoTime();
+            connected = true;
+            hasEverConnected = true;
+            entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
+            serviceMetadata = buildServiceMetadata(data);
+
             if (connectionListener != null) {
                 config = config != null ? config : ServiceFactory.getConfigService().getDefaultAgentConfig();
                 connectionListener.connected(this, config);
@@ -316,7 +325,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             return dataSender.connect(getStartOptions());
         } catch (LicenseException e) {
             logLicenseException(e);
-            if (!((RPMConnectionServiceImpl) ServiceFactory.getRPMConnectionService()).shouldPreventNewConnectionTask()){
+            if (!((RPMConnectionServiceImpl) ServiceFactory.getRPMConnectionService()).shouldPreventNewConnectionTask()) {
                 reconnect();
             }
             throw e;
@@ -351,6 +360,28 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         return entityGuid;
     }
 
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        return serviceMetadata;
+    }
+
+    /**
+     * Build a map of attributes that should be decorated onto OTel dimensional metrics.
+     * The attributes are taken from the otlp_resource_attributes field in
+     * the connect response.
+     * <p>
+     * DO NOT add new attributes to this map unless they are
+     * specifically required for OTel dimensional metrics.
+     *
+     * @param connectData map of data received in connect response
+     * @return map of attributes to be decorated onto OTel dimensional metrics
+     */
+    private Map<String, String> buildServiceMetadata(Map<String, Object> connectData) {
+        Map<String, String> otlpResourceAttributes = (Map<String, String>) connectData.get(OTLP_RESOURCE_ATTRIBUTES);
+        Map<String, String> metadata = (otlpResourceAttributes != null) ? new HashMap<>(otlpResourceAttributes) : new HashMap<>();
+        return Collections.unmodifiableMap(metadata);
+    }
+
     public String getApplicationLink() {
         return rpmLink;
     }
@@ -376,8 +407,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private void logForceRestartException(ForceRestartException e) {
-        Agent.LOG.log(Level.WARNING, "Received a ForceRestartException: {0}. The agent will attempt to reconnect for"
-                + " data reporting. If this message continues, please contact support via https://support.newrelic.com/.", e.toString());
+        Agent.LOG.log(Level.INFO, "Received a ForceRestartException (reconnect request): {0}. The agent will attempt to reconnect for"
+                + " data reporting. If this message occurs repeatedly, please contact support via https://support.newrelic.com/.", e.toString());
     }
 
     private void reconnectSync() throws Exception {
@@ -912,8 +943,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             try {
                 if (serverlessMode) {
                     Agent.LOG.log(Level.FINE, "Trying to re-establish connection for serverless mode.");
-                }
-                else {
+                } else {
                     Agent.LOG.fine("Trying to re-establish connection to New Relic.");
                 }
                 this.launch();
@@ -1045,11 +1075,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private static Integer toInt(Object o) {
-        if (o == null) return null;
+        if (o == null) {
+            return null;
+        }
         if (o instanceof Number) {
             return ((Number) o).intValue();
         }
-        return ((Double)Double.parseDouble((String)o)).intValue();
+        return ((Double) Double.parseDouble((String) o)).intValue();
     }
 
     @Override

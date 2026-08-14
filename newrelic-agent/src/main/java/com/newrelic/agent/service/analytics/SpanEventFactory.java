@@ -241,7 +241,9 @@ public class SpanEventFactory {
         return this;
     }
 
-    public SpanEventFactory setHttpMethod(String method) {
+    // Sets the method called for the HTTP call. The actual HTTP method (i.e. GET, POST, etc) is set outside the external API
+    // and is instead set via a separate AgentBridge API
+    public SpanEventFactory setProcedure(String method) {
         if (filter.shouldIncludeAgentAttribute(appName, "http.method")) {
             builder.putAgentAttribute("http.method", method);
         }
@@ -423,7 +425,7 @@ public class SpanEventFactory {
             HttpParameters httpParameters = (HttpParameters) parameters;
             setCategory(SpanCategory.http);
             setUri(httpParameters.getUri());
-            setHttpMethod(httpParameters.getProcedure());
+            setProcedure(httpParameters.getProcedure());
             setHttpStatusCode(httpParameters.getStatusCode());
             setHttpStatusText(httpParameters.getStatusText());
             setHttpComponent((httpParameters).getLibrary());

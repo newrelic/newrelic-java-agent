@@ -7,6 +7,7 @@
 
 package com.nr.instrumentation.spring;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.GenericParameters;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
@@ -56,6 +57,7 @@ public class RestTemplateUtils {
                     .noInboundHeaders()
                     .build());
         }
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(method != null ? method.name() : null);
     }
 
     private static <T> InboundHeadersWrapper extractInboundHeaders(T result) {

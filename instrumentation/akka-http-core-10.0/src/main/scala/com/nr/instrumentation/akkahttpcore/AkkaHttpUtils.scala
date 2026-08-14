@@ -32,6 +32,7 @@ object AkkaHttpUtils {
             .procedure(httpRequest.method.value)
             .inboundHeaders(new AkkaHttpInboundHeaders(httpRequest))
             .build())
+          AgentBridge.getAgent().setHttpMethod(segment, httpRequest.method.value);
           segment.end()
         } catch {
           case t: Throwable => AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle)

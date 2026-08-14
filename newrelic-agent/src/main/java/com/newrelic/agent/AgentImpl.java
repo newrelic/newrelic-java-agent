@@ -24,11 +24,13 @@ import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TraceMetadata;
 import org.crac.Context;
 import org.crac.Core;
 import org.crac.Resource;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -64,6 +66,13 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
         }
         Tracer tracer = txa.getLastTracer();
         return (tracer == null) ? NoOpTracedMethod.INSTANCE : tracer;
+    }
+
+    @Override
+    public void setHttpMethod(Segment segment, String httpMethod) {
+        if (segment instanceof com.newrelic.agent.Segment) {
+            ((com.newrelic.agent.Segment)segment).setHttpMethod(httpMethod);
+        }
     }
 
     /**
@@ -169,6 +178,18 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
             ServiceFactory.getRPMConnectionService().awaitConnectImmediate(rpmServiceManager, 1, TimeUnit.MINUTES);
         }
         return rpmService.getEntityGuid();
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        try {
+            final IRPMService rpmService = ServiceFactory.getServiceManager()
+                    .getRPMServiceManager().getRPMService();
+            return rpmService.getServiceMetadata();
+        } catch (Exception e) {
+            Agent.LOG.log(Level.SEVERE, "An error occurred trying to get Service Metadata. Returning an empty map instead.", e);
+            return Collections.emptyMap();
+        }
     }
 
     @Override

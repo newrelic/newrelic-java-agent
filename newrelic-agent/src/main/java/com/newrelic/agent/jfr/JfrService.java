@@ -25,6 +25,7 @@ import com.newrelic.telemetry.Attributes;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -36,8 +37,8 @@ import static com.newrelic.jfr.daemon.SetupUtils.buildUploader;
 
 public class JfrService extends AbstractService implements AgentConfigListener {
 
-    private final JfrConfig jfrConfig;
-    private final AgentConfig defaultAgentConfig;
+    private JfrConfig jfrConfig;
+    private AgentConfig defaultAgentConfig;
     private JfrController jfrController;
 
     private final String JFR_SERVICE_THREAD_NAME = "New Relic JFR Service";
@@ -66,6 +67,7 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 commonAttrs.put(ENTITY_GUID, entityGuid);
                 final String hostname = getJfrHostnameOrDisplayName();
                 commonAttrs.put(HOSTNAME, hostname);
+                addLabelsIfEnabled(commonAttrs);
                 final JFRUploader uploader = buildUploader(daemonConfig);
                 String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
                 uploader.readyToSend(new EventConverter(commonAttrs, pattern));
@@ -187,16 +189,32 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     @Override
     public void configChanged(String appName, AgentConfig agentConfig) {
         boolean newJfrEnabledVal = agentConfig.getJfrConfig().isEnabled();
-
         if (newJfrEnabledVal != jfrConfig.isEnabled()) {
             Agent.LOG.log(Level.INFO, "JFR enabled flag changed to {0}", newJfrEnabledVal);
-            jfrConfig.setEnabled(newJfrEnabledVal);
-
+            defaultAgentConfig = agentConfig;
+            jfrConfig = agentConfig.getJfrConfig();
             if (newJfrEnabledVal) {
                 doStart();
             } else {
                 doStop();
             }
         }
+    }
+
+    @VisibleForTesting
+    void addLabelsIfEnabled(Attributes commonAttrs){
+        if (jfrConfig.labelsEnabled()) {
+            Agent.LOG.log(Level.FINE, "APM labels for JFR data is enabled.");
+            Map<String, String> labels = defaultAgentConfig.getLabelsConfig().getLabels();
+            if (labels != null) {
+                labels.forEach((label, value) -> commonAttrs.put(labelAttrName(label), value));
+            }
+        } else {
+            Agent.LOG.log(Level.FINE, "APM labels for JFR data is disabled.");
+        }
+    }
+
+    private String labelAttrName(String label) {
+        return "tags." + label;
     }
 }

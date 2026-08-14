@@ -33,12 +33,12 @@ public class Java11HttpClientUtil {
         return null;
     }
 
-    public static <T> BiConsumer<? super HttpResponse<T>, ? super Throwable> reportAsExternal(URI uri, Segment segment) {
+    public static <T> BiConsumer<? super HttpResponse<T>, ? super Throwable> reportAsExternal(URI uri, String method, Segment segment) {
         return (BiConsumer<HttpResponse<T>, Throwable>) (httpResponse, throwable) -> {
             try {
                 if (segment != null && uri != null) {
                     if (httpResponse != null) {
-                        reportExternal(uri, segment, httpResponse);
+                        reportExternal(uri, method, segment, httpResponse);
                     } else if (throwableIsConnectException(throwable)) {
                         reportUnknownHostExternal(segment);
                     } else if (throwable != null) {
@@ -56,9 +56,9 @@ public class Java11HttpClientUtil {
         };
     }
 
-    public static <T> void processResponse(HttpResponse<T> response, Segment segment){
+    public static <T> void processResponse(HttpResponse<T> response, String method, Segment segment){
         if (response.uri() != null) {
-            reportExternal(response.uri(), segment, response);
+            reportExternal(response.uri(), method, segment, response);
         }
     }
 
@@ -72,7 +72,7 @@ public class Java11HttpClientUtil {
         }
     }
 
-    private static <T> void reportExternal(URI uri, Segment segment, HttpResponse<T> httpResponse) {
+    private static <T> void reportExternal(URI uri, String method, Segment segment, HttpResponse<T> httpResponse) {
         segment.reportAsExternal(HttpParameters
                 .library(LIBRARY)
                 .uri(uri)
@@ -80,6 +80,7 @@ public class Java11HttpClientUtil {
                 .inboundHeaders(new InboundWrapper(httpResponse))
                 .status(httpResponse.statusCode(), null)
                 .build());
+        AgentBridge.getAgent().setHttpMethod(segment, method);
         segment.end();
     }
 

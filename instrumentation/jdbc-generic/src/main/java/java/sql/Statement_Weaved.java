@@ -7,40 +7,30 @@
 
 package java.sql;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.datastore.DatastoreMetrics;
 import com.newrelic.agent.bridge.datastore.JdbcHelper;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
-import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 
 @Weave(originalName = "java.sql.Statement", type = MatchType.Interface)
 public abstract class Statement_Weaved {
-    @NewField
-    String sampleBatchSql = null;
 
     public void addBatch(String sql) throws SQLException {
-        if (sampleBatchSql == null) {
-            sampleBatchSql = sql;
+        if (JdbcHelper.getSql((Statement) this) == null) {
+            JdbcHelper.putSql((Statement) this, sql);
         }
         Weaver.callOriginal();
     }
 
     @Trace(leaf = true)
     public int [] executeBatch() throws SQLException {
-        String sql = sampleBatchSql;
-        if (sql == null) {
-            sql = JdbcHelper.getSql((Statement) this);
-        }
-
+        String sql = JdbcHelper.getSql((Statement) this);
         int [] results = Weaver.callOriginal();
-        String batchSql = sql;
         if (results != null && sql != null) {
-            DatastoreMetrics.noticeBatchSql(getConnection(), batchSql, null, results.length);
+            DatastoreMetrics.noticeBatchSql(getConnection(), sql, null, results.length);
         }
-
         return results;
     }
 
@@ -105,6 +95,11 @@ public abstract class Statement_Weaved {
         sql = JdbcHelper.addSqlMetadataCommentIfNeeded(sql);
         DatastoreMetrics.noticeSql(getConnection(), sql, null);
         return Weaver.callOriginal();
+    }
+
+    public void close() throws SQLException {
+        JdbcHelper.removeStatement((Statement) this);
+        Weaver.callOriginal();
     }
 
     public abstract Connection getConnection() throws SQLException;

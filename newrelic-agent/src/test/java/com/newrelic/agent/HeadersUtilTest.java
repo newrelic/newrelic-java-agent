@@ -79,7 +79,7 @@ public class HeadersUtilTest {
         assertEquals("traceparent parentId field should match span id.", mockTracer.getGuid(), traceParent.split("-")[2]);
 
         String traceState = map.get("tracestate");
-        assertEquals("tracestate spanId field should match span id.", mockTracer.getGuid(), traceState.split("-")[4]);
+        assertEquals("tracestate spanId field should be empty.", "", traceState.split("-")[4]);
         assertEquals("tracestate txId field should match tx id.", tx.getGuid(), traceState.split("-")[5]);
     }
 

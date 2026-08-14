@@ -169,7 +169,7 @@ public class DistributedTracingApiTest {
 
         // assertions
         String traceparentPattern = "00-da8bc8cc6d062849b0efcf3c169afb5a-.{16}-01";
-        String tracestatePattern = "33@nr=0-0-33-2827902-.{16}-.{16}-1-1.23456-.*";
+        String tracestatePattern = "33@nr=0-0-33-2827902--.{16}-1-1.23456-.*";
         assertTrue(responseHeaders.getHeader("traceparent").matches(traceparentPattern));
         assertTrue(responseHeaders.getHeader("tracestate").matches(tracestatePattern));
         assertNotNull(responseHeaders.getHeader("newrelic"));

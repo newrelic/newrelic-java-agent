@@ -22,7 +22,7 @@ public class WrappedResponseHandler<T> implements HttpClientResponseHandler<T> {
     @Override
     public T handleResponse(ClassicHttpResponse response) throws HttpException, IOException {
         try {
-            InstrumentationUtils.processResponse(uri, response);
+            InstrumentationUtils.processResponse(uri, null, response);
         } catch (Throwable t) {
             AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to process response");
         }

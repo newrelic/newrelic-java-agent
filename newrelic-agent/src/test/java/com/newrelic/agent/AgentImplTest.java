@@ -26,6 +26,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class AgentImplTest {
     private final AgentImpl agentImpl = new AgentImpl(AgentBridge.getAgent().getLogger());
 
@@ -50,6 +53,46 @@ public class AgentImplTest {
         com.newrelic.agent.Transaction.clearTransaction();
         agentImpl.getTransaction();
         Assert.assertNull(com.newrelic.agent.Transaction.getTransaction(false));
+    }
+
+    @Test
+    public void testGetServiceMetadataDelegatesToRPMService() {
+        Map<String, String> expected = new HashMap<>();
+        expected.put("entity.guid", "guid-1");
+        expected.put("tags.region", "us-east-1");
+
+        IRPMService rpmService = mock(IRPMService.class);
+        when(rpmService.getServiceMetadata()).thenReturn(expected);
+
+        RPMServiceManager rpmServiceManager = mock(RPMServiceManager.class);
+        when(rpmServiceManager.getRPMService()).thenReturn(rpmService);
+
+        MockServiceManager serviceManager = (MockServiceManager) ServiceFactory.getServiceManager();
+        RPMServiceManager savedRPMServiceManager = serviceManager.getRPMServiceManager();
+        try {
+            serviceManager.setRPMServiceManager(rpmServiceManager);
+            Map<String, String> actual = agentImpl.getServiceMetadata();
+            Assert.assertEquals(expected, actual);
+        } finally {
+            serviceManager.setRPMServiceManager(savedRPMServiceManager);
+        }
+    }
+
+    @Test
+    public void testGetServiceMetadataReturnsEmptyMapOnException() {
+        RPMServiceManager rpmServiceManager = mock(RPMServiceManager.class);
+        when(rpmServiceManager.getRPMService()).thenThrow(new RuntimeException("connect manager unavailable"));
+
+        MockServiceManager serviceManager = (MockServiceManager) ServiceFactory.getServiceManager();
+        RPMServiceManager savedRPMServiceManager = serviceManager.getRPMServiceManager();
+        try {
+            serviceManager.setRPMServiceManager(rpmServiceManager);
+            Map<String, String> actual = agentImpl.getServiceMetadata();
+            Assert.assertNotNull(actual);
+            Assert.assertTrue(actual.isEmpty());
+        } finally {
+            serviceManager.setRPMServiceManager(savedRPMServiceManager);
+        }
     }
 
     private static Map<String, Object> createConfigMap() {

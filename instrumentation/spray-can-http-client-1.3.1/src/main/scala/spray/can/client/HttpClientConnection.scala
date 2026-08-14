@@ -62,7 +62,7 @@ abstract class HttpClientConnection (connectCommander: ActorRef,
           val outbound: OutboundHttpHeaders = new OutboundHttpHeaders(request)
           val segment = NewRelic.getAgent.getTransaction.startSegment("SprayCanClient")
           segment.addOutboundRequestHeaders(outbound)
-          aroundReceive(receive, outbound.getRequest(segment, remoteAddress, isSSL))
+          aroundReceive(receive, outbound.getRequest(segment, remoteAddress, isSSL, request.httpMethod))
           return
         }
       }

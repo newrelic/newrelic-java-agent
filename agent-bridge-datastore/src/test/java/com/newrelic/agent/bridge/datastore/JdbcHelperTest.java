@@ -9,21 +9,27 @@ package com.newrelic.agent.bridge.datastore;
 
 import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import com.newrelic.api.agent.NewRelic;
+import org.mockito.Answers;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 
 public class JdbcHelperTest {
 
@@ -312,5 +318,69 @@ public class JdbcHelperTest {
             AgentBridge.agent = originalAgent;
             JdbcHelper.resetEntityGuidCache();
         }
+    }
+
+    @Test
+    public void testInitStatementCachesReturnsDefaultCacheType() {
+        Class<?> expectedDefaultCacheType = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap().getClass();
+        Class<?> actualDefaultCacheType = JdbcHelper.initStatementCache("test_cache").getClass();
+        assertEquals("Default statement cache type should be a weak keyed cache", expectedDefaultCacheType, actualDefaultCacheType);
+    }
+
+    @Test
+    public void testInitStatementCacheWeakKeysDisabledReturnsVanillaCHM() {
+        try (MockedStatic<NewRelic> nRMockedStatic = mockStatic(NewRelic.class, Answers.RETURNS_DEEP_STUBS)) {
+            addDefaultConfigValToAgentMock(nRMockedStatic);
+            nRMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue(
+                    eq("jdbc_statement_weak_key_caching.enabled"), any(Boolean.class)))
+                    .thenReturn(false);
+
+            Map<Statement, String> cache = JdbcHelper.initStatementCache("test_cache_disabled");
+
+            Class<?> expectedCacheType = AgentBridge.collectionFactory.createVanillaJavaConcurrentHashMap(1024).getClass();
+            assertEquals("When weak key caching is disabled, should return a ConcurrentHashMap",
+                    expectedCacheType, cache.getClass());
+        }
+    }
+
+    @Test
+    public void testInitStatementCacheWeakKeysEnabledReturnsDefaultCacheType() {
+        try (MockedStatic<NewRelic> nRMockedStatic = mockStatic(NewRelic.class, Answers.RETURNS_DEEP_STUBS)) {
+            addDefaultConfigValToAgentMock(nRMockedStatic);
+            nRMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue(
+                    eq("jdbc_statement_weak_key_caching.enabled"), any(Boolean.class)))
+                    .thenReturn(true);
+
+            Map<Statement, String> cache = JdbcHelper.initStatementCache("test_cache_enabled");
+
+            Class<?> expectedCacheType = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap().getClass();
+            assertEquals("When weak key caching is enabled, should return a weak keyed cache",
+                    expectedCacheType, cache.getClass());
+        }
+    }
+
+    @Test
+    public void testRemoveStatementClearsBothCaches() throws SQLException {
+        Statement st = Mockito.mock(Statement.class);
+        String fakeSql = "SELECT * FROM foo";
+        Object[] fakeParams = {"bar", 6};
+
+        //Add the st to both caches and make sure it's in there.
+        JdbcHelper.putSql(st, fakeSql);
+        JdbcHelper.putParams(st, fakeParams);
+        assertEquals(fakeSql, JdbcHelper.getSql(st));
+        assertEquals(fakeParams, JdbcHelper.getParams(st));
+
+        //Remove should remove from both caches.
+        JdbcHelper.removeStatement(st);
+        assertNull(JdbcHelper.getSql(st));
+        assertNull(JdbcHelper.getParams(st));
+    }
+
+    //This config setting is read by JdbcHelper when it is initialized, so it needs to be added to the static mock.
+    private void addDefaultConfigValToAgentMock(MockedStatic<NewRelic> nRMockedStatic){
+        nRMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue(
+                eq("jdbc_helper_cache_expire_time"), any()))
+                .thenReturn(7200);
     }
 }

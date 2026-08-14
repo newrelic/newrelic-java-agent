@@ -41,6 +41,7 @@ public class AsyncHttpProvider {
 
                 handler.uri = uri;
                 handler.segment = segment;
+                handler.httpMethod = request.getMethod();
             }
         } catch (URISyntaxException uriSyntaxException) {
             // if Java can't parse the URI, ning won't be able to either

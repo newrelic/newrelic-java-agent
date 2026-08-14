@@ -477,6 +477,11 @@ public class MetricNames {
     public static final String SUPPORTABILITY_TRACE_CONTEXT_UNTRUSTED_ACCOUNT = "Supportability/TraceContext/TraceState/Ignored/UntrustedAccount";
     public static final String SUPPORTABILITY_TRACE_CONTEXT_STATE_PARSE_EXCEPTION = "Supportability/TraceContext/TraceState/Parse/Exception";
 
+    // New Relic Not Sampled Message Queue header
+    public static final String SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_NRNS = "Supportability/TraceContext/Accept/NRNS";
+    public static final String SUPPORTABILITY_TRACE_CONTEXT_CREATE_NRNS = "Supportability/TraceContext/Create/NRNS";
+
+
     // Span events
     public static final String SUPPORTABILITY_SPAN_EVENTS = "Supportability/SpanEvents"; // feature is enabled
     public static final String SUPPORTABILITY_SPAN_EVENT_TOTAL_EVENTS_SENT = "Supportability/SpanEvent/TotalEventsSent";

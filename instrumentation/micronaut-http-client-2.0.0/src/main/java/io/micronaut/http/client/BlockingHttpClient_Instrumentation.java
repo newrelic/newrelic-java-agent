@@ -6,6 +6,7 @@
  */
 package io.micronaut.http.client;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
@@ -30,6 +31,7 @@ public class BlockingHttpClient_Instrumentation {
         String method = request.getMethodName();
         HttpParameters parameters = HttpParameters.library("Micronaut-Client").uri(uri).procedure(method).noInboundHeaders().build();
         NewRelic.getAgent().getTracedMethod().reportAsExternal(parameters);
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         return Weaver.callOriginal();
     }
 
@@ -41,6 +43,7 @@ public class BlockingHttpClient_Instrumentation {
         String method = request.getMethodName();
         HttpParameters parameters = HttpParameters.library("Micronaut-Client").uri(uri).procedure(method).noInboundHeaders().build();
         NewRelic.getAgent().getTracedMethod().reportAsExternal(parameters);
+        AgentBridge.getAgent().getTracedMethod().setHttpMethod(method);
         return Weaver.callOriginal();
     }
 }

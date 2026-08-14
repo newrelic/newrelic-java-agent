@@ -10,6 +10,7 @@ import com.newrelic.agent.bridge.Agent;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
+import com.newrelic.agent.bridge.TransactionNamePriority;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +55,36 @@ public class HandlerMethodInvokerInstrumentationTest {
     }
 
     @Test
+    public void invokeHandlerMethod_setsTransactionName() throws Exception {
+        when(mockAgent.getTransaction(false)).thenReturn(mockTransaction);
+        when(mockTransaction.getTracedMethod()).thenReturn(mockTracedMethod);
+
+        HandlerMethodInvoker_Instrumentation invoker = new HandlerMethodInvoker_Instrumentation();
+        Method method = TestController.class.getMethod("handleRequest");
+
+        invoker.invokeHandlerMethod(method, new TestController(), null, null);
+
+        verify(mockTransaction).setTransactionName(TransactionNamePriority.FRAMEWORK, true,
+                "SpringController",
+                "/org.springframework.web.bind.annotation.support.HandlerMethodInvokerInstrumentationTest$TestController/handleRequest");
+    }
+
+    @Test
+    public void invokeHandlerMethod_stripsProxyClassSuffix() throws Exception {
+        when(mockAgent.getTransaction(false)).thenReturn(mockTransaction);
+        when(mockTransaction.getTracedMethod()).thenReturn(mockTracedMethod);
+
+        HandlerMethodInvoker_Instrumentation invoker = new HandlerMethodInvoker_Instrumentation();
+        Method method = TestController.class.getMethod("handleRequest");
+
+        invoker.invokeHandlerMethod(method, new TestController$$EnhancerBySpringCGLIB(), null, null);
+
+        verify(mockTransaction).setTransactionName(TransactionNamePriority.FRAMEWORK, true,
+                "SpringController",
+                "/org.springframework.web.bind.annotation.support.HandlerMethodInvokerInstrumentationTest$TestController/handleRequest");
+    }
+
+    @Test
     public void invokeHandlerMethod_noTransaction_doesNotCrash() throws Exception {
         when(mockAgent.getTransaction(false)).thenReturn(null);
 
@@ -69,5 +100,8 @@ public class HandlerMethodInvokerInstrumentationTest {
         public String handleRequest() {
             return "response";
         }
+    }
+
+    public static class TestController$$EnhancerBySpringCGLIB extends TestController {
     }
 }

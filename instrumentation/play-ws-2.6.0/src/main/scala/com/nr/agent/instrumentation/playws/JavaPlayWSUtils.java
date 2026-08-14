@@ -60,6 +60,7 @@ public class JavaPlayWSUtils {
                                     .procedure(procedure)
                                     .noInboundHeaders()
                                     .build());
+                            AgentBridge.getAgent().setHttpMethod(localSegment, procedure);
                             localSegment.end();
                         } catch (Exception e) {
                         }
@@ -71,6 +72,7 @@ public class JavaPlayWSUtils {
                                     .procedure(procedure)
                                     .inboundHeaders(new JavaInboundWrapper(standaloneWSResponse))
                                     .build());
+                            AgentBridge.getAgent().setHttpMethod(localSegment, procedure);
                             localSegment.end();
                         } catch (Exception e) {
                         }

@@ -122,6 +122,11 @@ public final class NoOpTracedMethod implements TracedMethod {
     }
 
     @Override
+    public void setHttpMethod(String httpVerb) {
+
+    }
+
+    @Override
     public void excludeLeaf() {
     }
 

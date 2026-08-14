@@ -15,6 +15,7 @@ import com.newrelic.api.agent.Insights;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.Logs;
 import com.newrelic.api.agent.MetricAggregator;
+import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.TraceMetadata;
 
 import java.util.Collections;
@@ -42,6 +43,11 @@ class NoOpAgent implements Agent {
     @Override
     public TracedMethod getTracedMethod() {
         return NoOpTracedMethod.INSTANCE;
+    }
+
+    @Override
+    public void setHttpMethod(Segment segment, String httpMethod) {
+
     }
 
     @Override
@@ -92,6 +98,11 @@ class NoOpAgent implements Agent {
     @Override
     public String getEntityGuid(boolean wait) {
         return null;
+    }
+
+    @Override
+    public Map<String, String> getServiceMetadata() {
+        return Collections.emptyMap();
     }
 
     @Override

@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import static com.newrelic.agent.config.SystemPropertyFactory.setSystemPropertyProvider;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.COMMA_SEPARATOR;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.DEFAULT_PROXY_PORT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_ENABLED;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_ENABLED_DEFAULT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_LOGS_ENABLED;
@@ -39,8 +40,11 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROXY_HOST;
+import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROXY_PORT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static test.config.util.SaveSystemPropertyProviderRule.TestEnvironmentFacade;
 import static test.config.util.SaveSystemPropertyProviderRule.TestSystemProps;
@@ -418,6 +422,50 @@ public class OpenTelemetryConfigTest {
             // both export_timeout and export_interval should be reset to their defaults
             assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval());
             assertEquals(OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT, OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryProxyHostConfigured() {
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(PROXY_HOST)).thenReturn("myproxy.example.com");
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            assertEquals("myproxy.example.com", OpenTelemetryConfig.getOpenTelemetryProxyHost());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryProxyHostNotConfigured() {
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(PROXY_HOST)).thenReturn(null);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            assertNull(OpenTelemetryConfig.getOpenTelemetryProxyHost());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryProxyPortConfigured() {
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(PROXY_PORT, DEFAULT_PROXY_PORT)).thenReturn(3128);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            assertEquals(3128, OpenTelemetryConfig.getOpenTelemetryProxyPort());
+        }
+    }
+
+    @Test
+    public void testGetOpenTelemetryProxyPortDefault() {
+        Agent mockAgent = Mockito.mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(mockAgent.getConfig().getValue(PROXY_PORT, DEFAULT_PROXY_PORT)).thenReturn(DEFAULT_PROXY_PORT);
+
+        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
+            assertEquals(DEFAULT_PROXY_PORT, OpenTelemetryConfig.getOpenTelemetryProxyPort());
         }
     }
 

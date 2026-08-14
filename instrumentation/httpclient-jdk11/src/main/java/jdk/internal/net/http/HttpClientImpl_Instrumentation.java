@@ -33,7 +33,7 @@ final class HttpClientImpl_Instrumentation {
             handleConnectException(e, req, segment);
             throw e;
         }
-        processResponse(response, segment);
+        processResponse(response, req.method(), segment);
         return response;
     }
 
@@ -46,6 +46,6 @@ final class HttpClientImpl_Instrumentation {
         if (segment == null) {
             return completableFutureResponse;
         }
-        return completableFutureResponse.whenComplete(Java11HttpClientUtil.reportAsExternal(uri, segment));
+        return completableFutureResponse.whenComplete(Java11HttpClientUtil.reportAsExternal(uri, userRequest.method(), segment));
     }
 }
