@@ -21,15 +21,16 @@ import java.util.jar.Manifest;
 
 public class TestJarFile {
     // Since they are stings in the manifest, that's how we will represent them here
-    private static String name = "weave_unittest_jar";
-    private static String alias = null;
-    private static String vendorId = null;
-    private static String version = null;
-    private static String enabled = null;
+    private String name = "weave_unittest_jar";
+    private String alias = null;
+    private String vendorId = null;
+    private String version = null;
+    private String enabled = null;
+    private String clearReturnStacksDefault = null;
 
     // Internal jar data
-    private static Manifest jarManifest;
-    private static ByteArrayOutputStream jarFile;
+    private Manifest jarManifest;
+    private ByteArrayOutputStream jarFile;
 
     /**
      * Only required prop is the implementation-title which becomes 'name'
@@ -43,11 +44,20 @@ public class TestJarFile {
      * Allow setting manifest props
      */
     public TestJarFile(String name, String alias, String vendorId, String version, String enabled) throws IOException {
+        this(name, alias, vendorId, version, enabled, null);
+    }
+
+    /**
+     * Allow setting manifest props, including Clear-Return-Stacks-Default
+     */
+    public TestJarFile(String name, String alias, String vendorId, String version, String enabled,
+            String clearReturnStacksDefault) throws IOException {
         if (name != null)     this.name = name;
         if (alias != null)    this.alias = alias;
         if (vendorId != null) this.vendorId = vendorId;
         if (version != null)  this.version = version;
         if (enabled != null)  this.enabled = enabled;
+        if (clearReturnStacksDefault != null) this.clearReturnStacksDefault = clearReturnStacksDefault;
 
         this.createManifest();
         this.createJarFile(this.jarManifest);
@@ -60,6 +70,7 @@ public class TestJarFile {
         this.jarManifest.getMainAttributes().put(new Attributes.Name("Implementation-Title"), this.name);
 
         if (this.enabled != null)  this.jarManifest.getMainAttributes().put(new Attributes.Name("Enabled"), this.enabled);
+        if (this.clearReturnStacksDefault != null) this.jarManifest.getMainAttributes().put(new Attributes.Name("Clear-Return-Stacks-Default"), this.clearReturnStacksDefault);
         if (this.version != null)  this.jarManifest.getMainAttributes().put(new Attributes.Name("Implementation-Version"), String.valueOf(this.version));
         if (this.alias != null)    this.jarManifest.getMainAttributes().put(new Attributes.Name("Implementation-Title-Alias"), this.alias);
         if (this.vendorId != null) this.jarManifest.getMainAttributes().put(new Attributes.Name("Implementation-Vendor-Id"), this.vendorId);

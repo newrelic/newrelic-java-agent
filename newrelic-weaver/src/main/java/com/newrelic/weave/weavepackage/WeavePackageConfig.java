@@ -40,6 +40,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         private boolean enabled = true;
         private long priority = 0L;
         private boolean custom = false;
+        private boolean clearReturnStacksDefault = false;
         private WeaveViolationFilter weaveViolationFilter = null;
         private ClassNode errorHandleClassNode = ErrorTrapHandler.NO_ERROR_TRAP_HANDLER;
         private WeavePreprocessor preprocessor = WeavePreprocessor.NO_PREPROCESSOR;
@@ -203,6 +204,19 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         }
 
         /**
+         * Set whether return-instruction stack normalization (see {@code ReturnInsnProcessor.clearReturnStacks})
+         * should be applied by default when weaving methods from this package, absent an explicit
+         * {@code -Dnewrelic.config.class_transformer.clear_return_stacks} system property override.
+         *
+         * @param clearReturnStacksDefault whether to default return-stack normalization on for this package
+         * @return builder with updated state
+         */
+        public Builder clearReturnStacksDefault(boolean clearReturnStacksDefault) {
+            this.clearReturnStacksDefault = clearReturnStacksDefault;
+            return this;
+        }
+
+        /**
          * Set the {@link ClassNode} conforming to the {@link ErrorTrapHandler} specification to be used as the error
          * trap.
          * 
@@ -315,9 +329,16 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
             String priorityS = mainAttributes.getValue("Priority");
             long priority = priorityS == null ? 0 : Long.parseLong(priorityS);
 
+            boolean clearReturnStacksDefault = this.clearReturnStacksDefault;
+            String clearReturnStacksDefaultS = mainAttributes.getValue("Clear-Return-Stacks-Default");
+            if (null != clearReturnStacksDefaultS) {
+                clearReturnStacksDefault = Boolean.parseBoolean(clearReturnStacksDefaultS);
+            }
+
             String violationFilterToken = mainAttributes.getValue("Weave-Violation-Filter");
 
             return this.name(name).alias(alias).vendorId(vendorId).version(version).enabled(enabled).priority(priority)
+                    .clearReturnStacksDefault(clearReturnStacksDefault)
                     .weaveViolationFilters(violationFilterToken);
         }
 
@@ -331,8 +352,9 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
             if (null == name) {
                 throw new RuntimeException("WeavePackageConfig must have an Implementation-Name");
             }
-            return new WeavePackageConfig(name, alias, vendorId, version, enabled, priority, source, custom, instrumentation,
-                    errorHandleClassNode, preprocessor, postprocessor, extensionClassTemplate, weaveViolationFilter);
+            return new WeavePackageConfig(name, alias, vendorId, version, enabled, priority, source, custom,
+                    clearReturnStacksDefault, instrumentation, errorHandleClassNode, preprocessor, postprocessor,
+                    extensionClassTemplate, weaveViolationFilter);
         }
     }
 
@@ -358,6 +380,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
     private final String source;
     private final boolean enabled;
     private final boolean custom;
+    private final boolean clearReturnStacksDefault;
     private final ClassNode errorHandleClassNode;
     private final WeavePreprocessor preprocessor;
     private final WeavePostprocessor postprocessor;
@@ -366,8 +389,9 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
     private final WeaveViolationFilter weaveViolationFilter;
 
     private WeavePackageConfig(String name, String alias, String vendorId, float version, boolean enabled,
-            long priority, String source, boolean custom, Instrumentation instrumentation, ClassNode errorTrapClassNode,
-            WeavePreprocessor preprocessor, WeavePostprocessor postprocessor, ClassNode extensionClassTemplate,
+            long priority, String source, boolean custom, boolean clearReturnStacksDefault,
+            Instrumentation instrumentation, ClassNode errorTrapClassNode, WeavePreprocessor preprocessor,
+            WeavePostprocessor postprocessor, ClassNode extensionClassTemplate,
             WeaveViolationFilter weaveViolationFilter) {
         this.name = name;
         this.alias = alias;
@@ -377,6 +401,7 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
         this.priority = priority;
         this.source = source;
         this.custom = custom;
+        this.clearReturnStacksDefault = clearReturnStacksDefault;
 
         this.instrumentation = instrumentation;
         this.errorHandleClassNode = errorTrapClassNode;
@@ -442,6 +467,15 @@ public class WeavePackageConfig implements Comparable<WeavePackageConfig>{
      */
     public boolean isCustom() {
         return custom;
+    }
+
+    /**
+     * Whether return-instruction stack normalization should be applied by default when weaving methods from this
+     * package, absent an explicit {@code -Dnewrelic.config.class_transformer.clear_return_stacks} system property
+     * override.
+     */
+    public boolean isClearReturnStacksDefault() {
+        return clearReturnStacksDefault;
     }
 
     /**

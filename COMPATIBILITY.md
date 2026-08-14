@@ -55,6 +55,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Hibernate 3.5 to 6.0.0.Alpha2 (exclusive)
   * Hystrix 1.3.15 to latest
   * JAX-RS 1.0 to latest
+  * JBoss Threads 2.3.0.Final to latest
   * JCache API 1.0.0 to latest
   * Jersey 1.0.1 to 3.1 (exclusive)
   * Jersey Client 0.9 to latest
@@ -76,14 +77,17 @@ This version of the Java Agent supports Java versions 8 - 26.
     * Scala 3: 1.0.0 to latest
   * Play 2.4.0-M3 to latest
   * Portlet 3.0.0 to latest
+  * Quarkus RestEasy Classic 2.14.1.Final to latest
+  * Quarkus RestEasy Reactive 3.9.0 to latest
   * Quartz Scheduler 1.7.2 to latest
   * RESTEasy 2.2-RC-1 to latest
   * Servlet 2.3 to latest
+  * SmallRye Mutiny 1.0.0 to latest
   * Spray 1.3.1 to latest
   * Spring 3.0.0 to latest
   * Spring AOP 2.0.3 to latest
   * Spring Batch 4.0.0.RELEASE to 6.0.0 (exclusive)
-  * Spring Boot Actuator 3.0.0 to 4.0.0-M1 (exclusive)
+  * Spring Boot Actuator 3.0.0 to latest
   * Spring Web Services 1.5.7 to 4.0.0 (exclusive)
   * Spring WebFlux 5.0.0.RELEASE to latest
   * Struts 2.0 to latest
@@ -220,6 +224,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   ## AI Monitoring
   If you have version 8.12.0 or higher of Java agent, you can collect AI data from certain AI libraries and frameworks.
   * AWS Bedrock 2.20.157 to latest
+  * AWS Converse 2.25.63 to latest
   * MCP Java SDK 1.0.0 to latest
   * Spring AI Chat Completions 1.0.0-RC1 to latest
   * Spring AI Embeddings 1.0.0-M7 to latest

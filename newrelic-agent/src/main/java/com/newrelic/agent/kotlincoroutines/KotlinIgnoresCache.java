@@ -3,6 +3,7 @@ package com.newrelic.agent.kotlincoroutines;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -22,6 +23,7 @@ class KotlinIgnoresCache {
     private static final Set<String> ignoredRegexScopes = new HashSet<>();
     private static final Set<String> ignoredDispatched = new HashSet<>();
     private static final Set<String> ignoredRegExDispatched = new HashSet<>();
+    private static final Set<String> ignoredFrameworks = new LinkedHashSet<>();
 
     protected static Set<String> getIgnoredSuspends() {
         return ignoredSuspends;
@@ -85,5 +87,18 @@ class KotlinIgnoresCache {
 
     protected static void addIgnoredRegexDispatched(String dispatchedRegex) {
         ignoredRegExDispatched.add(dispatchedRegex);
+    }
+
+    protected static String[] getIgnoredFrameworks() {
+        if(ignoredFrameworks.isEmpty()) {
+            return new String[0];
+        }
+        String[] result = new String[ignoredFrameworks.size()];
+        ignoredFrameworks.toArray(result);
+        return result;
+    }
+
+    protected static void addIgnoredFramework(String framework) {
+        ignoredFrameworks.add(framework);
     }
 }

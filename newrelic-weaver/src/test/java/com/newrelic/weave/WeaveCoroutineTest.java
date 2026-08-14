@@ -7,6 +7,8 @@
 
 package com.newrelic.weave;
 
+import com.newrelic.weave.weavepackage.WeavePackage;
+import com.newrelic.weave.weavepackage.WeavePackageConfig;
 import com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -19,6 +21,7 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -138,6 +141,24 @@ public class WeaveCoroutineTest {
         } catch (ArrayIndexOutOfBoundsException e) {
         }
 
+    }
+
+    //Proves that a weave package flagged as clearReturnStacksDefault fixes the AIOOBE on its own, without
+    //requiring the -Dnewrelic.config.class_transformer.clear_return_stacks system property to be set.
+    @Test
+    public void moduleScopedDefaultAvoidsAIOOBExceptionWithoutFeatureFlag() throws IOException {
+        System.clearProperty("newrelic.config.class_transformer.clear_return_stacks");
+
+        WeavePackageConfig config = WeavePackageConfig.builder()
+                .name("com.newrelic.instrumentation.kotlin-coroutines-1.9")
+                .clearReturnStacksDefault(true)
+                .build();
+        WeavePackage weavePackage = new WeavePackage(config, Collections.<byte[]>emptyList());
+
+        WeaveTestUtils.weaveAndAddToContextClassloader(
+                "com.newrelic.weave.weavepackage.testclasses.SampleCoroutineKt$doExpectedErrorSuspend$1$1",
+                "com.newrelic.weave.weavepackage.testclasses.Weave_SampleCoroutine", weavePackage);
+        //no exception means the per-package default alone (no -D flag) avoided the AIOOBE
     }
 
     private MethodNode getNodeNamed(List<MethodNode> methods, String targetName) {

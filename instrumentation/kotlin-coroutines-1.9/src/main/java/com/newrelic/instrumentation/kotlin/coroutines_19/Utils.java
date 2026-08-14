@@ -11,9 +11,8 @@ import kotlin.coroutines.jvm.internal.BaseContinuationImpl;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.DispatchedTask;
 import kotlinx.coroutines.AbstractCoroutine_Instrumentation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -23,16 +22,12 @@ public class Utils implements CoroutineConfigListener {
 	private static final List<Pattern> ignoredContinuationPatterns = new ArrayList<>();
 	private static final List<String> ignoredScopes = new ArrayList<>();
 	private static final List<Pattern> ignoredScopePatterns = new ArrayList<>();
+	private static final Set<String> ignoredFrameworks = new HashSet<>();
 
 	public static final String CREATE_METHOD_1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
 	public static final String CREATE_METHOD_2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
 	private static final String CONT_LOC = "Continuation at";
 	public static boolean DELAYED_ENABLED = true;
-	private static final Utils INSTANCE = new Utils();
-
-	public static Utils getInstance() {
-		return INSTANCE;
-	}
 
 	static {
 		/*
@@ -40,7 +35,7 @@ public class Utils implements CoroutineConfigListener {
 		 * the ignored items
 		 */
 		KotlinCoroutinesService service = ServiceFactory.getKotlinCoroutinesService();
-		service.addCoroutineConfigListener(INSTANCE);
+		service.addCoroutineConfigListener(new Utils());
 		ignoredContinuations.add(CREATE_METHOD_1);
 		ignoredContinuations.add(CREATE_METHOD_2);
 
@@ -105,7 +100,9 @@ public class Utils implements CoroutineConfigListener {
 		 *	Don't trace internal Coroutines Continuations
 		 */
 		String className = continuation.getClass().getName();
-		if(className.startsWith("kotlin")) return false;
+		for(String framework : ignoredFrameworks) {
+			if(className.startsWith(framework)) return false;
+		}
 
 		/*
 		 * Get the continuation string and check if it should be ignored
@@ -217,5 +214,13 @@ public class Utils implements CoroutineConfigListener {
 	@Override
 	public void configureDelay(boolean enabled) {
 		DELAYED_ENABLED = enabled;
+	}
+
+	@Override
+	public void configureIgnoredFrameworks(String[] ignores) {
+		if(ignores != null &&  ignores.length > 0) {
+			ignoredFrameworks.clear();
+			ignoredFrameworks.addAll(Arrays.asList(ignores));
+		}
 	}
 }
