@@ -22,7 +22,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
-import static com.nr.agent.instrumentation.utils.audit.OtlpAuditLogger.setBytesSent;
 
 /**
  * A delegating MetricExporter that intercepts export() calls to rewrite MetricData
@@ -41,7 +39,8 @@ import static com.nr.agent.instrumentation.utils.audit.OtlpAuditLogger.setBytesS
  * the latest metadata as Resource attributes.
  *
  * <p>When the agent's audit_mode is enabled, each export call produces one audit log
- * entry for the outbound request.
+ * entry for the outbound request. Additionally, data usage metrics are always recorded
+ * when the export completes.
  */
 final class NRMetricExporterWrapper implements MetricExporter {
 
@@ -57,12 +56,32 @@ final class NRMetricExporterWrapper implements MetricExporter {
 
     @Override
     public CompletableResultCode export(Collection<MetricData> metrics) {
+        boolean auditMode = OtlpAuditLogger.isAuditModeEnabled();
+        Collection<MetricData> toExport = prepareMetrics(metrics);
+        final int bytesSent = logAuditRequest(toExport, auditMode);
+        CompletableResultCode result = delegate.export(toExport);
+        result.whenComplete(new Runnable() {
+            @Override
+            public void run() {
+                /*
+                 * Unfortunately, response bytes received are not accessible in this
+                 * instrumentation module, so we always set them to zero. This should
+                 * largely be fine though, as bytes received is typically zero and
+                 * the actual value is logged via the exporter transport layer
+                 * instrumentation when audit_mode is enabled. Bytes sent is the
+                 * important value to capture.
+                 */
+                OtlpAuditLogger.recordDataUsageMetrics(bytesSent, 0);
+            }
+        });
+        return result;
+    }
+
+    private Collection<MetricData> prepareMetrics(Collection<MetricData> metrics) {
         Map<String, String> currentMetadata = AgentBridge.getAgent().getServiceMetadata();
         if (currentMetadata == null || currentMetadata.isEmpty()) {
-            logAuditRequest(metrics);
-            return delegate.export(metrics);
+            return metrics;
         }
-
         // Rebuild overlay resource only when metadata reference changes
         if (currentMetadata != lastMetadata) {
             lastMetadata = currentMetadata;
@@ -72,41 +91,39 @@ final class NRMetricExporterWrapper implements MetricExporter {
             }
             cachedOverlayResource = builder.build();
         }
-
         Resource overlay = cachedOverlayResource;
         if (overlay == null) {
-            logAuditRequest(metrics);
-            return delegate.export(metrics);
+            return metrics;
         }
-
         Collection<MetricData> rewritten = new ArrayList<MetricData>(metrics.size());
         for (MetricData metric : metrics) {
             Resource merged = metric.getResource().merge(overlay);
             rewritten.add(new ResourceOverlayMetricData(metric, merged));
         }
-        logAuditRequest(rewritten);
-        return delegate.export(rewritten);
+        return rewritten;
     }
 
-    private void logAuditRequest(Collection<MetricData> metrics) {
-        if (!OtlpAuditLogger.isAuditModeEnabled()) {
-            return;
-        }
+    private int logAuditRequest(Collection<MetricData> metrics, boolean auditMode) {
         try {
             MetricsRequestMarshaler marshaler = MetricsRequestMarshaler.create(metrics);
             int bytes = marshaler.getBinarySerializedSize();
-            setBytesSent(bytes);
-            ByteArrayOutputStream baos = new ByteArrayOutputStream(bytes);
-            marshaler.writeBinaryTo(baos);
-            String payload = Base64.getEncoder().encodeToString(baos.toByteArray());
-            NewRelic.getAgent().getLogger().log(Level.INFO,
-                    "Sent OTLP/Metrics to: {0}, bytes: {1}, payload: {2}",
-                    obfuscateLicenseKey(endpoint == null ? "unknown" : endpoint),
-                    bytes,
-                    payload);
-        } catch (IOException e) {
-            NewRelic.getAgent().getLogger().log(Level.FINE,
-                    "Audit: failed to serialize OTLP/Metrics request for logging: {0}", e.getMessage());
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(bytes);
+            marshaler.writeBinaryTo(outputStream);
+            String payload = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            if (auditMode) {
+                NewRelic.getAgent().getLogger().log(Level.INFO,
+                        "Sent OTLP/Metrics to: {0}, bytes: {1}, payload: {2}",
+                        obfuscateLicenseKey(endpoint == null ? "unknown" : endpoint),
+                        bytes,
+                        payload);
+            }
+            return bytes;
+        } catch (Exception e) {
+            if (auditMode) {
+                NewRelic.getAgent().getLogger().log(Level.FINE,
+                        "Audit: failed to serialize OTLP/Metrics request for logging: {0}", e.getMessage());
+            }
+            return 0;
         }
     }
 

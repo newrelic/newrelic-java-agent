@@ -1,0 +1,31 @@
+plugins {
+    id("java")
+}
+
+dependencies {
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.59.0")
+//    implementation("io.opentelemetry:opentelemetry-exporter-otlp-common:1.59.0")
+//    implementation("io.opentelemetry:opentelemetry-exporter-common:1.59.0")
+
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    testImplementation("junit:junit:4.12")
+    testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.59.0")
+    testImplementation("org.mockito:mockito-inline:4.11.0")
+}
+
+jar {
+    manifest {
+        attributes "Implementation-Title": "com.newrelic.instrumentation.opentelemetry-exporter-otlp-1.59.0", "Implementation-Title-Alias": "opentelemetry_instrumentation"
+    }
+}
+
+verifyInstrumentation {
+    passesOnly("io.opentelemetry:opentelemetry-exporter-otlp:[1.59.0,)")
+}
+
+site {
+    title "OpenTelemetry"
+    type "Framework"
+}
