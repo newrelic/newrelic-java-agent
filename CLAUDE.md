@@ -29,6 +29,8 @@ These rules are non-negotiable:
 - **Preserve backward compatibility** for all shared components
 - **Flag major architectural changes** before implementing — don't just do it
 - **Instrumentation modules must be self-contained** — dependencies must be shaded
+- **Avoid Java reflection APIs** — reflection should only be used as a last resort
+- **Instrumentation modules must avoid all defined [WeaveViolations](newrelic-weaver/src/main/resources/com/newrelic/weave/violation)** 
 - **New dependencies require shading and licensing** — only add if they provide significant value and always ask for permission first
 
 ## Tech Stack
