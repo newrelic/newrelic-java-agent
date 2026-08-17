@@ -40,6 +40,7 @@ import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.rpm.RPMConnectionServiceImpl;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
@@ -173,6 +174,16 @@ public class RPMServiceTest {
         if (mockCollector != null) {
             mockCollector.stop();
         }
+        ServiceManager serviceManager = ServiceFactory.getServiceManager();
+        if (serviceManager != null) {
+            RPMConnectionService rpmConnectionService = serviceManager.getRPMConnectionService();
+            if (rpmConnectionService != null) {
+                // Shuts down the real RPMConnectionServiceImpl's scheduledExecutor (if it was started above), so a
+                // reconnect task scheduled by a bad-license test can't keep firing in the background and hit a
+                // later test's mock RPMConnectionService.
+                rpmConnectionService.stop();
+            }
+        }
     }
 
     private void createServiceManager(Map<String, Object> config) {
@@ -207,6 +218,11 @@ public class RPMServiceTest {
 
         RPMConnectionService rpmConnectionService = new RPMConnectionServiceImpl();
         serviceManager.setRPMConnectionService(rpmConnectionService);
+        try {
+            rpmConnectionService.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         ProfilerService profilerService = new ProfilerService();
         serviceManager.setProfilerService(profilerService);
