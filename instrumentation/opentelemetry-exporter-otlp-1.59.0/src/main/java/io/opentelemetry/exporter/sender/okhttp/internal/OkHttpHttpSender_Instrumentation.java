@@ -17,8 +17,7 @@ import io.opentelemetry.sdk.common.export.MessageWriter;
 import java.util.function.Consumer;
 
 /**
- * Instruments OkHttpHttpSender (opentelemetry-exporter-otlp 1.59.0+) to log OTLP
- * response bodies at INFO level when audit_mode is enabled.
+ * Instruments OkHttpHttpSender to log OTLP response bodies at INFO level when audit_mode is enabled.
  */
 @Weave(type = MatchType.ExactClass, originalName = "io.opentelemetry.exporter.sender.okhttp.internal.OkHttpHttpSender")
 public abstract class OkHttpHttpSender_Instrumentation {
