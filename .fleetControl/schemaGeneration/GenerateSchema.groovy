@@ -84,7 +84,6 @@ final File DEFAULT_YML_PATH = new File(REPO_ROOT, '.fleetControl/schemaGeneratio
 // Enum / special-value overrides
 // ---------------------------------------------------------------------------
 final Map<String, List<String>> ENUM_OVERRIDES = [
-        'log_level':                                                 ['off', 'severe', 'warning', 'info', 'fine', 'finer', 'finest'],
         'transaction_tracer.record_sql':                             ['off', 'raw', 'obfuscated'],
         'attributes.http_attribute_mode':                            ['standard', 'legacy', 'both'],
         'security.mode':                                             ['IAST', 'RASP'],
