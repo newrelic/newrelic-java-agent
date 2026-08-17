@@ -3,9 +3,8 @@ plugins {
 }
 
 dependencies {
-//    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.28.0")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp-common:1.28.0")
-//    implementation("io.opentelemetry:opentelemetry-exporter-common:1.28.0")
 
     implementation(project(":newrelic-api"))
     implementation(project(":newrelic-weaver-api"))
@@ -21,7 +20,7 @@ jar {
 }
 
 verifyInstrumentation {
-    passesOnly("io.opentelemetry:opentelemetry-exporter-common:[1.28.0,1.34.0)")
+    passesOnly("io.opentelemetry:opentelemetry-exporter-otlp:[1.28.0,1.34.0)")
 }
 
 site {
