@@ -12,6 +12,7 @@ import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
+import com.nr.agent.instrumentation.utils.audit.OtlpAuditLogger;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
@@ -49,6 +50,8 @@ import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROX
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.PROXY_PORT;
 import static io.opentelemetry.sdk.autoconfigure.OpenTelemetrySDKCustomizer.SERVICE_INSTANCE_ID_ATTRIBUTE_KEY;
 import static io.opentelemetry.sdk.metrics.data.AggregationTemporality.DELTA;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -145,7 +148,8 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
 
         MetricData md = mock(MetricData.class);
 
-        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
             mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
             MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
             wrapped.export(Collections.singletonList(md));
@@ -166,7 +170,8 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         com.newrelic.agent.bridge.Agent mockAgent = mock(com.newrelic.agent.bridge.Agent.class);
         when(mockAgent.getServiceMetadata()).thenReturn(metadata);
 
-        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
             mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
             MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
             MetricReader reader = PeriodicMetricReader.create(wrapped);
@@ -195,7 +200,8 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         MetricData md2 = mock(MetricData.class);
         when(md2.getResource()).thenReturn(Resource.empty());
 
-        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class)) {
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
             mockBridge.when(AgentBridge::getAgent).thenReturn(mockAgent);
             MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
 
@@ -206,6 +212,44 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
             wrapped.export(Collections.singletonList(md2));
             MetricData secondOut = delegate.getLatestMetricData().iterator().next();
             assertEquals("guid-2", secondOut.getResource().getAttribute(AttributeKey.stringKey("entity.guid")));
+        }
+    }
+
+    public void testAuditModeOnCallsRecordDataUsageMetricsWhenExportCompletes() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+        Agent mockApiAgent = mock(Agent.class, Mockito.RETURNS_DEEP_STUBS);
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class);
+             MockedStatic<OtlpAuditLogger> mockAuditLogger = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockApiAgent);
+            mockAuditLogger.when(OtlpAuditLogger::isAuditModeEnabled).thenReturn(true);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.<MetricData>emptyList());
+
+            mockAuditLogger.verify(() -> OtlpAuditLogger.recordDataUsageMetrics(anyLong(), eq(0L)));
+        }
+    }
+
+    public void testRecordDataUsageMetricsCalledWhenAuditModeOff() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<OtlpAuditLogger> mockAuditLogger = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+            mockAuditLogger.when(OtlpAuditLogger::isAuditModeEnabled).thenReturn(false);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.<MetricData>emptyList());
+
+            // Data usage metrics are recorded on every export regardless of audit mode.
+            mockAuditLogger.verify(() -> OtlpAuditLogger.recordDataUsageMetrics(anyLong(), eq(0L)));
         }
     }
 

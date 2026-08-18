@@ -125,7 +125,7 @@ final class OpenTelemetrySDKCustomizer {
      * If a proxy is configured, the exporter is first rebuilt to route OTLP metric exports through it.
      */
     static MetricExporter wrapMetricExporter(MetricExporter exporter, ConfigProperties configProperties) {
-        return new NRMetricExporterWrapper(applyProxy(exporter));
+        return new NRMetricExporterWrapper(applyProxy(exporter), configProperties.getString("otel.exporter.otlp.endpoint"));
     }
 
     /**
