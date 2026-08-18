@@ -60,12 +60,6 @@ public class NettyUtilTest {
         Assert.assertFalse(NettyUtil.isRequestHeaders(headers));
     }
 
-    // Mirrors the real io.grpc.netty.GrpcHttp2OutboundHeaders: method() is unconditionally
-    // unsupported (it's a write-only/encode-only headers representation), but authority() is a
-    // real, non-throwing accessor that only ever returns non-null for a client's own outbound
-    // request write -- never for a server's outbound response or trailers write. Without the
-    // authority() fallback in NettyUtil.isRequestHeaders(), a grpc-netty client's own outbound
-    // request headers would never be recognized as request headers at all.
     private static class GrpcHttp2OutboundHeadersLike extends DefaultHttp2Headers {
         private final CharSequence authority;
 
@@ -97,12 +91,6 @@ public class NettyUtilTest {
 
         Assert.assertFalse(NettyUtil.isRequestHeaders(headers));
     }
-
-    // isServerConnection() is the version-independent guard added alongside isRequestHeaders():
-    // it reads Http2ConnectionHandler.connection().isServer(), a plain Netty-level signal that
-    // doesn't depend on any particular library's Http2Headers implementation at all -- unlike
-    // isRequestHeaders(), which broke on grpc-netty 1.51.0 (GrpcHttp2OutboundHeaders there only
-    // implements status(), not authority(), so its fallback also throws on that version).
 
     @Test
     public void testIsServerConnection_server() {
