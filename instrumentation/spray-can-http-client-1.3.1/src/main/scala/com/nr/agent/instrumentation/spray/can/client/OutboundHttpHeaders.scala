@@ -31,7 +31,7 @@ class OutboundHttpHeaders(originalRequest: HttpRequest_Instrumentation) extends 
     request.segment = segment
     request.remoteAddress = remoteAddress
     request.isSSL = isSSL
-    request.method = method
+    request.httpMethod = method
     request
   }
 }

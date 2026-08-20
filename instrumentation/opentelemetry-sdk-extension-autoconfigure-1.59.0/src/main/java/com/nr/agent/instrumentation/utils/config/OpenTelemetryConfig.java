@@ -43,6 +43,12 @@ public class OpenTelemetryConfig {
     public static final int OPEN_TELEMETRY_METRICS_EXPORT_INTERVAL_DEFAULT = 60_000; // export interval in milliseconds
     public static final String OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT = "opentelemetry.metrics.export_timeout";
     public static final int OPEN_TELEMETRY_METRICS_EXPORT_TIMEOUT_DEFAULT = 10_000; // export timeout in milliseconds
+
+    // Top-level agent proxy settings (shared with the agent's own data transport). Only host and port
+    // are usable for OTLP metric export; the OpenTelemetry SDK cannot express proxy auth or proxy_scheme.
+    public static final String PROXY_HOST = "proxy_host";
+    public static final String PROXY_PORT = "proxy_port";
+    public static final int DEFAULT_PROXY_PORT = 8080;
     private static Integer exportTimeout = getOpenTelemetryMetricsExportTimeout();
     private static Integer exportInterval;
 
@@ -235,6 +241,26 @@ public class OpenTelemetryConfig {
                 .log(Level.INFO, "OpenTelemetry dimensional metrics export timeout is set to the default value of " + exportTimeout + " milliseconds.");
 
         return exportTimeout;
+    }
+
+    /**
+     * Get the proxy host used to route OTLP dimensional metric exports. Reuses the agent's top-level
+     * {@code proxy_host} setting. Returns {@code null} when no proxy is configured.
+     *
+     * @return the configured proxy host, or {@code null}
+     */
+    public static String getOpenTelemetryProxyHost() {
+        return NewRelic.getAgent().getConfig().getValue(PROXY_HOST);
+    }
+
+    /**
+     * Get the proxy port used to route OTLP dimensional metric exports. Reuses the agent's top-level
+     * {@code proxy_port} setting, defaulting to {@value #DEFAULT_PROXY_PORT}.
+     *
+     * @return the configured proxy port
+     */
+    public static int getOpenTelemetryProxyPort() {
+        return NewRelic.getAgent().getConfig().getValue(PROXY_PORT, DEFAULT_PROXY_PORT);
     }
 
     /**

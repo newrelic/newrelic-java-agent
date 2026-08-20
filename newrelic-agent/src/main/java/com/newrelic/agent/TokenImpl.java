@@ -20,10 +20,16 @@ public class TokenImpl implements Token {
 
     private volatile Tracer initiatingTracer;
     private final AtomicBoolean active;
+    /**
+     * Whether this token is in the process of being moved from one transaction to another.
+     * Used to prevent this token from being prematurely expired when it is removed from the old transaction's cache.
+     */
+    protected final AtomicBoolean isInTransfer;
 
     public TokenImpl(Tracer tracer) {
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
+        isInTransfer = new AtomicBoolean(false);
 
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
@@ -141,10 +147,17 @@ public class TokenImpl implements Token {
 
     /**
      * This is used by the transaction to expire tokens when removed from its token cache.
+     * <p>
+     * When an old transaction migrates its state onto a new transaction as the result of a token link, there is a rare race condition
+     * where a token begins its expiration on the oldTx, but completes it here on the newTx.
+     * <p>
+     * To patch this loophole, txAtExpiration is passed in as the transaction on which the expiration actually started. The vast majority of the time,
+     * this should be the same transaction obtained by Token.getTransaction().getTransactionIfExists(). In the case of the race condition described above,
+     * they may be different, and txAtExpiration should be used.
      */
-    void markExpired() {
+    void markExpired(Transaction txAtExpiration) {
         active.set(Boolean.FALSE);
-        Transaction tx = getTransaction().getTransactionIfExists();
+        Transaction tx = txAtExpiration != null ? txAtExpiration : getTransaction().getTransactionIfExists();
         if (tx != null) {
             tx.onRemoval();
         }

@@ -19,11 +19,11 @@ public class SuspendsUtils implements SuspendsConfigListener {
 
     private static final HashSet<String> ignoredSuspends = new HashSet<>();
     private static final HashSet<Pattern> ignoredSuspendsRegex = new HashSet<>();
+    private static final HashSet<String> ignoredFrameworks = new HashSet<>();
     public static final String CREATE_METHOD1 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$4";
     public static final String CREATE_METHOD2 = "Continuation at kotlin.coroutines.intrinsics.IntrinsicsKt__IntrinsicsJvmKt$createCoroutineUnintercepted$$inlined$createCoroutineFromSuspendFunction$IntrinsicsKt__IntrinsicsJvmKt$3";
     private static final String CONT_LOC = "Continuation at";
     public static String sub = "createCoroutineFromSuspendFunction";
-    public static final String KOTLIN_PACKAGE = "kotlin";
     private static final String SUSPEND_FUNCTION_METRIC_NAME_PREFIX = "Custom/Kotlin/Coroutines/SuspendFunction/";
 
     static {
@@ -36,8 +36,10 @@ public class SuspendsUtils implements SuspendsConfigListener {
     public static ExitTracer getSuspendTracer(Continuation<?> continuation) {
         Class<?> clazz = continuation.getClass();
         String className = clazz.getName();
-        // don't track suspend functions in internal Coroutines classes (i.e. starts with kotlin or kotlinx)
-        if(className.startsWith(KOTLIN_PACKAGE)) { return null; }
+        // don't track suspend functions in internal Coroutines classes and other Kotlin related frameworks (i.e. starts with kotlin or kotlinx)
+        for(String framework : ignoredFrameworks) {
+            if(className.startsWith(framework)) { return null; }
+        }
         String continuationString = getContinuationString(continuation);
         // ignore if can't determine continuation string
         if(continuationString == null || continuationString.isEmpty()) { return null; }
@@ -100,6 +102,14 @@ public class SuspendsUtils implements SuspendsConfigListener {
             for(String regex : ignoreRegexes) {
                 ignoredSuspendsRegex.add(Pattern.compile(regex));
             }
+        }
+    }
+
+    @Override
+    public void configureIgnoredFrameworks(String[] ignores) {
+        if(ignores != null && ignores.length > 0) {
+            ignoredFrameworks.clear();
+            ignoredFrameworks.addAll(Arrays.asList(ignores));
         }
     }
 }

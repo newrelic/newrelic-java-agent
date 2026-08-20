@@ -101,6 +101,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public Map<String, String> getServiceMetadata() {
+        return Collections.emptyMap();
+    }
+
+    @Override
     public boolean startAsyncActivity(Object activityContext) {
         return false;
     }

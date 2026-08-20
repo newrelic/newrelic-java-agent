@@ -1,0 +1,16 @@
+common: &default_settings
+  # collect_ai will be sent as false in the connect response when
+  # AIM is disabled via the account wide server side config.
+  # It shouldn't be set in the agent yaml, this is just a way to
+  # mock receiving this config in unit tests.
+  collect_ai: false
+  ai_monitoring:
+    enabled: true
+    record_content:
+      enabled: true
+    streaming:
+      enabled: true
+
+  custom_insights_events:
+    max_samples_stored: 30000
+    max_attribute_value: 255

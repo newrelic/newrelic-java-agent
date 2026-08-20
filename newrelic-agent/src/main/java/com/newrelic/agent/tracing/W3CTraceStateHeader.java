@@ -50,7 +50,7 @@ public class W3CTraceStateHeader {
     }
 
     String createTraceStateHeader(DistributedTracePayloadImpl payload, String version) {
-        String spanId = getSpanId(payload);
+        String spanId = "";  // deprecated because it's duplicated in the traceparent header, see spec
         String transactionId = getTransactionId(payload);
         String priority = BigDecimal.valueOf(payload.priority)
                 .setScale(6, RoundingMode.HALF_UP)
@@ -71,13 +71,6 @@ public class W3CTraceStateHeader {
     private String getTransactionId(DistributedTracePayloadImpl payload) {
         if (transactionEventsEnabled) {
             return payload.txnId;
-        }
-        return "";
-    }
-
-    private String getSpanId(DistributedTracePayloadImpl payload) {
-        if (spanEventsEnabled) {
-            return payload.guid == null ? TransactionGuidFactory.generate16CharGuid() : payload.guid;
         }
         return "";
     }

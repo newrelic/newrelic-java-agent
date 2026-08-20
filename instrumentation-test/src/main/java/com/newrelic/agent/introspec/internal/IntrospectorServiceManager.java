@@ -25,6 +25,7 @@ import com.newrelic.agent.interfaces.ReservoirManager;
 import com.newrelic.agent.jfr.JfrService;
 import com.newrelic.agent.jmx.JmxService;
 import com.newrelic.agent.kotlincoroutines.KotlinCoroutinesService;
+import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.language.SourceLanguageService;
 import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationService;
@@ -91,6 +92,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile ServerlessService serverlessService;
     private ExpirationService expirationService;
     private volatile KotlinCoroutinesService kotlinCoroutinesService;
+    private volatile KtorService ktorService;
 
     private IntrospectorServiceManager(String name) {
         super(name);
@@ -153,6 +155,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         jarCollectorService = new IgnoringJarCollectorService();
         distributedTraceService = new DistributedTraceServiceImpl();
         kotlinCoroutinesService = new KotlinCoroutinesService(configService.getDefaultAgentConfig().getKotlinCoroutinesConfig());
+        ktorService = new KtorService();
 
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(distributedTraceService);
         transactionEventsService = new TransactionEventsService(transactionDataToDistributedTraceIntrinsics);
@@ -448,6 +451,10 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     @Override
     public KotlinCoroutinesService getKotlinCoroutinesService() {
         return kotlinCoroutinesService;
+    }
+
+    public KtorService getKtorService() {
+        return ktorService;
     }
 
     @Override
