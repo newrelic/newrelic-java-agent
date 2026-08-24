@@ -10,7 +10,9 @@ package com.agent.instrumentation.netty4116;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.Token;
 import com.newrelic.api.agent.NewRelic;
+import io.netty.channel.ChannelHandlerContext_Instrumentation;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http2.Http2ConnectionHandler;
 import io.netty.handler.codec.http2.Http2Headers;
 
 import java.net.InetSocketAddress;
@@ -40,6 +42,30 @@ public class NettyUtil {
 
     public static void setServerInfo() {
         AgentBridge.publicApi.setServerInfo("Netty", getNettyVersion());
+    }
+
+    public static boolean isRequestHeaders(Http2Headers headers) {
+        try {
+            return headers.method() != null;
+        } catch (Exception e) {
+            try {
+                return headers.authority() != null;
+            } catch (Exception e2) {
+                return false;
+            }
+        }
+    }
+
+    public static boolean isServerConnection(ChannelHandlerContext_Instrumentation ctx) {
+        try {
+            Object handler = ctx.handler();
+            if (handler instanceof Http2ConnectionHandler) {
+                return ((Http2ConnectionHandler) handler).connection().isServer();
+            }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINER, e, "Unable to determine HTTP/2 connection role: {0}", e.getMessage());
+        }
+        return false;
     }
 
     /*
