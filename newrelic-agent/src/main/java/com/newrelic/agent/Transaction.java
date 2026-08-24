@@ -492,13 +492,13 @@ public class Transaction {
     // related commits.
 
     protected Transaction() {
-        Agent.LOG.log(Level.FINE, "create Transaction {0}", this);
+        guid = TransactionGuidFactory.generate16CharGuid();
+        Agent.LOG.log(Level.FINE, "create Transaction {0}; txn GUID: {1}", this, guid);
         if (Agent.LOG.isFinestEnabled() && Agent.isDebugEnabled()) {
             Agent.LOG.log(Level.FINEST, "backtrace: {0}", Arrays.toString(Thread.currentThread().getStackTrace()));
         }
 
         AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        guid = TransactionGuidFactory.generate16CharGuid();
         autoAppNamingEnabled = defaultConfig.isAutoAppNamingEnabled();
         transactionNamingEnabled = initializeTransactionNamingEnabled(defaultConfig);
         ignoreErrorPriority = defaultConfig.getErrorCollectorConfig().isIgnoreErrorPriority();
@@ -992,7 +992,7 @@ public class Transaction {
     }
 
     void activityStarted(TransactionActivity activity) {
-        Agent.LOG.log(Level.FINER, "activity {0} starting", activity);
+        Agent.LOG.log(Level.FINER, "activity {0} starting for transaction {1}; txn GUID: {2}", activity, this, this.guid);
         startTransactionIfBeginning(activity.getRootTracer());
         synchronized (lock) {
             runningChildren.put(activity.hashCode(), activity);
@@ -1004,7 +1004,7 @@ public class Transaction {
         // this is getting called for every txa, we really only need it called
         // for the first txa
         if (tracer instanceof TransactionActivityInitiator && rootTracer == null) {
-            Agent.LOG.log(Level.FINER, "Starting transaction {0}", this);
+            Agent.LOG.log(Level.FINER, "Starting transaction {0}; txn GUID: {1}", this, this.guid);
 
             captureWallClockStartTime();
             if (ServiceFactory.getTransactionTraceService().isEnabled()) {
@@ -1019,7 +1019,7 @@ public class Transaction {
             }
             if (transactionTime == null) {
                 transactionTime = new TransactionTimer(tracer.getStartTime());
-                Agent.LOG.log(Level.FINER, "Set timer for transaction {0}", this);
+                Agent.LOG.log(Level.FINER, "Set timer for transaction {0}; txn GUID: {1}", this, this.guid);
             }
             if (dispatcher == null) {
                 setDispatcher(((TransactionActivityInitiator) tracer).createDispatcher());
@@ -1036,7 +1036,7 @@ public class Transaction {
                         "Not setting dispatcher for transaction {0}. Dispatcher is already a web dispatcher.", this);
             } else {
                 this.dispatcher = dispatcher;
-                Agent.LOG.log(Level.FINER, "Set dispatcher for transaction {0} to {1}", this, dispatcher);
+                Agent.LOG.log(Level.FINER, "Set dispatcher for transaction {0} to {1}; txn GUID: {2}", this, dispatcher, this.guid);
                 if (isWebRequestSet()) {
                     getInboundHeaderState();
                 }
@@ -1087,8 +1087,8 @@ public class Transaction {
 
                 if (Agent.LOG.isFinerEnabled()) {
                     String requestURI = dispatcher == null ? "No Dispatcher Defined" : dispatcher.getUri();
-                    Agent.LOG.log(Level.FINER, "Transaction {0} for request: {1} finished {2}ms {3}",
-                            txName, requestURI, transactionTime.getResponseTimeInMilliseconds(), this);
+                    Agent.LOG.log(Level.FINER, "Transaction {0} for request: {1} finished {2}ms {3}; txn GUID: {4}",
+                            txName, requestURI, transactionTime.getResponseTimeInMilliseconds(), this, this.guid);
                 }
 
                 if (!ServiceFactory.getServiceManager().isStarted()) {
@@ -2517,7 +2517,7 @@ public class Transaction {
      */
     public void activityFailedOrIgnored(TransactionActivity activity, int opcode) {
         String occurred = activity.isIgnored() ? "IGNORED" : "FAILED";
-        Agent.LOG.log(Level.FINER, "Transaction {0}: activity {1} {2} with opcode {3}", this, activity, occurred, opcode);
+        Agent.LOG.log(Level.FINER, "Transaction {0}: activity {1} {2} with opcode {3}; txn GUID: {4}", this, activity, occurred, opcode, this.guid);
         synchronized (lock) {
             try {
                 if (!isFinished()) {
@@ -2605,18 +2605,19 @@ public class Transaction {
     private void reportTracedActivityTimeout(TransactionActivity txa) {
         final String message = "Segment timed out after %d seconds. "
                 + "The \"segment_timeout\" configuration parameter can be used to adjust this timeout. "
-                + "The affected transaction name is %s.%n";
+                + "The affected transaction name is %s; txn GUID: %s.%n";
         String name = "unknown";
         if (txa.getTransaction() != null && txa.getTransaction().getTransactionName() != null) {
             name = "\"" + txa.getTransaction().getTransactionName() + "\"";
         }
-        Agent.LOG.log(Level.INFO, String.format(message, SEGMENT_TIMEOUT_MILLIS() / 1000, name));
-        Agent.LOG.log(Level.FINE, "Segment {0}-{1} timed out on tx {2}", txa.getSegment(), txa, txa.getTransaction());
+        String guid = txa.getTransaction() == null ? "unknown" : txa.getTransaction().getGuid();
+        Agent.LOG.log(Level.INFO, String.format(message, SEGMENT_TIMEOUT_MILLIS() / 1000, name, guid));
+        Agent.LOG.log(Level.FINE, "Segment {0}-{1} timed out on tx {2}; txn GUID: {3}", txa.getSegment(), txa, txa.getTransaction(), guid);
         NewRelic.incrementCounter(MetricNames.SUPPORTABILITY_ASYNC_FINISH_SEGMENT_NOT_CALLED);
     }
 
     public void activityFinished(TransactionActivity activity, Tracer tracer, int opcode) {
-        Agent.LOG.log(Level.FINER, "Transaction {0}: Activity {1} finished with opcode {2}", this, activity, opcode);
+        Agent.LOG.log(Level.FINER, "Transaction {0}: Activity {1} finished with opcode {2}; txn GUID: {3}", this, activity, opcode, this.guid);
 
         synchronized (lock) {
             try {
