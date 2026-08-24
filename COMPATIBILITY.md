@@ -202,6 +202,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Oracle R2DBC 0.0.0 to latest
   * PostgreSQL 8.0-312.jdbc3 to latest
   * PostgreSQL R2DBC 0.9.0 to latest
+  * Redisson 3.28.0 to latest
   * Slick 3.0.0 to latest
   * Solr 5.1.0 to 10.0.0 (exclusive)
   * Spymemcached 2.11 to latest
@@ -219,6 +220,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Jedis 1.4.0 to latest
   * MongoDB async clients 3.4.0 to 4.2.0 (exclusive)
   * MongoDB sync clients 3.1.0-rc0 to latest
+  * Redisson 3.28.0 to latest
   * Spymemcached 2.11 to latest
 
   ## AI Monitoring
