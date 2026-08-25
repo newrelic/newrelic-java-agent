@@ -249,6 +249,10 @@ compileTestJava {
     dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, generateVersionProperties
 }
 
+processResources {
+    from("${rootProject.projectDir}/.fleetControl/schemaGeneration/reference-newrelic.yml")
+}
+
 /**
  * The `relocatedShadowJar` task builds the initial shaded jar. It performs the following tasks:
  *   - Identifies all dependencies in the "shadowIntoJar" configuration

@@ -24,6 +24,7 @@ public class CollectorMethods {
     public static final String SHUTDOWN = "shutdown";
     public static final String SQL_TRACE_DATA = "sql_trace_data";
     public static final String TRANSACTION_SAMPLE_DATA = "transaction_sample_data";
+    public static final String AGENT_SETTINGS = "agent_settings";
 
     private CollectorMethods() {
     }

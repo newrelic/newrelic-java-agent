@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.agentcontrol;
+package com.newrelic.agent.agentcontrol.health;
 
 public class AgentHealth {
     public enum Category {
@@ -65,24 +65,24 @@ public class AgentHealth {
     private String guid = null;
 
 
-    AgentHealth(long startTimeNanos) {
+    public AgentHealth(long startTimeNanos) {
         this.startTimeNanos = startTimeNanos;
         status = Status.HEALTHY;
     }
 
-    void setUnhealthyStatus(Status newStatus, String... additionalInfo) {
+    public void setUnhealthyStatus(Status newStatus, String... additionalInfo) {
         status = newStatus;
         status.setAdditionalInfo(additionalInfo);
     }
 
-    void setHealthyStatus(Category category) {
+    public void setHealthyStatus(Category category) {
         //Only set the status to healthy if the category matches the current status category
         if (category == status.category) {
             status = Status.HEALTHY;
         }
     }
 
-    void setEntityGuid(String guid) {
+    public void setEntityGuid(String guid) {
         this.guid = guid;
     }
 

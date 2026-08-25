@@ -40,6 +40,7 @@ import com.newrelic.agent.rpm.RPMConnectionService;
 import com.newrelic.agent.rpm.RPMConnectionServiceImpl;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.analytics.SpanEventsServiceImpl;
 import com.newrelic.agent.service.analytics.TransactionDataToDistributedTraceIntrinsics;
 import com.newrelic.agent.service.analytics.TransactionEventsService;
@@ -173,6 +174,16 @@ public class RPMServiceTest {
         if (mockCollector != null) {
             mockCollector.stop();
         }
+        ServiceManager serviceManager = ServiceFactory.getServiceManager();
+        if (serviceManager != null) {
+            RPMConnectionService rpmConnectionService = serviceManager.getRPMConnectionService();
+            if (rpmConnectionService != null) {
+                // Shuts down the real RPMConnectionServiceImpl's scheduledExecutor (if it was started above), so a
+                // reconnect task scheduled by a bad-license test can't keep firing in the background and hit a
+                // later test's mock RPMConnectionService.
+                rpmConnectionService.stop();
+            }
+        }
     }
 
     private void createServiceManager(Map<String, Object> config) {
@@ -207,6 +218,11 @@ public class RPMServiceTest {
 
         RPMConnectionService rpmConnectionService = new RPMConnectionServiceImpl();
         serviceManager.setRPMConnectionService(rpmConnectionService);
+        try {
+            rpmConnectionService.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         ProfilerService profilerService = new ProfilerService();
         serviceManager.setProfilerService(profilerService);
@@ -1436,6 +1452,45 @@ public class RPMServiceTest {
             latch.await(10, TimeUnit.SECONDS);
             assertTrue(dataSender.isConnected());
         }
+    }
+
+    @Test(timeout = 30000)
+    public void sendAgentSettingsDoesNotReconnectOnForceRestart() throws Exception {
+        Map<String, Object> config = createStagingMap(false, false);
+        createServiceManager(config);
+        doSendAgentSettingsDoesNotReconnectOnForceRestart();
+    }
+
+    @Test(timeout = 30000)
+    public void sendAgentSettingsDoesNotReconnectOnForceRestartWithPut() throws Exception {
+        Map<String, Object> config = createStagingMap(false, false, true);
+        createServiceManager(config);
+        doSendAgentSettingsDoesNotReconnectOnForceRestart();
+    }
+
+    private void doSendAgentSettingsDoesNotReconnectOnForceRestart() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+
+        List<String> appNames = singletonList("MyApplication");
+        RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+
+        MockDataSender dataSender = dataSenderFactory.getLastDataSender();
+        dataSender.setConnected(false);
+        dataSender.setException(new ForceRestartException(""));
+
+        Map<String, Object> settings = Collections.<String, Object>singletonMap("test_key", "test_value");
+        try {
+            svc.sendAgentSettings(settings);
+            fail("Expected a ForceRestartException to be thrown");
+        } catch (ForceRestartException e) {
+            // expected
+        }
+
+        // Unlike sendTransactionTraceData/sendModules, sendAgentSettings must NOT trigger a
+        // reconnect on ForceRestartException - it's invoked from configChanged(), which fires
+        // on every connect, so reconnecting here could cause a connect/configChanged loop.
+        assertFalse(dataSender.isConnected());
     }
 
     private class LargeStackThrowableError extends ThrowableError {

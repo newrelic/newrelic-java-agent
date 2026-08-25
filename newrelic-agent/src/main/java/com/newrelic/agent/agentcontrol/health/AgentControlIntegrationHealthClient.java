@@ -4,7 +4,7 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.agentcontrol;
+package com.newrelic.agent.agentcontrol.health;
 
 public interface AgentControlIntegrationHealthClient {
     void sendHealthMessage(AgentHealth agentHealth);

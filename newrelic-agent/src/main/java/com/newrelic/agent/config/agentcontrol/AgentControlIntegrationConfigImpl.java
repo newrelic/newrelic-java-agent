@@ -4,9 +4,10 @@
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package com.newrelic.agent.config;
+package com.newrelic.agent.config.agentcontrol;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.config.BaseConfig;
 
 import java.net.URI;
 import java.util.Collections;

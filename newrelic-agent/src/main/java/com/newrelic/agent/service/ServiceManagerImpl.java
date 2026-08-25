@@ -19,6 +19,7 @@ import com.newrelic.agent.ServerlessHarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.RPMServiceManagerImpl;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.ktor.KtorService;
 import com.newrelic.agent.serverless.ServerlessService;
 import com.newrelic.agent.serverless.ServerlessServiceImpl;
@@ -85,9 +86,9 @@ import com.newrelic.agent.stats.StatsEngine;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsServiceImpl;
 import com.newrelic.agent.stats.StatsWork;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationClientFactory;
-import com.newrelic.agent.agentcontrol.AgentControlIntegrationHealthClient;
+import com.newrelic.agent.agentcontrol.health.AgentControlIntegrationHealthClient;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
@@ -382,7 +383,8 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         AgentControlIntegrationHealthClient healthClient = null;
 
         if (config.getAgentControlIntegrationConfig() != null && config.getAgentControlIntegrationConfig().isEnabled()) {
-            healthClient = AgentControlIntegrationClientFactory.createHealthClient(config.getAgentControlIntegrationConfig());
+            AgentControlIntegrationConfig agentControlConfig = config.getAgentControlIntegrationConfig();
+            healthClient = AgentControlIntegrationClientFactory.createHealthClient(agentControlConfig);
 
             healthDataProducers.add(circuitBreakerService);
             healthDataProducers.add((HealthDataProducer) coreService);

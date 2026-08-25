@@ -1,5 +1,8 @@
 package com.newrelic.agent.agentcontrol;
 
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
+import com.newrelic.agent.agentcontrol.health.HealthDataChangeListener;
+
 public class UnitTestHealthDataChangeListener implements HealthDataChangeListener {
     private AgentHealth.Status lastStatus = null;
     private AgentHealth.Category lastCategory = null;

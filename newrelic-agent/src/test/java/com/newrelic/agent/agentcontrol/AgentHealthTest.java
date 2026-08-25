@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.agentcontrol;
 
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
