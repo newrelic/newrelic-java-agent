@@ -9,6 +9,7 @@ package com.nr.agent.instrumentation.jdbc.oracle;
 
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
+import com.newrelic.agent.bridge.datastore.ExplainPlanSqlInfo;
 import com.newrelic.agent.bridge.datastore.JdbcDatabaseVendor;
 
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
     }
 
     @Override
-    public String getExplainPlanSql(String sql) throws SQLException {
-        return "EXPLAIN PLAN FOR " + sql;
+    public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
+        return new ExplainPlanSqlInfo("EXPLAIN PLAN FOR " + sqlToExplain, null);
     }
 }

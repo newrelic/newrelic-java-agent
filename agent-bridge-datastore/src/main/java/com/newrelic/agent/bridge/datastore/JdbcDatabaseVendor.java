@@ -36,11 +36,21 @@ public abstract class JdbcDatabaseVendor implements DatabaseVendor {
         return explainPlanSupported;
     }
 
-    public String getExplainPlanSql(String sql) throws SQLException {
+    @Override
+    public boolean isExplainPlanFollowupQueryRequired() {
+        return false;
+    }
+
+    @Override
+    public String getFollowupExplainPlanSql(String statementId) {
+        return null;
+    }
+
+    public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
         if (!isExplainPlanSupported()) {
             throw new SQLException("Unable to run explain plans for " + getName() + " databases");
         }
-        return "EXPLAIN " + sql;
+        return new ExplainPlanSqlInfo("EXPLAIN " + sqlToExplain, null);
     }
 
     /**

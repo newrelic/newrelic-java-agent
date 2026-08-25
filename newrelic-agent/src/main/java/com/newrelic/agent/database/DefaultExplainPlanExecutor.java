@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
+import com.newrelic.agent.bridge.datastore.ExplainPlanSqlInfo;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
 
@@ -45,9 +46,11 @@ public class DefaultExplainPlanExecutor implements ExplainPlanExecutor {
     @Override
     public void runExplainPlan(DatabaseService databaseService, Connection connection, DatabaseVendor vendor)
             throws SQLException {
-        String sql = originalSqlStatement;
+        String sql;
+        ExplainPlanSqlInfo explainPlanSqlInfo;
         try {
-            sql = vendor.getExplainPlanSql(sql);
+            explainPlanSqlInfo = vendor.getExplainPlanSqlInfo(originalSqlStatement);
+            sql = explainPlanSqlInfo.getSql();
         } catch (SQLException e) {
             tracer.setExplainPlan(e.getMessage());
             return;
@@ -65,6 +68,12 @@ public class DefaultExplainPlanExecutor implements ExplainPlanExecutor {
         try {
             statement = createStatement(connection, sql);
             resultSet = executeStatement(statement, sql);
+
+            if (vendor.isExplainPlanFollowupQueryRequired()) {
+                String followupSql = vendor.getFollowupExplainPlanSql(explainPlanSqlInfo.getStatementId());
+                Agent.LOG.finer("Running explain followup query: " + followupSql);
+                resultSet = executeStatement(statement, followupSql);
+            }
             explainPlan = getExplainPlanFromResultSet(vendor, resultSet, recordSql);
         } catch (Exception e) {
             Agent.LOG.log(Level.FINER, "explain plan error", e);

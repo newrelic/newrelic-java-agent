@@ -9,6 +9,7 @@ package com.newrelic.agent.database;
 
 import com.newrelic.agent.bridge.datastore.DatabaseVendor;
 import com.newrelic.agent.bridge.datastore.DatastoreVendor;
+import com.newrelic.agent.bridge.datastore.ExplainPlanSqlInfo;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
 import org.junit.Assert;
@@ -59,8 +60,18 @@ public class DefaultExplainPlanExecutorTest {
             }
 
             @Override
-            public String getExplainPlanSql(String sql) throws SQLException {
-                return sql;
+            public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
+                return new ExplainPlanSqlInfo(sqlToExplain, null);
+            }
+
+            @Override
+            public boolean isExplainPlanFollowupQueryRequired() {
+                return false;
+            }
+
+            @Override
+            public String getFollowupExplainPlanSql(String statementId) {
+                return null;
             }
 
             @Override
@@ -99,11 +110,47 @@ public class DefaultExplainPlanExecutorTest {
         Mockito.when(statement.executeQuery(Mockito.any())).thenReturn(results);
         Mockito.when(connection.createStatement()).thenReturn(statement);
         DatabaseVendor vendor = Mockito.mock(DatabaseVendor.class);
-        Mockito.when(vendor.getExplainPlanSql(Mockito.any())).thenReturn(sql);
+        Mockito.when(vendor.getExplainPlanSqlInfo(Mockito.any())).thenReturn(new ExplainPlanSqlInfo(sql, null));
 
         executor.runExplainPlan(dbService, connection, vendor);
 
         Assert.assertTrue(tracer.hasExplainPlan());
+    }
+
+    @Test
+    public void testRunExplainPlan_withFollowupQueryRequired_usesFollowupResultSet() throws SQLException {
+        String sql = "select * from test";
+        String followupSql = "SELECT * FROM PLAN_TABLE WHERE STATEMENT_ID = '42'";
+        SqlTracerExplainInfo tracer = new TestSqlStatementTracer();
+        Assert.assertFalse(tracer.hasExplainPlan());
+
+        DefaultExplainPlanExecutor executor = new DefaultExplainPlanExecutor(tracer, sql, RecordSql.raw);
+
+        DatabaseService dbService = Mockito.mock(DatabaseService.class);
+        Connection connection = Mockito.mock(Connection.class);
+        Statement statement = Mockito.mock(Statement.class);
+
+        // The initial EXPLAIN PLAN statement returns no columns, as is the case for Oracle.
+        ResultSet initialResultSet = Mockito.mock(ResultSet.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(initialResultSet.getMetaData().getColumnCount()).thenReturn(0);
+
+        // The followup query against PLAN_TABLE is where the actual explain plan rows come from.
+        ResultSet followupResultSet = Mockito.mock(ResultSet.class, Mockito.RETURNS_DEEP_STUBS);
+        Mockito.when(followupResultSet.getMetaData().getColumnCount()).thenReturn(2);
+
+        Mockito.when(statement.executeQuery(sql)).thenReturn(initialResultSet);
+        Mockito.when(statement.executeQuery(followupSql)).thenReturn(followupResultSet);
+        Mockito.when(connection.createStatement()).thenReturn(statement);
+
+        DatabaseVendor vendor = Mockito.mock(DatabaseVendor.class);
+        Mockito.when(vendor.getExplainPlanSqlInfo(Mockito.any())).thenReturn(new ExplainPlanSqlInfo(sql, "42"));
+        Mockito.when(vendor.isExplainPlanFollowupQueryRequired()).thenReturn(true);
+        Mockito.when(vendor.getFollowupExplainPlanSql("42")).thenReturn(followupSql);
+
+        executor.runExplainPlan(dbService, connection, vendor);
+
+        Assert.assertTrue(tracer.hasExplainPlan());
+        Mockito.verify(vendor).parseExplainPlanResultSet(2, followupResultSet, RecordSql.raw);
     }
 
     private SqlTracerExplainInfo createSqlTracerInfo(final String sql) {
