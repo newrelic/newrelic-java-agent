@@ -57,16 +57,24 @@ public class Log4j1Util {
     }
 
     private static void recordNewRelicLogEvent(LoggingEvent event) {
-        if (shouldCreateNewRelicLogEventFor(event)) {
-            boolean isAppLoggingContextDataEnabled = AppLoggingUtils.isAppLoggingContextDataEnabled();
+        boolean isAppLoggingContextDataEnabled = AppLoggingUtils.isAppLoggingContextDataEnabled();
+        if (shouldCreateNewRelicLogEventFor(event, isAppLoggingContextDataEnabled)) {
             Map<LogAttributeKey, Object> logEventMap = LoggingEventMap.from(event, isAppLoggingContextDataEnabled);
             AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
         }
     }
 
-    private static boolean shouldCreateNewRelicLogEventFor(LoggingEvent event) {
-        return event != null &&
-                (event.getMessage() != null || hasThrowable(event));
+    private static boolean shouldCreateNewRelicLogEventFor(LoggingEvent event, boolean isAppLoggingContextDataEnabled) {
+        if (event == null) return false;
+        return (event.getMessage() != null && !"".equals(event.getMessage().toString().trim())) ||
+                    hasThrowable(event) ||
+                    wouldLogContextData(event, isAppLoggingContextDataEnabled);
+    }
+
+    private static boolean wouldLogContextData(LoggingEvent event, boolean isAppLoggingContextDataEnabled) {
+        Map<?, ?> mdc = event.getProperties();
+        return isAppLoggingContextDataEnabled &&
+                (AppLoggingUtils.isReportEmptyLogMessages() && mdc != null && !mdc.isEmpty());
     }
 
     private static boolean hasThrowable(LoggingEvent event) {

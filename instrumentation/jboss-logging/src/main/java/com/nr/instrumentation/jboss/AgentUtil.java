@@ -40,10 +40,10 @@ public class AgentUtil {
     public static void recordNewRelicLogEvent(ExtLogRecord record) {
         if (record != null) {
             String message = record.getFormattedMessage();
+            Map<String, String> mdcCopy = record.getMdcCopy();
             Throwable throwable = record.getThrown();
 
-            if (shouldCreateLogEvent(message, throwable)) {
-                Map<String, String> mdcCopy = record.getMdcCopy();
+            if (shouldCreateLogEvent(message, mdcCopy, throwable)) {
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
@@ -106,14 +106,21 @@ public class AgentUtil {
     }
 
     /**
-     * A LogEvent MUST NOT be reported if neither a log message nor an error is logged. If either is present report the LogEvent.
+     * A LogEvent MUST NOT be reported if none of these are present:
+     *  - a log message
+     *  - context data
+     *  - an error
+     * If any are present report the LogEvent.
      *
      * @param message   Message to validate
+     * @param mdcCopy context attributes, if any, on the event
      * @param throwable Throwable to validate
      * @return true if a LogEvent should be created, otherwise false
      */
-    private static boolean shouldCreateLogEvent(String message, Throwable throwable) {
-        return (message != null) || !ExceptionUtil.isThrowableNull(throwable);
+    private static boolean shouldCreateLogEvent(String message, Map<String, String> mdcCopy, Throwable throwable) {
+        return (message != null && !message.isEmpty()) ||
+                (AppLoggingUtils.isReportEmptyLogMessages() && mdcCopy != null && !mdcCopy.isEmpty()) ||
+                !ExceptionUtil.isThrowableNull(throwable);
     }
 
     private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
