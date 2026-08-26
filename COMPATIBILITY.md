@@ -195,7 +195,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * MongoDB 4.2.0 to 5.6.0 (exclusive)
   * MongoDB async clients 3.4.0 to 4.2.0 (exclusive)
   * MongoDB sync clients 3.1.0-rc0 to latest
-  * MSSQL R2DBC 0.8.0 to latest
+  * MSSQL R2DBC 0.8.0 to 1.0.6.RELEASE (exclusive)
   * MySQL 3.0.8 to latest
   * MySQL R2DBC 0.8.2 to latest
   * Oracle JDBC 5 to latest
