@@ -130,15 +130,12 @@ public class DefaultExplainPlanExecutorTest {
         Connection connection = Mockito.mock(Connection.class);
         Statement statement = Mockito.mock(Statement.class);
 
-        // The initial EXPLAIN PLAN statement returns no columns, as is the case for Oracle.
-        ResultSet initialResultSet = Mockito.mock(ResultSet.class, Mockito.RETURNS_DEEP_STUBS);
-        Mockito.when(initialResultSet.getMetaData().getColumnCount()).thenReturn(0);
-
-        // The followup query against PLAN_TABLE is where the actual explain plan rows come from.
+        // The primary EXPLAIN PLAN statement is run as a plain execute() and its result (if any) is
+        // ignored (thanks Oracle). The followup query against PLAN_TABLE is where the
+        // actual explain plan rows come from.
         ResultSet followupResultSet = Mockito.mock(ResultSet.class, Mockito.RETURNS_DEEP_STUBS);
         Mockito.when(followupResultSet.getMetaData().getColumnCount()).thenReturn(2);
 
-        Mockito.when(statement.executeQuery(sql)).thenReturn(initialResultSet);
         Mockito.when(statement.executeQuery(followupSql)).thenReturn(followupResultSet);
         Mockito.when(connection.createStatement()).thenReturn(statement);
 

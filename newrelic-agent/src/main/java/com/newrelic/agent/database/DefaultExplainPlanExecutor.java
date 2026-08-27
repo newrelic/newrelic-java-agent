@@ -67,12 +67,23 @@ public class DefaultExplainPlanExecutor implements ExplainPlanExecutor {
         Object[] explainPlan = null;
         try {
             statement = createStatement(connection, sql);
-            resultSet = executeStatement(statement, sql);
 
             if (vendor.isExplainPlanFollowupQueryRequired()) {
+                // If a followup query is required to get results, the primary explain statement's
+                // own result (if any) isn't useful, so run it without treating it as a query.
+                executeStatementIgnoringResult(statement, sql);
+                statement.close();
+                resultSet = null;
+
                 String followupSql = vendor.getFollowupExplainPlanSql(explainPlanSqlInfo.getStatementId());
                 Agent.LOG.finer("Running explain followup query: " + followupSql);
-                resultSet = executeStatement(statement, followupSql);
+                // Use a fresh, plain Statement for the followup query rather than reusing the one
+                // that ran the primary explain statement. Oracle seems to have issues with statement
+                // on the follow-up query.
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(followupSql);
+            } else {
+                resultSet = executeStatement(statement, sql);
             }
             explainPlan = getExplainPlanFromResultSet(vendor, resultSet, recordSql);
         } catch (Exception e) {
@@ -114,6 +125,15 @@ public class DefaultExplainPlanExecutor implements ExplainPlanExecutor {
 
     protected ResultSet executeStatement(Statement statement, String sql) throws SQLException {
         return statement.executeQuery(sql);
+    }
+
+    /**
+     * Run a statement where we don't care about the result (if any). Initially written
+     * for Oracle explain plans since running Oracle explains with executeQuery() doesn't
+     * work.
+     */
+    protected void executeStatementIgnoringResult(Statement statement, String sql) throws SQLException {
+        statement.execute(sql);
     }
 
     protected Statement createStatement(Connection connection, String sql) throws SQLException {
