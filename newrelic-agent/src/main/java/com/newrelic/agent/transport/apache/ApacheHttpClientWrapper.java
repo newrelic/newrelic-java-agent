@@ -64,14 +64,21 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     private CloseableHttpClient httpClient;
     private SSLContext sslContext;
     private final int defaultTimeoutInMillis;
+    private final long collectorConnectionTtlInMillis;
 
     public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis) {
+        this(proxyManager, sslContext, defaultTimeoutInMillis, 0);
+    }
+
+    public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis,
+            long collectorConnectionTtlInMillis) {
         this.proxyManager = proxyManager;
-        this.connectionManager = createHttpClientConnectionManager(sslContext);
+        this.connectionManager = createHttpClientConnectionManager(sslContext, collectorConnectionTtlInMillis);
         this.httpClient = createHttpClient(defaultTimeoutInMillis);
 
         this.sslContext = sslContext;
         this.defaultTimeoutInMillis = defaultTimeoutInMillis;
+        this.collectorConnectionTtlInMillis = collectorConnectionTtlInMillis;
 
         Core.getGlobalContext().register(this);
     }
@@ -89,14 +96,20 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
         return MessageFormat.format("NewRelic-JavaAgent/{0} (java {1} {2})", Agent.getVersion(), javaVersion, arch);
     }
 
-    private static PoolingHttpClientConnectionManager createHttpClientConnectionManager(SSLContext sslContext) {
+    private static PoolingHttpClientConnectionManager createHttpClientConnectionManager(SSLContext sslContext,
+            long collectorConnectionTtlInMillis) {
         // Using the pooling manager here for thread safety.
         PoolingHttpClientConnectionManager httpClientConnectionManager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", sslContext != null ?
                                 new SSLConnectionSocketFactory(sslContext) : SSLConnectionSocketFactory.getSocketFactory())
-                        .build());
+                        .build(),
+                null,
+                null,
+                null,
+                collectorConnectionTtlInMillis > 0 ? collectorConnectionTtlInMillis : -1,
+                TimeUnit.MILLISECONDS);
 
         // We only allow one connection at a time to the backend.
         // Anymore and the the agent hangs during the initial request to the connect endpoint.
@@ -281,7 +294,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("Restarting collector connection for CRaC restore");
-        connectionManager = createHttpClientConnectionManager(sslContext);
+        connectionManager = createHttpClientConnectionManager(sslContext, collectorConnectionTtlInMillis);
         httpClient = createHttpClient(defaultTimeoutInMillis);
     }
 

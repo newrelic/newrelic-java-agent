@@ -65,4 +65,8 @@ public interface DataSenderConfig {
     String getLicenseKey();
 
     int getTimeoutInMilliseconds();
+
+    default long getCollectorConnectionTtlInMilliseconds() {
+        return 0;
+    }
 }

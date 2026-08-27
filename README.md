@@ -30,6 +30,41 @@ See the following documentation for specific use cases of the Java agent:
 - [Troubleshooting](https://docs.newrelic.com/docs/agents/java-agent/troubleshooting)
 - [Java agent Javadocs](https://newrelic.github.io/java-agent-api/javadoc/index.html?com/newrelic/api/agent/package-summary.html)
 
+### Collector connection lifetime
+
+When the JVM loads `newrelic.jar` with `-javaagent`, the agent keeps an HTTP connection open for communication with
+the New Relic collector. If an intermediary such as a proxy, firewall, or load balancer closes idle TCP sessions,
+set `collector_connection_ttl` below that intermediary's shortest connection lifetime. This prevents an expired
+pooled connection from being leased for a later collector request.
+
+The value is a non-negative whole number of seconds. The default value, `0`, allows connections to remain open
+indefinitely. For example, to limit collector connections to two minutes in `newrelic.yml`:
+
+```yaml
+common: &default_settings
+  collector_connection_ttl: 120
+```
+
+The same setting can be supplied as a JVM system property. Like other JVM options, it must appear before `-jar` or
+the application's main class:
+
+```shell
+java -javaagent:/opt/newrelic/newrelic.jar \
+  -Dnewrelic.config.collector_connection_ttl=120 \
+  -jar application.jar
+```
+
+Or set the environment variable before starting the JVM:
+
+```shell
+NEW_RELIC_COLLECTOR_CONNECTION_TTL=120 \
+  java -javaagent:/opt/newrelic/newrelic.jar -jar application.jar
+```
+
+The environment variable takes precedence over the system property, which takes precedence over `newrelic.yml`.
+Connection TTL only controls whether an existing connection may be reused; it does not interrupt an active request
+or replace the collector request timeout and retry behavior.
+
 ## Building
 
 #### JDK requirements
@@ -128,6 +163,19 @@ Run an individual unit test on a specific version of Java:
 ```
 ./gradlew -Ptest17 -PnoInstrumentation clean newrelic-weaver:test --tests "com.newrelic.weave.LineNumberWeaveTest.testRemoveWeaveLineNumbers" --parallel
 ```
+
+Collector connection lifecycle tests use embedded Jetty for HTTP keep-alive, idle closure, TLS, and long-running
+response behavior. Toxiproxy adds TCP reset, blackhole, latency, and truncated-response faults:
+
+```shell
+./gradlew :newrelic-agent:jettyConnectionTtlTest \
+  :newrelic-agent:toxiproxyConnectionRecoveryTest
+```
+
+The Jetty suite runs without Docker. The Toxiproxy task uses Testcontainers to discover Docker Desktop or another
+supported Docker environment automatically; a local Toxiproxy installation is not needed. If Docker is unavailable,
+the Toxiproxy task is skipped. To explicitly skip it even when Docker is running, set either
+`-Dnewrelic.test.containers.enabled=false` or `NEW_RELIC_TEST_CONTAINERS_ENABLED=false`.
 
 #### Functional tests
 

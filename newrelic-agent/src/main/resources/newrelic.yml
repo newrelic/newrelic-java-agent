@@ -188,6 +188,11 @@ common: &default_settings
   #proxy_password: password
   #proxy_scheme: https
 
+  # Limits the maximum lifetime of a persistent connection to the New Relic collector.
+  # Set this below the shortest proxy or network connection timeout to avoid reusing stale connections.
+  # A value of 0 allows connections to remain open indefinitely. Default is 0 seconds.
+  #collector_connection_ttl: 0
+
   # Cloud environment settings for container metadata collection:
   # When running in containerized environments (like AWS Fargate) with a proxy,
   # metadata endpoints may need to bypass the proxy to be accessible.
