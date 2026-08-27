@@ -232,6 +232,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Spring AI Embeddings 1.0.0-M7 to latest
 
   ## Other instrumented features
+  * HTL 3.0.0 to latest
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
   * Java Server Faces 1.0 to latest
