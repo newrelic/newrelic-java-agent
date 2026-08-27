@@ -46,17 +46,14 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
 
     @Override
     public String getFollowupExplainPlanSql(String statementId) {
-        // DBMS_XPLAN.DISPLAY renders PLAN_TABLE's rows for this statement id into Oracle's own
-        // canonical, human-readable plan report (one line of text per row).
+        // Using DBMS_XPLAN.DISPLAY transforms the PLAN_TABLE rows into
+        // human-readable explain plan text
         return "SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', '" + statementId + "', 'TYPICAL'))";
     }
 
     @Override
     public Collection<Collection<Object>> parseExplainPlanResultSet(int columnCount, ResultSet rs, RecordSql recordSql)
             throws SQLException {
-        // Note: unlike the other DatabaseVendor implementations, recordSql/obfuscation isn't
-        // applied here yet. DBMS_XPLAN.DISPLAY's predicate info is embedded inline in free-form
-        // text lines rather than a discrete column, so it can't be scrubbed by clearing a value.
         StringBuilder planText = new StringBuilder();
         while (rs.next()) {
             if (planText.length() > 0) {
@@ -64,6 +61,7 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
             }
             planText.append(rs.getString(1));
         }
+
         return Collections.singletonList(Collections.singletonList(planText.toString()));
     }
 }

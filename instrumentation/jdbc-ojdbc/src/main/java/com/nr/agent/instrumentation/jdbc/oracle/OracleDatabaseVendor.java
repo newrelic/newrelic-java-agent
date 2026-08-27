@@ -26,9 +26,4 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
     public DatastoreVendor getDatastoreVendor() {
         return DatastoreVendor.Oracle;
     }
-
-    @Override
-    public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
-        return new ExplainPlanSqlInfo("EXPLAIN PLAN FOR " + sqlToExplain, null);
-    }
 }

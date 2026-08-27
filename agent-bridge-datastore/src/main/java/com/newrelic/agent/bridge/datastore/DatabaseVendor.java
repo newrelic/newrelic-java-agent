@@ -23,8 +23,8 @@ public interface DatabaseVendor {
 
     /**
      * If explain plans are supported by the vendor, this tells us if a followup query is required
-     * to gets the results. Most systems return the explain result as a ResultSet from the statement
-     * execution, but some (Oracle, for example) require a separate query to another table to
+     * to get the results. Most systems return the explain result as a ResultSet from the initial
+     * statement execution, but some (Oracle, for example) require a separate query to another table to
      * fetch the results.
      *
      * @return true if a separate query is required for explain results

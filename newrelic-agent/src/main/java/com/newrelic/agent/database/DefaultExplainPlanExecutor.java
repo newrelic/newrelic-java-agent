@@ -77,9 +77,9 @@ public class DefaultExplainPlanExecutor implements ExplainPlanExecutor {
 
                 String followupSql = vendor.getFollowupExplainPlanSql(explainPlanSqlInfo.getStatementId());
                 Agent.LOG.finer("Running explain followup query: " + followupSql);
-                // Use a fresh, plain Statement for the followup query rather than reusing the one
+                // Use a new, plain Statement for the followup query rather than reusing the one
                 // that ran the primary explain statement. Oracle seems to have issues with statement
-                // on the follow-up query.
+                // reuse on the follow-up query.
                 statement = connection.createStatement();
                 resultSet = statement.executeQuery(followupSql);
             } else {
