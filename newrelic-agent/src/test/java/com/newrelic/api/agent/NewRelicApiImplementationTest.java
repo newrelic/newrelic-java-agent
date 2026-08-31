@@ -30,6 +30,8 @@ import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,6 +93,17 @@ public class NewRelicApiImplementationTest {
         target.noticeError("errorMessage");
 
         Mockito.verify(errorService).reportError("errorMessage", Collections.emptyMap(), false);
+    }
+
+    @Test
+    public void noticeErrorWithStringMessageAndStringClassShouldProduceAnExceptionReport3() {
+        mockOutServices();
+
+        NewRelicApiImplementation target = new NewRelicApiImplementation();
+        Map<String, ?> params = new HashMap<>();
+        StackTraceElement[] stack = {};
+        target.noticeError("errorMessage", params, "com.newrelic.CustomException", stack, false);
+        Mockito.verify(errorService).reportManualError("errorMessage", params, "com.newrelic.CustomException", stack, false);
     }
 
     @Test

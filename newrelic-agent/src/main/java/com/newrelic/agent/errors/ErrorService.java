@@ -8,7 +8,6 @@
 package com.newrelic.agent.errors;
 
 import com.newrelic.agent.service.EventService;
-import com.newrelic.agent.transaction.TransactionThrowable;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,8 @@ public interface ErrorService extends EventService {
     void reportErrors(TracedError... tracedErrors);
 
     void reportError(TracedError error);
+
+    void reportManualError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected);
 
     void reportHTTPError(String message, int statusCode, String uri);
 

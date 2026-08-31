@@ -607,6 +607,37 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
     }
 
     @Override
+    public void reportManualError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
+        Transaction tx = Transaction.getTransaction(false);
+        if (tx != null && tx.isInProgress()) {
+            final TransactionActivity transactionActivity = TransactionActivity.get();
+            if (transactionActivity != null && transactionActivity.getLastTracer() != null) {
+                ReportableError txnActivityReportableError = new ReportableError(message, className);
+                txnActivityReportableError.setStackTrace(stackTrace);
+                transactionActivity.getLastTracer().setNoticedError(txnActivityReportableError);
+            }
+            if (params != null) {
+                tx.getErrorAttributes().putAll(params);
+            }
+            synchronized (tx) {
+                tx.setThrowable(new ReportableError(message, className), TransactionErrorPriority.API, expected);
+            }
+        } else {
+            // we're not within a transaction. just report the error
+            ReportableError reportableError = new ReportableError(message, className);
+            reportableError.setStackTrace(stackTrace);
+            TracedError error = ThrowableError
+                    .builder(errorCollectorConfig, null, "Unknown", reportableError, System.currentTimeMillis())
+                    .errorMessageReplacer(errorMessageReplacer)
+                    .errorAttributes(params)
+                    .expected(expected)
+                    .build();
+
+            reportError(error);
+        }
+    }
+
+    @Override
     public void beforeHarvest(String appName, StatsEngine statsEngine) {
         harvestTracedErrors(appName, statsEngine);
     }

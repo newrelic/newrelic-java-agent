@@ -90,6 +90,28 @@ public interface ErrorApi {
     void noticeError(Throwable throwable, Map<String, ?> params, boolean expected);
 
     /**
+     * Notice an error and report it to New Relic. If this method is called within a transaction, the error message will
+     * be reported with the transaction when it finishes. If it is invoked outside of a transaction, a traced error will
+     * be created and reported to New Relic. If noticeError is invoked multiple times while in a transaction, only the
+     * last error will be reported. This method call is for users who want to report the
+     * exception class without passing the actual class instance.
+     *
+     * <p>
+     * <b>Note:</b> The key and value pairs in custom parameters {@code params} will be dropped or modified in the
+     * traced error if the key or value, each, cannot be encoded in 255 bytes. If key or value is over this limit, the
+     * behavior will be the same as defined in {@link #addCustomParameter(String key, String value) addCustomParameter}.
+     * </p>
+     *
+     * @param message The error message to be reported.
+     * @param params Custom parameters to include in the traced error. May be null.
+     * @param className Class name of the exception being passed.
+     * @param stackTrace The exception stack trace. May be null.
+     * @param expected  true if this error is expected, false otherwise.
+     * @since 1.3.0
+     */
+    void noticeError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected);
+
+    /**
      * Report an exception to New Relic.
      * <p>
      * Expected errors do not increment an application's error count or contribute towards its Apdex score.

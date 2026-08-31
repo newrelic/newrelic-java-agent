@@ -90,6 +90,12 @@ public class ThrowableError extends TracedError {
 
     @Override
     public String getExceptionClass() {
+        if (throwable instanceof ReportableError) {
+            String reportedClassName = ((ReportableError)throwable).getReportedClassName();
+            if (reportedClassName != null) {
+                return reportedClassName;
+            }
+        }
         return throwable == null ? null : throwable.getClass().getName();
     }
 

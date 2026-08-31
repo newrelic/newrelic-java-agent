@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -286,7 +287,11 @@ public class SpanErrorBuilderTest {
 
     private void assertSpanError(SpanError target, Integer expectedStatus, Class<?> expectedClass,
             String expectedMessage, boolean expectedError) {
-        assertEquals(expectedClass, target.getErrorClass());
+        if (expectedClass == null) {
+            assertNull(target.getErrorClassName());
+        } else {
+            assertEquals(expectedClass.getName(), target.getErrorClassName());
+        }
         assertEquals(expectedStatus, target.getErrorStatus());
         assertEquals(expectedMessage, target.getErrorMessage());
         assertEquals(expectedError, target.isExpectedError());

@@ -15,6 +15,7 @@ import com.newrelic.api.agent.TransactionNamePriority;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributesBuilder;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -92,6 +93,10 @@ public final class OpenTelemetryNewRelic {
 
     public static void noticeError(String message, boolean expected) {
         getAgent().getErrorApi().noticeError(message, expected);
+    }
+
+    public static void noticeError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
+        getAgent().getErrorApi().noticeError(message, params, className, stackTrace, expected);
     }
 
     public static void setErrorGroupCallback(ErrorGroupCallback errorGroupCallback) {

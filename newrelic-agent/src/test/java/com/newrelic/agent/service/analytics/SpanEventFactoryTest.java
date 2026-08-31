@@ -94,7 +94,7 @@ public class SpanEventFactoryTest {
     @Test
     public void shouldSetSpanErrorWithOnlyErrorClassAndMessage() {
         SpanError spanError = new SpanError();
-        spanError.setErrorClass(RuntimeException.class);
+        spanError.setErrorClassName(RuntimeException.class.getName());
         spanError.setErrorStatus(500);
         spanError.setErrorMessage("not again");
 
@@ -108,7 +108,7 @@ public class SpanEventFactoryTest {
     @Test
     public void shouldNotSetSpanErrorWhenFiltered() {
         SpanError spanError = new SpanError();
-        spanError.setErrorClass(RuntimeException.class);
+        spanError.setErrorClassName(RuntimeException.class.getName());
         spanError.setErrorStatus(500);
         spanError.setErrorMessage("not again");
 

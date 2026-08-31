@@ -14,6 +14,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.newrelic.opentelemetry.OpenTelemetryNewRelic.logUnsupportedMethod;
@@ -63,6 +64,15 @@ public final class OpenTelemetryErrorApi implements ErrorApi {
         Attributes attributes = OpenTelemetryNewRelic.toAttributes(params).putAll(expected ? EXPECTED_ERROR_ATTRIBUTES : UNEXPECTED_ERROR_ATTRIBUTES).build();
         Span.current().recordException(throwable, attributes);
         Span.current().setStatus(StatusCode.ERROR);
+    }
+
+    @Override
+    public void noticeError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
+        ReportedError reportedError = new ReportedError(message);
+        reportedError.setStackTrace(stackTrace);
+        Map<String, Object> mappedParams = new HashMap<>(params);
+        mappedParams.putIfAbsent("exception.type", className);
+        noticeError(reportedError, mappedParams, expected);
     }
 
     @Override
