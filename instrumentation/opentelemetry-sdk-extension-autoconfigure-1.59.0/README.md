@@ -232,6 +232,32 @@ NEW_RELIC_PROXY_PORT : 8888
 
 Note that, as the OpenTelemetry SDK does not support proxy authentication, the (`proxy_user`/`proxy_password`) and `proxy_scheme` agent config settings are NOT applied to the OTLP metric exporter.
 
+### Supportability Metrics
+
+The health of the OTLP metrics export path can be monitored via the following supportability metrics:
+
+* `Supportability/Metrics/Java/OpenTelemetryBridge/export/success` - incremented once per dimensional metrics batch that the OTel SDK successfully exported.
+* `Supportability/Metrics/Java/OpenTelemetryBridge/export/failure` - incremented once per batch that was dropped, either because the OTel SDK's internal retry budget was exhausted or because the failure was non-retryable (e.g. an HTTP 400 response).
+* `Supportability/Metrics/Java/OpenTelemetryBridge/export/retry` - incremented once per retried export attempt (i.e. every attempt after the first for a given batch). Retry attempts are counted by instrumenting [RetryInterceptor](https://github.com/open-telemetry/opentelemetry-java/blob/main/exporters/sender/okhttp/src/main/java/io/opentelemetry/exporter/sender/okhttp/internal/RetryInterceptor.java) in the corresponding `opentelemetry-exporter-otlp-1.59.0` instrumentation module.
+
+Retry is on by default at this OTel version (the SDK seeds a default retry policy of 5 attempts). This module also sets `otel.java.exporter.otlp.retry.disabled=false`, which this OTel version reads, as a defensive no-op should that default ever change.
+
+Note that `export/retry` is recorded by instrumenting the retry interceptor shared by every signal exported over the same OTel exporter-sender component. This agent configures the OTel SDK with `otel.traces.exporter=none` and `otel.logs.exporter=none`, so under normal agent configuration all OTLP HTTP traffic on that interceptor is metrics traffic. If the monitored application independently configures its own OTLP trace or log exporter (bypassing the agent's autoconfiguration), those exporters' retries would also be counted toward this metric.
+
+Additionally, the following data usage supportability metrics will be recorded for OTLP Metric payloads:
+* `Supportability/Java/OTLP/Output/Bytes`
+* `Supportability/Java/OTLP/Metrics/Output/Bytes`
+
+### OTLP Metrics Payload Audit Logging
+
+When `audit_mode: true` the agent will log base64 encoded sent/received payloads for OTLP Metrics, as follows:
+
+```
+2026-08-17T16:22:43,560-0700 [26873 98] com.newrelic INFO: Sent OTLP/Metrics to: https://collector.newrelic.com:443, bytes: 48,694, payload: CrAICqQHCiEKDWFnZW50LnZlcnNpb24SEAoOOS4...Eb3duQ291bnRlchIFCgNmb28QAg==
+
+2026-08-17T16:22:43,723-0700 [26873 167] com.newrelic INFO: Received OTLP/Metrics response: status=200, bytes=0, payload: 
+```
+
 ## OpenTelemetry Traces Signals
 
 Documented below are several approaches for incorporating OpenTelemetry Traces (aka Spans) into New Relic Java agent traces.
