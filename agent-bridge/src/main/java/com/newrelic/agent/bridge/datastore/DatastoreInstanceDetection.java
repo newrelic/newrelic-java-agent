@@ -120,7 +120,7 @@ public final class DatastoreInstanceDetection {
             MultiHostConfig multihostPreference = MultiHostConfig.getAndValidateFrom(multihostPreferenceAsString);
             if (MultiHostConfig.FIRST.equals(multihostPreference)) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Keeping previous address: "+previousAddress);
-                return;
+                 return;
             } else if (MultiHostConfig.LAST.equals(multihostPreference)) {
                 AgentBridge.getAgent().getLogger().log(Level.FINEST, "Using new address: "+addressToStore);
                 // just keep going, and we'll store the new address

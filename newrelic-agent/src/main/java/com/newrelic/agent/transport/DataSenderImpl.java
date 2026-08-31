@@ -17,9 +17,9 @@ import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MetricData;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
-import com.newrelic.agent.agentcontrol.AgentHealth;
-import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
+import com.newrelic.agent.agentcontrol.health.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DataSenderConfig;
@@ -481,6 +481,19 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         params.add(jarDataList);
 
         invokeRunId(CollectorMethods.UPDATE_LOADED_MODULES, compressedEncoding, runId, params);
+    }
+
+    @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception {
+        Object runId = agentRunId;
+        if (runId == NO_AGENT_RUN_ID || settings == null || settings.isEmpty()) {
+            return;
+        }
+        InitialSizedJsonArray params = new InitialSizedJsonArray(1);
+
+        params.add(settings);
+
+        invokeRunId(CollectorMethods.AGENT_SETTINGS, compressedEncoding, runId, params);
     }
 
     /**

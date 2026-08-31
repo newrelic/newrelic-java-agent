@@ -7,7 +7,6 @@
 
 package com.newrelic.agent;
 
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -37,6 +36,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.ConnectionResponse;
@@ -47,6 +47,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.utilization.UtilizationData;
 import org.json.simple.JSONStreamAware;
 
@@ -60,6 +61,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -100,6 +103,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private final AtomicInteger last503Error = new AtomicInteger(0);
     private final AtomicInteger retryCount = new AtomicInteger(0);
     private final ReentrantLock reentrantLock = new ReentrantLock();
+    private static ScheduledExecutorService scheduler = null;
 
     private String rpmLink;
     private long lastReportTime;
@@ -131,6 +135,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         port = config.getPort();
         isMainApp = appName.equals(config.getApplicationName());
         this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
+
+        if (config.isAgentSettingsEnabled() && this.isMainApp) {
+            scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
+        }
     }
 
     @Override
@@ -279,6 +287,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             } catch (Exception ex) {
                 Agent.LOG.log(Level.FINEST, ex, "Error processing collector connect messages");
             }
+
+            connectionTimestamp = System.nanoTime();
+            connected = true;
+            hasEverConnected = true;
+            entityGuid = data.get("entity_guid") != null ? data.get("entity_guid").toString() : "";
 
             AgentConfig config = null;
             if (connectionConfigListener != null && !serverlessMode) {
@@ -508,6 +521,24 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceRestartException(e);
             reconnectSync();
             return dataSender.sendProfileData(profiles);
+        }
+    }
+
+    @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception{
+        Agent.LOG.log(Level.FINE, "Sending agent settings (config)");
+        try {
+            dataSender.sendAgentSettings(settings);
+        } catch (ForceRestartException e) {
+            // We let the next access of a collector endpoint honor the reconnect.
+            // If we did the reconnct here, we have the potential for an infinite
+            // loop since sendAgentSettings is called from the connect flow.
+            logForceRestartException(e);
+            throw e;
+        } catch (ForceDisconnectException e) {
+            logForceDisconnectException(e);
+            shutdownAsync();
+            throw e;
         }
     }
 
@@ -1056,6 +1087,9 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     protected void doStop() {
         removeHarvestablesFromServices(appName);
+        if (scheduler != null && this.isMainApp) {
+            scheduler.shutdownNow();
+        }
         try {
             errorService.stop();
             shutdown();
@@ -1105,5 +1139,17 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     public void configChanged(String appName, AgentConfig agentConfig) {
         // reset our error logging so that something will show up at info level if data failures persist
         last503Error.set(0);
+
+        // Schedule a submission of the agents current configuration if this
+        // RPMService is for the main application
+        if (scheduler != null && this.isMainApp) {
+            scheduler.schedule(() -> {
+                try {
+                    this.sendAgentSettings(ServiceFactory.getConfigService().getExplicitlySetConfig());
+                } catch (Exception e) {
+                    logger.log(Level.FINE, "Exception occurred while sending agent settings to New Relic.", e);
+                }
+            }, 10, TimeUnit.MILLISECONDS);
+        }
     }
 }

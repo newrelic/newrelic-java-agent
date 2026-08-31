@@ -6,7 +6,9 @@
  */
 package com.newrelic.agent.agentcontrol;
 
-import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import com.newrelic.agent.agentcontrol.health.AgentControlIntegrationHealthFileBasedClient;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +63,7 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
     @Test
     public void sendHealthMessage_withValidConfig_createsHealthFile() throws IOException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
-        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlIntegrationHealthFileBasedClient client = new AgentControlIntegrationHealthFileBasedClient(mockConfig);
 
         long startTime = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
@@ -83,7 +85,7 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
     @Test
     public void sendHealthMessage_withValidConfig_WithKeysInProperOrder() throws IOException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
-        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlIntegrationHealthFileBasedClient client = new AgentControlIntegrationHealthFileBasedClient(mockConfig);
         final String [] ORDERED_KEYS = {"entity_guid", "healthy", "status", "start_time_unix_nano", "status_time_unix_nano"};
 
 
@@ -103,14 +105,12 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
             }
         } catch (IOException ignored) {
         }
-
-
     }
 
     @Test
     public void sendHealthMessage_withUnhealthyAgentInstance_createsHealthFileWithLastError() throws IOException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(HEALTH_FILE_LOCATION);
-        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlIntegrationHealthFileBasedClient client = new AgentControlIntegrationHealthFileBasedClient(mockConfig);
 
         long startTime = AgentControlIntegrationUtils.getPseudoCurrentTimeNanos();
         AgentHealth agentHealth = new AgentHealth(startTime);
@@ -133,7 +133,7 @@ public class AgentControlIntegrationHealthFileBasedClientTest {
     @Test
     public void constructor_withInvalidLocation_setsValidToFalse() throws URISyntaxException {
         when(mockConfig.getHealthDeliveryLocation()).thenReturn(new URI("file:///foo/bar/zzzzzzzz"));
-        AgentControlControlIntegrationHealthFileBasedClient client = new AgentControlControlIntegrationHealthFileBasedClient(mockConfig);
+        AgentControlIntegrationHealthFileBasedClient client = new AgentControlIntegrationHealthFileBasedClient(mockConfig);
 
         assertFalse(client.isValid());
     }

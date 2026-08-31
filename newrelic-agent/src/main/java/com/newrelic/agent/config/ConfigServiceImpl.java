@@ -132,16 +132,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     @Override
     public Map<String, Object> getSanitizedLocalSettings() {
         Map<String, Object> settings = DeepMapClone.deepCopy(fileSettings);
-        if (settings.containsKey(AgentConfigImpl.PROXY_HOST)) {
-            settings.put(AgentConfigImpl.PROXY_HOST, SANITIZED_SETTING);
-        }
-        if (settings.containsKey(AgentConfigImpl.PROXY_USER)) {
-            settings.put(AgentConfigImpl.PROXY_USER, SANITIZED_SETTING);
-        }
-        if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
-            settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
-        }
-        //if there is no adaptive_sampling_target set, set it here.
+        sanitizeSettingsFromConfigMap(settings);
         addAdaptiveSamplerDefaultIfNotSet(settings);
         return settings;
     }
@@ -189,6 +180,86 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     @Override
     public ExtensionsConfig getExtensionsConfig(String appName) {
         return getOrCreateAgentConfig(appName).getExtensionsConfig();
+    }
+
+    @Override
+    public Map<String, Object> getExplicitlySetConfig() {
+        Map<String, Object> localSettings = getSanitizedLocalSettings();
+        Map<String, Object> systemProperties = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicPropertiesWithoutPrefix();
+        Map<String, Object> envVars = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix();
+
+        Map<String, Object> mergedSettings = new HashMap<>(flattenLocalSettingsConfigMap("", localSettings));
+        mergedSettings.putAll(systemProperties);
+
+        // This uses the non-prefixed env var --> dot notation map to convert configs supplied via
+        // env vars to dot notation.
+        Map<String, String> envVarKeyToConfigKey = ReferenceConfigLookup.getEnvVarKeyToConfigKeyMap();
+        for (Map.Entry<String, Object> envEntry : envVars.entrySet()) {
+            String configKey = envVarKeyToConfigKey.get(envEntry.getKey());
+            if (configKey != null) {
+                mergedSettings.put(configKey, envEntry.getValue());
+            }
+        }
+
+        // Server-side config is highest priority — overlay last.
+        if (savedServerData != null) {
+            mergedSettings.putAll(flattenLocalSettingsConfigMap("", AgentConfigFactory.getAgentData(savedServerData)));
+        }
+
+        mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
+        return mergedSettings;
+    }
+
+    private Map<String, Object> unflattenToNestedMap(Map<String, Object> flatMap) {
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, Object> entry : flatMap.entrySet()) {
+            String[] parts = entry.getKey().split("\\.");
+            Map<String, Object> current = result;
+            for (int i = 0; i < parts.length - 1; i++) {
+                current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new HashMap<>());
+            }
+            current.put(parts[parts.length - 1], entry.getValue());
+        }
+        return result;
+    }
+
+    private Map<String, Object> flattenLocalSettingsConfigMap(String prefix, Map<String, Object> settings) {
+        Map<String, Object> mergedSettings = new HashMap<>();
+
+        for (Map.Entry<String, Object> entry : settings.entrySet()) {
+            String newKeySegment = entry.getKey();
+            Object settingValue = entry.getValue();
+
+            String fullKey = (prefix.length() == 0 ? "" : prefix + ".") + newKeySegment;
+            if (settingValue instanceof Map) {
+                mergedSettings.putAll(flattenLocalSettingsConfigMap(fullKey, (Map<String, Object>)settingValue));
+            } else {
+                mergedSettings.put(fullKey, settingValue);
+            }
+        }
+
+        return mergedSettings;
+    }
+
+    /**
+     * Remove sensitive values from the supplied config map. Note that this method modifies
+     * the target Map instance
+     *
+     * @param settings the target config Map
+     */
+    private void sanitizeSettingsFromConfigMap(Map<String, Object> settings) {
+        if (settings.containsKey(AgentConfigImpl.PROXY_HOST)) {
+            settings.put(AgentConfigImpl.PROXY_HOST, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.PROXY_USER)) {
+            settings.put(AgentConfigImpl.PROXY_USER, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
+            settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
+        }
+        if (settings.containsKey(AgentConfigImpl.LICENSE_KEY)) {
+            settings.put(AgentConfigImpl.LICENSE_KEY, SANITIZED_SETTING);
+        }
     }
 
     private void checkConfigFile() throws Exception {

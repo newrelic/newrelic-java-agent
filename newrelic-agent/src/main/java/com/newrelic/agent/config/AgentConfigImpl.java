@@ -11,6 +11,8 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfigImpl;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
@@ -55,6 +57,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ENABLED = "enabled";
     private static final String APM_LAMBDA_MODE = "apm_lambda_mode";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
+    public static final String ENABLE_AGENT_SETTINGS = "enable_agent_settings";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
     public static final String ENABLE_CLASS_RETRANSFORMATION = "enable_class_retransformation";
@@ -149,6 +152,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String DEFAULT_DATASTORE_MULTIHOST_PREFERENCE = DatastoreInstanceDetection.MultiHostConfig.NONE.name();
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
+    public static final boolean DEFAULT_ENABLE_AGENT_SETTINGS = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
     public static final boolean DEFAULT_EXPERIMENTAL_RUNTIME = false;
@@ -211,6 +215,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final String appName;
     private final List<String> appNames;
     private final boolean autoAppNamingEnabled;
+    private final boolean agentSettingsEnabled;
     private final boolean autoTransactionNamingEnabled;
     private final String caBundlePath;
     private final String compressedContentEncoding;
@@ -345,6 +350,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         appName = getPrimaryAppName();
         cpuSamplingEnabled = getProperty(CPU_SAMPLING_ENABLED, DEFAULT_CPU_SAMPLING_ENABLED);
         autoAppNamingEnabled = getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
+        agentSettingsEnabled = getProperty(ENABLE_AGENT_SETTINGS, DEFAULT_ENABLE_AGENT_SETTINGS);
         autoTransactionNamingEnabled = getProperty(ENABLE_AUTO_TRANSACTION_NAMING, DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
         transactionSizeLimit = getIntProperty(TRANSACTION_SIZE_LIMIT, DEFAULT_TRANSACTION_SIZE_LIMIT) * 1024;
         waitForRPMConnect = getProperty(WAIT_FOR_RPM_CONNECT, DEFAULT_WAIT_FOR_RPM_CONNECT);
@@ -1007,6 +1013,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public boolean isAutoAppNamingEnabled() {
         return autoAppNamingEnabled;
+    }
+
+    @Override
+    public boolean isAgentSettingsEnabled() {
+        return agentSettingsEnabled;
     }
 
     @Override

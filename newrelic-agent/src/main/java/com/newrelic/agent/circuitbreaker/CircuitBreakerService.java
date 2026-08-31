@@ -17,9 +17,9 @@ import com.newrelic.agent.config.CircuitBreakerConfig;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
-import com.newrelic.agent.agentcontrol.AgentHealth;
-import com.newrelic.agent.agentcontrol.HealthDataChangeListener;
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
+import com.newrelic.agent.agentcontrol.health.HealthDataChangeListener;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 
 import java.lang.management.GarbageCollectorMXBean;

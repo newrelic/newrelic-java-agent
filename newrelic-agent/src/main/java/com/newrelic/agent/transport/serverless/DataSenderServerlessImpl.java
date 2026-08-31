@@ -143,6 +143,11 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
+    public void sendAgentSettings(Map<String, Object> settings) throws Exception {
+        // Serverless doesn't send agent_settings
+    }
+
+    @Override
     public void shutdown(long timeMillis) throws Exception {
         // Serverless mode does not write data on shutdown
     }

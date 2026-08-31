@@ -147,7 +147,8 @@ public class TransactionActivity {
                 Thread.currentThread().getName(), false);
         txa.activityId = id;
         activityHolder.set(txa);
-        Agent.LOG.log(Level.FINE, "created {0} for {1}", txa, transaction);
+        Agent.LOG.log(Level.FINE, "created {0} for {1}; txn GUID: {2}", txa, transaction,
+                transaction == null ? "none" : transaction.getGuid());
         return txa;
     }
 
@@ -227,7 +228,8 @@ public class TransactionActivity {
     }
 
     public void markAsResponseSender() {
-        Agent.LOG.log(Level.FINEST, "Transaction Activity {0} marked as the response sender", this);
+        Agent.LOG.log(Level.FINEST, "Transaction Activity {0} marked as the response sender for txn {1}; txn GUID: {2}",
+                this, this.transaction, this.transaction.getGuid());
         sendsResponse = true;
     }
 
@@ -426,7 +428,8 @@ public class TransactionActivity {
      */
     private void finished(Tracer tracer, int opcode) {
         if (Agent.LOG.isFinestEnabled()) {
-            Agent.LOG.log(Level.FINEST, "tracerFinished: {0} opcode: {1} in transactionActivity {2}", tracer, opcode, this);
+            Agent.LOG.log(Level.FINEST, "tracerFinished: {0} opcode: {1} in transactionActivity {2} for transaction {3}; txn GUID: {4}",
+                    tracer, opcode, this, this.transaction, this.transaction == null ? "none" : this.transaction.getGuid());
         }
         try {
             if (transaction != null) {

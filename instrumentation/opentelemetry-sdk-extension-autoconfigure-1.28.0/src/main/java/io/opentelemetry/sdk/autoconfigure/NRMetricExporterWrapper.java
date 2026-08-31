@@ -43,6 +43,9 @@ import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
  */
 final class NRMetricExporterWrapper implements MetricExporter {
 
+    private static final String EXPORT_SUCCESS_METRIC = "Supportability/Metrics/Java/OpenTelemetryBridge/export/success";
+    private static final String EXPORT_FAILURE_METRIC = "Supportability/Metrics/Java/OpenTelemetryBridge/export/failure";
+
     private final MetricExporter delegate;
     private final String endpoint;
     private volatile Map<String, String> lastMetadata;
@@ -58,7 +61,7 @@ final class NRMetricExporterWrapper implements MetricExporter {
         boolean auditMode = OtlpAuditLogger.isAuditModeEnabled();
         Collection<MetricData> toExport = prepareMetrics(metrics);
         final int bytesSent = logAuditRequest(toExport, auditMode);
-        CompletableResultCode result = delegate.export(toExport);
+        final CompletableResultCode result = delegate.export(toExport);
         result.whenComplete(new Runnable() {
             @Override
             public void run() {
@@ -71,6 +74,10 @@ final class NRMetricExporterWrapper implements MetricExporter {
                  * important value to capture.
                  */
                 OtlpAuditLogger.recordDataUsageMetrics(bytesSent, 0);
+                // The OTel SDK exhausts its retry budget inside delegate.export(), so a failure
+                // here means the batch was dropped after retries (or was non-retryable), not that
+                // a retry is still pending.
+                NewRelic.incrementCounter(result.isSuccess() ? EXPORT_SUCCESS_METRIC : EXPORT_FAILURE_METRIC);
             }
         });
         return result;
