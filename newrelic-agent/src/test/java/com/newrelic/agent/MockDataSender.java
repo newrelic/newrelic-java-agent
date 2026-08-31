@@ -39,6 +39,7 @@ public class MockDataSender implements DataSender {
     private CountDownLatch latch;
     private Map<String, Object> agentSettings;
     private CountDownLatch agentSettingsLatch;
+    private List<List<?>> agentCommands = Collections.emptyList();
 
     public MockDataSender(DataSenderConfig config) {
         this(config, null);
@@ -79,12 +80,15 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
-    public List<List<?>> getAgentCommands() throws Exception {
-        return null;
+    public void sendCommandResults(Map<Long, Object> commandResults) throws Exception {
     }
 
-    @Override
-    public void sendCommandResults(Map<Long, Object> commandResults) throws Exception {
+    /**
+     * Sets the agent commands that will be returned by the next call to {@link #sendMetricData(long, long, List)},
+     * simulating a collector piggybacking commands on the metric_data harvest response.
+     */
+    public void setAgentCommands(List<List<?>> agentCommands) {
+        this.agentCommands = agentCommands;
     }
 
     @Override
@@ -95,7 +99,8 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
-    public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
+    public List<List<?>> sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
+        return agentCommands;
     }
 
     @Override
