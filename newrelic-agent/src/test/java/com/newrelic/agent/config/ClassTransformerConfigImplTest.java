@@ -106,6 +106,18 @@ public class ClassTransformerConfigImplTest {
     }
 
     @Test
+    public void getMaxMatcherThreads() throws Exception {
+        Map<String, Object> classTransformerMap = new HashMap<>();
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
+                true, false, false);
+        Assert.assertEquals(Math.max(1, Runtime.getRuntime().availableProcessors()), config.getMaxMatcherThreads());
+
+        classTransformerMap.put("max_matcher_threads", 2);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
+        Assert.assertEquals(2, config.getMaxMatcherThreads());
+    }
+
+    @Test
     public void includes() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,

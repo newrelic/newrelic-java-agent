@@ -482,6 +482,11 @@ common: &default_settings
     # Default is false.
     use_controller_class_and_method_for_spring_transaction_naming: false
 
+    # The maximum number of threads to use when parallelizing class matching and internal
+    # instrumentation loading at startup and during retransformation. Defaults to the number
+    # of available processors (minimum of 1).
+    # max_matcher_threads: 4
+
     # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
     # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
     # to true will result in the transaction name reflecting the actual base actuator endpoint URI.

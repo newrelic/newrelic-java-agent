@@ -261,8 +261,10 @@ public class ExtensionService extends AbstractService implements HarvestListener
                 Class<?>[] allLoadedClasses = ServiceFactory.getCoreService().getInstrumentation().getAllLoadedClasses();
                 retransformer.setClassMethodMatchers(pointCuts);
                 InstrumentationContextClassMatcherHelper matcherHelper = new InstrumentationContextClassMatcherHelper();
+                int maxMatcherThreads = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                        .getClassTransformerConfig().getMaxMatcherThreads();
                 Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(
-                        retransformer.getMatchers(), matcherHelper, allLoadedClasses);
+                        retransformer.getMatchers(), matcherHelper, maxMatcherThreads, allLoadedClasses);
                 ReinstrumentUtils.checkClassExistsAndRetransformClasses(new ReinstrumentResult(),
                         Collections.<ExtensionClassAndMethodMatcher>emptyList(), null, classesToRetransform);
             }

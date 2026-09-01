@@ -38,6 +38,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final String CLASSLOADER_DELEGATION_INCLUDES = "classloader_delegation_includes";
     public static final String CLASSLOADER_EXCLUDES = "classloader_excludes";
     public static final String MAX_PREVALIDATED_CLASSLOADERS = "max_prevalidated_classloaders";
+    public static final String MAX_MATCHER_THREADS = "max_matcher_threads";
     public static final String PREVALIDATE_WEAVE_PACKAGES = "prevalidate_weave_packages";
     public static final String PREMATCH_WEAVE_METHODS = "prematch_weave_methods";
     public static final String DEFAULT_INSTRUMENTATION = "instrumentation_default";
@@ -53,6 +54,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final int DEFAULT_SHUTDOWN_DELAY = -1;
     public static final boolean DEFAULT_GRANT_PACKAGE_ACCESS = false;
     public static final int DEFAULT_MAX_PREVALIDATED_CLASSLOADERS = 10;
+    public static final int DEFAULT_MAX_MATCHER_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
     public static final boolean DEFAULT_PREVALIDATE_WEAVE_PACKAGES = true;
     public static final boolean DEFAULT_PREMATCH_WEAVE_METHODS = true;
     public static final boolean DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING = false;
@@ -97,6 +99,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final long shutdownDelayInNanos;
     private final boolean grantPackageAccess;
     private final int maxPreValidatedClassLoaders;
+    private final int maxMatcherThreads;
     private final boolean preValidateWeavePackages;
     private final boolean preMatchWeaveMethods;
     private final boolean isEnhancedSpringTransactionNaming;
@@ -126,6 +129,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         shutdownDelayInNanos = initShutdownDelay();
         grantPackageAccess = getProperty(GRANT_PACKAGE_ACCESS, DEFAULT_GRANT_PACKAGE_ACCESS);
         maxPreValidatedClassLoaders = getProperty(MAX_PREVALIDATED_CLASSLOADERS, DEFAULT_MAX_PREVALIDATED_CLASSLOADERS);
+        maxMatcherThreads = getProperty(MAX_MATCHER_THREADS, DEFAULT_MAX_MATCHER_THREADS);
         preValidateWeavePackages = getProperty(PREVALIDATE_WEAVE_PACKAGES, DEFAULT_PREVALIDATE_WEAVE_PACKAGES);
         preMatchWeaveMethods = getProperty(PREMATCH_WEAVE_METHODS, DEFAULT_PREMATCH_WEAVE_METHODS);
         defaultMethodTracingEnabled = getProperty("default_method_tracing_enabled", true);
@@ -310,6 +314,11 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     @Override
     public int getMaxPreValidatedClassLoaders() {
         return maxPreValidatedClassLoaders;
+    }
+
+    @Override
+    public int getMaxMatcherThreads() {
+        return maxMatcherThreads;
     }
 
     @Override

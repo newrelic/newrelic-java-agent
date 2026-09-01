@@ -13,6 +13,7 @@ import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.commands.InstrumentUpdateCommand;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
+import com.newrelic.agent.config.ClassTransformerConfig;
 import com.newrelic.agent.config.ReinstrumentConfig;
 import com.newrelic.agent.extension.beans.Extension;
 import com.newrelic.agent.extension.dom.ExtensionDomParser;
@@ -158,8 +159,10 @@ public class RemoteInstrumentationServiceImpl extends AbstractService implements
 
         Class<?>[] allLoadedClasses = ServiceFactory.getCoreService().getInstrumentation().getAllLoadedClasses();
         InstrumentationContextClassMatcherHelper matcherHelper = new InstrumentationContextClassMatcherHelper();
+        ClassTransformerConfig classTransformerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getClassTransformerConfig();
         Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(
-                remoteRetransformer.getMatchers(), matcherHelper, allLoadedClasses);
+                remoteRetransformer.getMatchers(), matcherHelper, classTransformerConfig.getMaxMatcherThreads(), allLoadedClasses);
         ReinstrumentUtils.checkClassExistsAndRetransformClasses(result, pointCuts, ext, classesToRetransform);
     }
 

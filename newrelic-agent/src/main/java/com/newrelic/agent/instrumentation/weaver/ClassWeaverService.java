@@ -85,10 +85,6 @@ import static com.newrelic.agent.config.SecurityAgentConfig.shouldInitializeSecu
  * All interfacing with the weaver is done here.
  */
 public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClassTransformer {
-    /**
-     * Determines how many threads to run in parallel when loading instrumentation packages
-     */
-    private static final int PARTITIONS = 8;
     private static ClassNode EXTENSION_TEMPLATE;
 
     static {
@@ -109,6 +105,12 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
     private final WeavePackageManager weavePackageManager;
 
     /**
+     * How many threads to run in parallel when loading instrumentation packages, configured via
+     * {@link ClassTransformerConfig#getMaxMatcherThreads()}.
+     */
+    private final int partitions;
+
+    /**
      * Weave Packages loaded from the agent's jar. Cannot be unloaded or reloaded.
      */
     private final Set<String> internalWeavePackages = Sets.newConcurrentHashSet();
@@ -127,6 +129,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         ClassTransformerConfig config = agentConfig.getClassTransformerConfig();
         this.weavePackageManager = new WeavePackageManager(listener, instrumentation,
                 config.getMaxPreValidatedClassLoaders(), config.preValidateWeavePackages(), config.preMatchWeaveMethods());
+        this.partitions = config.getMaxMatcherThreads();
     }
 
     /**
@@ -236,7 +239,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             LOG.log(Level.FINE, "Loading {0} security instrumentation packages", jarFileNames.size());
         }
 
-        int partitions = Math.min(jarFileNames.size(), PARTITIONS);
+        int partitions = Math.min(jarFileNames.size(), this.partitions);
         // Note: An ExecutorService would be better suited for this work but we are
         // specifically not using it here to prevent the ConcurrentCallablePointCut
         // from being loaded too early
@@ -288,7 +291,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
             LOG.log(Level.FINE, "Loading {0} instrumentation packages", jarFileNames.size());
         }
 
-        int partitions = Math.min(jarFileNames.size(), PARTITIONS);
+        int partitions = Math.min(jarFileNames.size(), this.partitions);
         // Note: An ExecutorService would be better suited for this work but we are
         // specifically not using it here to prevent the ConcurrentCallablePointCut
         // from being loaded too early
