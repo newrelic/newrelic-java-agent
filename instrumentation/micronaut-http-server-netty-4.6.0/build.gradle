@@ -3,6 +3,7 @@ dependencies {
     implementation("io.micronaut:micronaut-http-server-netty:4.6.0")
     implementation("io.projectreactor:reactor-core:3.5.11")
 
+    testImplementation("org.mockito:mockito-inline:4.11.0")
 }
 
 jar {
@@ -20,6 +21,12 @@ verifyInstrumentation {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+test {
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
     }
 }
 
