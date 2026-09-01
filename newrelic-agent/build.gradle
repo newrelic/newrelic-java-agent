@@ -210,8 +210,12 @@ dependencies {
     testImplementation("org.eclipse.jetty:jetty-servlet:8.1.22.v20160922")
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
     testImplementation("org.mockito:mockito-inline:4.11.0")
-    testImplementation("org.testcontainers:testcontainers:1.21.3")
-    testImplementation("org.testcontainers:toxiproxy:1.21.3")
+    testImplementation("org.testcontainers:testcontainers:1.21.3") {
+        exclude group: "junit", module: "junit"
+    }
+    testImplementation("org.testcontainers:toxiproxy:1.21.3") {
+        exclude group: "junit", module: "junit"
+    }
 }
 
 /**
