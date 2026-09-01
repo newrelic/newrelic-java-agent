@@ -24,6 +24,12 @@ java {
     }
 }
 
+test {
+    onlyIf {
+        !project.hasProperty('test8') && !project.hasProperty('test11')
+    }
+}
+
 site {
     title 'Micronaut Http Server Netty'
     type 'Http'
