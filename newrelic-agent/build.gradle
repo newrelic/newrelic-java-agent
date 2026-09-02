@@ -210,12 +210,6 @@ dependencies {
     testImplementation("org.eclipse.jetty:jetty-servlet:8.1.22.v20160922")
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
     testImplementation("org.mockito:mockito-inline:4.11.0")
-    testImplementation("org.testcontainers:testcontainers:1.21.3") {
-        exclude group: "junit", module: "junit"
-    }
-    testImplementation("org.testcontainers:toxiproxy:1.21.3") {
-        exclude group: "junit", module: "junit"
-    }
 }
 
 /**
@@ -473,43 +467,6 @@ test {
                 '-Dnewrelic.config.file=${projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml'
     } else {
         jvmArgs "-Dnewrelic.config.file=${projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml"
-    }
-}
-
-tasks.register("jettyConnectionTtlTest", Test) {
-    group = "verification"
-    description = "Runs the embedded-Jetty collector connection TTL integration scenarios."
-    dependsOn(testClasses)
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    maxParallelForks = 1
-    minHeapSize = "256m"
-    maxHeapSize = "768m"
-    systemProperty "newrelic.config.file", "${projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml"
-    filter {
-        includeTestsMatching "com.newrelic.agent.transport.JettyConnectionTtlTest"
-    }
-}
-
-def containerTestsEnabled = System.getProperty("newrelic.test.containers.enabled")
-        ?: System.getenv("NEW_RELIC_TEST_CONTAINERS_ENABLED")
-        ?: "true"
-
-tasks.register("toxiproxyConnectionRecoveryTest", Test) {
-    group = "verification"
-    description = "Runs Toxiproxy-backed collector connection recovery scenarios."
-    dependsOn(testClasses)
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    maxParallelForks = 1
-    minHeapSize = "256m"
-    maxHeapSize = "768m"
-    systemProperty "newrelic.config.file", "${projectDir}/src/test/resources/com/newrelic/agent/config/newrelic.yml"
-    systemProperty "newrelic.test.toxiproxy", "true"
-    systemProperty "newrelic.test.containers.enabled", containerTestsEnabled
-    systemProperty "api.version", System.getenv("DOCKER_API_VERSION") ?: "1.44"
-    filter {
-        includeTestsMatching "com.newrelic.agent.transport.ToxiproxyConnectionRecoveryTest"
     }
 }
 

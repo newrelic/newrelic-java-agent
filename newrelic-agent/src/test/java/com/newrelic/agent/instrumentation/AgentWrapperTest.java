@@ -5,7 +5,6 @@ import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.TracerService;
 import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.ExitTracer;
-import com.newrelic.agent.config.SecurityAgentConfig;
 import com.newrelic.agent.core.CoreService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.EntryInvocationHandler;
@@ -14,7 +13,6 @@ import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TracerFactory;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 public class AgentWrapperTest {
@@ -90,11 +88,8 @@ public class AgentWrapperTest {
 
         ServiceFactory.setServiceManager(serviceManager);
 
-        try (MockedStatic<SecurityAgentConfig> securityAgentConfig = Mockito.mockStatic(SecurityAgentConfig.class)) {
-            securityAgentConfig.when(SecurityAgentConfig::shouldInitializeSecurityAgent).thenReturn(false);
-            PointCutClassTransformer classTransformer = new PointCutClassTransformer(instrProxy, false);
-            target = AgentWrapper.getAgentWrapper(classTransformer);
-        }
+        PointCutClassTransformer classTransformer = new PointCutClassTransformer(instrProxy, false);
+        target = AgentWrapper.getAgentWrapper(classTransformer);
     }
 
 }

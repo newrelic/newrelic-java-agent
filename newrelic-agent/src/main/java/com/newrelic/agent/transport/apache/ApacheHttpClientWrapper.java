@@ -108,7 +108,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
                 null,
                 null,
                 null,
-                collectorConnectionTtlInMillis > 0 ? collectorConnectionTtlInMillis : -1,
+                collectorConnectionTtlInMillis,
                 TimeUnit.MILLISECONDS);
 
         // We only allow one connection at a time to the backend.

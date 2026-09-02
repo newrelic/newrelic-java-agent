@@ -66,7 +66,5 @@ public interface DataSenderConfig {
 
     int getTimeoutInMilliseconds();
 
-    default long getCollectorConnectionTtlInMilliseconds() {
-        return 0;
-    }
+    long getCollectorConnectionTtlInMilliseconds();
 }
