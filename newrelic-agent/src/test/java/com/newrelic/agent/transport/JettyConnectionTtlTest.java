@@ -40,6 +40,8 @@ import static org.mockito.Mockito.mock;
 @RunWith(Parameterized.class)
 public class JettyConnectionTtlTest {
     private static final int REQUEST_TIMEOUT_IN_MILLIS = 2_000;
+    // Exceeds Jetty's TLS idle timeout but remains below Apache's 2-second stale-connection validation threshold.
+    private static final int TLS_IDLE_CLOSE_DELAY_IN_MILLIS = 1_500;
 
     private static JettyCollectorFixture jetty;
 
@@ -62,11 +64,13 @@ public class JettyConnectionTtlTest {
                         Outcome.ACTIVE_REQUEST_OUTLIVES_TTL },
                 { "repeated idle closes recover when TTL is shorter", Endpoint.HTTP, "/", 100L, 350L,
                         Outcome.RECOVERY_SOAK },
-                { "TLS connection is reused before TTL", Endpoint.HTTPS, "/", 1_000L, 50L,
+                { "TLS connection is reused before TTL", Endpoint.HTTPS, "/", 5_000L, 50L,
                         Outcome.SAME_CONNECTION },
-                { "TLS idle close reproduces stale reuse without TTL", Endpoint.HTTPS, "/", 0L, 350L,
+                { "TLS idle close reproduces stale reuse without TTL", Endpoint.HTTPS, "/", 0L,
+                        TLS_IDLE_CLOSE_DELAY_IN_MILLIS,
                         Outcome.NO_HTTP_RESPONSE },
-                { "TTL replaces a TLS connection after Jetty idle close", Endpoint.HTTPS, "/", 100L, 350L,
+                { "TTL replaces a TLS connection after Jetty idle close", Endpoint.HTTPS, "/", 100L,
+                        TLS_IDLE_CLOSE_DELAY_IN_MILLIS,
                         Outcome.NEW_CONNECTION }
         });
     }

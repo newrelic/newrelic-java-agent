@@ -26,11 +26,13 @@ import javax.servlet.http.HttpServletResponse;
 
 final class JettyCollectorFixture {
     private static final int CONNECTION_IDLE_TIMEOUT_IN_MILLIS = 200;
+    // TLS handshakes can exceed the deliberately tight HTTP timeout under CI load.
+    private static final int TLS_CONNECTION_IDLE_TIMEOUT_IN_MILLIS = 1_000;
     private static final int FAULT_TEST_IDLE_TIMEOUT_IN_MILLIS = 2_000;
 
     private final Server server = new Server();
     private final SocketConnector httpConnector = connector(CONNECTION_IDLE_TIMEOUT_IN_MILLIS);
-    private final SslSocketConnector httpsConnector = sslConnector(CONNECTION_IDLE_TIMEOUT_IN_MILLIS);
+    private final SslSocketConnector httpsConnector = sslConnector(TLS_CONNECTION_IDLE_TIMEOUT_IN_MILLIS);
     private final SocketConnector faultConnector = connector(FAULT_TEST_IDLE_TIMEOUT_IN_MILLIS);
 
     void start() throws Exception {
