@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * Copyright 2023 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -83,6 +83,14 @@ public class MetricsScheduler {
                         eventData.put(nodeTopicName, 1f);
                     } else {
                         NewRelic.recordMetric(nodeTopicName, 1f);
+                    }
+                }
+
+                for (String clusterMetricName : nrMetricsReporter.getClusterMetricNames()) {
+                    if (METRICS_AS_EVENTS) {
+                        eventData.put(clusterMetricName, 1f);
+                    } else {
+                        NewRelic.recordMetric(clusterMetricName, 1f);
                     }
                 }
 

@@ -29,7 +29,7 @@ public abstract class ClassicKafkaConsumer_Instrumentation<K, V> {
     @WeaveAllConstructors
     public ClassicKafkaConsumer_Instrumentation() {
         if (!metricsReporterInstalled) {
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes()));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes(), metadata));
             metricsReporterInstalled = true;
         }
     }

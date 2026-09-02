@@ -86,6 +86,14 @@ public class MetricsScheduler {
                     }
                 }
 
+                for (String clusterMetricName : nrMetricsReporter.getClusterMetricNames()) {
+                    if (METRICS_AS_EVENTS) {
+                        eventData.put(clusterMetricName, 1f);
+                    } else {
+                        NewRelic.recordMetric(clusterMetricName, 1f);
+                    }
+                }
+
                 if (METRICS_AS_EVENTS) {
                     NewRelic.getAgent().getInsights().recordCustomEvent(METRICS_EVENT_TYPE, eventData);
                 }

@@ -44,7 +44,7 @@ public class KafkaProducer_Instrumentation<K, V> {
     public KafkaProducer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.PRODUCER, nodes));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.PRODUCER, nodes, metadata));
             initialized = true;
         }
     }
