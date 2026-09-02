@@ -427,9 +427,14 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
         int responseStatus = td.getResponseStatus();
         Throwable throwable = td.getThrowable() == null ? null : td.getThrowable().throwable;
         final boolean isReportable = responseStatus >= HttpURLConnection.HTTP_BAD_REQUEST || throwable != null;
-        if (throwable instanceof ReportableError) {
+        if (throwable instanceof ReportableError && ((ReportableError)throwable).getReportedClassName() == null) {
             // Someone manually called NewRelic.noticeError(String message) here
-            // so we don't want to use getStrippedExceptionMessage() for replacement
+            // so we don't want to use getStrippedExceptionMessage() for replacement.
+
+            // If the ReportableError's getReportedClassName() is not null,
+            // we treat it as if the customer passed a throwable object via the Error API.
+            // In this case this if block is skipped
+
             statusMessage = throwable.getMessage();
             throwable = null;
         }
@@ -610,17 +615,17 @@ public class ErrorServiceImpl extends AbstractService implements ErrorService, H
     public void reportManualError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
         Transaction tx = Transaction.getTransaction(false);
         if (tx != null && tx.isInProgress()) {
+            ReportableError reportableError = new ReportableError(message, className);
+            reportableError.setStackTrace(stackTrace);
             final TransactionActivity transactionActivity = TransactionActivity.get();
             if (transactionActivity != null && transactionActivity.getLastTracer() != null) {
-                ReportableError txnActivityReportableError = new ReportableError(message, className);
-                txnActivityReportableError.setStackTrace(stackTrace);
-                transactionActivity.getLastTracer().setNoticedError(txnActivityReportableError);
+                transactionActivity.getLastTracer().setNoticedError(reportableError);
             }
             if (params != null) {
                 tx.getErrorAttributes().putAll(params);
             }
             synchronized (tx) {
-                tx.setThrowable(new ReportableError(message, className), TransactionErrorPriority.API, expected);
+                tx.setThrowable(reportableError, TransactionErrorPriority.API, expected);
             }
         } else {
             // we're not within a transaction. just report the error
