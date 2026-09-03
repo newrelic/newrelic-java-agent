@@ -372,10 +372,10 @@ public class SpanEventFactory {
         return value;
     }
 
-    private void setErrorClass(Class<?> throwableClass, Integer errorStatus) {
+    private void setErrorClass(String throwableClassName, Integer errorStatus) {
         if (filter.shouldIncludeAgentAttribute(appName, "error.class")) {
-            if (throwableClass != null) {
-                builder.putAgentAttribute("error.class", throwableClass.getName());
+            if (throwableClassName != null) {
+                builder.putAgentAttribute("error.class", throwableClassName);
             } else if (errorStatus != null) {
                 builder.putAgentAttribute("error.class", errorStatus.toString());
             }
@@ -397,7 +397,7 @@ public class SpanEventFactory {
     public SpanEventFactory setSpanError(SpanError spanError) {
         setExpectedError(spanError.isExpectedError());
         setErrorMessage(spanError.getErrorMessage());
-        setErrorClass(spanError.getErrorClass(), spanError.getErrorStatus());
+        setErrorClass(spanError.getErrorClassName(), spanError.getErrorStatus());
         return this;
     }
 

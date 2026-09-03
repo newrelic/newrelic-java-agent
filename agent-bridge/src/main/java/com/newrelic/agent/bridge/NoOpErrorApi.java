@@ -13,6 +13,11 @@ class NoOpErrorApi implements ErrorApi {
     }
 
     @Override
+    public void noticeError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
+
+    }
+
+    @Override
     public void noticeError(String message, Map<String, ?> params, boolean expected) {
     }
 

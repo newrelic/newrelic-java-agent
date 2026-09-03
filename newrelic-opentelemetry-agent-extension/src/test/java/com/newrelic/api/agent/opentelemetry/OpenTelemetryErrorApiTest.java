@@ -175,6 +175,30 @@ class OpenTelemetryErrorApiTest {
                                                 satisfies(
                                                         AttributeKey.stringKey("exception.stacktrace"),
                                                         value -> assertThat(value).isNotNull())
+                                        )))),
+                Arguments.of(
+                        (Runnable) () -> OpenTelemetryNewRelic.noticeError("error", Collections.singletonMap("key", "value"),
+                                "java.lang.RuntimeException",
+                                new StackTraceElement[] {
+                                        new StackTraceElement("some.Class", "someMethod", "Class.java", 232)
+                                }, true),
+                        spanAssert(span -> assertThat(span)
+                                .hasStatus(StatusData.error())
+                                .hasEventsSatisfyingExactly(event -> event
+                                        .hasName("exception")
+                                        .hasAttributesSatisfying(
+                                                equalTo(AttributeKey.stringKey("key"), "value"),
+                                                equalTo(AttributeKey.booleanKey("expected.error"),
+                                                        true),
+                                                equalTo(AttributeKey.stringKey("exception.message"),
+                                                        "error"),
+                                                equalTo(AttributeKey.stringKey("exception.type"),
+                                                        "java.lang.RuntimeException"),
+                                                satisfies(
+                                                        AttributeKey.stringKey("exception.stacktrace"),
+                                                        value -> {
+                                                            assertThat(value).isNotNull();
+                                                        })
                                         ))))
         );
     }

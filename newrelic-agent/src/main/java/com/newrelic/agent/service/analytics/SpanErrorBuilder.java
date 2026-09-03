@@ -57,7 +57,7 @@ public class SpanErrorBuilder {
 
         if (throwable != null) {
             result.setErrorMessage(identifyErrorMessage(tracer, throwable));
-            result.setErrorClass(identifyErrorClass(throwable));
+            result.setErrorClassName(identifyErrorClass(throwable));
         }
 
         return result;
@@ -67,8 +67,13 @@ public class SpanErrorBuilder {
         return analyzer.isExpectedError(statusCode, transactionThrowable);
     }
 
-    private Class<?> identifyErrorClass(Throwable throwable) {
-        return throwable == null || throwable instanceof ReportableError ? null : throwable.getClass();
+    private String identifyErrorClass(Throwable throwable) {
+        if (throwable == null) {
+            return null;
+        } else if (throwable instanceof ReportableError) {
+            return ((ReportableError) throwable).getReportedClassName();
+        }
+        return throwable.getClass().getName();
     }
 
     private String identifyErrorMessage(ErrorTracer tracer, Throwable throwable) {

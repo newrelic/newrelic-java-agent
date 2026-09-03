@@ -101,6 +101,27 @@ public class NewRelicApiImplementation implements PublicApi {
     }
 
     @Override
+    public void noticeError(String message, Map<String, ?> params, String className, StackTraceElement[] stackTrace, boolean expected) {
+        try {
+            ServiceFactory.getRPMService().getErrorService().reportManualError(message, filterErrorAtts(params, customAttributeSender), className,
+                    stackTrace, expected);
+
+            MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_NOTICE_ERROR);
+            if (expected) {
+                MetricNames.recordApiSupportabilityMetric(MetricNames.SUPPORTABILITY_API_EXPECTED_ERROR_API_MESSAGE);
+            }
+
+            if (Agent.LOG.isLoggable(Level.FINER)) {
+                String msg = MessageFormat.format("Reported error: {0}", message);
+                Agent.LOG.finer(msg);
+            }
+        } catch (Throwable t) {
+            String msg = MessageFormat.format("Exception reporting exception \"{0}\": {1}", message, t);
+            logException(msg, t);
+        }
+    }
+
+    @Override
     public void noticeError(String message, Map<String, ?> params, boolean expected) {
         try {
             ServiceFactory.getRPMService().getErrorService().reportError(message, filterErrorAtts(params, customAttributeSender), expected);

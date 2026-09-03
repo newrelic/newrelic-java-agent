@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +81,45 @@ public class NoticeErrorAttributesTest {
             Map<String, String> atts2 = new HashMap<>();
             atts.put("test.bar", "2");
             impl.noticeError("hello", atts2);
+
+            Set<String> expected = Sets.newHashSet("test.foo");
+            verifyOutput(t.getErrorAttributes(), expected);
+        } finally {
+            Transaction.clearTransaction();
+        }
+    }
+
+    @Test
+    public void testNoticeErrorAPIFirstCallWinsWithClassName() {
+        try {
+            Map<String, Object> settings = new HashMap<>();
+            settings.put("app_name", APP_NAME);
+
+            manager.setConfigService(ConfigServiceFactory.createConfigServiceUsingSettings(settings));
+            manager.setTransactionService(new TransactionService());
+            manager.setTransactionTraceService(new TransactionTraceService());
+
+            AttributesService service = new AttributesService();
+            manager.setAttributesService(service);
+
+            RPMServiceManager mockRPMServiceManager = manager.getRPMServiceManager();
+            RPMService mockRPMService = mock(RPMService.class);
+            ErrorService errorService = new ErrorServiceImpl(APP_NAME);
+            when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
+            when(mockRPMService.getErrorService()).thenReturn(errorService);
+
+            Transaction t = Transaction.getTransaction();
+            BasicRequestRootTracer tracer = createDispatcherTracer();
+            t.getTransactionActivity().tracerStarted(tracer);
+
+            NewRelicApiImplementation impl = new NewRelicApiImplementation();
+            Map<String, String> atts = new HashMap<>();
+            atts.put("test.foo", "1");
+            impl.noticeError("hello", atts, "com.newrelic.CustomClass", new StackTraceElement[]{}, false);
+
+            Map<String, String> atts2 = new HashMap<>();
+            atts.put("test.bar", "2");
+            impl.noticeError("hello", atts2, "com.newrelic.CustomClass", new StackTraceElement[]{}, false);
 
             Set<String> expected = Sets.newHashSet("test.foo");
             verifyOutput(t.getErrorAttributes(), expected);

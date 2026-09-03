@@ -839,6 +839,31 @@ public class ErrorServiceTest {
     }
 
     @Test
+    public void manualNoticeError() {
+        Map<String, Object> atts = new HashMap<>();
+        atts.put("user", "12345");
+        atts.put("int", 12345);
+        atts.put("float", 12.345);
+        atts.put("bool", true);
+        StackTraceElement[] stack = {
+                new StackTraceElement("com.newrelic.SomeClass", "someMethod", "SomeClass.java", 123)
+        };
+        ServiceFactory.getRPMService().getErrorService().reportManualError("I am an unexpected error", atts,
+                "com.newrelic.test.CustomError", stack, false);
+        List<TracedError> tracedErrors = ServiceFactory.getRPMService().getErrorService().getAndClearTracedErrors();
+        TracedError tracedError = tracedErrors.get(0);
+        Assert.assertEquals("I am an unexpected error", tracedError.getMessage());
+        Assert.assertFalse(tracedError.expected);
+        Assert.assertTrue(tracedError.incrementsErrorMetric());
+        Assert.assertEquals("12345", tracedError.getErrorAtts().get("user"));
+        Assert.assertEquals(12345, tracedError.getErrorAtts().get("int"));
+        Assert.assertEquals(12.345, tracedError.getErrorAtts().get("float"));
+        Assert.assertEquals(true, tracedError.getErrorAtts().get("bool"));
+        Assert.assertEquals("com.newrelic.test.CustomError", tracedError.getExceptionClass());
+    }
+
+
+    @Test
     public void expectedStringInTransaction() {
         TransactionData transactionData = createTransactionData(200, new ReportableError("I am expected"), true);
         TransactionService txService = ServiceFactory.getTransactionService();

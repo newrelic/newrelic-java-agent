@@ -8,17 +8,17 @@
 package com.newrelic.agent.model;
 
 public class SpanError {
-    private Class<?> errorClass;
+    private String errorClassName;
     private String errorMessage;
     private Integer errorStatus;
     private boolean expectedError;
 
-    public Class<?> getErrorClass() {
-        return errorClass;
+    public String getErrorClassName() {
+        return errorClassName;
     }
 
-    public void setErrorClass(Class<?> errorClass) {
-        this.errorClass = errorClass;
+    public void setErrorClassName(String errorClass) {
+        this.errorClassName = errorClass;
     }
 
     public String getErrorMessage() {
