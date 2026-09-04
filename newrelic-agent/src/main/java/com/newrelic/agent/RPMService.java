@@ -65,6 +65,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
@@ -102,6 +103,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
     private final AtomicInteger retryCount = new AtomicInteger(0);
+    private final AtomicReference<List<List<?>>> pendingAgentCommands = new AtomicReference<>(Collections.emptyList());
     private final ReentrantLock reentrantLock = new ReentrantLock();
     private static ScheduledExecutorService scheduler = null;
 
@@ -869,28 +871,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     @Override
-    public List<List<?>> getAgentCommands() throws Exception {
-        try {
-            return getAgentCommandsSyncRestart();
-        } catch (ForceRestartException e) {
-            logForceRestartException(e);
-            reconnectAsync();
-            throw e;
-        } catch (ForceDisconnectException e) {
-            logForceDisconnectException(e);
-            shutdownAsync();
-            throw e;
-        }
-    }
-
-    private List<List<?>> getAgentCommandsSyncRestart() throws Exception {
-        try {
-            return dataSender.getAgentCommands();
-        } catch (ForceRestartException e) {
-            logForceRestartException(e);
-            reconnectSync();
-            return dataSender.getAgentCommands();
-        }
+    public List<List<?>> getAgentCommands() {
+        return pendingAgentCommands.getAndSet(Collections.emptyList());
     }
 
     @Override
@@ -962,7 +944,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             long reportInterval = 0;
             try {
                 long now = System.currentTimeMillis();
-                sendMetricDataSyncRestart(lastReportTime, now, data);
+                List<List<?>> commands = sendMetricDataSyncRestart(lastReportTime, now, data);
+                pendingAgentCommands.set(commands != null ? commands : Collections.emptyList());
                 reportInterval = now - lastReportTime;
                 lastReportTime = now;
                 last503Error.set(0);
@@ -1037,13 +1020,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         statsEngine.getStats(MetricNames.SUPPORTABILITY_METRIC_HARVEST_COUNT).incrementCallCount(dataSize);
     }
 
-    private void sendMetricDataSyncRestart(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
+    private List<List<?>> sendMetricDataSyncRestart(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
         try {
-            dataSender.sendMetricData(beginTimeMillis, endTimeMillis, metricData);
+            return dataSender.sendMetricData(beginTimeMillis, endTimeMillis, metricData);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectSync();
-            dataSender.sendMetricData(beginTimeMillis, endTimeMillis, metricData);
+            return dataSender.sendMetricData(beginTimeMillis, endTimeMillis, metricData);
         }
     }
 
