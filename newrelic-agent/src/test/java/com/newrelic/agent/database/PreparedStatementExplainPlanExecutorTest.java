@@ -55,6 +55,22 @@ public class PreparedStatementExplainPlanExecutorTest {
     }
 
     @Test
+    public void executeStatementIgnoringResult_setsParametersAndExecutes() throws SQLException {
+        SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
+        PreparedStatement mockStatement = mock(PreparedStatement.class);
+        Connection mockConnection = mock(Connection.class);
+        Object[] params = {42};
+
+        when(mockStatement.getConnection()).thenReturn(mockConnection);
+        PreparedStatementExplainPlanExecutor executor = new PreparedStatementExplainPlanExecutor(
+                mockExplain, "EXPLAIN PLAN FOR SELECT * FROM DUAL WHERE id = ?", params, RecordSql.raw);
+        executor.executeStatementIgnoringResult(mockStatement, "sql_not_used");
+
+        verify(mockStatement).setObject(eq(1), eq(42));
+        verify(mockStatement).execute();
+    }
+
+    @Test
     public void executeStatement_handlesIntegerArrayParameters() throws SQLException {
         SqlTracerExplainInfo mockExplain = mock(SqlTracerExplainInfo.class);
         PreparedStatement mockStatement = mock(PreparedStatement.class);
