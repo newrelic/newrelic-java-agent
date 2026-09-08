@@ -1235,10 +1235,10 @@
                     "default": false,
                     "description": "Use controller class and method for Spring transaction naming. When true, all Spring Controller transactions will be named using the controller class name and method name (e.g., \"/CustomerController/edit\") instead of using request mappings (e.g., \"/api/v1/customer (POST)\"). This setting takes precedence over enhanced_spring_transaction_naming. This helps prevent transaction name cardinality issues with complex URI patterns. Applies to Spring 4.3.x+ (spring-4.3.0 module) and Spring 6.x+ (spring-6.0.0 module). Default is false."
                 },
-                "max_weave_startup_threads": {
+                "weave_task_thread_count": {
                     "type": "integer",
                     "default": 8,
-                    "description": "The maximum number of threads to use when parallelizing class matching and internal instrumentation loading at startup and during retransformation. Set this to 0 in order to set the value to the number of available processors (via the Runtime.getRuntime().availableProcessors() call)."
+                    "description": "The number of threads to use when parallelizing class matching and weave package loading. Set this to 0 in order to set the value to the number of available processors (via the Runtime.getRuntime().availableProcessors() call)."
                 },
                 "name_actuator_endpoints": {
                     "type": "boolean",
