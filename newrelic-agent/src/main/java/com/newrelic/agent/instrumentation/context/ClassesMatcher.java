@@ -20,26 +20,13 @@ import java.util.logging.Level;
 
 public class ClassesMatcher {
 
-    public static final int MAX_NUMBER_OF_THREADS = Math.max(1, Runtime.getRuntime().availableProcessors());
-
     /**
      * This parallelizes matching of a large number of classes by firing up threads to handle
-     * a partition of the classes, using {@link #MAX_NUMBER_OF_THREADS} (the number of available
-     * processors, minimum of 1) as the default cap on thread count.
+     * a partition of the classes, capped at {@code maxThreads}, e.g. a value sourced from
+     * {@link com.newrelic.agent.config.ClassTransformerConfig#getMaxWeaveStartupThreads()}.
      *
      * If 10 classes are passed in and the cap is 5, it will create 5 threads.
      * If 100 classes are passed in and the cap is 8, it will create 8 threads.
-     */
-    public static Set<Class<?>> getMatchingClasses(final Collection<ClassMatchVisitorFactory> matchers,
-                                                   final InstrumentationContextClassMatcherHelper matchHelper,
-                                                   Class<?>... classes) {
-        return getMatchingClasses(matchers, matchHelper, MAX_NUMBER_OF_THREADS, classes);
-    }
-
-    /**
-     * Same as {@link #getMatchingClasses(Collection, InstrumentationContextClassMatcherHelper, Class[])} but with an
-     * explicit cap on the number of threads to use, e.g. one sourced from
-     * {@link com.newrelic.agent.config.ClassTransformerConfig#getMaxMatcherThreads()}.
      */
     public static Set<Class<?>> getMatchingClasses(final Collection<ClassMatchVisitorFactory> matchers,
                                                    final InstrumentationContextClassMatcherHelper matchHelper,

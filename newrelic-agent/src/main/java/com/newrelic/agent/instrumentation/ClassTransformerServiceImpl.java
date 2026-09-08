@@ -234,7 +234,7 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
         InstrumentationProxy instrumentation = ServiceFactory.getCoreService().getInstrumentation();
         InstrumentationContextClassMatcherHelper matcherHelper = new InstrumentationContextClassMatcherHelper();
         int maxMatcherThreads = ServiceFactory.getConfigService().getDefaultAgentConfig()
-                .getClassTransformerConfig().getMaxMatcherThreads();
+                .getClassTransformerConfig().getMaxWeaveStartupThreads();
         Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(matchers, matcherHelper, maxMatcherThreads, loadedClasses);
         if (!classesToRetransform.isEmpty()) {
             try {

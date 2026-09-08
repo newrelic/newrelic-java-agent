@@ -13,7 +13,6 @@ import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.instrumentation.PointCutConfiguration;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -36,7 +35,6 @@ import static com.newrelic.agent.config.ConfigHelper.buildConfigMap;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ClassTransformerConfigImplTest {
 
@@ -106,15 +104,19 @@ public class ClassTransformerConfigImplTest {
     }
 
     @Test
-    public void getMaxMatcherThreads() throws Exception {
+    public void getMaxWeaveStartupThreads() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
                 true, false, false);
-        Assert.assertEquals(Math.max(1, Runtime.getRuntime().availableProcessors()), config.getMaxMatcherThreads());
+        Assert.assertEquals(8, config.getMaxWeaveStartupThreads());
 
-        classTransformerMap.put("max_matcher_threads", 2);
+        classTransformerMap.put("max_weave_startup_threads", 2);
         config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
-        Assert.assertEquals(2, config.getMaxMatcherThreads());
+        Assert.assertEquals(2, config.getMaxWeaveStartupThreads());
+
+        classTransformerMap.put("max_weave_startup_threads", 0);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
+        Assert.assertEquals(Runtime.getRuntime().availableProcessors(), config.getMaxWeaveStartupThreads());
     }
 
     @Test

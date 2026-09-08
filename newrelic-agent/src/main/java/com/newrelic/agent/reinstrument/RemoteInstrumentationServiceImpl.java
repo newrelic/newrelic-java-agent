@@ -162,7 +162,7 @@ public class RemoteInstrumentationServiceImpl extends AbstractService implements
         ClassTransformerConfig classTransformerConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getClassTransformerConfig();
         Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(
-                remoteRetransformer.getMatchers(), matcherHelper, classTransformerConfig.getMaxMatcherThreads(), allLoadedClasses);
+                remoteRetransformer.getMatchers(), matcherHelper, classTransformerConfig.getMaxWeaveStartupThreads(), allLoadedClasses);
         ReinstrumentUtils.checkClassExistsAndRetransformClasses(result, pointCuts, ext, classesToRetransform);
     }
 
