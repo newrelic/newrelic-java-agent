@@ -233,9 +233,9 @@ public class ClassTransformerServiceImpl extends AbstractService implements Clas
     public void retransformMatchingClassesImmediately(Class<?>[] loadedClasses, Collection<ClassMatchVisitorFactory> matchers) {
         InstrumentationProxy instrumentation = ServiceFactory.getCoreService().getInstrumentation();
         InstrumentationContextClassMatcherHelper matcherHelper = new InstrumentationContextClassMatcherHelper();
-        int maxMatcherThreads = ServiceFactory.getConfigService().getDefaultAgentConfig()
-                .getClassTransformerConfig().getMaxWeaveStartupThreads();
-        Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(matchers, matcherHelper, maxMatcherThreads, loadedClasses);
+        int weaveTaskThreadCount = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                .getClassTransformerConfig().getWeaveTaskThreadCount();
+        Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(matchers, matcherHelper, weaveTaskThreadCount, loadedClasses);
         if (!classesToRetransform.isEmpty()) {
             try {
                 instrumentation.retransformClasses(classesToRetransform.toArray(new Class[0]));

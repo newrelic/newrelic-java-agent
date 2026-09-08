@@ -106,7 +106,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
 
     /**
      * How many threads to run in parallel when loading instrumentation packages, configured via
-     * {@link ClassTransformerConfig#getMaxWeaveStartupThreads()}.
+     * {@link ClassTransformerConfig#getWeaveTaskThreadCount()}.
      */
     private final int partitions;
 
@@ -129,7 +129,7 @@ public class ClassWeaverService implements ClassMatchVisitorFactory, ContextClas
         ClassTransformerConfig config = agentConfig.getClassTransformerConfig();
         this.weavePackageManager = new WeavePackageManager(listener, instrumentation,
                 config.getMaxPreValidatedClassLoaders(), config.preValidateWeavePackages(), config.preMatchWeaveMethods());
-        this.partitions = config.getMaxWeaveStartupThreads();
+        this.partitions = config.getWeaveTaskThreadCount();
     }
 
     /**

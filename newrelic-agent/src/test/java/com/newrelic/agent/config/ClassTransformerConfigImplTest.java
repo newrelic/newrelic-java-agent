@@ -104,19 +104,19 @@ public class ClassTransformerConfigImplTest {
     }
 
     @Test
-    public void getMaxWeaveStartupThreads() throws Exception {
+    public void getWeaveTaskThreadCount() throws Exception {
         Map<String, Object> classTransformerMap = new HashMap<>();
         ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
                 true, false, false);
-        Assert.assertEquals(8, config.getMaxWeaveStartupThreads());
+        Assert.assertEquals(8, config.getWeaveTaskThreadCount());
 
-        classTransformerMap.put("max_weave_startup_threads", 2);
+        classTransformerMap.put("weave_task_thread_count", 2);
         config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
-        Assert.assertEquals(2, config.getMaxWeaveStartupThreads());
+        Assert.assertEquals(2, config.getWeaveTaskThreadCount());
 
-        classTransformerMap.put("max_weave_startup_threads", 0);
+        classTransformerMap.put("weave_task_thread_count", 0);
         config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
-        Assert.assertEquals(Runtime.getRuntime().availableProcessors(), config.getMaxWeaveStartupThreads());
+        Assert.assertEquals(Runtime.getRuntime().availableProcessors(), config.getWeaveTaskThreadCount());
     }
 
     @Test

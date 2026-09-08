@@ -63,13 +63,13 @@ public interface ClassTransformerConfig extends Config {
     int getMaxPreValidatedClassLoaders();
 
     /**
-     * Returns the maximum number of threads to use when parallelizing class matching and internal
-     * instrumentation loading. Defaults to 8. A configured value of 0 uses the number of processors
-     * available to the runtime instead.
+     * Returns the number of threads to use when parallelizing class matching and weave package
+     * loading. Defaults to 8. A configured value of 0 uses the number of processors available
+     * to the runtime instead.
      *
-     * @return the maximum number of threads to use for class matching and instrumentation loading
+     * @return the number of threads to use for weave-related class matching and loading tasks
      */
-    int getMaxWeaveStartupThreads();
+    int getWeaveTaskThreadCount();
 
     /**
      * Returns true when we should take the "optimized" path for reducing the number of weave packages that we should

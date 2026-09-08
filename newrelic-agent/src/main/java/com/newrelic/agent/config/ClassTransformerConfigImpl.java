@@ -38,7 +38,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final String CLASSLOADER_DELEGATION_INCLUDES = "classloader_delegation_includes";
     public static final String CLASSLOADER_EXCLUDES = "classloader_excludes";
     public static final String MAX_PREVALIDATED_CLASSLOADERS = "max_prevalidated_classloaders";
-    public static final String MAX_WEAVE_STARTUP_THREADS = "max_weave_startup_threads";
+    public static final String WEAVE_TASK_THREAD_COUNT = "weave_task_thread_count";
     public static final String PREVALIDATE_WEAVE_PACKAGES = "prevalidate_weave_packages";
     public static final String PREMATCH_WEAVE_METHODS = "prematch_weave_methods";
     public static final String DEFAULT_INSTRUMENTATION = "instrumentation_default";
@@ -54,7 +54,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     public static final int DEFAULT_SHUTDOWN_DELAY = -1;
     public static final boolean DEFAULT_GRANT_PACKAGE_ACCESS = false;
     public static final int DEFAULT_MAX_PREVALIDATED_CLASSLOADERS = 10;
-    public static final int DEFAULT_MAX_WEAVE_STARTUP_THREADS = 8;
+    public static final int DEFAULT_WEAVE_TASK_THREAD_COUNT = 8;
     public static final boolean DEFAULT_PREVALIDATE_WEAVE_PACKAGES = true;
     public static final boolean DEFAULT_PREMATCH_WEAVE_METHODS = true;
     public static final boolean DEFAULT_ENHANCED_SPRING_TRANSACTION_NAMING = false;
@@ -99,7 +99,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     private final long shutdownDelayInNanos;
     private final boolean grantPackageAccess;
     private final int maxPreValidatedClassLoaders;
-    private final int maxWeaveStartupThreads;
+    private final int weaveTaskThreadCount;
     private final boolean preValidateWeavePackages;
     private final boolean preMatchWeaveMethods;
     private final boolean isEnhancedSpringTransactionNaming;
@@ -127,7 +127,7 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
         classloaderDelegationIncludes = initializeClassloaderDelegationIncludes();
         computeFrames = getProperty(COMPUTE_FRAMES, DEFAULT_COMPUTE_FRAMES);
         shutdownDelayInNanos = initShutdownDelay();
-        maxWeaveStartupThreads = initWeaveStartupThreadCount();
+        weaveTaskThreadCount = initWeaveTaskThreadCount();
         grantPackageAccess = getProperty(GRANT_PACKAGE_ACCESS, DEFAULT_GRANT_PACKAGE_ACCESS);
         maxPreValidatedClassLoaders = getProperty(MAX_PREVALIDATED_CLASSLOADERS, DEFAULT_MAX_PREVALIDATED_CLASSLOADERS);
         preValidateWeavePackages = getProperty(PREVALIDATE_WEAVE_PACKAGES, DEFAULT_PREVALIDATE_WEAVE_PACKAGES);
@@ -237,13 +237,13 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     }
 
     /**
-     * Return the value configured for "max_weave_startup_threads", if set. A configured value of 0
+     * Return the value configured for "weave_task_thread_count", if set. A configured value of 0
      * returns the number of processors available to the runtime instead.
      *
      * @return the configured thread count, per the above description
      */
-    private int initWeaveStartupThreadCount() {
-        int count = getIntProperty(MAX_WEAVE_STARTUP_THREADS, DEFAULT_MAX_WEAVE_STARTUP_THREADS);
+    private int initWeaveTaskThreadCount() {
+        int count = getIntProperty(WEAVE_TASK_THREAD_COUNT, DEFAULT_WEAVE_TASK_THREAD_COUNT);
         return count > 0 ? count : Runtime.getRuntime().availableProcessors();
     }
 
@@ -328,8 +328,8 @@ final class ClassTransformerConfigImpl extends BaseConfig implements ClassTransf
     }
 
     @Override
-    public int getMaxWeaveStartupThreads() {
-        return maxWeaveStartupThreads;
+    public int getWeaveTaskThreadCount() {
+        return weaveTaskThreadCount;
     }
 
     @Override

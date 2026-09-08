@@ -23,7 +23,7 @@ public class ClassesMatcher {
     /**
      * This parallelizes matching of a large number of classes by firing up threads to handle
      * a partition of the classes, capped at {@code maxThreads}, e.g. a value sourced from
-     * {@link com.newrelic.agent.config.ClassTransformerConfig#getMaxWeaveStartupThreads()}.
+     * {@link com.newrelic.agent.config.ClassTransformerConfig#getWeaveTaskThreadCount()}.
      *
      * If 10 classes are passed in and the cap is 5, it will create 5 threads.
      * If 100 classes are passed in and the cap is 8, it will create 8 threads.
