@@ -112,8 +112,8 @@ test {
         configuration.call()
     }
 
-    if (project.hasProperty("test26")) {
-        configureTest("jdk26") {
+    if (project.hasProperty("test27")) {
+        configureTest("jdk27") {
             jvmArgs '--add-opens=java.base/java.lang=ALL-UNNAMED',
                     '--add-opens=java.base/java.util=ALL-UNNAMED',
                     '--add-opens=java.base/java.net=ALL-UNNAMED',
@@ -122,7 +122,7 @@ test {
                     '--add-exports=java.base/sun.net.spi=ALL-UNNAMED',
                     '--add-exports=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED'
             useJUnit {
-                excludeCategories 'com.newrelic.test.marker.Java26IncompatibleTest'
+                excludeCategories 'com.newrelic.test.marker.Java27IncompatibleTest'
             }
         }
         // mockito uses a version of bytebuddy that has experimental support for Java 21
