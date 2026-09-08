@@ -39,6 +39,11 @@ import static org.junit.Assert.assertTrue;
 
 public class AgentConfigImplTest {
 
+    private static final String COLLECTOR_CONNECTION_TTL_SYSTEM_PROPERTY =
+            "newrelic.config.collector_connection_ttl";
+    private static final String COLLECTOR_CONNECTION_TTL_ENVIRONMENT_VARIABLE =
+            "NEW_RELIC_COLLECTOR_CONNECTION_TTL";
+
     @After
     public void after() {
         System.getProperties().remove(BootstrapAgent.NR_AGENT_ARGS_SYSTEM_PROPERTY);
@@ -106,6 +111,40 @@ public class AgentConfigImplTest {
         localMap.put(AgentConfigImpl.HOST, "staging-collector.newrelic.com");
         config = AgentConfigImpl.createAgentConfig(localMap);
         assertEquals("staging-collector.newrelic.com", config.getHost());
+    }
+
+    @Test
+    public void collectorConnectionTtl() {
+        assertCollectorConnectionTtl(0L, null, null, null);
+        assertCollectorConnectionTtl(0L, 0, null, null);
+        assertCollectorConnectionTtl(120_000L, 120, null, null);
+        assertCollectorConnectionTtl(60_000L, 120, "60", null);
+        assertCollectorConnectionTtl(30_000L, 120, "60", "30");
+        assertCollectorConnectionTtl(0L, -1, null, null);
+        assertCollectorConnectionTtl(0L, 1.5, null, null);
+        assertCollectorConnectionTtl(0L, "invalid", null, null);
+    }
+
+    private void assertCollectorConnectionTtl(long expectedTtlInMillis, Object yamlValue,
+            String systemPropertyValue, String environmentValue) {
+        Properties systemProperties = new Properties();
+        if (systemPropertyValue != null) {
+            systemProperties.setProperty(COLLECTOR_CONNECTION_TTL_SYSTEM_PROPERTY, systemPropertyValue);
+        }
+        Map<String, String> environment = environmentValue == null
+                ? Collections.<String, String>emptyMap()
+                : Collections.singletonMap(COLLECTOR_CONNECTION_TTL_ENVIRONMENT_VARIABLE, environmentValue);
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(systemProperties),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade(environment)));
+
+        Map<String, Object> localConfig = new HashMap<>();
+        if (yamlValue != null) {
+            localConfig.put(AgentConfigImpl.COLLECTOR_CONNECTION_TTL, yamlValue);
+        }
+
+        AgentConfig config = AgentConfigImpl.createAgentConfig(localConfig);
+        assertEquals(expectedTtlInMillis, config.getCollectorConnectionTtlInMilliseconds());
     }
 
     @Test

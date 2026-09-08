@@ -10,7 +10,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Glassfish 6.0 to latest
   * JBoss 7.0 to latest
   * Jetty 7.0.0 to latest
-  * Mule 3.4.0 to latest
+  * Mule 3.4.0 to 4.0.0 (exclusive)
   * Netty 3.3.0.Alpha1 to 5.0.0.Alpha1 (exclusive)
   * Netty Reactor 0.7.0.RELEASE to latest
   * Netty Reactor HTTP 1.0.0 to latest
@@ -232,6 +232,7 @@ This version of the Java Agent supports Java versions 8 - 26.
   * Spring AI Embeddings 1.0.0-M7 to latest
 
   ## Other instrumented features
+  * Apache Sling 3.0.0 to latest
   * Java Completable futures 8 to latest
   * Java Process 8 to latest
   * Java Server Faces 1.0 to latest

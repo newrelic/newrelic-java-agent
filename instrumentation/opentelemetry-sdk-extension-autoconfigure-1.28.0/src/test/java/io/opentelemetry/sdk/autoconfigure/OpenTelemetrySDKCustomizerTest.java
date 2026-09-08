@@ -65,6 +65,11 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         assertEquals("http/protobuf", properties.get("otel.exporter.otlp.protocol"));
         assertEquals("Test", properties.get("otel.service.name"));
         assertEquals("gzip", properties.get("otel.exporter.otlp.compression"));
+        // This OTel version reads otel.experimental.exporter.otlp.retry.enabled (default false); the
+        // otel.java.exporter.otlp.retry.disabled property does not exist here and is set only so both
+        // autoconfigure modules stay near-identical.
+        assertEquals("true", properties.get("otel.experimental.exporter.otlp.retry.enabled"));
+        assertEquals("false", properties.get("otel.java.exporter.otlp.retry.disabled"));
     }
 
     public void testApplyResourcesServiceInstanceIdSet() {
@@ -244,6 +249,47 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         }
     }
 
+    public void testExportSuccessRecordsSuccessMetric() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class);
+             MockedStatic<OtlpAuditLogger> mockAuditLogger = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+            mockAuditLogger.when(OtlpAuditLogger::isAuditModeEnabled).thenReturn(false);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.<MetricData>emptyList());
+
+            mockNewRelic.verify(() -> NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/export/success"));
+            mockNewRelic.verify(() -> NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/export/failure"), Mockito.never());
+        }
+    }
+
+    public void testExportFailureRecordsFailureMetric() {
+        DummyExporter delegate = new DummyExporter();
+        delegate.setExportResult(CompletableResultCode.ofFailure());
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class);
+             MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class);
+             MockedStatic<OtlpAuditLogger> mockAuditLogger = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+            mockAuditLogger.when(OtlpAuditLogger::isAuditModeEnabled).thenReturn(false);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.<MetricData>emptyList());
+
+            // export/failure covers any dropped batch, including this non-retryable case, not just
+            // retry exhaustion.
+            mockNewRelic.verify(() -> NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/export/failure"));
+            mockNewRelic.verify(() -> NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/export/success"), Mockito.never());
+        }
+    }
+
     public void testWrapMetricExporterDelegatesPassThroughMethods() {
         MetricExporter delegate = mock(MetricExporter.class);
         when(delegate.getDefaultAggregation(InstrumentType.COUNTER)).thenReturn(Aggregation.sum());
@@ -291,6 +337,10 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         //expose the most recently exported metrics
         private Collection<MetricData> lastestMetricData = null;
 
+        // the result returned by export() - defaults to success, tests may override it to
+        // exercise the failure path
+        private CompletableResultCode exportResult = CompletableResultCode.ofSuccess();
+
         //this is required to register views without throwing an exception
         @Override
         public Aggregation getDefaultAggregation(InstrumentType instrumentType) {
@@ -305,7 +355,11 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         @Override
         public CompletableResultCode export(Collection<MetricData> metrics) {
             this.lastestMetricData = metrics;
-            return CompletableResultCode.ofSuccess();
+            return exportResult;
+        }
+
+        void setExportResult(CompletableResultCode exportResult) {
+            this.exportResult = exportResult;
         }
 
         @Override
