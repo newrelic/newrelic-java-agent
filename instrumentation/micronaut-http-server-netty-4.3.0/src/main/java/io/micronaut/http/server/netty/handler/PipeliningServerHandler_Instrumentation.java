@@ -43,13 +43,13 @@ public abstract class PipeliningServerHandler_Instrumentation {
 
     public void channelReadComplete(ChannelHandlerContext_Instrumentation ctx) {
         ChannelPipeline_Instrumentation pipeline = ctx != null ? ctx.pipeline() : null;
+        Weaver.callOriginal();
         if(pipeline != null) {
             if(pipeline.micronautToken != null) {
                 pipeline.micronautToken.expire();
                 pipeline.micronautToken = null;
             }
         }
-        Weaver.callOriginal();
     }
 
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$MessageInboundHandler")
