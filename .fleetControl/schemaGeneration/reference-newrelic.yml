@@ -751,6 +751,11 @@ common: &default_settings
     # Default is false.
     use_controller_class_and_method_for_spring_transaction_naming: false
 
+    # The number of threads to use when parallelizing class matching and weave package
+    # loading. Set this to 0 in order to set the value to the number of available
+    # processors (via the Runtime.getRuntime().availableProcessors() call).
+    weave_task_thread_count: 8
+
     # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
     # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this
     # to true will result in the transaction name reflecting the actual base actuator endpoint URI.
