@@ -7,6 +7,9 @@
 
 package com.newrelic.agent.bridge;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 /**
  * API for serverless instrumentation to communicate metadata to the core agent.
  * This interface provides methods to store serverless platform metadata that will be included
@@ -50,4 +53,34 @@ public interface ServerlessApi {
      * @return True if APM mode is enabled for this lambda using the NEW_RELIC_APM_LAMBDA_MODE environment variable, otherwise false
      */
     boolean isApmLambdaModeEnabled();
+
+    /**
+     * Removes the metric reader when is shuts down.
+     *
+     * @param metricReader The metric reader to be removed
+     */
+    void removeMetricCollector(Object metricReader);
+
+    /**
+     * When the Open Telemetry SDK is instrumented in serverless mode,
+     * this provides a metric reader and the associated collector method to
+     * trigger the underlying metric exporters of the given metric reader.
+     *
+     * @param metricReader The metric reader
+     *
+     * @param metricCollector The metric collector which consumes the above metric reader and triggers its underlying metric exporters.
+     */
+    void addMetricCollector(Object metricReader, Consumer<Object> metricCollector);
+
+    /**
+     * Begins the harvest cycle for the Open Telemetry hybrid agent when serverless mode is enabled.
+     * Since multiple metric exporters may be used in the Open Telemetry SDK, the harvest will only trigger if
+     * all the ServerlessMetricExporters from the Open Telemetry SDK instrumentation have called this method.
+     *
+     * @param metricPayloadProvider A supplier that returns a string containing the base64 payload of open telemetry dimensional metrics
+     *
+     * @return A boolean indicating if the harvest cycle was triggered.
+     */
+    boolean otelHarvest(Supplier<String> metricPayloadProvider);
+
 }

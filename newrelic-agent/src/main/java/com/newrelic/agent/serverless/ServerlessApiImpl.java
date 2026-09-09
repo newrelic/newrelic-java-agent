@@ -10,7 +10,8 @@ package com.newrelic.agent.serverless;
 import com.newrelic.agent.bridge.ServerlessApi;
 import com.newrelic.agent.service.ServiceFactory;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Implementation of ServerlessApi that stores serverless metadata for serverless mode.
@@ -42,5 +43,20 @@ public class ServerlessApiImpl implements ServerlessApi {
     @Override
     public boolean isApmLambdaModeEnabled() {
         return ServiceFactory.getServiceManager().getServerlessService().isApmLambdaModeEnabled();
+    }
+
+    @Override
+    public void removeMetricCollector(Object metricReader) {
+        ServiceFactory.getServiceManager().getServerlessService().removeMetricCollector(metricReader);
+    }
+
+    @Override
+    public void addMetricCollector(Object metricReader, Consumer<Object> metricCollector) {
+        ServiceFactory.getServiceManager().getServerlessService().addMetricCollector(metricReader, metricCollector);
+    }
+
+    @Override
+    public boolean otelHarvest(Supplier<String> metricPayloadProvider) {
+        return ServiceFactory.getServiceManager().getServerlessService().otelHarvest(null);
     }
 }
