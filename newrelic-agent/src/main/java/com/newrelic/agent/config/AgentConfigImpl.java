@@ -220,8 +220,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final long collectorConnectionTtlInMillis;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
-    private final boolean customInstrumentationEditorAllowed;
-    private final boolean customParameters;
     private final String datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
@@ -423,8 +421,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         setServerSpanHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
-        this.customInstrumentationEditorAllowed = getProperty(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, !highSecurity);
-        this.customParameters = getProperty(LaspPolicies.LASP_CUSTOM_PARAMETERS, !highSecurity);
 
         if (getProperty(REPORT_SQL_PARSER_ERRORS) != null) {
             addDeprecatedProperty(new String[] { REPORT_SQL_PARSER_ERRORS }, null);
@@ -1110,26 +1106,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public int waitForTransactionsInMillis() {
         return waitForTransactionsInMillis;
-    }
-
-    @Override
-    public boolean laspEnabled() {
-        return !securityPoliciesToken.isEmpty();
-    }
-
-    @Override
-    public String securityPoliciesToken() {
-        return securityPoliciesToken;
-    }
-
-    @Override
-    public boolean isCustomInstrumentationEditorAllowed() {
-        return customInstrumentationEditorAllowed;
-    }
-
-    @Override
-    public boolean isCustomParametersAllowed() {
-        return customParameters;
     }
 
     @Override

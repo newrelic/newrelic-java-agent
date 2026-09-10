@@ -117,7 +117,7 @@ public class AgentPreprocessors implements WeavePreprocessor {
             ConcurrentMap<String, Set<TracedWeaveInstrumentationTracker>> tracedWeaveInstrumentationDetails) {
         this.tracedWeaveInstrumentationDetails = tracedWeaveInstrumentationDetails;
 
-        this.captureSqlQueries = !agentConfig.isHighSecurity() && !agentConfig.laspEnabled();
+        this.captureSqlQueries = !agentConfig.isHighSecurity();
         this.collectSlowQueriesFromModules = agentConfig.getTransactionTracerConfig().getCollectSlowQueriesFromModules();
     }
 

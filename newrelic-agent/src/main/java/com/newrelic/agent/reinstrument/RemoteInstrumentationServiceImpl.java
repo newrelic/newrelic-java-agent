@@ -102,22 +102,22 @@ public class RemoteInstrumentationServiceImpl extends AbstractService implements
             if (isEnabled) {
                 if (ServiceFactory.getCoreService().getInstrumentation().isRetransformClassesSupported()) {
                     AgentConfig agentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-                    if (agentConfig.isCustomInstrumentationEditorAllowed()) {
-                        mostRecentXml = pXml;
-                        if (isAllXmlRemoved(pXml)) {
-                            Agent.LOG.info("The XML file is empty. All custom instrumentation will be removed.");
-                            updateJvmWithExtension(null, result);
-                        } else {
-                            Agent.LOG.log(Level.FINE, "Instrumentation modifications received from the server with attributes {0}.",
-                                    (isLiveAttributesEnabled ? "enabled" : "disabled"));
-                            Extension currentExt = getExtensionAndAddErrors(result, pXml);
-                            if (currentExt != null) {
-                                updateJvmWithExtension(currentExt, result);
-                            }
-                        }
+                    //if (agentConfig.isCustomInstrumentationEditorAllowed()) {
+                    mostRecentXml = pXml;
+                    if (isAllXmlRemoved(pXml)) {
+                        Agent.LOG.info("The XML file is empty. All custom instrumentation will be removed.");
+                        updateJvmWithExtension(null, result);
                     } else {
-                        handleErrorNoInstrumentation(result, "Remote instrumentation is not supported in high security mode.", pXml);
+                        Agent.LOG.log(Level.FINE, "Instrumentation modifications received from the server with attributes {0}.",
+                                (isLiveAttributesEnabled ? "enabled" : "disabled"));
+                        Extension currentExt = getExtensionAndAddErrors(result, pXml);
+                        if (currentExt != null) {
+                            updateJvmWithExtension(currentExt, result);
+                        }
                     }
+                    //} else {
+                     //   handleErrorNoInstrumentation(result, "Remote instrumentation is not supported in high security mode.", pXml);
+                    //}
                 } else {
                     handleErrorNoInstrumentation(result, "Retransform classes is not supported on the current instrumentation.", pXml);
                 }

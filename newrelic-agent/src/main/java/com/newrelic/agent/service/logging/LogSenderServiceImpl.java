@@ -639,10 +639,7 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
 
         @Override
         protected Map<String, Object> getAttributeMap() {
-            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-                return logEventAttributes;
-            }
-            return null;
+            return logEventAttributes;
         }
     }
 

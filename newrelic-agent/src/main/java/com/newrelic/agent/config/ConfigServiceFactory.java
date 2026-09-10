@@ -93,11 +93,6 @@ public class ConfigServiceFactory {
             AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.MAX_APP_NAMES_EXCEEDED);
             throw new ConfigurationException("The agent does not support more than three application names. Check the app_name setting in newrelic.yml");
         }
-        if (config.isHighSecurity() && config.laspEnabled()) {
-            throw new ForceDisconnectException("Security Policies and High Security Mode cannot both be present in the agent configuration. " +
-                    "If Security Policies have been set for your account, please ensure the security_policies_token " +
-                    "is set but high_security is disabled (default).");
-        }
     }
 
 }

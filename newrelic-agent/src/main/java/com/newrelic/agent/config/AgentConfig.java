@@ -363,14 +363,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
      */
     int waitForTransactionsInMillis();
 
-    boolean laspEnabled();
-
-    String securityPoliciesToken();
-
-    boolean isCustomInstrumentationEditorAllowed();
-
-    boolean isCustomParametersAllowed();
-
     TransactionEventsConfig getTransactionEventsConfig();
 
     DistributedTracingConfig getDistributedTracingConfig();

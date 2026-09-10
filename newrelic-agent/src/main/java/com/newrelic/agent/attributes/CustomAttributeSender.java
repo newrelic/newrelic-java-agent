@@ -30,8 +30,7 @@ public class CustomAttributeSender extends AttributeSender {
     @Override
     protected Map<String, Object> getAttributeMap() {
         Transaction currentTxn = Transaction.getTransaction(false);
-        if (currentTxn != null &&
-                ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+        if (currentTxn != null) {
             return currentTxn.getUserAttributes();
         } else {
             return null;
@@ -48,12 +47,6 @@ public class CustomAttributeSender extends AttributeSender {
                             getAttributeType(), methodCalled, key);
                     return null;
                 }
-            }
-            if (!ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-                Agent.LOG.log(Level.FINER,
-                        "Unable to add {0} attribute when {1} was invoked with key \"{2}\" while lasp custom_parameters disabled.",
-                        getAttributeType(), methodCalled, key);
-                return null;
             }
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINEST,
