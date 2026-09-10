@@ -14,4 +14,6 @@ import com.newrelic.api.agent.weaver.Weave;
 public abstract class ChannelHandlerContext_Instrumentation {
 
     public abstract ChannelPipeline_Instrumentation pipeline();
+
+    public abstract ChannelHandler handler();
 }

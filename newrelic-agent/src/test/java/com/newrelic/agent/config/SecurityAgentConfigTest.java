@@ -5,9 +5,11 @@ import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.NewRelic;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 
 import java.util.Map;
@@ -38,6 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Category(RequiresFork.class)
 public class SecurityAgentConfigTest {
     private static MockedStatic<NewRelic> mockNewRelic;
     private static Agent mockAgent;

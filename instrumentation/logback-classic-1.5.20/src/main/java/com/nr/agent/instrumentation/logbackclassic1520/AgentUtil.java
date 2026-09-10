@@ -40,12 +40,11 @@ public class AgentUtil {
      */
     public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
-        boolean messageEmpty = message.isEmpty();
+        Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
 
-        if (shouldCreateLogEvent(messageEmpty, throwable)) {
-            Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
+        if (shouldCreateLogEvent(message, logEventMap, throwable)) {
             logEventMap.put(INSTRUMENTATION, "logback-classic-1.5.20");
-            if (!messageEmpty) {
+            if (!message.isEmpty()) {
                 logEventMap.put(MESSAGE, message);
             }
             logEventMap.put(TIMESTAMP, timeStampMillis);
@@ -97,14 +96,21 @@ public class AgentUtil {
     }
 
     /**
-     * A LogEvent MUST NOT be reported if neither a log message nor an error is logged. If either is present report the LogEvent.
+     * A LogEvent MUST NOT be reported if none of these are present:
+     *  - a log message
+     *  - context data
+     *  - an error
+     * If any are present report the LogEvent.
      *
-     * @param messageEmpty Message to validate
+     * @param message Message to validate
+     * @param logEventMap context attributes, if any, on the event
      * @param throwable    Throwable to validate
      * @return true if a LogEvent should be created, otherwise false
      */
-    private static boolean shouldCreateLogEvent(boolean messageEmpty, Throwable throwable) {
-        return !messageEmpty || !ExceptionUtil.isThrowableNull(throwable);
+    private static boolean shouldCreateLogEvent(String message, Map<LogAttributeKey, Object> logEventMap, Throwable throwable) {
+        return (message != null && !message.isEmpty()) ||
+                (AppLoggingUtils.isReportEmptyLogMessages() && logEventMap != null && !logEventMap.isEmpty()) ||
+                !ExceptionUtil.isThrowableNull(throwable);
     }
 
     private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {

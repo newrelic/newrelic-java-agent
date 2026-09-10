@@ -86,4 +86,12 @@ public interface ConfigService extends Service {
      * polices into local agent configuration.
      */
     void setLaspPolicies(Map<String, Boolean> policiesJson);
+
+    /**
+     * Return a simple map of those config settings that were explicitly set via the yaml config file,
+     * system properties or environment variables.
+     *
+     * @return a Map of explicitly set config settings
+     */
+    Map<String, Object> getExplicitlySetConfig();
 }

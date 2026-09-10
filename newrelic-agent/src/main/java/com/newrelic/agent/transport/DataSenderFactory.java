@@ -91,7 +91,8 @@ public class DataSenderFactory {
                     config.getProxyPassword(),
                     logger);
 
-            return new ApacheHttpClientWrapper(proxyManager, sslContext, config.getTimeoutInMilliseconds());
+            return new ApacheHttpClientWrapper(proxyManager, sslContext, config.getTimeoutInMilliseconds(),
+                    config.getCollectorConnectionTtlInMilliseconds());
         }
     }
 

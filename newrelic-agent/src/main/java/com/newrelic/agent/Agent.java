@@ -25,7 +25,7 @@ import com.newrelic.agent.service.ServiceManager;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
-import com.newrelic.agent.agentcontrol.AgentHealth;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.agent.util.UnwindableInstrumentation;
 import com.newrelic.agent.util.UnwindableInstrumentationImpl;

@@ -12,8 +12,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.newrelic.agent.Agent;
 import com.newrelic.agent.bridge.datastore.RecordSql;
 import com.newrelic.agent.tracers.SqlTracerExplainInfo;
 
@@ -40,6 +42,14 @@ public class PreparedStatementExplainPlanExecutor extends DefaultExplainPlanExec
         return preparedStatement.executeQuery();
     }
 
+    @Override
+    protected void executeStatementIgnoringResult(Statement statement, String sql) throws SQLException {
+        PreparedStatement preparedStatement = (PreparedStatement) statement;
+        Connection connection = preparedStatement.getConnection();
+        setSqlParameters(preparedStatement, connection);
+        preparedStatement.execute();
+    }
+
     private void setSqlParameters(PreparedStatement preparedStatement, Connection connection) {
         if (sqlParameters == null) {
             return;
@@ -64,8 +74,8 @@ public class PreparedStatementExplainPlanExecutor extends DefaultExplainPlanExec
                     preparedStatement.setObject(i + 1, param);
                 }
             }
-        } catch (Throwable ignored) {
-            // ignore
+        } catch (Exception e) {
+            Agent.LOG.log(Level.FINER, "Unable to set explain plan statement parameters", e);
         }
     }
 

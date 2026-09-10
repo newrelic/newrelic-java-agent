@@ -9,7 +9,7 @@ package com.newrelic.agent;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
-import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.config.ServerlessConfig;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.logging.IAgentLogger;

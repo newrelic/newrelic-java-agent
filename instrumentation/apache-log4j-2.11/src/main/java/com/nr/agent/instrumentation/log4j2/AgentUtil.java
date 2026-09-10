@@ -42,10 +42,10 @@ public class AgentUtil {
     public static void recordNewRelicLogEvent(LogEvent event) {
         if (event != null) {
             Message message = event.getMessage();
+            ReadOnlyStringMap contextData = event.getContextData();
             Throwable throwable = event.getThrown();
 
-            if (shouldCreateLogEvent(message, throwable)) {
-                ReadOnlyStringMap contextData = event.getContextData();
+            if (shouldCreateLogEvent(message, contextData, throwable)) {
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
                 logEventMap.put(INSTRUMENTATION, "apache-log4j-2.11");
                 if (message != null) {
@@ -113,14 +113,21 @@ public class AgentUtil {
     }
 
     /**
-     * A LogEvent MUST NOT be reported if neither a log message nor an error is logged. If either is present report the LogEvent.
+     * A LogEvent MUST NOT be reported if none of these are present:
+     *  - a log message
+     *  - context data
+     *  - an error
+     * If any are present report the LogEvent.
      *
      * @param message   Message to validate
+     * @param contextData context attributes, if any, on the event
      * @param throwable Throwable to validate
      * @return true if a LogEvent should be created, otherwise false
      */
-    private static boolean shouldCreateLogEvent(Message message, Throwable throwable) {
-        return (message != null) || !ExceptionUtil.isThrowableNull(throwable);
+    private static boolean shouldCreateLogEvent(Message message, ReadOnlyStringMap contextData, Throwable throwable) {
+        return (message != null && !"".equals(message.toString())) ||
+                (AppLoggingUtils.isReportEmptyLogMessages() && contextData != null && !contextData.isEmpty()) ||
+                !ExceptionUtil.isThrowableNull(throwable);
     }
 
     private static int calculateInitialMapSize(ReadOnlyStringMap mdcPropertyMap) {

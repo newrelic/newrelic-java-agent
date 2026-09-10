@@ -11,6 +11,8 @@ import com.google.common.base.Joiner;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.bridge.datastore.DatastoreInstanceDetection;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfigImpl;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 import com.newrelic.agent.transport.DataSenderImpl;
@@ -49,6 +51,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
     public static final String CLOUD = "cloud";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
+    public static final String COLLECTOR_CONNECTION_TTL = "collector_connection_ttl";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
     public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
@@ -144,6 +147,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
     public static final String DEFAULT_API_HOST = "rpm.newrelic.com";
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
+    public static final int DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS = 0;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
     public static final String DEFAULT_DATASTORE_MULTIHOST_PREFERENCE = DatastoreInstanceDetection.MultiHostConfig.NONE.name();
@@ -213,6 +217,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final boolean autoAppNamingEnabled;
     private final boolean autoTransactionNamingEnabled;
     private final String caBundlePath;
+    private final long collectorConnectionTtlInMillis;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
@@ -360,6 +365,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
         this.jdbcSupport = new HashSet<>(Arrays.asList(jdbcSupport));
         genericJdbcSupportEnabled = this.jdbcSupport.contains(GENERIC_JDBC_SUPPORT);
+        collectorConnectionTtlInMillis = initCollectorConnectionTtl();
         requestTimeoutInMillis = getProperty(REQUEST_TIMEOUT_IN_SECONDS_PROPERTY, DEFAULT_REQUEST_TIMEOUT_IN_SECONDS) * 1000;
         instrumentationConfig = new BaseConfig(nestedProps(INSTRUMENTATION), SYSTEM_PROPERTY_ROOT + INSTRUMENTATION);
         transactionTracerConfig = initTransactionTracerConfig(apdexTInMillis, highSecurity);
@@ -937,6 +943,34 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public int getTimeoutInMilliseconds() {
         return requestTimeoutInMillis;
+    }
+
+    @Override
+    public long getCollectorConnectionTtlInMilliseconds() {
+        return collectorConnectionTtlInMillis;
+    }
+
+    private long initCollectorConnectionTtl() {
+        Object configuredValue = getProperty(COLLECTOR_CONNECTION_TTL);
+        if (configuredValue == null) {
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+        if (!(configuredValue instanceof Number)) {
+            Agent.LOG.log(Level.WARNING,
+                    "The {0} configuration must be a non-negative number of seconds; using the default value of {1}.",
+                    COLLECTOR_CONNECTION_TTL, DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+
+        Number configuredNumber = (Number) configuredValue;
+        long configuredSeconds = configuredNumber.longValue();
+        if (configuredSeconds < 0 || configuredNumber.doubleValue() != configuredSeconds) {
+            Agent.LOG.log(Level.WARNING,
+                    "The {0} configuration must be a non-negative whole number; using the default value of {1}.",
+                    COLLECTOR_CONNECTION_TTL, DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+        return TimeUnit.SECONDS.toMillis(configuredSeconds);
     }
 
     @Override

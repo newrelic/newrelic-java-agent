@@ -17,4 +17,7 @@ public class ChannelPipeline_Instrumentation {
 
     @NewField
     public Token token;
+
+    @NewField
+    public boolean sawOutboundRequestHeaders;
 }

@@ -21,7 +21,8 @@ public class Http2FrameCodec_Instrumentation {
     // Handle the incoming request. For HTTP/2 there is no HttpRequest object
     // but rather a stream of Http2Frame objects that make up the full request.
     void onHttp2Frame(ChannelHandlerContext_Instrumentation ctx, Http2Frame frame) {
-        if (!NettyUtil.START_HTTP2_FRAME_READ_LISTENER_TXN && frame instanceof Http2HeadersFrame && ctx.pipeline().token == null) {
+        if (!NettyUtil.START_HTTP2_FRAME_READ_LISTENER_TXN && frame instanceof Http2HeadersFrame && ctx.pipeline().token == null
+                && !ctx.pipeline().sawOutboundRequestHeaders && NettyUtil.isServerConnection(ctx)) {
             Http2HeadersFrame msg = (Http2HeadersFrame) frame;
             if (msg.isEndStream()) {
                 // NettyDispatcher class is usually initialized in AbstractBootstrap; however,
@@ -41,6 +42,10 @@ public class Http2FrameCodec_Instrumentation {
     // but rather a stream of Http2Frame objects that make up the full response.
     public void write(ChannelHandlerContext_Instrumentation ctx, Object msg, ChannelPromise promise) {
         if (msg instanceof Http2HeadersFrame) {
+            if (NettyUtil.isRequestHeaders(((Http2HeadersFrame) msg).headers())) {
+                ctx.pipeline().sawOutboundRequestHeaders = true;
+            }
+
             boolean expired = NettyUtil.processResponse(msg, ctx.pipeline().token);
             if (expired) {
                 ctx.pipeline().token = null;

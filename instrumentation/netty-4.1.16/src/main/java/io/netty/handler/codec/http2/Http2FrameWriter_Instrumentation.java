@@ -22,6 +22,10 @@ public class Http2FrameWriter_Instrumentation {
     public ChannelFuture writeHeaders(ChannelHandlerContext_Instrumentation ctx, int streamId, Http2Headers headers, int padding, boolean endStream,
             ChannelPromise promise) {
 
+        if (NettyUtil.isRequestHeaders(headers)) {
+            ctx.pipeline().sawOutboundRequestHeaders = true;
+        }
+
         boolean expired = NettyUtil.processResponse(headers, ctx.pipeline().token);
         if (expired) {
             ctx.pipeline().token = null;
@@ -33,6 +37,10 @@ public class Http2FrameWriter_Instrumentation {
     // Process HTTP/2 response headers and end txn
     public ChannelFuture writeHeaders(ChannelHandlerContext_Instrumentation ctx, int streamId, Http2Headers headers, int streamDependency, short weight,
             boolean exclusive, int padding, boolean endStream, ChannelPromise promise) {
+
+        if (NettyUtil.isRequestHeaders(headers)) {
+            ctx.pipeline().sawOutboundRequestHeaders = true;
+        }
 
         boolean expired = NettyUtil.processResponse(headers, ctx.pipeline().token);
         if (expired) {

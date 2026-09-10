@@ -7,7 +7,6 @@
 
 package com.newrelic.agent;
 
-import com.newrelic.agent.agentcontrol.HealthDataProducer;
 import com.newrelic.agent.errors.ErrorService;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.model.CustomInsightsEvent;
@@ -20,6 +19,7 @@ import com.newrelic.agent.service.analytics.TransactionEvent;
 import com.newrelic.agent.service.module.JarData;
 import com.newrelic.agent.sql.SqlTrace;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.trace.TransactionTrace;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
 
@@ -105,6 +105,8 @@ public interface IRPMService extends Service {
     void sendErrorData(List<TracedError> tracedErrors) throws Exception;
 
     HealthDataProducer getHttpDataSenderAsHealthDataProducer();
+
+    void sendAgentSettings(Map<String, Object> settings) throws Exception;
 
     /**
      * Saves and flushes any buffered telemetry saved inside the DataSender. Used for finishing serverless harvests and is a No-Op in all other scenarios.

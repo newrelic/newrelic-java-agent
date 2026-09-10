@@ -29,13 +29,13 @@ public class JdbcDatabaseVendorTest {
     @Test
     public void getExplainSql_withExplainSupport_returnsExplainSql() throws SQLException {
         TestJdbcDatabaseVendor testJdbcDatabaseVendor = new TestJdbcDatabaseVendor("name", "type", true);
-        Assert.assertEquals("EXPLAIN my explain sql", testJdbcDatabaseVendor.getExplainPlanSql("my explain sql"));
+        Assert.assertEquals("EXPLAIN my explain sql", testJdbcDatabaseVendor.getExplainPlanSqlInfo("my explain sql").getSql());
     }
 
     @Test(expected = SQLException.class)
     public void getExplainSql_withoutExplainSupport_throwsException() throws SQLException {
         TestJdbcDatabaseVendor testJdbcDatabaseVendor = new TestJdbcDatabaseVendor("name", "type", false);
-        testJdbcDatabaseVendor.getExplainPlanSql("my explain sql");
+        testJdbcDatabaseVendor.getExplainPlanSqlInfo("my explain sql");
     }
 
     @Test

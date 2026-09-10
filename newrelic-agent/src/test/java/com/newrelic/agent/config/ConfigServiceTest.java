@@ -35,6 +35,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -229,6 +230,7 @@ public class ConfigServiceTest {
         configMap.put(AgentConfigImpl.PROXY_USER, "secret_user");
         configMap.put(AgentConfigImpl.PROXY_PASS, "secret_pass");
         configMap.put(AgentConfigImpl.PROXY_HOST, "secret_host");
+        configMap.put(AgentConfigImpl.LICENSE_KEY, "secret_key");
         createServiceManager(configMap);
 
         ConfigService configService = ServiceFactory.getServiceManager().getConfigService();
@@ -236,6 +238,8 @@ public class ConfigServiceTest {
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_USER), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_PASS), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_HOST), "****");
+        assertEquals(sanitizedSettings.get(AgentConfigImpl.LICENSE_KEY), "****");
+
     }
 
     @Test
@@ -363,6 +367,56 @@ public class ConfigServiceTest {
     }
 
     @Test
+    public void getExplicitlySetConfig_hasCommonTopLevelKeyWithFlatStructure() throws Exception {
+        Map<String, Object> transactionTracerConfig = new HashMap<>();
+        transactionTracerConfig.put("record_sql", "obfuscated");
+
+        Map<String, Object> jfrConfig = new HashMap<>();
+        jfrConfig.put("enabled", true);
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put("app_name", "test");
+        configMap.put("agent_enabled", true);
+        configMap.put("transaction_tracer", transactionTracerConfig);
+        configMap.put("jfr", jfrConfig);
+
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        ConfigServiceImpl configService = new ConfigServiceImpl(agentConfig, null, configMap, false);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+
+        assertEquals(true, result.get("agent_enabled"));
+        assertEquals("test", result.get("app_name"));
+        assertEquals(true, result.get("jfr.enabled"));
+        assertEquals("obfuscated", result.get("transaction_tracer.record_sql"));
+        assertNull(result.get("totally_bogus_key"));
+    }
+
+    @Test
+    public void getExplicitlySetConfig_serverDataOverridesLocalAndIsFlattened() throws Exception {
+        Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(configMap);
+
+        ConfigService configService = ServiceFactory.getConfigService();
+        MockRPMServiceManager rpmServiceManager = (MockRPMServiceManager) ServiceFactory.getRPMServiceManager();
+        ConnectionConfigListener connectionConfigListener = rpmServiceManager.getConnectionConfigListener();
+        MockRPMService rpmService = (MockRPMService) rpmServiceManager.getRPMService();
+
+        Map<String, Object> agentData = new HashMap<>();
+        agentData.put("transaction_tracer.record_sql", "off");
+        Map<String, Object> serverData = new HashMap<>();
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
+
+        connectionConfigListener.connected(rpmService, serverData);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+
+        // server-supplied transaction_tracer.record_sql should be present
+        assertEquals("off", result.get("transaction_tracer.record_sql"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void shouldDeobfuscateLicenseKey() throws Exception {
         Map<String, Object> obscuringKeyConfigProps = new HashMap<>();
         obscuringKeyConfigProps.put("obscuring_key", "abc123");

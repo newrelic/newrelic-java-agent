@@ -8,6 +8,7 @@
 package com.nr.agent.instrumentation.utils.logs;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
 import io.opentelemetry.api.common.AttributeKey;
@@ -175,13 +176,14 @@ public class LogEventUtil {
      * A LogEvent should be created if a log message or an error is logged.
      *
      * @param bodyValue    Message to validate
+     * @param contextAttributes Context attributes to validate
      * @param errorClass   String to validate from OTel exception.type
      * @param errorMessage String to validate from OTel exception.message
      * @return true if a LogEvent should be created, otherwise false
      */
     private static boolean shouldCreateLogEvent(Value<?> bodyValue, Attributes contextAttributes, String errorClass, String errorMessage) {
-       return (bodyValue != null && bodyValue.getValue() != null && bodyValue.asString() != null && !bodyValue.asString().isEmpty()) ||
-                (contextAttributes != null && !contextAttributes.isEmpty()) ||
+       return (bodyValue != null && bodyValue.asString() != null && !bodyValue.asString().isEmpty()) ||
+                (AppLoggingUtils.isReportEmptyLogMessages() && contextAttributes != null && !contextAttributes.isEmpty()) ||
                 (ExceptionUtil.getErrorClass(errorClass) != null) ||
                 (ExceptionUtil.getErrorMessage(errorMessage) != null);
     }

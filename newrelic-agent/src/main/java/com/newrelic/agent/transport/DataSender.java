@@ -80,6 +80,8 @@ public interface DataSender {
 
     void sendModules(List<? extends JSONStreamAware> jarDataToSend) throws Exception;
 
+    void sendAgentSettings(Map<String, Object> settings) throws Exception;
+
     void shutdown(long timeMillis) throws Exception;
 
     /**

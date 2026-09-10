@@ -16,8 +16,10 @@ import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.module.JarCollectorService;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests to ensure that InstrumentationContextManager has the correct include/exclude logic.
  */
+@Category(RequiresFork.class)
 public class IncludeExcludeTest {
     private static MockedStatic<SecurityAgentConfig> mockSecurityAgentConfig;
     private static final ClassLoader SOME_CLASSLOADER = new ClassLoader() {

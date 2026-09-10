@@ -167,7 +167,7 @@ dependencies {
     // for command line parsing
     shadowIntoJar 'commons-cli:commons-cli:1.2'
 
-    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.25.4'
+    shadowIntoJar 'org.apache.logging.log4j:log4j-core:2.25.5'
     shadowIntoJar 'org.slf4j:slf4j-api:1.7.25'
 
     shadowIntoJar 'com.googlecode.json-simple:json-simple:1.1'
@@ -247,6 +247,10 @@ compileJava11Java {
 
 compileTestJava {
     dependsOn shadeCaffeine2Jar, shadeCaffeine3Jar, generateVersionProperties
+}
+
+processResources {
+    from("${rootProject.projectDir}/.fleetControl/schemaGeneration/reference-newrelic.yml")
 }
 
 /**

@@ -8,11 +8,15 @@ package com.newrelic.agent.agentcontrol;
 
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.RPMServiceManager;
+import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.config.AgentConfig;
-import com.newrelic.agent.config.AgentControlIntegrationConfig;
+import com.newrelic.agent.config.agentcontrol.AgentControlIntegrationConfig;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -118,5 +122,19 @@ public class AgentControlIntegrationServiceTest {
         Thread.sleep(2100);
 
         assertNull(healthClient.getAgentHealth());
+    }
+
+    @Test
+    public void constructor_writesEffectiveConfig() throws Exception {
+        when(mockAgentControlIntegrationConfig.getHealthReportingFrequency()).thenReturn(1);
+        when(mockAgentControlIntegrationConfig.isEnabled()).thenReturn(true);
+        AgentControlHealthUnitTestClient healthClient = new AgentControlHealthUnitTestClient();
+        AgentControlIntegrationService service = new AgentControlIntegrationService(healthClient, mockAgentConfig);
+        service.doStart();
+        Thread.sleep(2100);
+
+        assertTrue(healthClient.getAgentHealth().isHealthy());
+        assertEquals("Healthy", healthClient.getAgentHealth().getCurrentStatus());
+        service.doStop();
     }
 }

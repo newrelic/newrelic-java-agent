@@ -76,7 +76,12 @@ final class OpenTelemetrySDKCustomizer {
             properties.put("otel.exporter.otlp.compression", "gzip");
             properties.put("otel.exporter.otlp.metrics.temporality.preference", "DELTA");
             properties.put("otel.exporter.otlp.metrics.default.histogram.aggregation", "BASE2_EXPONENTIAL_BUCKET_HISTOGRAM");
+            // Retry configuration. The two OTel versions read different properties with opposite polarity, so
+            // both are set and each version ignores the one it does not know:
+            //   < 1.29.0 reads otel.experimental.exporter.otlp.retry.enabled (default false -> must opt in)
+            //  >= ~1.44  reads otel.java.exporter.otlp.retry.disabled (retry is on by default -> false is a no-op)
             properties.put("otel.experimental.exporter.otlp.retry.enabled", "true");
+            properties.put("otel.java.exporter.otlp.retry.disabled", "false");
             properties.put("otel.experimental.resource.disabled.keys", "process.command_line");
 
             final Object appName = agent.getConfig().getValue("app_name");
