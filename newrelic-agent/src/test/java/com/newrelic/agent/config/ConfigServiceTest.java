@@ -307,6 +307,42 @@ public class ConfigServiceTest {
     }
 
     @Test
+    public void sanitizerShouldAddAiMonitoringSettingIfNotSet() throws Exception {
+        Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(settings);
+        ConfigService configService = ServiceFactory.getConfigService();
+        Map<String, Object> sanitizedSettings = configService.getSanitizedLocalSettings();
+        assertEquals(false, sanitizedSettings.get("ai_monitoring.enabled"));
+    }
+
+    @Test
+    public void sanitizerShouldNotAlterAiMonitoringSettingIfAlreadySet() throws Exception {
+        Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
+        settings.put("ai_monitoring.enabled", true);
+        createServiceManager(settings);
+        ConfigService configService = ServiceFactory.getConfigService();
+        Map<String, Object> sanitizedSettings = configService.getSanitizedLocalSettings();
+        assertEquals(true, sanitizedSettings.get("ai_monitoring.enabled"));
+    }
+
+    @Test
+    public void sanitizerShouldNotAddConflictingAiMonitoringWhenSetViaNestedForm() throws Exception {
+        Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
+        Map<String, Object> aiMonitoringSettings = new HashMap<>();
+        aiMonitoringSettings.put("enabled", true);
+        settings.put("ai_monitoring", aiMonitoringSettings);
+
+        createServiceManager(settings);
+        ConfigService configService = ServiceFactory.getConfigService();
+        Map<String, Object> sanitizedSettings = configService.getSanitizedLocalSettings();
+
+        assertFalse(sanitizedSettings.containsKey("ai_monitoring.enabled"));
+        Map<String, Object> nested = (Map<String, Object>) sanitizedSettings.get("ai_monitoring");
+        assertEquals(true, nested.get("enabled"));
+
+    }
+
+    @Test
     public void noUsernamePasswordProxy() throws Exception {
         Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
         createServiceManager(configMap);
