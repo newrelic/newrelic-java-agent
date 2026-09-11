@@ -44,7 +44,7 @@ public abstract class LegacyKafkaConsumer_Instrumentation<K, V> {
         if (!metricsReporterInstalled) {
             NewRelic.getAgent().getLogger().log(Level.INFO,
                     "newrelic-kafka-clients-enhancements engaged for consumer {0}", clientId);
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes()));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes(), metadata));
             metricsReporterInstalled = true;
         }
     }

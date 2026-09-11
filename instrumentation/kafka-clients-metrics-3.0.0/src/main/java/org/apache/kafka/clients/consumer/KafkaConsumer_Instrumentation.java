@@ -42,7 +42,7 @@ public class KafkaConsumer_Instrumentation<K, V> {
     public KafkaConsumer_Instrumentation() {
         if (!initialized) {
             List<Node> nodes = metadata.fetch().nodes();
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, nodes, metadata));
             initialized = true;
         }
     }
