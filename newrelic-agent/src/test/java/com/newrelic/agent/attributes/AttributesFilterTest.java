@@ -53,7 +53,7 @@ public class AttributesFilterTest {
             attSettings.put("exclude", exclude);
             attSettings.put("include", include);
         }
-        return AgentConfigFactory.createAgentConfig(settings, null, null);
+        return AgentConfigFactory.createAgentConfig(settings, null);
     }
 
     private AgentConfig getSpanConfig(boolean attrEnabled, Set<String> attrInclude, Set<String> attrExclude,
@@ -80,7 +80,7 @@ public class AttributesFilterTest {
         spanAttrSettings.put("exclude", spanAttrExclude);
         spanAttrSettings.put("include", spanAttrInclude);
 
-        return AgentConfigFactory.createAgentConfig(settings, null, null);
+        return AgentConfigFactory.createAgentConfig(settings, null);
     }
 
     @Test

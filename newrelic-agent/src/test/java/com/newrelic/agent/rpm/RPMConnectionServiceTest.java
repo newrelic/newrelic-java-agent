@@ -46,7 +46,7 @@ public class RPMConnectionServiceTest {
         serviceManager.start();
 
         Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
-        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null);
         Environment env = new Environment(config, "c:\\test\\log");
 
         EnvironmentService envService = Mockito.mock(EnvironmentService.class, new Returns(env));

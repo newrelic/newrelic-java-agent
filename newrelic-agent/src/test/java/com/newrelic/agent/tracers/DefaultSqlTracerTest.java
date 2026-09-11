@@ -434,7 +434,7 @@ public class DefaultSqlTracerTest {
         MockServiceManager serviceManager = new MockServiceManager();
         serviceManager.setConfigService(new MockConfigService(
                 AgentConfigFactory.createAgentConfig(Collections.<String, Object>emptyMap(),
-                        Collections.<String, Object>emptyMap(), null)));
+                        Collections.<String, Object>emptyMap())));
         ServiceManager originalServiceManager = ServiceFactory.getServiceManager();
 
         try {

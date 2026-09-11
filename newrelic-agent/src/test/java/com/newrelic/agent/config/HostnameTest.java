@@ -25,7 +25,7 @@ public class HostnameTest {
 
     @Test
     public void testGetHostname() {
-        Assert.assertNotNull(Hostname.getHostname(AgentConfigFactory.createAgentConfig(new HashMap<String, Object>(), null, null)));
+        Assert.assertNotNull(Hostname.getHostname(AgentConfigFactory.createAgentConfig(new HashMap<String, Object>(), null)));
     }
 
     @Test
@@ -35,11 +35,11 @@ public class HostnameTest {
         config.put("process_host", hostStuff);
         hostStuff.put("display_name", "food");
 
-        AgentConfig ac = AgentConfigFactory.createAgentConfig(config, null, null);
+        AgentConfig ac = AgentConfigFactory.createAgentConfig(config, null);
         Assert.assertEquals("food", Hostname.getDisplayHostname(ac, "bird"));
 
         hostStuff.clear();
-        ac = AgentConfigFactory.createAgentConfig(config, null, null);
+        ac = AgentConfigFactory.createAgentConfig(config, null);
         Assert.assertEquals("bird", Hostname.getDisplayHostname(ac, "bird"));
     }
 
@@ -49,22 +49,22 @@ public class HostnameTest {
         Map<String, Object> hostStuff = new HashMap<>();
         config.put("process_host", hostStuff);
         hostStuff.put("display_name", "food");
-        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
 
         hostStuff.put("ipv_preference", "6");
-        Assert.assertTrue(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertTrue(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
 
         hostStuff.put("ipv_preference", "4");
-        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
 
         hostStuff.put("ipv_preference", "newPref");
-        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
 
         hostStuff.put("ipv_preference", 6);
-        Assert.assertTrue(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertTrue(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
 
         hostStuff.put("ipv_preference", 4);
-        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null, null)));
+        Assert.assertFalse(Hostname.preferIpv6(AgentConfigFactory.createAgentConfig(config, null)));
     }
 
     private AgentConfig createConfig(Boolean ipv6) {
@@ -80,7 +80,7 @@ public class HostnameTest {
             value = "4";
         }
         hostStuff.put("ipv_preference", value);
-        return AgentConfigFactory.createAgentConfig(config, null, null);
+        return AgentConfigFactory.createAgentConfig(config, null);
     }
 
     @Test

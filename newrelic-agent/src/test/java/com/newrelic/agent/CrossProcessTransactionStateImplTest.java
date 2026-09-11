@@ -96,7 +96,7 @@ public class CrossProcessTransactionStateImplTest {
         when(distributedTracingService.getApplicationId()).thenReturn(applicationId);
         when(spanEventsService.isEnabled()).thenReturn(true);
         serviceManager.setConfigService(new MockConfigService(AgentConfigFactory.createAgentConfig(
-                Collections.<String, Object>emptyMap(), Collections.<String, Object>emptyMap(), null)));
+                Collections.<String, Object>emptyMap(), Collections.<String, Object>emptyMap())));
         serviceManager.setDistributedTraceService(distributedTracingService);
         serviceManager.setSpansEventService(spanEventsService);
         ServiceFactory.setServiceManager(serviceManager);

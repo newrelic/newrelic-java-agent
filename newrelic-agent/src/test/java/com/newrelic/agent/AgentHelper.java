@@ -127,7 +127,7 @@ public abstract class AgentHelper {
         settings.put(AgentConfigImpl.APP_NAME, "Unit Test");
         serverData = new HashMap<>(serverData);
         serverData.put("collect_traces", collectTraces);
-        AgentConfigFactory.mergeServerData(settings, serverData, null);
+        AgentConfigFactory.mergeServerData(settings, serverData);
         return AgentConfigImpl.createAgentConfig(settings);
     }
 

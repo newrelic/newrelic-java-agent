@@ -32,7 +32,7 @@ public class EnvironmentTest {
     @Test
     public void overrideServerPort() throws Exception {
         System.setProperty("newrelic.config.appserver_port", "666");
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
             Assert.assertEquals(666, env.getAgentIdentity().getServerPort().intValue());
@@ -44,7 +44,7 @@ public class EnvironmentTest {
     @Test
     public void overrideServerDispatcher() throws Exception {
         System.setProperty("newrelic.config.appserver_dispatcher", "Tomcat");
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
             Assert.assertEquals("Tomcat", env.getAgentIdentity().getDispatcher());
@@ -63,7 +63,7 @@ public class EnvironmentTest {
 
     @Test
     public void testSetServerInfo() {
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
 
         final AtomicInteger changeCount = new AtomicInteger();
         EnvironmentChangeListener listener = new EnvironmentChangeListener() {
@@ -105,7 +105,7 @@ public class EnvironmentTest {
 
     @Test
     public void json() throws Exception {
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
         Environment env = new Environment(config, "c:\\test\\log");
         Object json = AgentHelper.serializeJSON(env);
         Assert.assertTrue(json.toString().indexOf("c:\\\\test\\\\log") > 0);
@@ -116,7 +116,7 @@ public class EnvironmentTest {
         // the default should be false
         String randomProp = "hello";
         System.setProperty(randomProp, "true");
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
             Assert.assertNotNull(env.getVariable("JVM arguments"));
@@ -127,7 +127,7 @@ public class EnvironmentTest {
         // but you can set it to true
         String property = "newrelic.config." + AgentConfigImpl.SEND_JVM_PROPS;
         System.setProperty(property, "false");
-        config = AgentConfigFactory.createAgentConfig(null, null, null);
+        config = AgentConfigFactory.createAgentConfig(null, null);
         try {
             Environment env = new Environment(config, "c:\\test\\log");
             Assert.assertNull(env.getVariable("JVM arguments"));
@@ -252,7 +252,7 @@ public class EnvironmentTest {
     }
 
     private List<String> getObfuscatedProps(List<String> props) {
-        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(null, null);
         Environment env = new Environment(config, "c:\\test\\log");
         return env.obfuscateProps(props, config.getObfuscateJvmPropsConfig());
     }

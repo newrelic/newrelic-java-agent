@@ -46,7 +46,7 @@ public class MetricNormalizerTest {
         serviceManager.setThreadService(threadService);
 
         Map<String, Object> settings = AgentConfigFactoryTest.createStagingMap();
-        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null);
         MockConfigService configService = new MockConfigService(null);
         configService.setAgentConfig(config);
         serviceManager.setConfigService(configService);

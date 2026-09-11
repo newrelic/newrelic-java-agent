@@ -22,7 +22,7 @@ public class ThreadSamplerTest {
     public void setup() {
         MockServiceManager serviceManager = new MockServiceManager();
         serviceManager.setConfigService(new MockConfigService(AgentConfigFactory.createAgentConfig(
-                Collections.<String, Object>emptyMap(), Collections.<String, Object>emptyMap(), null)));
+                Collections.<String, Object>emptyMap(), Collections.<String, Object>emptyMap())));
         ServiceFactory.setServiceManager(serviceManager);
     }
 

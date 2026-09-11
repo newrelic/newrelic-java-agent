@@ -236,7 +236,7 @@ public class DatabaseServiceTest {
         configMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttConfigMap);
         MockServiceManager serviceManager = createServiceManager(configMap);
         MockConfigService configService = new MockConfigService(null);
-        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null);
         configService.setAgentConfig(agentConfig);
         serviceManager.setConfigService(configService);
 
@@ -248,7 +248,7 @@ public class DatabaseServiceTest {
         ttConfigMap = createMap();
         configMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttConfigMap);
         ttConfigMap.put(TransactionTracerConfigImpl.RECORD_SQL, SqlObfuscator.OFF_SETTING);
-        agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        agentConfig = AgentConfigFactory.createAgentConfig(configMap, null);
         configService.setAgentConfig(agentConfig);
         ((AgentConfigListener) dbService).configChanged(APP_NAME, agentConfig);
 

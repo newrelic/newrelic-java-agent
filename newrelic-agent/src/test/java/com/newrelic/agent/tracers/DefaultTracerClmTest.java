@@ -703,7 +703,7 @@ public class DefaultTracerClmTest {
                 ImmutableMap.builder().put("cross_process_id", "12345#whatever")
                         .put("trusted_account_key", "67890").build())
                 .build();
-        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
+        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null));
 
         DefaultTracer firstTracer = prepareTracer();
         BoundTransactionApiImpl firstTxn = new BoundTransactionApiImpl(firstTracer.getTransaction());
@@ -855,7 +855,7 @@ public class DefaultTracerClmTest {
                         .put("account_id", "12345")
                         .put("trusted_account_key", "67890")
                         .put("primary_application_id", "789").build()).build();
-        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
+        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null));
 
         TransactionActivity.clear();
         Transaction.clearTransaction();

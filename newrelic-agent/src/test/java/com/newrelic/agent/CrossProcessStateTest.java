@@ -56,7 +56,7 @@ public class CrossProcessStateTest {
     public void setup() {
 
         serviceManager.setConfigService(new MockConfigService(AgentConfigFactory.createAgentConfig(
-                Collections.<String, Object> emptyMap(), Collections.<String, Object> emptyMap(), null)));
+                Collections.<String, Object> emptyMap(), Collections.<String, Object> emptyMap())));
         ServiceFactory.setServiceManager(serviceManager);
 
         outboundHeaders = mock(OutboundHeaders.class);

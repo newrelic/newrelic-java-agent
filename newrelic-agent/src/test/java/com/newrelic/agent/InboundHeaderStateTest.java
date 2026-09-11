@@ -71,7 +71,7 @@ public class InboundHeaderStateTest {
     @Before
     public void setup() {
         serviceManager.setConfigService(new MockConfigService(AgentConfigFactory.createAgentConfig(
-                Collections.emptyMap(), Collections.emptyMap(), null)));
+                Collections.emptyMap(), Collections.emptyMap())));
         ServiceFactory.setServiceManager(serviceManager);
 
         OutboundHeaders outboundHeaders = mock(OutboundHeaders.class);

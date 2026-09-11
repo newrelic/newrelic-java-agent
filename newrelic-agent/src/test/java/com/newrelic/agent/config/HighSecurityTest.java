@@ -163,7 +163,7 @@ public class HighSecurityTest {
             Mocks.createSystemPropertyProvider(properties);
             Map<String, Object> serverMap = new HashMap<>();
             serverMap.put(AgentConfigImpl.HIGH_SECURITY, Boolean.FALSE);
-            AgentConfig config = AgentConfigFactory.createAgentConfig(new HashMap<String, Object>(), serverMap, null);
+            AgentConfig config = AgentConfigFactory.createAgentConfig(new HashMap<String, Object>(), serverMap);
 
             assertTrue(config.isHighSecurity());
             // record sql should be off or obfuscated
@@ -190,7 +190,7 @@ public class HighSecurityTest {
             ttMap.put(TransactionTracerConfigImpl.RECORD_SQL, "raw");
             ttMap.put(TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM, PERMITTED_MODULE);
             localMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttMap);
-            AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+            AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
             assertFalse(config.isHighSecurity());
             assertEquals(SqlObfuscator.RAW_SETTING, config.getTransactionTracerConfig().getRecordSql());
@@ -215,7 +215,7 @@ public class HighSecurityTest {
         ttMap.put(TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM, PERMITTED_MODULE);
         localMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttMap);
 
-        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
         // off setting okay with high security
         assertTrue(config.isHighSecurity());
@@ -239,7 +239,7 @@ public class HighSecurityTest {
         ttMap.put(TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM, PERMITTED_MODULE);
         localMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttMap);
 
-        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
         // no high security change from server
         assertTrue(config.isHighSecurity());
@@ -263,7 +263,7 @@ public class HighSecurityTest {
         ttMap.put(TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM, PERMITTED_MODULE);
         localMap.put(AgentConfigImpl.TRANSACTION_TRACER, ttMap);
 
-        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
         // no high security change from server - takes local properties
         assertFalse(config.isHighSecurity());
@@ -289,7 +289,7 @@ public class HighSecurityTest {
         ttMap.put(TransactionTracerConfigImpl.RECORD_SQL, "obfuscated");
         ttMap.put(TransactionTracerConfigImpl.COLLECT_SLOW_QUERIES_FROM, PERMITTED_MODULE_2);
 
-        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
         // make sure null do not throw exceptions
         assertTrue(config.isHighSecurity());
@@ -310,7 +310,7 @@ public class HighSecurityTest {
         Map<String, Object> localMap = new HashMap<>();
         localMap.put(AgentConfigImpl.HIGH_SECURITY, true);
 
-        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(localMap, serverMap);
 
         // picks up server settings since high security mode is off
         assertTrue(config.isHighSecurity());

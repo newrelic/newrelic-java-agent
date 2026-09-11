@@ -963,7 +963,7 @@ public class SegmentTest implements ExtendedTransactionListener {
         Map<String, Object> configMap = ImmutableMap.<String, Object>builder().put("cross_application_tracer",
                 ImmutableMap.builder().put("account_id", "12abc345").put("trusted_account_key", "12abc345").build())
                 .build();
-        distributedTraceService.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
+        distributedTraceService.connected(null, AgentConfigFactory.createAgentConfig(configMap, null));
 
         serviceManager.setDistributedTraceService(distributedTraceService);
         TransactionDataToDistributedTraceIntrinsics transactionDataToDistributedTraceIntrinsics = new TransactionDataToDistributedTraceIntrinsics(

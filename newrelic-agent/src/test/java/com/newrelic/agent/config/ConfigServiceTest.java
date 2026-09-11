@@ -73,8 +73,7 @@ public class ConfigServiceTest {
     public void constructedWithoutStuff() throws Exception {
         AgentConfig emptyConfig = AgentConfigFactory.createAgentConfig(
                 Collections.<String, Object>emptyMap(),
-                Collections.<String, Object>emptyMap(),
-                Collections.<String, Boolean>emptyMap());
+                Collections.<String, Object>emptyMap());
 
         File noConfigFile = null;
         Map<String, Object> noFileMeansNoSettings = null;
@@ -380,7 +379,7 @@ public class ConfigServiceTest {
         configMap.put("transaction_tracer", transactionTracerConfig);
         configMap.put("jfr", jfrConfig);
 
-        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null);
         ConfigServiceImpl configService = new ConfigServiceImpl(agentConfig, null, configMap, false);
 
         Map<String, Object> result = configService.getExplicitlySetConfig();
