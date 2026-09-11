@@ -451,7 +451,7 @@ public class AgentPreprocessors implements WeavePreprocessor {
             return cv;
         }
 
-        // high_security or lasp is enabled and this weave package is allowed through, nothing to rewrite
+        // high_security is enabled and this weave package is allowed through, nothing to rewrite
         if (collectSlowQueriesFromModules.contains(weavePackageName)) {
             return cv;
         }

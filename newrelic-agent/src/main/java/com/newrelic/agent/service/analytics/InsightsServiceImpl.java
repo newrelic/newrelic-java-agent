@@ -434,7 +434,10 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
         @Override
         protected Map<String, Object> getAttributeMap() {
-            return userAttributes;
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+                return userAttributes;
+            }
+            return null;
         }
     }
 
@@ -460,7 +463,10 @@ public class InsightsServiceImpl extends AbstractService implements InsightsServ
 
         @Override
         protected Map<String, Object> getAttributeMap() {
-            return userAttributes;
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
+                return userAttributes;
+            }
+            return null;
         }
     }
 

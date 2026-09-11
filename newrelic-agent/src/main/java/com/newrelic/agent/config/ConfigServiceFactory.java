@@ -8,7 +8,6 @@
 package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.agentcontrol.health.AgentHealth;
 import com.newrelic.agent.agentcontrol.AgentControlIntegrationUtils;
 import com.newrelic.api.agent.Logger;
@@ -32,7 +31,7 @@ public class ConfigServiceFactory {
         return new ConfigServiceImpl(AgentConfigImpl.createAgentConfig(deObfuscatedSettings), null, deObfuscatedSettings, false);
     }
 
-    public static ConfigService createConfigService(Logger log, boolean checkConfig) throws ConfigurationException, ForceDisconnectException {
+    public static ConfigService createConfigService(Logger log, boolean checkConfig) throws ConfigurationException {
         File configFile = getConfigFile(log);
         Map<String, Object> configSettings = null;
         ConfigurationException fileParseException = null;
@@ -80,7 +79,7 @@ public class ConfigServiceFactory {
     }
 
     @VisibleForTesting
-    public static void validateConfig(AgentConfig config, ConfigurationException fileParseException) throws ConfigurationException, ForceDisconnectException {
+    public static void validateConfig(AgentConfig config, ConfigurationException fileParseException) throws ConfigurationException {
         if (fileParseException != null) {
             AgentControlIntegrationUtils.reportUnhealthyStatusPriorToServiceStart(config, AgentHealth.Status.CONFIG_FILE_PARSE_ERROR);
             throw fileParseException;

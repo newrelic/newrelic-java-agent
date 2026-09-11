@@ -94,7 +94,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String PROXY_USER = "proxy_user";
     public static final String PUT_FOR_DATA_SEND_PROPERTY = "put_for_data_send";
     public static final String REPORT_SQL_PARSER_ERRORS = "report_sql_parser_errors";
-    public static final String LASP_TOKEN = "security_policies_token";
     public static final String SEND_DATA_ON_EXIT = "send_data_on_exit";
     public static final String SEND_DATA_ON_EXIT_THRESHOLD = "send_data_on_exit_threshold";
     public static final String SEND_ENVIRONMENT_INFO = "send_environment_info";
@@ -220,6 +219,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final long collectorConnectionTtlInMillis;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
+    private final boolean customInstrumentationEditorAllowed;
+    private final boolean customParameters;
     private final String datastoreMultihostPreference;
     private final boolean debug;
     private final boolean metricDebug;
@@ -249,7 +250,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final String proxyUser;
     private final boolean putForDataSend;
     private final int segmentTimeoutInSec;
-    private final String securityPoliciesToken;
     private final boolean sendJvmProps;
     private final boolean simpleCompression;
     private final boolean startupTimingEnabled;
@@ -316,7 +316,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         super(props, SYSTEM_PROPERTY_ROOT);
         // transaction_tracer.record_sql, request atts, and message atts are all affected by high security
         highSecurity = getProperty(HIGH_SECURITY, DEFAULT_HIGH_SECURITY);
-        securityPoliciesToken = getProperty(LASP_TOKEN, DEFAULT_SECURITY_POLICIES_TOKEN);
         simpleCompression = getProperty(SIMPLE_COMPRESSION_PROPERTY, DEFAULT_SIMPLE_COMPRESSION_ENABLED);
         compressedContentEncoding = initCompressedContentEncoding();
         putForDataSend = getProperty(PUT_FOR_DATA_SEND_PROPERTY, DEFAULT_PUT_FOR_DATA_SEND_ENABLED);
@@ -421,6 +420,8 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         setServerSpanHarvestLimit();
         this.flattenedProperties = Collections.unmodifiableMap(flattenedProps);
         this.waitForTransactionsInMillis = getProperty(WAIT_FOR_TRANSACTIONS, DEFAULT_WAIT_FOR_TRANSACTIONS);
+        this.customInstrumentationEditorAllowed = !highSecurity;
+        this.customParameters = !highSecurity;
 
         if (getProperty(REPORT_SQL_PARSER_ERRORS) != null) {
             addDeprecatedProperty(new String[] { REPORT_SQL_PARSER_ERRORS }, null);
@@ -1106,6 +1107,16 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public int waitForTransactionsInMillis() {
         return waitForTransactionsInMillis;
+    }
+
+    @Override
+    public boolean isCustomInstrumentationEditorAllowed() {
+        return customInstrumentationEditorAllowed;
+    }
+
+    @Override
+    public boolean isCustomParametersAllowed() {
+        return customParameters;
     }
 
     @Override

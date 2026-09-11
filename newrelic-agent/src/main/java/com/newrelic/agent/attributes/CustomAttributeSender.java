@@ -30,7 +30,8 @@ public class CustomAttributeSender extends AttributeSender {
     @Override
     protected Map<String, Object> getAttributeMap() {
         Transaction currentTxn = Transaction.getTransaction(false);
-        if (currentTxn != null) {
+        if (currentTxn != null &&
+                ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
             return currentTxn.getUserAttributes();
         } else {
             return null;

@@ -330,17 +330,6 @@ public final class Agent {
 
             // init problem classes before class transformer service is active
             InitProblemClasses.loadInitialClasses();
-        } catch (ForceDisconnectException e) {
-            /* Note: Our use of ForceDisconnectException is a bit misleading here as we haven't even tried to connect
-             * to RPM at this point (that happens a few lines down when we call serviceManager.start()). This exception
-             * comes from ConfigServiceFactory when it attempts to validate the local yml and finds that both HSM and
-             * LASP are enabled. The LASP spec says in this scenario that "Shutdown will follow the behavior of the
-             * ForceDisconnectException response from "New Relic." Not specifically that we should throw ForceDisconnectException.
-             * Perhaps we should throw a different, more accurately named exception, that simply has the same behavior
-             * as ForceDisconnectException as it will be replaced by a 410 response code in Protocol 17.
-             */
-            LOG.log(Level.SEVERE, e.getMessage());
-            return false;
         } catch (Throwable t) {
             // this is the last point where we can stop the agent gracefully if something has gone wrong.
             LOG.log(Level.SEVERE, t, "Unable to start the New Relic Agent. Your application will continue to run but it will not be monitored.");

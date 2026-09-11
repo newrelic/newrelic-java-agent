@@ -7,9 +7,7 @@
 
 package com.newrelic.agent.config;
 
-import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.transaction.TransactionNamingScheme;
-import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
