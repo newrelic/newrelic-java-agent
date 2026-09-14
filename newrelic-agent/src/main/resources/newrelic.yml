@@ -188,6 +188,11 @@ common: &default_settings
   #proxy_password: password
   #proxy_scheme: https
 
+  # Limits the maximum lifetime of a persistent connection to the New Relic collector.
+  # Set this below the shortest proxy or network connection timeout to avoid reusing stale connections.
+  # A value of 0 allows connections to remain open indefinitely. Default is 0 seconds.
+  collector_connection_ttl: 0
+
   # Cloud environment settings for container metadata collection:
   # When running in containerized environments (like AWS Fargate) with a proxy,
   # metadata endpoints may need to bypass the proxy to be accessible.
@@ -481,6 +486,11 @@ common: &default_settings
     # Applies to Spring 4.3.x+ (spring-4.3.0 module) and Spring 6.x+ (spring-6.0.0 module).
     # Default is false.
     use_controller_class_and_method_for_spring_transaction_naming: false
+
+    # The number of threads to use when parallelizing class matching and weave package
+    # loading. Set this to 0 in order to set the value to the number of available
+    # processors (via the Runtime.getRuntime().availableProcessors() call).
+    weave_task_thread_count: 8
 
     # By default, built-in actuator endpoints and custom actuator endpoints (using the @Endpoint annotation
     # and it's subclasses) will all be named as "OperationHandler/handle" in New Relic. Setting this

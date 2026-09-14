@@ -11,6 +11,9 @@ import com.newrelic.agent.introspec.InstrumentationTestConfig;
 import com.newrelic.agent.introspec.InstrumentationTestRunner;
 import com.newrelic.agent.introspec.Introspector;
 import com.newrelic.agent.introspec.TracedMetricData;
+import org.apache.kafka.clients.Metadata;
+import org.apache.kafka.common.Cluster;
+import org.apache.kafka.common.ClusterResource;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.junit.Before;
@@ -136,7 +139,9 @@ public class NewRelicMetricsReporterTest {
                 .thenReturn("localhost");
         when(node.port())
                 .thenReturn(42);
-        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter(ClientType.CONSUMER, Collections.singleton(node));
+
+        NewRelicMetricsReporter metricsReporter = new NewRelicMetricsReporter(ClientType.CONSUMER, Collections.singleton(node),
+                buildMockMetadataWithClusterId("cluster12345"));
         metricsReporter.init(initMetrics);
         // init triggers the first harvest that happens in a different thread. Sleeping to let it finish.
         Thread.sleep(100L);
@@ -158,6 +163,35 @@ public class NewRelicMetricsReporterTest {
         return metric;
     }
 
+    private static Metadata buildMockMetadataWithClusterId(String clusterId) {
+        Metadata mockMetadata = mock(Metadata.class);
+        Cluster mockCluster = mock(Cluster.class);
+        ClusterResource mockClusterResource = mock(ClusterResource.class);
+
+        when(mockMetadata.fetch()).thenReturn(mockCluster);
+        when(mockCluster.clusterResource()).thenReturn(mockClusterResource);
+        when(mockClusterResource.clusterId()).thenReturn(clusterId);
+
+        return mockMetadata;
+    }
+
+
+    @Test
+    public void clusterTopicMetricsDisabledByDefault() throws InterruptedException {
+        KafkaMetric internalMetric = getMetricMock("topicMetric", 20.0f);
+        when(internalMetric.metricName().tags().get("topic")).thenReturn("testTopic");
+        List<KafkaMetric> initialMetrics = Arrays.asList(internalMetric);
+
+        NewRelicMetricsReporter reporter = initMetricsReporter(initialMetrics, Collections.emptyList());
+
+        Map<String, TracedMetricData> unscopedMetrics = introspector.getUnscopedMetrics();
+
+        // Verify cluster metric is NOT reported when disabled (default)
+        TracedMetricData clusterTopicMetric = unscopedMetrics.get("MessageBroker/Kafka/Cluster/cluster12345/Consume/testTopic");
+        assertEquals(null, clusterTopicMetric);
+
+        reporter.close();
+    }
 
     private void forceHarvest(NewRelicMetricsReporter reporter) throws Exception {
         Method report = NewRelicMetricsReporter.class.getDeclaredMethod("report");

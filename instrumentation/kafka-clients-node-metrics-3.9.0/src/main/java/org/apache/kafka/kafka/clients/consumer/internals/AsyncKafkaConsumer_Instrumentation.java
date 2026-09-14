@@ -41,7 +41,7 @@ public abstract class AsyncKafkaConsumer_Instrumentation<K, V> {
     @WeaveAllConstructors
     public AsyncKafkaConsumer_Instrumentation() {
         if (!metricsReporterInstalled) {
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes()));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.CONSUMER, metadata.fetch().nodes(), metadata));
             metricsReporterInstalled = true;
         }
     }

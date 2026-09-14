@@ -1,6 +1,6 @@
 /*
  *
- *  * Copyright 2025 New Relic Corporation. All rights reserved.
+ *  * Copyright 2022 New Relic Corporation. All rights reserved.
  *  * SPDX-License-Identifier: Apache-2.0
  *
  */
@@ -8,6 +8,8 @@
 package com.nr.instrumentation.kafka;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.api.agent.NewRelic;
+import org.apache.kafka.clients.Metadata;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
@@ -21,14 +23,16 @@ import java.util.logging.Level;
 import static com.nr.instrumentation.kafka.MetricsConstants.KAFKA_METRICS_DEBUG;
 
 public class NewRelicMetricsReporter implements MetricsReporter {
-
+    public static final boolean CLUSTER_METRICS_ENABLED = NewRelic.getAgent().getConfig().getValue("kafka.metrics.cluster.metrics.enabled", false);
 
     private final Map<String, KafkaMetric> metrics = new ConcurrentHashMap<>();
 
     private final NodeTopicRegistry nodeTopicRegistry;
+    private final ClusterTopicRegistry clusterTopicRegistry;
 
-    public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes) {
+    public NewRelicMetricsReporter(ClientType clientType, Collection<Node> nodes, Metadata metadata) {
         this.nodeTopicRegistry = new NodeTopicRegistry(clientType, nodes);
+        this.clusterTopicRegistry = new ClusterTopicRegistry(clientType, metadata, CLUSTER_METRICS_ENABLED);
     }
 
     public Map<String, KafkaMetric> getMetrics() {
@@ -37,6 +41,10 @@ public class NewRelicMetricsReporter implements MetricsReporter {
 
     public Collection<String> getNodeTopicNames() {
         return this.nodeTopicRegistry.getNodeTopicNames();
+    }
+
+    public Collection<String> getClusterMetricNames() {
+        return this.clusterTopicRegistry.getClusterMetricNames();
     }
 
     @Override
@@ -48,6 +56,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
             }
             metrics.put(metricGroupAndName, kafkaMetric);
             nodeTopicRegistry.register(kafkaMetric);
+            clusterTopicRegistry.register(kafkaMetric);
         }
         MetricsScheduler.addMetricsReporter(this);
     }
@@ -56,6 +65,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
     public void metricChange(final KafkaMetric metric) {
         String metricGroupAndName = getMetricGroupAndName(metric);
         nodeTopicRegistry.register(metric);
+        clusterTopicRegistry.register(metric);
         if (KAFKA_METRICS_DEBUG) {
             AgentBridge.getAgent().getLogger().log(Level.FINEST, "metricChange(): {0} = {1}", metricGroupAndName, metric.metricName());
         }
@@ -85,6 +95,7 @@ public class NewRelicMetricsReporter implements MetricsReporter {
         MetricsScheduler.removeMetricsReporter(this);
         metrics.clear();
         nodeTopicRegistry.close();
+        clusterTopicRegistry.close();
     }
 
     @Override

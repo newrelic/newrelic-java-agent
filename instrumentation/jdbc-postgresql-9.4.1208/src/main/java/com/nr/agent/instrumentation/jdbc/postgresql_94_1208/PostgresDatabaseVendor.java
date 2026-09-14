@@ -8,10 +8,7 @@
 package com.nr.agent.instrumentation.jdbc.postgresql_94_1208;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.datastore.DatabaseVendor;
-import com.newrelic.agent.bridge.datastore.DatastoreVendor;
-import com.newrelic.agent.bridge.datastore.JdbcDatabaseVendor;
-import com.newrelic.agent.bridge.datastore.RecordSql;
+import com.newrelic.agent.bridge.datastore.*;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -73,8 +70,8 @@ public class PostgresDatabaseVendor extends JdbcDatabaseVendor {
      * We use the json format of explain plans which is only supported in Postgres 9.
      * It's easier to prevent obfuscation when it's in this format.
      */
-    public String getExplainPlanSql(String sql) throws SQLException {
-        return "EXPLAIN (FORMAT JSON) " + sql;
+    public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
+        return new ExplainPlanSqlInfo("EXPLAIN (FORMAT JSON) " + sqlToExplain, null);
     }
 
     @Override

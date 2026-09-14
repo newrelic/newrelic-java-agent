@@ -135,6 +135,13 @@ static Map<String, Object> statusCodeArrayOrRange(List<Integer> defaultValue = [
 // Type overrides — when YAML default doesn't reflect the documented semantic.
 // ---------------------------------------------------------------------------
 final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
+        // --- Collector connection TTL is a non-negative number of seconds ---
+        'collector_connection_ttl': [
+                type:    'integer',
+                default: 0,
+                minimum: 0,
+        ] as Map<String, Object>,
+
         // --- Status code keys (integer, array, or range string) ---
         'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
         'error_collector.expected_status_codes': statusCodeArrayOrRange(),
