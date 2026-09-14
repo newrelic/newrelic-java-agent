@@ -13,6 +13,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ class TelemetryBuffer {
     private Long metricBeginTimeMillis = 0L;
     private Long metricEndTimeMillis = 0L;
     private final List<MetricData> metricData = new ArrayList<>();
+    private String otlpPayload = null;
 
     public TelemetryBuffer() {
     }
@@ -90,6 +92,10 @@ class TelemetryBuffer {
 
             if (!sqlTraces.isEmpty()) {
                 addSqlTraces(sqlTraces, data);
+            }
+
+            if (!otlpPayload.isEmpty()) {
+                addOtlpPayload(otlpPayload, data);
             }
 
             return data;
@@ -182,10 +188,23 @@ class TelemetryBuffer {
         data.put("error_data", list);
     }
 
+    private static void addOtlpPayload(String otlpPayload, JSONObject data) {
+        data.put("otlp_payload", Collections.singletonList(otlpPayload));
+    }
+
     public void updateMetricData(List<MetricData> metricData) {
         try {
             lock.writeLock().lock();
-            this.metricData.addAll( metricData);
+            this.metricData.addAll(metricData);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    public void updateOtlpPayload(String otlpPayload) {
+        try {
+            lock.writeLock().lock();
+            this.otlpPayload = otlpPayload;
         } finally {
             lock.writeLock().unlock();
         }

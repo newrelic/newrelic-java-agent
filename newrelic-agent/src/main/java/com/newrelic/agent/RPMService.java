@@ -963,6 +963,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             try {
                 long now = System.currentTimeMillis();
                 sendMetricDataSyncRestart(lastReportTime, now, data);
+                sendOTLPMetricsSyncRestart(ServiceFactory.getServiceManager().getServerlessService().otelMetricsPayload());
                 reportInterval = now - lastReportTime;
                 lastReportTime = now;
                 last503Error.set(0);
@@ -1044,6 +1045,16 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceRestartException(e);
             reconnectSync();
             dataSender.sendMetricData(beginTimeMillis, endTimeMillis, metricData);
+        }
+    }
+
+    private void sendOTLPMetricsSyncRestart(String otelPayload) throws Exception {
+        try {
+            dataSender.sendServerlessOTLPMetricData(otelPayload);
+        } catch (ForceRestartException e) {
+            logForceRestartException(e);
+            reconnectSync();
+            dataSender.sendServerlessOTLPMetricData(otelPayload);
         }
     }
 
