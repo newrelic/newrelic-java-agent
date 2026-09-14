@@ -91,7 +91,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private static final String NULL_RESPONSE = "null";
     private static final int COMPRESSION_LEVEL = Deflater.DEFAULT_COMPRESSION;
     private static final String REDIRECT_HOST = "redirect_host";
-    private static final String SECURITY_POLICIES = "security_policies";
     private static final String MAX_PAYLOAD_SIZE_IN_BYTES = "max_payload_size_in_bytes";
     // to query the environment variables
     private static final String METADATA_PREFIX = "NEW_RELIC_METADATA_";
@@ -218,8 +217,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         if (response != null) {
             Map<?, ?> returnValue = (Map<?, ?>) response;
             String host = returnValue.get(REDIRECT_HOST).toString();
-
-            JSONObject policies = (JSONObject) returnValue.get(SECURITY_POLICIES);
 
             return host;
         }
