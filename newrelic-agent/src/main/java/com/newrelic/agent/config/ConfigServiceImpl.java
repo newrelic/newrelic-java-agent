@@ -133,7 +133,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     public Map<String, Object> getSanitizedLocalSettings() {
         Map<String, Object> settings = DeepMapClone.deepCopy(fileSettings);
         sanitizeSettingsFromConfigMap(settings);
-        addAdaptiveSamplerDefaultIfNotSet(settings);
+        addConfigDefaultsIfNotSet(settings);
         return settings;
     }
 
@@ -288,15 +288,21 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         replaceServerConfig(defaultAppName, fileSettings, savedServerData, laspPolicies);
     }
 
-    private void addAdaptiveSamplerDefaultIfNotSet(Map<String, Object> settings) {
+    private void addConfigDefaultsIfNotSet(Map<String, Object> settings) {
         try {
             settings.putIfAbsent("distributed_tracing", new HashMap<>());
+            // ai_monitoring.enabled may already be set via the nested yaml form, so we need to check both before defaulting this config value
+            Object aiMonitoringSettings = settings.get("ai_monitoring");
+            boolean alreadySetNested = aiMonitoringSettings instanceof Map && ((Map<?,?>) aiMonitoringSettings).containsKey("enabled");
+            if (!settings.containsKey("ai_monitoring.enabled") && !alreadySetNested){
+                settings.put("ai_monitoring.enabled", false);
+            }
             Map<String, Object> dtSettings = (Map<String, Object>) settings.get("distributed_tracing");
             dtSettings.putIfAbsent("sampler", new HashMap<>());
             Map<String, Object> samplerSettings = (Map<String, Object>) dtSettings.get("sampler");
             samplerSettings.putIfAbsent(SamplerConfig.ADAPTIVE_SAMPLING_TARGET, SamplerConfig.DEFAULT_ADAPTIVE_SAMPLING_TARGET);
         } catch (Exception e) {
-            NewRelic.getAgent().getLogger().log(Level.WARNING, "Error adding default adaptive sampling target settings to agent config.");
+            NewRelic.getAgent().getLogger().log(Level.WARNING, "Error adding default config settings to agent config.");
         }
     }
 

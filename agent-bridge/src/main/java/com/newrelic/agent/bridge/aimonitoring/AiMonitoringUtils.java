@@ -33,17 +33,21 @@ public class AiMonitoringUtils {
         Boolean aimEnabled = config.getValue("ai_monitoring.enabled", AI_MONITORING_ENABLED_DEFAULT);
         Boolean highSecurity = config.getValue("high_security", HIGH_SECURITY_ENABLED_DEFAULT);
 
-        if (collectAi != null && !collectAi) {
-            NewRelic.getAgent().getLogger().log(Level.FINE, "AIM: AI Monitoring is disabled due to account wide server side config.");
+        if (highSecurity) {
+            NewRelic.getAgent().getLogger().log(Level.FINE, "AIM: AI Monitoring is disabled due to High Security Mode.");
             NewRelic.incrementCounter("Supportability/Java/ML/Disabled");
             return false;
-        } else if (highSecurity || !aimEnabled) {
+        } else if(collectAi != null && !collectAi) {
             aimEnabled = false;
-            String disabledReason = highSecurity ? "High Security Mode." : "agent config.";
-            NewRelic.getAgent().getLogger().log(Level.FINE, "AIM: AI Monitoring is disabled due to " + disabledReason);
+            NewRelic.getAgent().getLogger().log(Level.FINE, "AIM: AI Monitoring is disabled due to account wide server side config.");
+            NewRelic.incrementCounter("Supportability/Java/ML/Disabled");
+        } else if (!aimEnabled) {
+            aimEnabled = false;
+            NewRelic.getAgent().getLogger().log(Level.FINE, "AIM: AI Monitoring is disabled due to agent config.");
             NewRelic.incrementCounter("Supportability/Java/ML/Disabled");
         } else {
             NewRelic.incrementCounter("Supportability/Java/ML/Enabled");
+            aimEnabled = true;
         }
 
         return aimEnabled;
