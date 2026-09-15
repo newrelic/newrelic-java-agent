@@ -107,7 +107,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private static final Set<String> METHODS_WITH_RESPONSE_BODY = ImmutableSet.of(
             CollectorMethods.PRECONNECT,
             CollectorMethods.CONNECT,
-            CollectorMethods.GET_AGENT_COMMANDS,
+            CollectorMethods.METRIC_DATA,
             CollectorMethods.PROFILE_DATA);
 
     private final HttpClientWrapper httpClientWrapper;
@@ -282,29 +282,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public List<List<?>> getAgentCommands() throws Exception {
-        checkAuditMode();
-        Object runId = agentRunId;
-        if (runId == NO_AGENT_RUN_ID) {
-            return Collections.emptyList();
-        }
-        InitialSizedJsonArray params = new InitialSizedJsonArray(1);
-        params.add(runId);
-
-        Object response = invokeRunId(CollectorMethods.GET_AGENT_COMMANDS, compressedEncoding, runId, params);
-        if (response == null || NULL_RESPONSE.equals(response)) {
-            return Collections.emptyList();
-        }
-        try {
-            return (List<List<?>>) response;
-        } catch (ClassCastException e) {
-            logger.warning(MessageFormat.format("Invalid response from New Relic when getting agent commands: {0}", e));
-            throw e;
-        }
-    }
-
-    @Override
     public void sendCommandResults(Map<Long, Object> commandResults) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || commandResults.isEmpty()) {
@@ -424,10 +401,11 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     }
 
     @Override
-    public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
+    @SuppressWarnings("unchecked")
+    public List<List<?>> sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || metricData.isEmpty()) {
-            return;
+            return Collections.emptyList();
         }
 
         InitialSizedJsonArray params = new InitialSizedJsonArray(4);
@@ -436,7 +414,16 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         params.add(endTimeMillis / 1000);
         params.add(metricData);
 
-        invokeRunId(CollectorMethods.METRIC_DATA, compressedEncoding, runId, params);
+        Object response = invokeRunId(CollectorMethods.METRIC_DATA, compressedEncoding, runId, params);
+        if (response == null || NULL_RESPONSE.equals(response)) {
+            return Collections.emptyList();
+        }
+        try {
+            return (List<List<?>>) response;
+        } catch (ClassCastException e) {
+            logger.warning(MessageFormat.format("Invalid response from New Relic when sending metric data: {0}", e));
+            throw e;
+        }
     }
 
     @Override

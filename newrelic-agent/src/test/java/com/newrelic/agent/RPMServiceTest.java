@@ -793,9 +793,30 @@ public class RPMServiceTest {
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
         svc.launch();
 
-        List<List<?>> commands = svc.getAgentCommands();
+        // Nothing has been harvested yet, so there's nothing cached.
+        assertEquals(0, svc.getAgentCommands().size());
 
-        assertEquals(0, commands.size());
+        // Simulate the collector piggybacking a command on the next metric_data response.
+        List<List<?>> queuedCommand = singletonList(Arrays.<Object>asList(1000L, createCommandMap("ping")));
+        MockCollectorServlet.queueAgentCommands(queuedCommand);
+
+        StatsEngine harvestStatsEngine = new StatsEngineImpl();
+        harvestStatsEngine.getResponseTimeStats(MetricNames.EXTERNAL_ALL).recordResponseTime(66, TimeUnit.MILLISECONDS);
+        svc.harvest(harvestStatsEngine);
+
+        List<List<?>> commands = svc.getAgentCommands();
+        assertEquals(1, commands.size());
+        assertEquals(1000L, commands.get(0).get(0));
+
+        // Draining clears the cache until the next metric_data response delivers something new.
+        assertEquals(0, svc.getAgentCommands().size());
+    }
+
+    private static Map<String, Object> createCommandMap(String name) {
+        Map<String, Object> commandMap = new HashMap<>();
+        commandMap.put("name", name);
+        commandMap.put("arguments", Collections.emptyMap());
+        return commandMap;
     }
 
     @Test(timeout = 30000)
