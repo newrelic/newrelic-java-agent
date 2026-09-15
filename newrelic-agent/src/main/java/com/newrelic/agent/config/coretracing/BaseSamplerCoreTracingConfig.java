@@ -48,7 +48,8 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
 
     @Override
     public boolean isEnabled() {
-        return isFullGranularityEnabled;
+        //Hardcoded override
+        return true;
     }
 
     @Override

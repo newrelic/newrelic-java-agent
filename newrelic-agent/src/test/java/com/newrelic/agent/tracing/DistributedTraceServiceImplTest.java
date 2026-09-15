@@ -451,6 +451,10 @@ public class DistributedTraceServiceImplTest {
         assertEquals(SamplerType.TRACE_ID_RATIO_BASED, distributedTraceService.getSampler(Granularity.PARTIAL, REMOTE_PARENT_NOT_SAMPLED).getType());
 
         assertEquals(Transaction.PartialSampleType.REDUCED, distributedTraceService.getPartialSampleType());
+
+        //Test Core Tracing overrides were respected
+        assertTrue(distributedTraceService.isFullGranularityEnabled());
+        assertFalse(distributedTraceService.isPartialGranularityEnabled());
     }
 
     @Test
@@ -482,6 +486,98 @@ public class DistributedTraceServiceImplTest {
     }
 
     @Test
+    public void fullGranularitySamplersAlwaysUsedRegardlessOfConfig() {
+        /*
+          distributed_tracing:
+            sampler:
+              root: always_on
+              remote_parent_sampled: always_on
+              remote_parent_not_sampled: always_on
+              full_granularity:
+                enabled: false   <----- MUST BE IGNORED
+         */
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withFullGranularitySetting("enabled", "false")
+                .withSamplerSetting("root", "always_on")
+                .withSamplerSetting("remote_parent_sampled", "always_on")
+                .withSamplerSetting("remote_parent_not_sampled", "always_on")
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+        for (int i = 0; i < 50; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+
+            float priority = distributedTraceService.calculatePriority(tx, ROOT);
+            assertFullGranularityPriority(priority, true);
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+            assertFullGranularityPriority(priority, true);
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_NOT_SAMPLED);
+            assertFullGranularityPriority(priority, true);
+        }
+    }
+
+    @Test
+    public void partialGranularitySamplersNeverUsedRegardlessOfConfig() {
+        /*
+          distributed_tracing:
+            sampler:
+              root: always_off
+              remote_parent_sampled: always_off
+              remote_parent_not_sampled: always_off
+              partial_granularity:
+                enabled: true   <----- MUST BE IGNORED
+                root: always_on
+                remote_parent_sampled: always_on
+                remote_parent_not_sampled: always_on
+         */
+
+        Map<String, Object> config = new DTConfigMapBuilder()
+                .withFullGranularitySetting("enabled", "false")
+                .withSamplerSetting("root", "always_off")
+                .withSamplerSetting("remote_parent_sampled", "always_off")
+                .withSamplerSetting("remote_parent_not_sampled", "always_off")
+                .withPartialGranularitySetting("enabled", "true")
+                .withPartialGranularitySetting("root", "always_on")
+                .withPartialGranularitySetting("remote_parent_sampled", "always_on")
+                .withPartialGranularitySetting("remote_parent_not_sampled", "always_on")
+                .buildMainConfig();
+
+        AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(config);
+        ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, Collections.<String, Object>emptyMap());
+        serviceManager.setConfigService(configService);
+        distributedTraceService = new DistributedTraceServiceImpl();
+        serviceManager.setDistributedTraceService(distributedTraceService);
+
+
+        //If for some reason PGT has been enabled in config, the configuration above
+        //would cause 100% of traces to be sampled at partial granularity priority.
+        //These assertions validate that ALL transactions keep their always_off decision from the full granularity stanza - never falling through to PG.
+        for (int i = 0; i < 50; i++){
+            Transaction tx = Mockito.mock(Transaction.class);
+            Mockito.when(tx.getPriorityFromInboundSamplingDecision(any())).thenReturn(null);
+
+            float priority = distributedTraceService.calculatePriority(tx, ROOT);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_SAMPLED);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+
+            priority = distributedTraceService.calculatePriority(tx, REMOTE_PARENT_NOT_SAMPLED);
+            assertFalse(DistributedTraceUtil.isSampledPriority(priority));
+        }
+    }
+
+    //TEMPORARILY DISABLED
+    //@Test
     public void nothingSampledWhenFullAndPartialDisabled(){
         /*
           distributed_tracing:
@@ -523,7 +619,8 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    @Test
+    //TEMPORARILY DISABLED
+    //@Test
     public void partialSamplersRunWhenFullGranularityDisabled(){
         //This test should sample every transaction as a partial granularity transaction.
         //To verify this, check that the transaction's partial sample type has been set every time the priority is calculated.
@@ -576,7 +673,8 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    @Test
+    //TEMPORARILY DISABLED
+    //@Test
     public void testFullAndPartialGranularityWorkTogether(){
 
         float fullRatio = 0.4f;
@@ -611,7 +709,8 @@ public class DistributedTraceServiceImplTest {
         assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
     }
 
-    @Test
+    //TEMPORARILY DISABLED
+    //@Test
     public void testPartialGranularityAlwaysEvictedFirst(){
         //in this test, we overload the reservoir and check to see that partial granularity is evicted over full granularity.
         Map<String, Object> config = new DTConfigMapBuilder()
@@ -718,7 +817,8 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    @Test
+    //TEMPORARILY DISABLED
+    //@Test
     public void nonAdaptiveSamplersAlsoWorkWithAutoAppNamingEnabled(){
         //In the current implementation, non-adaptive samplers are shared across applications to conserve instances.
         //This test validates that these samplers continue to sample their expected counts, even when auto app naming is turned on.
@@ -910,6 +1010,14 @@ public class DistributedTraceServiceImplTest {
         when(tx.getTransportType()).thenReturn(TransportType.HTTPS);
 
         return new TransactionData(tx, 0);
+    }
+
+    private void assertFullGranularityPriority(float priority, boolean shouldBeSampled) {
+        if (shouldBeSampled) {
+            assertTrue(priority >= 2.0);
+        } else {
+            assertTrue(priority < 1.0);
+        }
     }
 
 }

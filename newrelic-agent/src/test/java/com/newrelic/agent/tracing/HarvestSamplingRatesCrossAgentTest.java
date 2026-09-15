@@ -31,9 +31,11 @@ import org.mockito.Mockito;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_NOT_SAMPLED;
 import static com.newrelic.agent.tracing.DistributedTraceServiceImpl.SamplerCase.REMOTE_PARENT_SAMPLED;
@@ -45,6 +47,15 @@ public class HarvestSamplingRatesCrossAgentTest {
     private DistributedTraceServiceImpl distributedTraceService;
     private MockServiceManager serviceManager;
     private MockRPMServiceManager rpmServiceManager;
+
+    private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
+
+    static {
+        EXCLUDED_TESTS.add("trace_ratios_should_be_additive_when_layered");
+        EXCLUDED_TESTS.add("should_create_multiple_instances_of_adaptive_sampler");
+        EXCLUDED_TESTS.add("giant_example_from_spec");
+        EXCLUDED_TESTS.add("adaptive_and_ratio_samplers_are_layered");
+    }
 
     int fullGranSampled = 0;
     int partialGranSampled = 0;
@@ -63,7 +74,9 @@ public class HarvestSamplingRatesCrossAgentTest {
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
             String name = (String) testObject.get("test_name");
-            result.add(new Object[]{name, testObject});
+            if (!EXCLUDED_TESTS.contains(name)) {
+                result.add(new Object[]{name, testObject});
+            }
         }
         return result;
     }

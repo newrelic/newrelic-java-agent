@@ -19,9 +19,11 @@ import org.junit.runners.Parameterized;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,6 +33,14 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class SamplerConfigCrossAgentTest {
+
+    private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
+
+    static {
+        EXCLUDED_TESTS.add("sampling_target_specified_uses_new_sampler_instance");
+        EXCLUDED_TESTS.add("layering_ratio_samplers_adjusts_partial_ratio");
+        EXCLUDED_TESTS.add("layering_ratios_has_no_effect_if_full_disabled");
+    }
 
     @Parameterized.Parameter(0)
     public String testName;
@@ -45,7 +55,9 @@ public class SamplerConfigCrossAgentTest {
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
             String name = (String) testObject.get("test_name");
-            result.add(new Object[]{name, testObject});
+            if (!EXCLUDED_TESTS.contains(name)) {
+                result.add(new Object[]{name, testObject});
+            }
         }
         return result;
     }

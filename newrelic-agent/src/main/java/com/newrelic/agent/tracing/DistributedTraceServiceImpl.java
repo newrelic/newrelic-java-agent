@@ -409,11 +409,13 @@ public class DistributedTraceServiceImpl extends AbstractService implements Dist
     }
 
     public boolean isFullGranularityEnabled(){
-        return distributedTraceConfig.getFullGranularityConfig().isEnabled();
+        //Hardcoded override
+        return true;
     }
 
     public boolean isPartialGranularityEnabled(){
-        return distributedTraceConfig.getPartialGranularityConfig().isEnabled();
+        //Hardcoded override
+        return false;
     }
 
     private void recordCoreTracingSupportabilityMetrics() {

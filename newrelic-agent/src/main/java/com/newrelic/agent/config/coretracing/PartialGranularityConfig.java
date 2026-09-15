@@ -37,6 +37,12 @@ public class PartialGranularityConfig extends CoreTracingConfig {
     }
 
     @Override
+    public boolean isEnabled() {
+        //Hardcoded override
+        return false;
+    }
+
+    @Override
     public SamplerConfig createSamplerConfig(String samplerCase) {
         SamplerConfig sampler = super.createSamplerConfig(samplerCase);
         SamplerConfig fullSampler = fullGranularityConfig.getSamplerConfigForCase(samplerCase);

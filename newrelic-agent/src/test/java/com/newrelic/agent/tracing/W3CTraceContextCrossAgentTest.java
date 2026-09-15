@@ -78,6 +78,17 @@ public class W3CTraceContextCrossAgentTest {
 
     private final String APP_NAME = "Test";
 
+    private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
+
+    static {
+        EXCLUDED_TESTS.add("newrelic_remote_parent_sampled_uses_partial_ratio_sampler");
+        EXCLUDED_TESTS.add("no_headers_full_traces_disabled_uses_partial_adaptive_sampler");
+        EXCLUDED_TESTS.add("w3c_remote_parent_not_sampled_uses_partial_ratio_sampler");
+        EXCLUDED_TESTS.add("no_headers_root_uses_partial_ratio_sampler");
+        EXCLUDED_TESTS.add("payload_missing_priority_incremented_to_partial_granularity_priority");
+        EXCLUDED_TESTS.add("no_headers_root_full_and_partial_disabled");
+    }
+
     @Parameterized.Parameter(0)
     public String testName;
 
@@ -94,7 +105,9 @@ public class W3CTraceContextCrossAgentTest {
         for (Object test : tests) {
             JSONObject testObject = (JSONObject) test;
             String name = (String) testObject.get("test_name");
-            result.add(new Object[]{name, testObject});
+            if (!EXCLUDED_TESTS.contains(name)) {
+                result.add(new Object[]{name, testObject});
+            }
         }
         return result;
     }
