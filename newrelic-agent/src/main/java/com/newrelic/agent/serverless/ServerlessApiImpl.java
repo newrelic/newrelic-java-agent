@@ -57,6 +57,6 @@ public class ServerlessApiImpl implements ServerlessApi {
 
     @Override
     public boolean otelHarvest(Supplier<String> metricPayloadProvider) {
-        return ServiceFactory.getServiceManager().getServerlessService().otelHarvest(null);
+        return ServiceFactory.getServiceManager().getServerlessService().otelHarvest(metricPayloadProvider);
     }
 }
