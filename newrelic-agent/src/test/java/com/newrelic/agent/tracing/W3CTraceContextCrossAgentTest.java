@@ -67,17 +67,7 @@ import static org.mockito.Mockito.when;
 @Category(RequiresFork.class)
 @RunWith(Parameterized.class)
 public class W3CTraceContextCrossAgentTest {
-    private MockServiceManager serviceManager;
-    private DistributedTraceServiceImpl distributedTraceService;
-    private StatsServiceImpl statsService;
-
-    private Instrumentation savedInstrumentation;
-    private com.newrelic.agent.bridge.Agent savedAgent;
-
-    private SpanEventsService spanEventService;
-
-    private final String APP_NAME = "Test";
-
+    //Some tests are excluded, #NRCT
     private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
 
     static {
@@ -88,6 +78,17 @@ public class W3CTraceContextCrossAgentTest {
         EXCLUDED_TESTS.add("payload_missing_priority_incremented_to_partial_granularity_priority");
         EXCLUDED_TESTS.add("no_headers_root_full_and_partial_disabled");
     }
+
+    private MockServiceManager serviceManager;
+    private DistributedTraceServiceImpl distributedTraceService;
+    private StatsServiceImpl statsService;
+
+    private Instrumentation savedInstrumentation;
+    private com.newrelic.agent.bridge.Agent savedAgent;
+
+    private SpanEventsService spanEventService;
+
+    private final String APP_NAME = "Test";
 
     @Parameterized.Parameter(0)
     public String testName;

@@ -76,7 +76,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Ignore("Temporarily disabled")
+@Ignore("Temporarily disabled, #NRCT")
 public class CoreTracingCrossAgentTest {
 
     private static final String APP_NAME = "Test";

@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Parameterized.class)
 public class SamplerConfigCrossAgentTest {
 
+    // Some tests are excluded, #NRCT
     private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
 
     static {

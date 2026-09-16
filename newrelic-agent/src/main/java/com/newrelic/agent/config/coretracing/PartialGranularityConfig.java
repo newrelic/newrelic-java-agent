@@ -36,6 +36,9 @@ public class PartialGranularityConfig extends CoreTracingConfig {
         this.fullGranularityConfig = fullGranularityConfig;
     }
 
+    //At the moment, isEnabled is always hardcoded to false- i.e., partial granularity sampling is always off.
+    //Code throughout this repo has been tagged with #NRCT to denote places where code was changed or excluded
+    //to accommodate for the hardcoded override.
     @Override
     public boolean isEnabled() {
         //Hardcoded override

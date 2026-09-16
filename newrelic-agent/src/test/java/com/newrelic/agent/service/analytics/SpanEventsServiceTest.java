@@ -192,6 +192,7 @@ public class SpanEventsServiceTest {
 
     //This is a temporary test to validate that only FG events are created, regardless of the Transaction's PG Type.
     //Note that the sampled count in the reservoir is cumulative (so it should increase by 7 each time a new txn is processed).
+    //Temporary, #NRCT
     @Test
     public void testNoPartialGranularitySpansRegardlessOfType() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
@@ -226,7 +227,7 @@ public class SpanEventsServiceTest {
     //   LLM Span
     //       exit span to service D
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void testPartialGranularity_Reduced() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
@@ -248,7 +249,7 @@ public class SpanEventsServiceTest {
     //   LLM Span
     //       exit span to service D
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void testPartialGranularity_Essential() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
@@ -269,7 +270,7 @@ public class SpanEventsServiceTest {
     //   LLM Span
     //   exit span to service D  (note: everything is re-parented to the root span for COMPACT)
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void testPartialGranularity_Compact() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {

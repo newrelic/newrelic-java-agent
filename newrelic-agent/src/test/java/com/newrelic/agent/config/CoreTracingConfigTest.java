@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 /***
  * This tests the complete set of CoreTracing configurations - samplings and granularities.
  *
- * Currently, the granularity configs are hardcoded on/off for full/partial, respectively. Some tests have been marked TEMPORARILY DISABLED for this reason
+ * Currently, the granularity configs are hardcoded on/off for full/partial, respectively. Some tests have been marked Disabled, #NRCT for this reason
  * (or otherwise have their .isEnabled() assertions adjusted).
  */
 public class CoreTracingConfigTest {
@@ -185,7 +185,7 @@ public class CoreTracingConfigTest {
         assertNull(distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplingTarget());
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
     //@Test
     public void testRatiosAreAdditiveWhenLayered(){
@@ -220,7 +220,7 @@ public class CoreTracingConfigTest {
         assertEquals(0.48f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
     }
 
-    //TEMPORARILY DISABLED.
+    //Disabled, #NRCT.
     //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
     //@Test
     public void testLayeredPartialRatiosDoNotAdjustWhenFullDisabled(){
@@ -250,7 +250,7 @@ public class CoreTracingConfigTest {
         assertEquals(0.15f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
     //@Test
     public void testGiantExampleFromLocalConfig(){
@@ -317,6 +317,7 @@ public class CoreTracingConfigTest {
 
     //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
     //This is the FGT-only portion of the complete sys props test.
+    //Temporary, #NRCT
     @Test
     public void testGiantExampleFromSysPropsFullGranularityOnly() {
         // This example has a little bit of everything. Overlapping properties, different samplers, you name it.
@@ -358,7 +359,7 @@ public class CoreTracingConfigTest {
         assertNull(distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
     //The sys props part of this test is still valuable, so that half of the test still exists above.
     //@Test

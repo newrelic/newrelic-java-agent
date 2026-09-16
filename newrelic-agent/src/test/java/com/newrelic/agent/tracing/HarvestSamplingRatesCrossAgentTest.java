@@ -44,10 +44,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 @RunWith(Parameterized.class)
 public class HarvestSamplingRatesCrossAgentTest {
-    private DistributedTraceServiceImpl distributedTraceService;
-    private MockServiceManager serviceManager;
-    private MockRPMServiceManager rpmServiceManager;
-
+    //Some tests are excluded, #NRCT
     private static final Set<String> EXCLUDED_TESTS = new HashSet<>();
 
     static {
@@ -56,6 +53,10 @@ public class HarvestSamplingRatesCrossAgentTest {
         EXCLUDED_TESTS.add("giant_example_from_spec");
         EXCLUDED_TESTS.add("adaptive_and_ratio_samplers_are_layered");
     }
+
+    private DistributedTraceServiceImpl distributedTraceService;
+    private MockServiceManager serviceManager;
+    private MockRPMServiceManager rpmServiceManager;
 
     int fullGranSampled = 0;
     int partialGranSampled = 0;

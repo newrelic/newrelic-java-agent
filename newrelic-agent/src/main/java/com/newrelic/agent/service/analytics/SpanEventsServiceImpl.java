@@ -81,7 +81,8 @@ public class SpanEventsServiceImpl extends AbstractService implements AgentConfi
                         transactionData.getTraceId(), partialSampleType);
             }
 
-            // Hardcoded replacement for: spans = partialSampleType != null ? createPartialGranularitySpanEvents : createFullGranularitySpanEvents
+            // Temporary replacement, #NRCT
+            // Replaces spans = partialSampleType != null ? createPartialGranularitySpanEvents : createFullGranularitySpanEvents
             List<SpanEvent> spans = createFullGranularitySpanEvents(transactionData, transactionStats);
             for (SpanEvent span : spans) {
                 storeEvent(span);

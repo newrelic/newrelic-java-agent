@@ -576,7 +576,7 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void nothingSampledWhenFullAndPartialDisabled(){
         /*
@@ -619,7 +619,7 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void partialSamplersRunWhenFullGranularityDisabled(){
         //This test should sample every transaction as a partial granularity transaction.
@@ -673,7 +673,7 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void testFullAndPartialGranularityWorkTogether(){
 
@@ -709,7 +709,7 @@ public class DistributedTraceServiceImplTest {
         assertTrue("Expected " + expectedSampledCount + " but actually sampled " + sampledCount, Math.abs(sampledCount - expectedSampledCount) <= maxError);
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void testPartialGranularityAlwaysEvictedFirst(){
         //in this test, we overload the reservoir and check to see that partial granularity is evicted over full granularity.
@@ -817,7 +817,7 @@ public class DistributedTraceServiceImplTest {
         }
     }
 
-    //TEMPORARILY DISABLED
+    //Disabled, #NRCT
     //@Test
     public void nonAdaptiveSamplersAlsoWorkWithAutoAppNamingEnabled(){
         //In the current implementation, non-adaptive samplers are shared across applications to conserve instances.
