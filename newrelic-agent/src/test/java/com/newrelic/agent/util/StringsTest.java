@@ -78,4 +78,25 @@ public class StringsTest {
         Assert.assertEquals("b***r", Strings.obfuscate("barbar"));
         Assert.assertEquals("l***g", Strings.obfuscate("long-long-string"));
     }
+
+    @Test
+    public void truncateWithEllipsis() {
+        // Normal case: String is longer than maxLengthWithEllipsis
+        Assert.assertEquals("Truncate this very...", Strings.truncateWithEllipsis("Truncate this very long String", 21));
+
+        // maxLengthWithEllipsis is 0, 1, 2, or 3
+        Assert.assertEquals("...", Strings.truncateWithEllipsis("Truncate this very long String", 0));
+        Assert.assertEquals("...", Strings.truncateWithEllipsis("Truncate this very long String", 1));
+        Assert.assertEquals("...", Strings.truncateWithEllipsis("Truncate this very long String", 2));
+        Assert.assertEquals("...", Strings.truncateWithEllipsis("Truncate this very long String", 3));
+
+        // maxLengthWithEllipsis is greater than the target String
+        Assert.assertEquals("Truncate this very long String", Strings.truncateWithEllipsis("Truncate this very long String", 100));
+
+        // String length == maxLengthWithEllipsis
+        Assert.assertEquals("Truncate this very long String", Strings.truncateWithEllipsis("Truncate this very long String", 30));
+
+        // String (length - 1) == maxLengthWithEllipsis
+        Assert.assertEquals("Truncate this very long St...", Strings.truncateWithEllipsis("Truncate this very long String", 29));
+    }
 }

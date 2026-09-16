@@ -7,6 +7,8 @@
 
 package com.newrelic.agent.util;
 
+import com.newrelic.agent.attributes.AttributeValidator;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -147,6 +149,23 @@ public class Strings {
         }
 
         return null;
+    }
+
+    /**
+     * Truncate the supplied string to (maxLengthWithEllipsis -3) and append the String "..."
+     *
+     * @param value the String to truncate
+     * @param maxLengthWithEllipsis the size of the String after truncation plus the
+     * appended "..." String
+     *
+     * @return the truncated String
+     */
+    public static String truncateWithEllipsis(String value, int maxLengthWithEllipsis) {
+        if (value.length() > maxLengthWithEllipsis) {
+            int maxLengthWithoutEllipsis = maxLengthWithEllipsis - 3;
+            return AttributeValidator.truncateString(value, maxLengthWithoutEllipsis) + "...";
+        }
+        return value;
     }
 
     private static int findDotOrHyphen(String string, int start) {

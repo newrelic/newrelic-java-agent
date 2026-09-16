@@ -54,7 +54,7 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final boolean DEFAULT_EXPLAIN_ENABLED = true;
     public static final double DEFAULT_EXPLAIN_THRESHOLD = 0.5d; // seconds
     public static final boolean DEFAULT_GC_TIME_ENABLED = false; // this is disabled by default because it is incorrect in all async scenarios
-    public static final int DEFAULT_INSERT_SQL_MAX_LENGTH = 2000;
+    public static final int DEFAULT_INSERT_SQL_MAX_LENGTH = 4095;
     public static final boolean DEFAULT_LOG_SQL = false;
     public static final int DEFAULT_MAX_EXPLAIN_PLANS = 20;
     public static final int DEFAULT_MAX_STACK_TRACE = 20;
@@ -65,7 +65,6 @@ public final class TransactionTracerConfigImpl extends BaseConfig implements Tra
     public static final int DEFAULT_TOKEN_LIMIT = 3000;
     public static final int DEFAULT_TOP_N = 20;
     public static final boolean DEFAULT_EXEC_CALL_SQL_REGEX_DISABLED = false;
-    public static final String DEFAULT_SQL_METADATA_COMMENTS = "";
     public static final int APDEX_F_MULTIPLE = 4;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.transaction_tracer.";
     public static final String CATEGORY_REQUEST_SYSTEM_PROPERTY_ROOT = "newrelic.config.transaction_tracer.category." + REQUEST_CATEGORY_NAME + ".";

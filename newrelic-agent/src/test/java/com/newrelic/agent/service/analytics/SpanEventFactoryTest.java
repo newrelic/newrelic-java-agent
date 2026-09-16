@@ -12,6 +12,7 @@ import com.newrelic.agent.MockConfigService;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.EventOnSpan;
 import com.newrelic.agent.model.LinkOnSpan;
@@ -25,6 +26,7 @@ import com.newrelic.api.agent.DestinationType;
 import com.newrelic.api.agent.HttpParameters;
 import com.newrelic.api.agent.MessageConsumeParameters;
 import com.newrelic.api.agent.MessageProduceParameters;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URI;
@@ -44,7 +46,19 @@ import static org.mockito.Mockito.when;
 
 public class SpanEventFactoryTest {
 
-    SpanEventFactory spanEventFactory = new SpanEventFactory("green", new AttributeFilter.PassEverythingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+    private SpanEventFactory spanEventFactory;
+
+    @Before
+    public void setup() {
+        MockServiceManager serviceManager = new MockServiceManager();
+        AgentConfig agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        when(agentConfig.getTransactionTracerConfig().getInsertSqlMaxLength())
+                .thenReturn(TransactionTracerConfigImpl.DEFAULT_INSERT_SQL_MAX_LENGTH);
+        serviceManager.setConfigService(new MockConfigService(agentConfig));
+        ServiceFactory.setServiceManager(serviceManager);
+
+        spanEventFactory = new SpanEventFactory("green", new AttributeFilter.PassEverythingAttributeFilter(), DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER);
+    }
 
     @Test
     public void appNameShouldBeSet() {
