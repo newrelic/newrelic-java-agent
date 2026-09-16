@@ -10,18 +10,37 @@ package com.newrelic.agent.service.analytics;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.newrelic.agent.MockConfigService;
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.model.PriorityAware;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.service.ServiceFactory;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.number.IsCloseTo;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DistributedSamplingPriorityQueueTest {
+
+    @Before
+    public void setup() {
+        MockServiceManager serviceManager = new MockServiceManager();
+        AgentConfig agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        when(agentConfig.getTransactionTracerConfig().getInsertSqlMaxLength())
+                .thenReturn(TransactionTracerConfigImpl.DEFAULT_INSERT_SQL_MAX_LENGTH);
+        serviceManager.setConfigService(new MockConfigService(agentConfig));
+        ServiceFactory.setServiceManager(serviceManager);
+    }
 
     static class SimplePriorityAware implements PriorityAware {
         private final float priority;
