@@ -141,7 +141,7 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
         private void start() {
             if (!rpmService.isMainApp()) {
                 startImmediate();
-            } else if (isSyncStartup() || isLaspEnabled() || isHighSecurityEnabled() || isServerlessModeEnabled()) {
+            } else if (isSyncStartup() || isHighSecurityEnabled() || isServerlessModeEnabled()) {
                 getLogger().log(Level.FINER, "Not waiting for application server port");
                 startSync();
             } else {
@@ -300,10 +300,6 @@ public class RPMConnectionServiceImpl extends AbstractService implements RPMConn
             ConfigService configService = ServiceFactory.getConfigService();
             AgentConfig config = configService.getAgentConfig(rpmService.getApplicationName());
             return config.getServerlessConfig().isEnabled();
-        }
-
-        private boolean isLaspEnabled() {
-            return ServiceFactory.getConfigService().getDefaultAgentConfig().laspEnabled();
         }
 
         private boolean isHighSecurityEnabled() {

@@ -23,7 +23,6 @@ import com.newrelic.agent.agentcontrol.health.HealthDataProducer;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.DataSenderConfig;
-import com.newrelic.agent.config.LaspPolicies;
 import com.newrelic.agent.errors.TracedError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.model.AnalyticsEvent;
@@ -92,7 +91,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private static final String NULL_RESPONSE = "null";
     private static final int COMPRESSION_LEVEL = Deflater.DEFAULT_COMPRESSION;
     private static final String REDIRECT_HOST = "redirect_host";
-    private static final String SECURITY_POLICIES = "security_policies";
     private static final String MAX_PAYLOAD_SIZE_IN_BYTES = "max_payload_size_in_bytes";
     // to query the environment variables
     private static final String METADATA_PREFIX = "NEW_RELIC_METADATA_";
@@ -126,7 +124,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private final DataSenderListener dataSenderListener;
     private final String compressedEncoding;
     private final boolean putForDataSend;
-    private Map<String, Boolean> policiesJson;
     private volatile int maxPayloadSizeInBytes = DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES;
     private volatile Map<String, String> requestMetadata;
     private volatile Map<String, String> metadata;
@@ -203,9 +200,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         if (redirectHost != null) {
             this.redirectHost = redirectHost;
             logger.info(MessageFormat.format("Collector redirection to {0}:{1}", this.redirectHost, Integer.toString(port)));
-        } else if (configService.getDefaultAgentConfig().laspEnabled()) {
-            throw new ForceDisconnectException("The agent did not receive one or more security policies that it expected and will shut down."
-                    + " Please contact support.");
         }
         return doConnect(startupOptions);
     }
@@ -216,9 +210,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         InitialSizedJsonArray params = new InitialSizedJsonArray(1);
         JSONObject token = new JSONObject();
 
-        if (agentConfig.laspEnabled()) {
-            token.put("security_policies_token", agentConfig.securityPoliciesToken());
-        }
         token.put("high_security", agentConfig.isHighSecurity());
         params.add(token);
         Object response = invokeNoRunId(originalHost, CollectorMethods.PRECONNECT, compressedEncoding, params);
@@ -226,9 +217,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         if (response != null) {
             Map<?, ?> returnValue = (Map<?, ?>) response;
             String host = returnValue.get(REDIRECT_HOST).toString();
-
-            JSONObject policies = (JSONObject) returnValue.get(SECURITY_POLICIES);
-            this.policiesJson = LaspPolicies.validatePolicies(policies);
 
             return host;
         }
@@ -239,9 +227,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     @SuppressWarnings("unchecked")
     private Map<String, Object> doConnect(Map<String, Object> startupOptions) throws Exception {
         InitialSizedJsonArray params = new InitialSizedJsonArray(1);
-        if (policiesJson != null && !policiesJson.isEmpty()) {
-            startupOptions.put("security_policies", LaspPolicies.convertToConnectPayload(policiesJson));
-        }
 
         startupOptions.put(ENV_METADATA, metadata);
 
@@ -276,7 +261,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         } else {
             throw new ConnectionResponseException(MessageFormat.format("Missing {0} connection parameter", ConnectionResponse.AGENT_RUN_ID_KEY));
         }
-        configService.setLaspPolicies(policiesJson);
 
         return data;
     }

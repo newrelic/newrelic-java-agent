@@ -49,12 +49,6 @@ public class CustomAttributeSender extends AttributeSender {
                     return null;
                 }
             }
-            if (!ServiceFactory.getConfigService().getDefaultAgentConfig().isCustomParametersAllowed()) {
-                Agent.LOG.log(Level.FINER,
-                        "Unable to add {0} attribute when {1} was invoked with key \"{2}\" while lasp custom_parameters disabled.",
-                        getAttributeType(), methodCalled, key);
-                return null;
-            }
         } catch (Throwable t) {
             Agent.LOG.log(Level.FINEST,
                     "Unable to verify attribute. Exception thrown while verifying security policies", t);

@@ -213,7 +213,7 @@ public class SlowQueryInfoTest {
                         .put("trusted_account_key", "1tak23")
                         .put("account_id", "1acct234").build())
                 .build();
-        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null, null));
+        dts.connected(null, AgentConfigFactory.createAgentConfig(configMap, null));
 
         Transaction.clearTransaction();
         Transaction transaction = Transaction.getTransaction();

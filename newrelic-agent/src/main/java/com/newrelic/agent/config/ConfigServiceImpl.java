@@ -7,7 +7,6 @@
 
 package com.newrelic.agent.config;
 
-import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.ConnectionConfigListener;
 import com.newrelic.agent.DebugFlag;
@@ -36,7 +35,6 @@ import java.util.logging.Level;
 
 public class ConfigServiceImpl extends AbstractService implements ConfigService, ConnectionConfigListener, HarvestListener {
     private static final String SANITIZED_SETTING = "****";
-    private static final Map<String, String> policiesToConfigs;
 
     private final List<AgentConfigListener> listeners = new CopyOnWriteArrayList<>();
     private final File configFile;
@@ -47,20 +45,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     private volatile AgentConfig defaultAgentConfig;
     private volatile AgentConfig localAgentConfig;
     private volatile Map<String, Object> savedServerData;
-    private volatile Map<String, Boolean> laspPolicies;
     private volatile Map<String, Object> fileSettings;
-
-    static {
-        policiesToConfigs = ImmutableMap.<String, String>builder()
-                .put(LaspPolicies.LASP_RECORD_SQL, "transaction_tracer.record_sql")
-                .put(LaspPolicies.LASP_ATTRIBUTES_INCLUDE, "attributes.include")
-                .put(LaspPolicies.LASP_ALLOW_RAW_EXCEPTION_MESSAGES, "strip_exception_messages.enabled")
-                .put(LaspPolicies.LASP_CUSTOM_EVENTS, "custom_insights_events.enabled")
-                .put(LaspPolicies.LASP_CUSTOM_PARAMETERS, LaspPolicies.LASP_CUSTOM_PARAMETERS)
-                .put(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR)
-                .put(LaspPolicies.LASP_MESSAGE_PARAMETERS, LaspPolicies.LASP_MESSAGE_PARAMETERS)
-                .build();
-    }
 
     protected ConfigServiceImpl(AgentConfig agentConfig, File configFile, Map<String, Object> fileSettings, boolean checkConfig) {
         super(ConfigService.class.getSimpleName());
@@ -165,11 +150,6 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     @Override
     public StripExceptionConfig getStripExceptionConfig(String appName) {
         return getOrCreateAgentConfig(appName).getStripExceptionConfig();
-    }
-
-    @Override
-    public void setLaspPolicies(Map<String, Boolean> policiesJson) {
-        laspPolicies = convertToAgentConfig(policiesJson);
     }
 
     @Override
@@ -280,12 +260,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
 
         // Update local agent configuration and modify audit_mode + log_level here. This uses the last known serverData
         // that we received in order to ensure that no serverData specific config is lost on config reload.
-        localAgentConfig = AgentConfigFactory.createAgentConfig(fileSettings, savedServerData, laspPolicies);
+        localAgentConfig = AgentConfigFactory.createAgentConfig(fileSettings, savedServerData);
 
         updateDynamicAuditAndLogConfig(localAgentConfig, fileSettings);
 
         // This ensures that all listeners are notified and that configuration is updated across the app
-        replaceServerConfig(defaultAppName, fileSettings, savedServerData, laspPolicies);
+        replaceServerConfig(defaultAppName, fileSettings, savedServerData);
     }
 
     private void addAdaptiveSamplerDefaultIfNotSet(Map<String, Object> settings) {
@@ -337,7 +317,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         if (agentConfig != null) {
             return agentConfig;
         }
-        agentConfig = AgentConfigFactory.createAgentConfig(fileSettings, null, laspPolicies);
+        agentConfig = AgentConfigFactory.createAgentConfig(fileSettings, null);
         AgentConfig oldAgentConfig = agentConfigs.putIfAbsent(appName, agentConfig);
         return oldAgentConfig == null ? agentConfig : oldAgentConfig;
     }
@@ -350,9 +330,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
     }
 
     private AgentConfig createAgentConfig(String appName, Map<String, Object> localSettings,
-            Map<String, Object> serverData, Map<String, Boolean> laspData) {
+            Map<String, Object> serverData) {
         try {
-            return AgentConfigFactory.createAgentConfig(localSettings, serverData, laspData);
+            return AgentConfigFactory.createAgentConfig(localSettings, serverData);
         } catch (Exception e) {
             String msg = MessageFormat.format("Error configuring application \"{0}\" with server data \"{1}\": {2}", appName, serverData, e);
             if (Agent.LOG.isLoggable(Level.FINER)) {
@@ -364,16 +344,10 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         return null;
     }
 
-    private AgentConfig replaceServerConfig(String appName, Map<String, Object> localSettings, Map<String, Object> serverData, Map<String, Boolean> laspData) {
-        if (Agent.LOG.isLoggable(Level.FINER)) {
-            if (laspData == null || laspData.isEmpty()) {
-                Agent.LOG.finer(MessageFormat.format("Received New Relic data for {0}:  server data {1}, lasp data {2}", appName, serverData, laspData));
-            } else {
-                Agent.LOG.finer(MessageFormat.format("Received New Relic data for {0}:  server data {1}", appName, serverData));
-            }
-        }
+    private AgentConfig replaceServerConfig(String appName, Map<String, Object> localSettings, Map<String, Object> serverData) {
+        Agent.LOG.finer(MessageFormat.format("Received New Relic data for {0}:  server data {1}", appName, serverData));
 
-        AgentConfig agentConfig = createAgentConfig(appName, localSettings, serverData, laspData);
+        AgentConfig agentConfig = createAgentConfig(appName, localSettings, serverData);
         if (agentConfig == null) {
             return null;
         }
@@ -406,27 +380,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         // Store off server data for later use if configuration is updated dynamically
         savedServerData = new HashMap<>(serverData);
 
-        return replaceServerConfig(appName, fileSettings, serverData, laspPolicies);
-    }
-
-    public static Map<String, Boolean> convertToAgentConfig(Map<String, Boolean> laspPolicies) {
-        if (laspPolicies == null) {
-            return null;
-        }
-
-        Map<String, Boolean> agentFormat = new HashMap<>();
-        for (Map.Entry<String, Boolean> entry : laspPolicies.entrySet()) {
-            String configName = policiesToConfigs.get(entry.getKey());
-            if (configName != null) {
-                if (entry.getKey().equals("allow_raw_exception_messages")) {
-                    agentFormat.put(configName, !entry.getValue());
-                } else {
-                    agentFormat.put(configName, entry.getValue());
-                }
-            }
-        }
-
-        return agentFormat;
+        return replaceServerConfig(appName, fileSettings, serverData);
     }
 
     @Override

@@ -245,7 +245,7 @@ public class ErrorServiceTest {
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, true);
         errorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
 
-        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null, null));
+        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null));
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
@@ -271,7 +271,7 @@ public class ErrorServiceTest {
         configMap.put(AgentConfigImpl.ERROR_COLLECTOR, errorMap);
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, false);
 
-        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null, null));
+        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null));
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
@@ -310,7 +310,7 @@ public class ErrorServiceTest {
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, true);
         errorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
         errorMap.put(ErrorCollectorConfigImpl.IGNORE_ERRORS, "java.lang.Exception");
-        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null, null));
+        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null));
 
         errorService.reportError(error);
         actualErrors = errorService.getAndClearTracedErrors();
@@ -331,7 +331,7 @@ public class ErrorServiceTest {
         Map<String, Object> serverSettings = new HashMap<>();
         serverSettings.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, false);
 
-        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null));
+        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(localSettings, serverSettings));
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();
@@ -998,7 +998,7 @@ public class ErrorServiceTest {
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, true);
         errorMap.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, true);
 
-        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null, null));
+        errorService.refreshErrorCollectorConfig(AgentConfigFactory.createAgentConfig(configMap, null));
 
         ErrorCollectorConfig errorCollectorConfig = ServiceFactory.getConfigService().getDefaultAgentConfig()
                 .getErrorCollectorConfig();

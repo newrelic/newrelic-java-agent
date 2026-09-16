@@ -8,7 +8,6 @@
 package com.newrelic.agent.config;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.MetricNames;
 import com.newrelic.agent.bridge.aimonitoring.AiMonitoringUtils;
@@ -21,11 +20,8 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.transport.CollectorMethods;
 import com.newrelic.agent.transport.ConnectionResponse;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
@@ -46,13 +42,11 @@ public class AgentConfigFactory {
     public static final String SPAN_EVENTS_PREFIX = AgentConfigImpl.SPAN_EVENTS + DOT_SEPARATOR;
     public static final String BROWSER_MONITORING_PREFIX = AgentConfigImpl.BROWSER_MONITORING + DOT_SEPARATOR;
     public static final String HIGH_SECURITY = "high_security";
-    public static final String SECURITY_POLICIES_TOKEN = "security_policies_token";
     public static final String COLLECT_ERRORS = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.COLLECT_ERRORS;
     public static final String EXPECTED_CLASSES = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.EXPECTED_CLASSES;
     public static final String EXPECTED_STATUS_CODES = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.EXPECTED_STATUS_CODES;
     public static final String COLLECT_ERROR_EVENTS = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.COLLECT_EVENTS;
     public static final String CAPTURE_ERROR_EVENTS = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.CAPTURE_EVENTS;
-    public static final String CUSTOM_INSIGHTS_ENABLED = AgentConfigImpl.CUSTOM_INSIGHT_EVENTS + DOT_SEPARATOR + InsightsConfigImpl.ENABLED_PROP;
     public static final String MAX_ERROR_EVENT_SAMPLES_STORED = ERROR_COLLECTOR_PREFIX + ErrorCollectorConfigImpl.MAX_EVENT_SAMPLES_STORED;
     public static final String COLLECT_TRACES = TRANSACTION_TRACER_PREFIX + TransactionTracerConfigImpl.COLLECT_TRACES;
     public static final String COLLECT_TRANSACTION_EVENTS = TRANSACTION_EVENTS_PREFIX + "collect_analytics_events";
@@ -84,16 +78,15 @@ public class AgentConfigFactory {
     public static final String PRIMARY_APPLICATION_ID = DISTRIBUTED_TRACING_PREFIX + DistributedTracingConfig.PRIMARY_APPLICATION_ID;
     public static final String DISTRIBUTED_TRACING_ENABLED = DISTRIBUTED_TRACING_PREFIX + DistributedTracingConfig.ENABLED;
     public static final String STRIP_EXCEPTION = AgentConfigImpl.STRIP_EXCEPTION_MESSAGES;
-    public static final String STRIP_EXCEPTION_ENABLED = STRIP_EXCEPTION + DOT_SEPARATOR + StripExceptionConfigImpl.ENABLED;
     @Deprecated
     public static final String STRIP_EXCEPTION_WHITELIST = STRIP_EXCEPTION + DOT_SEPARATOR + StripExceptionConfigImpl.WHITELIST;
     public static final String STRIP_EXCEPTION_ALLOWED_CLASSES = STRIP_EXCEPTION + DOT_SEPARATOR + StripExceptionConfigImpl.ALLOWED_CLASSES;
     public static final String EVENT_HARVEST_CONFIG = "event_harvest_config";
 
     @VisibleForTesting
-    public static AgentConfig createAgentConfig(Map<String, Object> localSettings, Map<String, Object> serverData, Map<String, Boolean> laspData) {
+    public static AgentConfig createAgentConfig(Map<String, Object> localSettings, Map<String, Object> serverData) {
         Map<String, Object> mergedSettings = DeepMapClone.deepCopy(localSettings);
-        mergeServerData(mergedSettings, serverData, laspData);
+        mergeServerData(mergedSettings, serverData);
         return AgentConfigImpl.createAgentConfig(mergedSettings);
     }
 
@@ -110,59 +103,17 @@ public class AgentConfigFactory {
     }
 
     // be careful with high security here - ssl must stay at true, record_sql must be off or obfuscated
-    public static void mergeServerData(Map<String, Object> settings, Map<String, Object> serverData, Map<String, Boolean> laspData) {
-        if (serverData == null && laspData == null) {
+    public static void mergeServerData(Map<String, Object> settings, Map<String, Object> serverData) {
+        if (serverData == null) {
             return;
         }
 
         if (serverData == null) {
             serverData = new HashMap<>();
         }
-        if (laspData == null) {
-            laspData = new HashMap<>();
-        }
 
         AgentConfig settingsConfig = AgentConfigImpl.createAgentConfig(settings);
         Map<String, Object> agentData = getAgentData(serverData);
-
-        String recordSqlSecure = getMostSecureSql(agentData, settingsConfig, laspData);
-
-        // True means agent is allowed to record attribute keys found in the attributes.include list when attributes are enabled.
-        boolean attributesIncludeEnabled = getLaspValue(laspData, AttributesConfigImpl.ATTS_INCLUDE, true);
-
-        List<String> attributesInclude = attributesIncludeEnabled
-                ? settingsConfig.getAttributesConfig().attributesRootInclude() : Collections.emptyList();
-        String attributesIncludeSecure = Joiner.on(",").join(attributesInclude);
-
-        Boolean captureMessageParameters = getLaspValue(laspData, LaspPolicies.LASP_MESSAGE_PARAMETERS, true);
-        if (!captureMessageParameters) {
-            List<String> filteredAttributes = new ArrayList<>();
-            String[] attributes = attributesIncludeSecure.split(",");
-            for (String attribute : attributes) {
-                // If we don't want to capture message parameters we need to remove them from the includes list
-                if (attribute.startsWith("message.parameters.")) {
-                    continue;
-                }
-                filteredAttributes.add(attribute);
-            }
-            attributesIncludeSecure = Joiner.on(",").join(filteredAttributes);
-        }
-
-        // we OR this comparison instead of ANDing it because the most secure state is if strip_exception_messages is true
-        Boolean stripExceptionMessagesSecure = settingsConfig.getStripExceptionConfig().isEnabled() || getLaspValue(laspData, STRIP_EXCEPTION_ENABLED, false);
-
-        Boolean customEventsSecure;
-        Boolean serverSideCustomEvents = (Boolean) serverData.get(InsightsConfigImpl.COLLECT_CUSTOM_EVENTS);
-        if (serverSideCustomEvents == null) {
-            customEventsSecure = settingsConfig.getInsightsConfig().isEnabled()
-                    && getLaspValue(laspData, CUSTOM_INSIGHTS_ENABLED, true);
-        } else {
-            customEventsSecure = settingsConfig.getInsightsConfig().isEnabled()
-                    && getLaspValue(laspData, CUSTOM_INSIGHTS_ENABLED, true) && serverSideCustomEvents;
-        }
-
-        Boolean customParametersSecure = getLaspValue(laspData, LaspPolicies.LASP_CUSTOM_PARAMETERS, true);
-        Boolean customInstrumentationEditor = getLaspValue(laspData, LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, true);
 
         // calling remove here prevents mergeAgentData from always overriding local config
         // remove deprecated cross_application_tracing property
@@ -171,7 +122,6 @@ public class AgentConfigFactory {
         agentData.remove("reinstrument");
         agentData.remove("reinstrument.attributes_enabled");
         agentData.remove(STRIP_EXCEPTION);
-        agentData.remove(STRIP_EXCEPTION_ENABLED);
         agentData.remove(STRIP_EXCEPTION_ALLOWED_CLASSES);
         agentData.remove(STRIP_EXCEPTION_WHITELIST);
         agentData.remove(SLOW_QUERY_WHITELIST);
@@ -248,26 +198,6 @@ public class AgentConfigFactory {
         if (AgentJarHelper.getAgentJarDirectory() != null) {
             addServerProp("agent_jar_location", AgentJarHelper.getAgentJarDirectory().getAbsolutePath(), settings);
         }
-        if (settingsConfig.getProperty(SECURITY_POLICIES_TOKEN) != null) {
-            addServerProp(RECORD_SQL, recordSqlSecure, settings);
-            // Root
-            addServerProp(AttributesConfigImpl.ATTS_INCLUDE, attributesIncludeSecure, settings);
-
-            if (!attributesIncludeEnabled) {
-                // Use empty list if attribute_include is disabled by LASP
-                addServerProp(AgentConfigImpl.ERROR_COLLECTOR + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-                addServerProp(AgentConfigImpl.TRANSACTION_EVENTS + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-                addServerProp(AgentConfigImpl.TRANSACTION_TRACER + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-                addServerProp(AgentConfigImpl.BROWSER_MONITORING + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-                addServerProp(AgentConfigImpl.SPAN_EVENTS + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-                addServerProp(AgentConfigImpl.TRANSACTION_SEGMENTS + "." + AttributesConfigImpl.ATTS_INCLUDE, Collections.emptyList(), settings);
-            }
-
-            addServerProp(STRIP_EXCEPTION_ENABLED, stripExceptionMessagesSecure, settings);
-            addServerProp(CUSTOM_INSIGHTS_ENABLED, customEventsSecure, settings);
-            addServerProp(LaspPolicies.LASP_CUSTOM_PARAMETERS, customParametersSecure, settings);
-            addServerProp(LaspPolicies.LASP_CUSTOM_INSTRUMENTATION_EDITOR, customInstrumentationEditor, settings);
-        }
 
         // Copy "event_harvest_config" over from the serverData since it doesn't live in the "agent_config" subsection (it's a top level property from the collector)
         Object eventHarvestConfig = serverData.get(EVENT_HARVEST_CONFIG);
@@ -304,27 +234,6 @@ public class AgentConfigFactory {
         // Remote instrumentation
         addServerProp(RemoteInstrumentationServiceImpl.INSTRUMENTATION_CONFIG, serverData.get(RemoteInstrumentationServiceImpl.INSTRUMENTATION_CONFIG),
                 settings);
-    }
-
-    private static String getMostSecureSql(Map<String, Object> agentData, AgentConfig settings, Map<String, Boolean> laspData) {
-        String server = (String) agentData.get(RECORD_SQL);
-        String local = settings.getTransactionTracerConfig().getRecordSql();
-        Boolean lasp = getLaspValue(laspData, RECORD_SQL, null);
-
-        if (SqlObfuscator.OFF_SETTING.equals(server) || SqlObfuscator.OFF_SETTING.equals(local) || (lasp != null && !lasp)) {
-            return SqlObfuscator.OFF_SETTING;
-        }
-        if (SqlObfuscator.OBFUSCATED_SETTING.equals(server) || SqlObfuscator.OBFUSCATED_SETTING.equals(local) || (lasp != null && lasp)) {
-            return SqlObfuscator.OBFUSCATED_SETTING;
-        }
-        return SqlObfuscator.RAW_SETTING;
-    }
-
-    private static Boolean getLaspValue(Map<String, Boolean> policies, String key, Boolean defaultValue) {
-        if (policies != null && policies.containsKey(key)) {
-            return policies.get(key);
-        }
-        return defaultValue;
     }
 
     private static boolean isValidRecordSqlValue(Object recordSqlValue) {

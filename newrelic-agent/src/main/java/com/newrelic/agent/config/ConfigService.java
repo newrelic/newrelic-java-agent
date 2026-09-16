@@ -82,12 +82,6 @@ public interface ConfigService extends Service {
     ExtensionsConfig getExtensionsConfig(String appName);
 
     /**
-     * Sets the LASP policies received from the server side. The agent is responsible for converting these
-     * polices into local agent configuration.
-     */
-    void setLaspPolicies(Map<String, Boolean> policiesJson);
-
-    /**
      * Return a simple map of those config settings that were explicitly set via the yaml config file,
      * system properties or environment variables.
      *

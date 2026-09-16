@@ -99,10 +99,6 @@ public class MockConfigService extends AbstractService implements ConfigService 
     }
 
     @Override
-    public void setLaspPolicies(Map<String, Boolean> policiesJson) {
-    }
-
-    @Override
     public Map<String, Object> getExplicitlySetConfig() {
         return null;
     }

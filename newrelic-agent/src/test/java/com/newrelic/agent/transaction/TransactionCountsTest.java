@@ -26,7 +26,7 @@ public class TransactionCountsTest {
         settings.put(AgentConfigImpl.TRANSACTION_SIZE_LIMIT, 1); // gets multipled by 1024
         settings.put(AgentConfigImpl.TRANSACTION_TRACER, ttprops);
         ttprops.put(TransactionTracerConfigImpl.SEGMENT_LIMIT, 20);
-        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null);
         TransactionCounts counts = new TransactionCounts(config);
         Assert.assertFalse(counts.isOverTracerSegmentLimit());
         Assert.assertFalse(counts.isOverTransactionSize());
@@ -49,7 +49,7 @@ public class TransactionCountsTest {
         settings.put(AgentConfigImpl.TRANSACTION_SIZE_LIMIT, 100); // gets multipled by 1024
         settings.put(AgentConfigImpl.TRANSACTION_TRACER, ttprops);
         ttprops.put(TransactionTracerConfigImpl.SEGMENT_LIMIT, 5);
-        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(settings, null);
         TransactionCounts counts = new TransactionCounts(config);
         Assert.assertFalse(counts.isOverTracerSegmentLimit());
         Assert.assertFalse(counts.isOverTransactionSize());

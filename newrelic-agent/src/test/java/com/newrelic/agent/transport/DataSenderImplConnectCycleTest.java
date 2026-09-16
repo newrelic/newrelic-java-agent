@@ -92,32 +92,4 @@ public class DataSenderImplConnectCycleTest {
         // This will assert that preconnect was called with the original host, not the redirect host.
         target.connect(startupOptions);
     }
-
-    @Test
-    public void testFullPreconnectConnectCycleWithLasp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-
-        final Map<String, Object> settings = new HashMap<>();
-        settings.put(AgentConfigImpl.APP_NAME, "Unit Test");
-        settings.put(AgentConfigImpl.HOST, "no-collector.example.com");
-        settings.put(AgentConfigImpl.LASP_TOKEN, "ffff-ffff-ffff-ffff");
-
-        final MockServiceManager serviceManager = new MockServiceManager(
-                ConfigServiceFactory.createConfigServiceUsingSettings(settings)
-        );
-        serviceManager.setStatsService(mockStatsService);
-
-        HttpClientWrapper wrapper = new ConnectCycleLaspSuccessClientWrapper();
-
-        DataSenderImpl target = new DataSenderImpl(serviceManager.getConfigService().getDefaultAgentConfig(), wrapper, null, Agent.LOG,
-                ServiceFactory.getConfigService());
-        target.setAgentRunId("agent run id");
-
-        Map<String, Object> startupOptions = new HashMap<>();
-        startupOptions.put("test-sentinel", "test-value");
-        Map<String, Object> result = target.connect(startupOptions);
-        assertEquals("my-run-id", target.getAgentRunId());
-        assertEquals("value", result.get("other"));
-    }
-
 }

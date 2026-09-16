@@ -87,7 +87,7 @@ public class SlowQueryAggregatorImplTest {
     }
 
     private MockServiceManager createServiceManager(Map<String, Object> configMap) throws Exception {
-        AgentConfig config = AgentConfigFactory.createAgentConfig(configMap, null, null);
+        AgentConfig config = AgentConfigFactory.createAgentConfig(configMap, null);
 
         MockServiceManager serviceManager = new MockServiceManager();
         ServiceFactory.setServiceManager(serviceManager);

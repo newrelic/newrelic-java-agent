@@ -9,7 +9,6 @@ package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.instrumentation.PointCutConfiguration;
@@ -183,7 +182,7 @@ public class ClassTransformerConfigImplTest {
     }
 
     @Test
-    public void defaultClassloaderExcludes() throws ConfigurationException, ForceDisconnectException {
+    public void defaultClassloaderExcludes() throws ConfigurationException {
         /*
          * Verify the newrelic.yml file we ship with the agent includes these classloaders in the exclusions.
          */
