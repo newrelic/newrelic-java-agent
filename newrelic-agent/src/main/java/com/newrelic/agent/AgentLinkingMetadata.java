@@ -12,6 +12,8 @@ import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.api.agent.TraceMetadata;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -30,6 +32,17 @@ public class AgentLinkingMetadata {
     public static final String ENTITY_GUID = "entity.guid";
     public static final String ENTITY_NAME = "entity.name";
     public static final String ENTITY_TYPE = "entity.type";
+    // Kubernetes metadata injection attributes.
+    public static final String K8S_CLUSTER_NAME = "k8s.clusterName";
+    public static final String K8S_NAMESPACE_NAME = "k8s.namespaceName";
+    public static final String K8S_POD_NAME = "k8s.podName";
+    public static final String K8S_NODE_NAME = "k8s.nodeName";
+    public static final String K8S_DEPLOYMENT_NAME = "k8s.deploymentName";
+    public static final String K8S_REPLICASET_NAME = "k8s.replicasetName";
+    public static final String K8S_CONTAINER_NAME = "k8s.containerName";
+    public static final String K8S_CONTAINER_IMAGE_NAME = "k8s.containerImageName";
+
+    private static final Map<String, String> KUBERNETES_METADATA = buildKubernetesMetadata(System.getenv());
 
     /**
      * Get a map of all agent linking metadata.
@@ -104,7 +117,35 @@ public class AgentLinkingMetadata {
             logWarning();
         }
 
+        logEventLinkingMetadata.putAll(KUBERNETES_METADATA);
+
         return logEventLinkingMetadata;
+    }
+
+    /**
+     * Build a map of Kubernetes metadata injection attributes from the environment variables set by the
+     * k8s-metadata-injection webhook. Only non-blank values are included, so this is naturally empty outside of Kubernetes.
+     *
+     * @param env environment variables to read from
+     * @return unmodifiable map of Kubernetes linking metadata attributes
+     */
+    static Map<String, String> buildKubernetesMetadata(Map<String, String> env) {
+        Map<String, String> kubernetesMetadata = new HashMap<>();
+        putIfNotBlank(kubernetesMetadata, K8S_CLUSTER_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_CLUSTER_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_NAMESPACE_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_NAMESPACE_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_POD_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_POD_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_NODE_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_NODE_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_DEPLOYMENT_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_DEPLOYMENT_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_REPLICASET_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_REPLICASET_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_CONTAINER_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_CONTAINER_NAME"));
+        putIfNotBlank(kubernetesMetadata, K8S_CONTAINER_IMAGE_NAME, env.get("NEW_RELIC_METADATA_KUBERNETES_CONTAINER_IMAGE_NAME"));
+        return Collections.unmodifiableMap(kubernetesMetadata);
+    }
+
+    private static void putIfNotBlank(Map<String, String> map, String key, String value) {
+        if (value != null && !value.isEmpty()) {
+            map.put(key, value);
+        }
     }
 
     public static String getTraceId(TraceMetadata traceMetadata) {
