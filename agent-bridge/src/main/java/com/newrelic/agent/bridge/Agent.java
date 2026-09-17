@@ -120,4 +120,16 @@ public interface Agent extends com.newrelic.api.agent.Agent {
      */
     Map<String, String> getServiceMetadata();
 
+    /**
+     * Returns the subset of agent linking metadata that is attached to LogEvents, e.g. trace/span ids,
+     * hostname, entity attributes, and (when running in Kubernetes) k8s.* attributes from the
+     * k8s-metadata-injection webhook's environment variables.
+     * <p>
+     * This AgentBridge API makes the attributes accessible in weave instrumentation modules, e.g. for local
+     * log decorating.
+     *
+     * @return map of log linking metadata key/value pairs (never null)
+     */
+    Map<String, String> getLogLinkingMetadata();
+
 }
