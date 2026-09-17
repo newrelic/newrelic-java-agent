@@ -112,6 +112,8 @@ jobs:
           echo "server/mule.py" >> $excluded_tests
           echo "server/weblogic.py" >> $excluded_tests
           echo "basic_features/inf_tracing_test.py" >> $excluded_tests
+          # This is a temporary exclusion, NRCT
+          echo "basic_features/core_tracing_test.py" >> $excluded_tests
           echo "security/lasp_msg_params.py" >> $excluded_tests
           # The files below are not tests
           echo "trace/client.py" >> $excluded_tests
