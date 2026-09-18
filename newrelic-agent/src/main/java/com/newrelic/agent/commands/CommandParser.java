@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 /**
- * The command parser parses commands received from the RPM service before metric harvests.
+ * The command parser parses commands received from the RPM service via the {@code metric_data} harvest response.
  */
 public class CommandParser extends AbstractService implements HarvestListener, AgentConfigListener {
 
@@ -57,14 +57,19 @@ public class CommandParser extends AbstractService implements HarvestListener, A
         }
     }
 
+    @Override
+    public void beforeHarvest(String appName, StatsEngine statsEngine) {
+    }
+
     /**
-     * Gets the agent commands from the rpm service, processes them, and returns the command results.
+     * Gets the agent commands received via the last {@code metric_data} harvest response, processes them, and
+     * sends back the command results.
      *
      * @see RPMService#getAgentCommands()
      * @see RPMService#sendCommandResults(Map)
      */
     @Override
-    public void beforeHarvest(String appName, StatsEngine statsEngine) {
+    public void afterHarvest(String appName) {
         IRPMService rpmService = ServiceFactory.getRPMServiceManager().getOrCreateRPMService(appName);
 
         for (Iterator<Map<Long, Object>> iterator = unsentCommandData.iterator(); iterator.hasNext(); ) {
@@ -111,10 +116,6 @@ public class CommandParser extends AbstractService implements HarvestListener, A
             String msg = MessageFormat.format("Unable to send agent command feedback. Command results: {0}", commandResults.toString());
             getLogger().fine(msg);
         }
-    }
-
-    @Override
-    public void afterHarvest(String appName) {
     }
 
     Command getCommand(String name) throws UnknownCommand {

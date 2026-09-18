@@ -82,7 +82,7 @@ class IntrospectorRPMService extends AbstractService implements IRPMService {
 
     @Override
     public List<List<?>> getAgentCommands() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
