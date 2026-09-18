@@ -55,6 +55,11 @@ public interface ServerlessApi {
     boolean isApmLambdaModeEnabled();
 
     /**
+     * @return True if serverless mode enabled, otherwise false.
+     */
+    boolean isServerlessModeEnabled();
+
+    /**
      * Removes the metric reader when is shuts down.
      *
      * @param metricReader The metric reader to be removed
@@ -74,13 +79,11 @@ public interface ServerlessApi {
 
     /**
      * Begins the harvest cycle for the Open Telemetry hybrid agent when serverless mode is enabled.
-     * Since multiple metric exporters may be used in the Open Telemetry SDK, the harvest will only trigger if
-     * all the ServerlessMetricExporters from the Open Telemetry SDK instrumentation have called this method.
      *
-     * @param metricPayloadProvider A supplier that returns a string containing the base64 payload of open telemetry dimensional metrics
+     * @param metricPayload The base64 payload of open telemetry dimensional metrics
      *
      * @return A boolean indicating if the harvest cycle was triggered.
      */
-    boolean otelHarvest(Supplier<String> metricPayloadProvider);
+    boolean otelHarvest(String metricPayload);
 
 }

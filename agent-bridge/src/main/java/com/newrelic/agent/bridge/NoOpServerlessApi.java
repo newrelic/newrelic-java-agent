@@ -38,6 +38,11 @@ public class NoOpServerlessApi implements ServerlessApi {
     }
 
     @Override
+    public boolean isServerlessModeEnabled() {
+        return false;
+    }
+
+    @Override
     public void removeMetricCollector(Object metricReader) {
         // No-op
     }
@@ -48,7 +53,7 @@ public class NoOpServerlessApi implements ServerlessApi {
     }
 
     @Override
-    public boolean otelHarvest(Supplier<String> metricMarshaller) {
+    public boolean otelHarvest(String metricPayload) {
         return false;
     }
 }

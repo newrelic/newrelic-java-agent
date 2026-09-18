@@ -61,7 +61,10 @@ final class OpenTelemetrySDKCustomizer {
             final Map<String, String> properties = new HashMap<>();
 
             if (AgentBridge.serverlessApi.isApmLambdaModeEnabled()) {
-                properties.put("otel.metrics.exporter", "none"); // disable otlp metrics exporter
+                properties.put("otel.metrics.exporter", "otlp");
+                properties.put("otel.metric.export.interval", String.valueOf(999_999_999));
+                properties.put("otel.exporter.otlp.metrics.timeout",
+                        String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
             } else {
                 final String endpoint = "https://" + host + ":443";
                 final String licenseKey = agent.getConfig().getValue("license_key");

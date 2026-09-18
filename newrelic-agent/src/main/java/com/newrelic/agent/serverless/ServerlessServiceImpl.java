@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.serverless;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 
 public class ServerlessServiceImpl extends AbstractService implements ServerlessService {
     private final AtomicReference<String> arn = new AtomicReference<>();
@@ -22,7 +24,6 @@ public class ServerlessServiceImpl extends AbstractService implements Serverless
 
     private final ConcurrentHashMap<Object, Consumer<Object>> openTelemetryMetricCollectors = new ConcurrentHashMap<>();
 
-    private int exportCount = 0;
     private final AtomicReference<String> otelMetricPayload = new AtomicReference<>();
 
     private final Object harvestLock = new Object();
@@ -94,25 +95,20 @@ public class ServerlessServiceImpl extends AbstractService implements Serverless
 
 
     @Override
-    public boolean otelHarvest(Supplier<String> metricPayloadProvider) {
-        boolean triggerHarvest = false;
-        if (ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled()) {
-            synchronized (harvestLock) {
-                if(exportCount >= openTelemetryMetricCollectors.size()) {
-                    triggerHarvest = true;
-                    exportCount = 0;
-                } else {
-                    exportCount++;
-                }
-
-                if (triggerHarvest) {
-                    otelMetricPayload.set(metricPayloadProvider.get());
+    public boolean otelHarvest(String metricPayload) {
+        try {
+            if (ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled()) {
+                synchronized (harvestLock) {
+                    otelMetricPayload.set(metricPayload);
                     ServiceFactory.getServiceManager().getHarvestService().harvestNow();
                 }
             }
+        } catch (Exception e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "Failed to harvest metrics for serverless Open Telemetry", e);
+            return false;
         }
 
-        return triggerHarvest;
+        return true;
     }
 
     @Override

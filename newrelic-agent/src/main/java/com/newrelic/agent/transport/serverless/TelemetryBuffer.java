@@ -94,7 +94,7 @@ class TelemetryBuffer {
                 addSqlTraces(sqlTraces, data);
             }
 
-            if (!otlpPayload.isEmpty()) {
+            if (otlpPayload != null && !otlpPayload.isEmpty()) {
                 addOtlpPayload(otlpPayload, data);
             }
 

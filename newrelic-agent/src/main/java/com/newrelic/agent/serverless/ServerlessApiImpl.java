@@ -46,6 +46,11 @@ public class ServerlessApiImpl implements ServerlessApi {
     }
 
     @Override
+    public boolean isServerlessModeEnabled() {
+        return ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled();
+    }
+
+    @Override
     public void removeMetricCollector(Object metricReader) {
         ServiceFactory.getServiceManager().getServerlessService().removeMetricCollector(metricReader);
     }
@@ -56,7 +61,7 @@ public class ServerlessApiImpl implements ServerlessApi {
     }
 
     @Override
-    public boolean otelHarvest(Supplier<String> metricPayloadProvider) {
-        return ServiceFactory.getServiceManager().getServerlessService().otelHarvest(metricPayloadProvider);
+    public boolean otelHarvest(String metricPayload) {
+        return ServiceFactory.getServiceManager().getServerlessService().otelHarvest(metricPayload);
     }
 }

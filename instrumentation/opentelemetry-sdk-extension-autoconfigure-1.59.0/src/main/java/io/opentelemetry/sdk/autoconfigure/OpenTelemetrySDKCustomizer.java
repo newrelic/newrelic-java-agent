@@ -21,6 +21,7 @@ import io.opentelemetry.sdk.metrics.InstrumentSelector;
 import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.metrics.View;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
@@ -66,8 +67,11 @@ final class OpenTelemetrySDKCustomizer {
             }
             final Map<String, String> properties = new HashMap<>();
 
-            if (AgentBridge.serverlessApi.isApmLambdaModeEnabled()) {
-                properties.put("otel.metrics.exporter", "none"); // disable otlp metrics exporter
+            if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
+                properties.put("otel.metrics.exporter", "otlp");
+                properties.put("otel.metric.export.interval", String.valueOf(999_999_999));
+                properties.put("otel.exporter.otlp.metrics.timeout",
+                        String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
             } else {
                 final String endpoint = "https://" + host + ":443";
                 final String licenseKey = agent.getConfig().getValue("license_key");
@@ -198,5 +202,20 @@ final class OpenTelemetrySDKCustomizer {
             );
         }
         return sdkMeterProviderBuilder;
+    }
+
+    static MetricReader applyMetricReaderCustomizer(MetricReader sdkMeterProviderBuilder, ConfigProperties configProperties) {
+        return applyMetricReaderCustomizer(sdkMeterProviderBuilder);
+    }
+
+    static MetricReader applyMetricReaderCustomizer(MetricReader metricReader) {
+        if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
+            AgentBridge.serverlessApi.addMetricCollector(metricReader, o -> {
+                if (o instanceof MetricReader) {
+                    ((MetricReader) o).forceFlush();
+                }
+            });
+        }
+        return metricReader;
     }
 }
