@@ -22,6 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class AgentConfigFactoryTest {
 
     public static Map<String, Object> createStagingMap() {
@@ -79,13 +82,13 @@ public class AgentConfigFactoryTest {
         serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
-        Assert.assertTrue(agentConfig.getErrorCollectorConfig().isEnabled());
+        assertTrue(agentConfig.getErrorCollectorConfig().isEnabled());
         Assert.assertEquals(2, agentConfig.getErrorCollectorConfig().getIgnoreStatusCodes().size());
-        Assert.assertTrue(agentConfig.getErrorCollectorConfig().getIgnoreStatusCodes().containsAll(
+        assertTrue(agentConfig.getErrorCollectorConfig().getIgnoreStatusCodes().containsAll(
                 Arrays.asList(402, 403)));
         Assert.assertEquals(!ThreadProfilerConfigImpl.DEFAULT_ENABLED,
                 agentConfig.getThreadProfilerConfig().isEnabled());
-        Assert.assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
+        assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
 
         agentConfig = AgentConfigFactory.createAgentConfig(localSettings, null, null);
         Assert.assertEquals(ErrorCollectorConfigImpl.DEFAULT_ENABLED, agentConfig.getErrorCollectorConfig().isEnabled());
@@ -126,7 +129,7 @@ public class AgentConfigFactoryTest {
         serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
-        Assert.assertFalse(agentConfig.getReinstrumentConfig().isAttributesEnabled());
+        assertFalse(agentConfig.getReinstrumentConfig().isAttributesEnabled());
     }
 
     @Test
@@ -140,7 +143,7 @@ public class AgentConfigFactoryTest {
         serverSettings.put(ErrorCollectorConfigImpl.COLLECT_ERRORS, false);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
-        Assert.assertFalse(agentConfig.getErrorCollectorConfig().isEnabled());
+        assertFalse(agentConfig.getErrorCollectorConfig().isEnabled());
     }
 
     @Test
@@ -151,7 +154,7 @@ public class AgentConfigFactoryTest {
         errorMap.put(ErrorCollectorConfigImpl.ENABLED, true);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, null, null);
-        Assert.assertTrue(agentConfig.getErrorCollectorConfig().isEnabled());
+        assertTrue(agentConfig.getErrorCollectorConfig().isEnabled());
     }
 
     @Test
@@ -165,7 +168,7 @@ public class AgentConfigFactoryTest {
         serverSettings.put(TransactionTracerConfigImpl.COLLECT_TRACES, false);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
-        Assert.assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
+        assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
     }
 
     @Test
@@ -176,7 +179,7 @@ public class AgentConfigFactoryTest {
         ttSettings.put(TransactionTracerConfigImpl.ENABLED, true);
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, null, null);
-        Assert.assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
+        assertFalse(agentConfig.getTransactionTracerConfig().isEnabled());
     }
 
     @Test
@@ -212,10 +215,10 @@ public class AgentConfigFactoryTest {
         serverData.put(CrossProcessConfigImpl.ENCODING_KEY, "test");
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
-        Assert.assertTrue(agentConfig.getCrossProcessConfig().isCrossApplicationTracing());
+        assertTrue(agentConfig.getCrossProcessConfig().isCrossApplicationTracing());
         Assert.assertEquals("1234#5678", agentConfig.getCrossProcessConfig().getCrossProcessId());
         Assert.assertEquals("test", agentConfig.getCrossProcessConfig().getEncodingKey());
-        Assert.assertTrue(agentConfig.getCrossProcessConfig().isTrustedAccountId("12345"));
+        assertTrue(agentConfig.getCrossProcessConfig().isTrustedAccountId("12345"));
     }
 
     @Test
@@ -233,7 +236,7 @@ public class AgentConfigFactoryTest {
         Map<String, Object> localSettings = logForwardingSettingsEnabled(true);
         Map<String, Object> serverSettings = loggingHarvestLimit(0);
         AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
-        Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
     }
 
     @Test
@@ -241,7 +244,7 @@ public class AgentConfigFactoryTest {
         Map<String, Object> localSettings = logForwardingSettingsEnabled(true);
         Map<String, Object> serverSettings = loggingHarvestLimit(10);
         AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
-        Assert.assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertTrue(config.getApplicationLoggingConfig().isForwardingEnabled());
     }
 
     @Test
@@ -249,7 +252,7 @@ public class AgentConfigFactoryTest {
         Map<String, Object> localSettings = logForwardingSettingsEnabled(false);
         Map<String, Object> serverSettings = loggingHarvestLimit(10);
         AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
-        Assert.assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
+        assertFalse(config.getApplicationLoggingConfig().isForwardingEnabled());
     }
 
     @Test
@@ -264,6 +267,34 @@ public class AgentConfigFactoryTest {
 
         AgentConfig config = AgentConfigFactory.createAgentConfig(localSettings, serverSettings, null);
         Assert.assertEquals(10, config.getTransactionEventsConfig().getTargetSamplesStored());
+    }
+
+    @Test
+    public void mergeServerData_withServerSideAiMonitoringEnabled_overridesLocalValue() {
+        Map<String, Object> serverData = createMap();
+        Map<String, Object> agentData = createMap();
+        Map<String, Object> localSettings = createMap();
+        localSettings.put("ai_monitoring.enabled", false);
+        agentData.put("ai_monitoring.enabled", true);
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
+
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
+
+        assertTrue(agentConfig.getValue("ai_monitoring.enabled"));
+    }
+
+    @Test
+    public void mergeServerData_withCollectAi_unaffectedByServerSideAiMonitoringConfig() {
+        Map<String, Object> serverData = createMap();
+        Map<String, Object> agentData = createMap();
+        Map<String, Object> localSettings = createMap();
+        agentData.put("ai_monitoring.enabled", true);
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
+        serverData.put("collect_ai", false);
+
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
+
+        assertFalse(agentConfig.getValue("collect_ai"));
     }
 
     private Map<String, Object> logForwardingSettingsEnabled(boolean enabled) {
