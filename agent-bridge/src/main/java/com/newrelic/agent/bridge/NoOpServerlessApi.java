@@ -48,7 +48,7 @@ public class NoOpServerlessApi implements ServerlessApi {
     }
 
     @Override
-    public void addMetricCollector(Object metricReader, Consumer<Object> metricCollector) {
+    public void addMetricReader(Object metricReader, Consumer<Object> metricCollector) {
         // No-op
     }
 

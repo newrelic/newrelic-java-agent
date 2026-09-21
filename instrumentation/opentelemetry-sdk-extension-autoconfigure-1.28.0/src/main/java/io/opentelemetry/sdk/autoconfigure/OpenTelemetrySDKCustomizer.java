@@ -60,7 +60,7 @@ final class OpenTelemetrySDKCustomizer {
             }
             final Map<String, String> properties = new HashMap<>();
 
-            if (AgentBridge.serverlessApi.isApmLambdaModeEnabled()) {
+            if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
                 properties.put("otel.metrics.exporter", "otlp");
                 properties.put("otel.metric.export.interval", String.valueOf(999_999_999));
                 properties.put("otel.exporter.otlp.metrics.timeout",

@@ -210,7 +210,7 @@ final class OpenTelemetrySDKCustomizer {
 
     static MetricReader applyMetricReaderCustomizer(MetricReader metricReader) {
         if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
-            AgentBridge.serverlessApi.addMetricCollector(metricReader, o -> {
+            AgentBridge.serverlessApi.addMetricReader(metricReader, o -> {
                 if (o instanceof MetricReader) {
                     ((MetricReader) o).forceFlush();
                 }

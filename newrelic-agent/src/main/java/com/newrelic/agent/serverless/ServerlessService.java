@@ -8,7 +8,6 @@
 package com.newrelic.agent.serverless;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public interface ServerlessService {
 
@@ -61,15 +60,15 @@ public interface ServerlessService {
 
     /**
      * When the Open Telemetry SDK is instrumented in serverless mode,
-     * this provides a runnable that triggers a metric exporters to
-     * begin exporting Open Telemetry dimensional metrics.
-     * You can provide multiple runnables as the Otel SDK can have multiple MetricReaders and MetricExporter instance.
-     * <p>
-     * Preferably this runnable should invoke forceFlush(...) via the Open Telemetry's MetricReader.
+     * this provides a metric reader and the associated consumer method to
+     * force the metric reader to begin collecting metrics.
+     * This is to trigger the underlying metric exporters of the given metric reader.
      *
-     * @param metricCollector The metric collector runnable
+     * @param metricReader The metric reader
+     *
+     * @param metricCollector Consumer function that conumes the above metric reader and triggers the metric reader to begin collection.
      */
-    void addMetricCollector(Object metricReader, Consumer<Object> metricCollector);
+    void addMetricReader(Object metricReader, Consumer<Object> metricCollector);
 
     /**
      * Removes the metric reader when is shuts down.

@@ -18,7 +18,7 @@ public class SdkMeterProviderBuilder_Instrumentation {
 
     public SdkMeterProviderBuilder_Instrumentation registerMetricReader(MetricReader reader) {
         if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
-            AgentBridge.serverlessApi.addMetricCollector(reader, o -> {
+            AgentBridge.serverlessApi.addMetricReader(reader, o -> {
                 if (o instanceof MetricReader) {
                     ((MetricReader) o).forceFlush();
                 }

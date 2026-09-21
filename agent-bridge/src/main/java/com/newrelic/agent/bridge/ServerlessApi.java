@@ -8,7 +8,6 @@
 package com.newrelic.agent.bridge;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * API for serverless instrumentation to communicate metadata to the core agent.
@@ -68,14 +67,15 @@ public interface ServerlessApi {
 
     /**
      * When the Open Telemetry SDK is instrumented in serverless mode,
-     * this provides a metric reader and the associated collector method to
-     * trigger the underlying metric exporters of the given metric reader.
+     * this provides a metric reader and the associated consumer method to
+     * force the metric reader to begin collecting metrics.
+     * This is to trigger the underlying metric exporters of the given metric reader.
      *
      * @param metricReader The metric reader
      *
-     * @param metricCollector The metric collector which consumes the above metric reader and triggers its underlying metric exporters.
+     * @param metricCollector Consumer function that conumes the above metric reader and triggers the metric reader to begin collection.
      */
-    void addMetricCollector(Object metricReader, Consumer<Object> metricCollector);
+    void addMetricReader(Object metricReader, Consumer<Object> metricCollector);
 
     /**
      * Begins the harvest cycle for the Open Telemetry hybrid agent when serverless mode is enabled.

@@ -72,7 +72,7 @@ public class ServerlessServiceImpl extends AbstractService implements Serverless
     }
 
     @Override
-    public void addMetricCollector(Object metricReader, Consumer<Object> metricCollector) {
+    public void addMetricReader(Object metricReader, Consumer<Object> metricCollector) {
         if (metricReader == null || metricCollector == null) {
             return;
         }

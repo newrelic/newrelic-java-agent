@@ -11,7 +11,6 @@ import com.newrelic.agent.bridge.ServerlessApi;
 import com.newrelic.agent.service.ServiceFactory;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Implementation of ServerlessApi that stores serverless metadata for serverless mode.
@@ -56,8 +55,8 @@ public class ServerlessApiImpl implements ServerlessApi {
     }
 
     @Override
-    public void addMetricCollector(Object metricReader, Consumer<Object> metricCollector) {
-        ServiceFactory.getServiceManager().getServerlessService().addMetricCollector(metricReader, metricCollector);
+    public void addMetricReader(Object metricReader, Consumer<Object> metricCollector) {
+        ServiceFactory.getServiceManager().getServerlessService().addMetricReader(metricReader, metricCollector);
     }
 
     @Override

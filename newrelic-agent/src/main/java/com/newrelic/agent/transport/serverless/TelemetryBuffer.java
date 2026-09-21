@@ -413,6 +413,7 @@ class TelemetryBuffer {
             this.metricBeginTimeMillis = 0L;
             this.metricEndTimeMillis = 0L;
             this.metricData.clear();
+            this.otlpPayload = null;
         } finally {
             lock.writeLock().unlock();
         }
