@@ -123,13 +123,13 @@ public class ServerlessServiceImplTest {
     }
 
     @Test
-    public void addMetricCollector_withNullMetricReader_isNoOp() {
+    public void addMetricReader_withNullMetricReader_isNoOp() {
         serverlessService.addMetricReader(null, o -> { });
         assertFalse(serverlessService.otelMetricsRegistered());
     }
 
     @Test
-    public void addMetricCollector_withNullReader_isNoOp() {
+    public void addMetricReader_withNullReader_isNoOp() {
         serverlessService.addMetricReader(new Object(), null);
         assertFalse(serverlessService.otelMetricsRegistered());
     }
