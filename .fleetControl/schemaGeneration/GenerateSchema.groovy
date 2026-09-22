@@ -87,9 +87,10 @@ final Map<String, List<String>> ENUM_OVERRIDES = [
         'transaction_tracer.record_sql':                             ['off', 'raw', 'obfuscated'],
         'attributes.http_attribute_mode':                            ['standard', 'legacy', 'both'],
         'security.mode':                                             ['IAST', 'RASP'],
-        'distributed_tracing.sampler.remote_parent_sampled':         ['default', 'always_on', 'always_off'],
-        'distributed_tracing.sampler.remote_parent_not_sampled':     ['default', 'always_on', 'always_off'],
         'datastore_multihost_preference':                            ['NONE', 'FIRST', 'LAST'],
+        // distributed_tracing.sampler.{root,remote_parent_sampled,remote_parent_not_sampled} used to
+        // be here as plain enums (missing the 'adaptive'/'trace_id_ratio_based' types); superseded by
+        // the richer samplerTypeSchema() TYPE_OVERRIDES below, which also model the nested-object form.
 ]
 
 // ---------------------------------------------------------------------------
@@ -131,10 +132,87 @@ static Map<String, Object> statusCodeArrayOrRange(List<Integer> defaultValue = [
     return schema
 }
 
+/**
+ * Creates a schema for a distributed_tracing.sampler.{root,remote_parent_sampled,
+ * remote_parent_not_sampled} entry. Per SamplerConfig.java's class-header doc comment,
+ * each of these accepts EITHER:
+ *   - a plain string naming the sampler type: default, adaptive, always_on, always_off,
+ *     trace_id_ratio_based
+ *   - OR a single-key object where the key is one of those same type names, letting
+ *     type-specific sub-options nest inside (adaptive.sampling_target, trace_id_ratio_based.ratio)
+ *
+ * Only the "full granularity" set (root/remote_parent_sampled/remote_parent_not_sampled,
+ * i.e. NOT sampler.partial_granularity.*, which is excluded — see EXCLUDE_KEYS) is live;
+ * full granularity is unconditionally on (DistributedTraceServiceImpl.isFullGranularityEnabled()
+ * is hardcoded true, #NRCT).
+ */
+static Map<String, Object> samplerTypeSchema(String defaultValue = 'default') {
+    List<String> samplerTypes = ['default', 'adaptive', 'always_on', 'always_off', 'trace_id_ratio_based']
+    Map<String, Object> schema = [
+            anyOf: [
+                    [type: 'string', enum: samplerTypes] as Map<String, Object>,
+                    [
+                            type:                 'object',
+                            minProperties:        1,
+                            maxProperties:        1,
+                            additionalProperties: false,
+                            properties:           [
+                                    default:    [type: ['object', 'null']] as Map<String, Object>,
+                                    always_on:  [type: ['object', 'null']] as Map<String, Object>,
+                                    always_off: [type: ['object', 'null']] as Map<String, Object>,
+                                    adaptive:   [
+                                            type:                 ['object', 'null'],
+                                            additionalProperties: false,
+                                            properties:           [
+                                                    // Bounds per Sampler.isValidSamplingTarget(): target >= 0 && target <= 120.
+                                                    sampling_target: [type: 'integer', minimum: 0, maximum: 120] as Map<String, Object>,
+                                            ] as Map<String, Object>,
+                                    ] as Map<String, Object>,
+                                    trace_id_ratio_based: [
+                                            type:                 'object',
+                                            additionalProperties: false,
+                                            required:             ['ratio'],
+                                            properties:           [
+                                                    ratio: [type: 'number', minimum: 0, maximum: 1] as Map<String, Object>,
+                                            ] as Map<String, Object>,
+                                    ] as Map<String, Object>,
+                            ] as Map<String, Object>,
+                    ] as Map<String, Object>,
+            ],
+    ] as Map<String, Object>
+    if (defaultValue != null) {
+        schema.put('default', defaultValue)
+    }
+    return schema
+}
+
 // ---------------------------------------------------------------------------
 // Type overrides — when YAML default doesn't reflect the documented semantic.
 // ---------------------------------------------------------------------------
 final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
+        // --- Collector-provided values surfaced read-only in the Fleet Control UI ---
+        // Still set by New Relic on connect (AgentConfigFactory.mergeServerData()), never
+        // user-configurable — readOnly: true so the UI can display without offering to edit.
+        //
+        // browser_monitoring.loader_version is NOT here: its yaml value is blank/null, which
+        // already infers to plain `type: string` with no override needed, and its description
+        // already comes from the yaml comment above that key. Only add an override here when
+        // the default inference is actually wrong (see collect_ai below) or an annotation like
+        // readOnly is specifically wanted.
+        'collect_ai': [
+                type:        'boolean',
+                readOnly:    true,
+                description: 'Account-wide server flag gating AI Monitoring; overrides ai_monitoring.enabled. Set by New Relic on connect; not user-configurable.',
+        ] as Map<String, Object>,
+
+        // --- distributed_tracing.sampler.{root,remote_parent_sampled,remote_parent_not_sampled} ---
+        // See samplerTypeSchema() doc comment. sampler.partial_granularity.* and
+        // sampler.full_granularity.enabled are deliberately NOT overridden here — they're
+        // excluded entirely (see EXCLUDE_KEYS) since they're hardcoded no-ops today (#NRCT).
+        'distributed_tracing.sampler.root':                       samplerTypeSchema(),
+        'distributed_tracing.sampler.remote_parent_sampled':      samplerTypeSchema(),
+        'distributed_tracing.sampler.remote_parent_not_sampled':  samplerTypeSchema(),
+
         // --- Collector connection TTL is a non-negative number of seconds ---
         'collector_connection_ttl': [
                 type:    'integer',
@@ -146,14 +224,24 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
         'error_collector.ignore_status_codes':   statusCodeArrayOrRange([404]),
         'error_collector.expected_status_codes': statusCodeArrayOrRange(),
 
-        // --- labels is a map of name→value pairs ---
+        // --- labels is a map of name->value pairs, OR a delimited string ---
         // Its only YAML example is commented out, so SnakeYAML parses it as null
-        // and the generator would otherwise emit type: string. Per the YAML
-        // comments: max 64 labels, names/values up to 255 chars.
+        // and the generator would otherwise emit type: string. Per LabelsConfigImpl:
+        // max 64 labels (extras dropped with a warning, not rejected), names/values
+        // truncated (not rejected) past 255 chars — and parseLabelsString() means the
+        // object form isn't the only valid shape: "key1:value1;key2:value2" also works.
         'labels': [
-                type:                 'object',
-                additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
-                maxProperties:        64,
+                anyOf: [
+                        [
+                                type:                 'object',
+                                additionalProperties: [type: 'string', maxLength: 255] as Map<String, Object>,
+                                maxProperties:        64,
+                        ] as Map<String, Object>,
+                        [
+                                type:        'string',
+                                description: 'Semicolon-delimited key:value pairs, e.g. "env:prod;team:core".',
+                        ] as Map<String, Object>,
+                ],
         ] as Map<String, Object>,
 
         // --- custom_insights_events.max_attribute_value capped at 4095 ---
@@ -163,6 +251,50 @@ final Map<String, Map<String, Object>> TYPE_OVERRIDES = [
                 type:    'integer',
                 default: 255,
                 maximum: 4095,
+        ] as Map<String, Object>,
+
+        // --- Fixed-shape array-of-object keys ---
+        // Without an override, an empty-list value falls through to
+        // stringArrayOrDelimited() (see makeProperty), which is wrong for these —
+        // each element is an object with known keys, not a scalar string.
+        'transaction_events.custom_request_headers': [
+                type:    'array',
+                items:   [
+                        type:                 'object',
+                        properties:           [
+                                header_name:  [type: 'string'] as Map<String, Object>,
+                                header_alias: [type: 'string'] as Map<String, Object>,
+                        ] as Map<String, Object>,
+                        required:             ['header_name'],
+                        additionalProperties: false,
+                ] as Map<String, Object>,
+                default: [],
+        ] as Map<String, Object>,
+
+        // Advisory {level, message} entries returned by the collector on connect
+        // (RPMService.logCollectorMessages). Collector-provided; see EXCLUDE_KEYS.
+        'messages': [
+                type:    'array',
+                items:   [
+                        type:                 'object',
+                        properties:           [
+                                level:   [type: 'string'] as Map<String, Object>,
+                                message: [type: 'string'] as Map<String, Object>,
+                        ] as Map<String, Object>,
+                        additionalProperties: false,
+                ] as Map<String, Object>,
+                default: [],
+        ] as Map<String, Object>,
+
+        // --- Genuinely dynamic string->string maps, same pattern as `labels` ---
+        // Both are collector-provided; see EXCLUDE_KEYS.
+        'otlp_resource_attributes': [
+                type:                 'object',
+                additionalProperties: [type: 'string'] as Map<String, Object>,
+        ] as Map<String, Object>,
+        'request_headers_map': [
+                type:                 'object',
+                additionalProperties: [type: 'string'] as Map<String, Object>,
         ] as Map<String, Object>,
 ]
 
@@ -186,7 +318,42 @@ final Set<String> EXCLUDE_KEYS = [
         // doesn't belong in the standard config UI.
         'metric_ingest_uri',
         'event_ingest_uri',
-        'distributed_tracing.sampler'
+
+        // sampler.full_granularity.enabled and everything under sampler.partial_granularity.*
+        // are hardcoded no-ops today — DistributedTraceServiceImpl.isFullGranularityEnabled()/
+        // isPartialGranularityEnabled() ignore the configured values entirely (#NRCT, an
+        // in-progress feature not yet live). Excluding both so the schema doesn't expose a
+        // toggle that silently does nothing. distributed_tracing.sampler itself (root,
+        // remote_parent_sampled, remote_parent_not_sampled, adaptive_sampling_target) is NOT
+        // excluded — that part is fully live. Revisit this exclusion once partial granularity
+        // sampling ships.
+        'distributed_tracing.sampler.full_granularity',
+        'distributed_tracing.sampler.partial_granularity',
+
+        // Collector-provided values (RUM/browser loader payload, AI Monitoring
+        // account-wide gate, Security Agent identifiers, OTLP resource attributes,
+        // and advisory connect messages). These are set by New Relic on connect via
+        // AgentConfigFactory.mergeServerData() and are never user-configurable
+        // locally — they're only present in reference-newrelic.yml so the agent
+        // recognizes them as known keys for ReferenceConfigLookup's allow-list.
+        // Surfacing them in the Fleet Control config schema would incorrectly
+        // suggest a customer can set them.
+        //
+        // browser_monitoring.loader_version and collect_ai are deliberately NOT in this
+        // list — Fleet Control surfaces those two in the UI (browser_monitoring.loader_version
+        // via plain default inference, collect_ai as read-only via the TYPE_OVERRIDES below),
+        // even though they're still collector-provided and not user-settable.
+        'account_id',
+        'agent_run_id',
+        'application_id',
+        'beacon',
+        'browser_key',
+        'error_beacon',
+        'js_agent_file',
+        'js_agent_loader',
+        'messages',
+        'otlp_resource_attributes',
+        'request_headers_map',
 ] as Set<String>
 
 // ---------------------------------------------------------------------------
@@ -199,8 +366,15 @@ final List<Pattern> EXCLUDE_KEY_PATTERNS = [
         // Any key under class_transformer that contains a dot is an instrumentation
         // module name (e.g., com.newrelic.instrumentation.servlet-user, org.example.mymodule).
         // These are dynamically named and shouldn't be exposed in Fleet Control UI.
-        // Pattern matches: class_transformer.<anything>.<anything>...
-        Pattern.compile(/^class_transformer\.[^.]+\..+/),
+        //
+        // Requires >= 3 dots after "class_transformer." (i.e. the module name itself has
+        // >= 2 embedded dots, matching the reverse-domain style of every real example:
+        // com.newrelic.instrumentation.X, org.example.mymodule). This is deliberately
+        // tighter than "any 2+ level nesting under class_transformer" — a plain ordinary
+        // one-level-deep sub-block (e.g. class_transformer.builtin_extensions.enabled,
+        // which has only 1 dot before "enabled") must NOT match, or its properties get
+        // silently dropped from the schema (see GenerateSchemaTest for a regression case).
+        Pattern.compile(/^class_transformer\.[^.]+\.[^.]+\.[^.]+\..+/),
 ] as List<Pattern>
 
 // ---------------------------------------------------------------------------

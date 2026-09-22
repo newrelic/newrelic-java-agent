@@ -36,7 +36,7 @@ common: &default_settings
   # Differentiate JVMs for the same app on the same machine.
   # Use -Dnewrelic.config.appserver_port=8081 in JVM startup args.
   # Default: none
-  #appserver_port: 8080
+  appserver_port:
 
   # Set the name of your application as you'd like it to show up in the New Relic UI.
   # If enable_auto_app_naming is false, the agent reports all data to this application.
@@ -103,11 +103,11 @@ common: &default_settings
 
   # The log file directory.
   # Default is the logs directory in the newrelic.jar parent directory.
-  #log_file_path: logs
+  log_file_path:
 
   # Path to custom SSL certificate bundle.
   # Default: none
-  #ca_bundle_path: ''
+  ca_bundle_path:
 
   # When multiple datastore addresses detected, determines which to use.
   # Values: NONE, FIRST, LAST
@@ -116,11 +116,297 @@ common: &default_settings
 
   # FedRAMP compliant endpoint.
   # Default: none (auto-derived from license key)
-  #host: ''
+  host:
+
+  # Collector API host override.
+  # Default: rpm.newrelic.com
+  api_host: rpm.newrelic.com
+
+  # Collector API port override.
+  # Default: 443
+  api_port: 443
 
   # Workaround for memory leak with legacy async API instrumentation.
   # Default: false
   legacy_async_api_skip_suspend: false
+
+  # Enables APM-in-Lambda mode.
+  # Default: false
+  apm_lambda_mode: false
+
+  # Enables experimental runtime support.
+  # Default: false
+  experimental_runtime: false
+
+  # gzip/deflate encoding used for payloads sent to the collector.
+  # Default: gzip
+  compressed_content_encoding: gzip
+
+  # Enables the CPU sampler.
+  # Default: true
+  cpu_sampling_enabled: true
+
+  # Toggles bootstrap classloader instrumentation.
+  # Default: true
+  enable_bootstrap_class_instrumentation: true
+
+  # Toggles class retransformation support.
+  # Default: none (auto-detected)
+  enable_class_retransformation:
+
+  # Jar names to skip during instrumentation scanning.
+  # Default: empty list
+  ignore_jars: []
+
+  # Comma-separated list of enabled JDBC support modes.
+  # Default: generic
+  jdbc_support: generic
+
+  # Reported agent language.
+  # Default: java
+  language: java
+
+  # Disables default instrumentation for a minimal-footprint agent.
+  # Default: false
+  lite_mode: false
+
+  # Enables verbose metric debug logging.
+  # Default: false
+  metric_debug: false
+
+  # Reports platform/OS info to New Relic.
+  # Default: true
+  platform_information_enabled: true
+
+  # Collector port override.
+  # Default: 443
+  port: 443
+
+  # Uses HTTP PUT instead of POST when sending data to the collector.
+  # Default: false
+  put_for_data_send: false
+
+  # Disables inner-payload compression.
+  # Default: false
+  simple_compression: false
+
+  # Log level used only during agent startup, before the configured log_level takes effect.
+  # Default: none
+  startup_log_level:
+
+  # Logs agent startup timing breakdown.
+  # Default: true
+  startup_timing: true
+
+  # Records thread CPU time in transaction traces.
+  # Default: false
+  thread_cpu_time_enabled: false
+
+  # Root-level HTTP request timeout, in seconds, to the collector.
+  # Default: 120
+  timeout: 120
+
+  # Legacy audit-mode flag; also enables audit_mode when true.
+  # Default: false
+  trace_data_calls: false
+
+  # Maximum transaction trace size, in KB.
+  # Default: 2000
+  transaction_size_limit: 2000
+
+  # Blocks startup until the first collector connect completes.
+  # Default: true
+  wait_for_rpm_connect: true
+
+  # Milliseconds to wait for in-flight transactions to finish before shutdown.
+  # Default: 0
+  wait_for_transactions: 0
+
+  # Process/host identification overrides.
+  process_host:
+    # Overrides the reported hostname.
+    # Default: none (auto-detected)
+    display_name:
+
+    # Set to "6" to force IPv6 address preference when auto-detecting the hostname.
+    # Default: none
+    ipv_preference:
+
+  # Cross Application Tracing (CAT) — deprecated, superseded by distributed_tracing.
+  cross_application_tracer:
+    # Set to false to disable Cross Application Tracing.
+    # Default: false
+    enabled: false
+
+    # Legacy CAT application id.
+    # Default: none
+    application_id:
+
+  # Datastore instrumentation reporting configuration.
+  datastore_tracer:
+    instance_reporting:
+      # Reports datastore instance information (host/port) on datastore spans.
+      # Default: true
+      enabled: true
+
+    database_name_reporting:
+      # Reports the database name on datastore spans.
+      # Default: true
+      enabled: true
+
+    database_connection_metadata:
+      # Reports database connection metadata on datastore spans.
+      # Default: true
+      enabled: true
+
+  # External HTTP call tracer configuration.
+  external_tracer:
+    # Excludes the request URI from external call segment names.
+    # Default: false
+    exclude_request_uri: false
+
+  # JAR collector configuration; reports the JARs loaded by the JVM.
+  jar_collector:
+    # Enables the jar collector.
+    # Default: true
+    enabled: true
+
+    # Skips jars located in temp directories.
+    # Default: true
+    skip_temp_jars: true
+
+    # Throughput throttle, in jars per second.
+    # Default: 10
+    jars_per_second: 10
+
+  # JMX metric collection configuration.
+  jmx:
+    # Master on/off switch for JMX metric collection.
+    # Default: true
+    enabled: true
+
+    # JMX frameworks to disable.
+    # Default: empty list
+    disabled_jmx_frameworks: []
+
+    # Iterates ObjectName keys when building JMX metric names.
+    # Default: true
+    enable_iterated_objectname_keys: true
+
+    # Registers an MBean exposing agent linking metadata.
+    # Default: false
+    linkingMetadataMBean: false
+
+  # Remote reinstrumentation (instrumentation editor) configuration.
+  reinstrument:
+    # Set to false to disable remote reinstrumentation.
+    # Default: true
+    enabled: true
+
+    # Captures attributes during remote reinstrumentation.
+    # Default: false
+    attributes_enabled: false
+
+  # AWS Lambda serverless mode configuration.
+  serverless_mode:
+    # Set to true to enable serverless mode. Auto-detected in Lambda environments if not set explicitly.
+    # Default: false
+    enabled: false
+
+    # Local file telemetry is written to in serverless mode.
+    # Default: /tmp/newrelic-telemetry
+    file_path: /tmp/newrelic-telemetry
+
+    # Lambda function ARN.
+    # Default: none
+    arn:
+
+    # Lambda function version.
+    # Default: none
+    function_version:
+
+  # Strips exception messages from collected errors, for high security environments.
+  strip_exception_messages:
+    # Set to true to strip exception messages. Defaults to the high_security setting when unset.
+    # Default: false
+    enabled: false
+
+    # Exception classes allowed to keep their messages even when stripping is enabled.
+    # Default: empty list
+    allowed_classes: []
+
+  # The values below are provided by the New Relic collector on connect (RUM/browser loader
+  # payload, AI Monitoring account-wide gate, Security Agent identifiers, OTLP resource
+  # attributes, and advisory messages). They are not user-configurable locally; listed here
+  # only so the agent recognizes them as known keys.
+  #
+  # NOTE: the collector-pushed "instrumentation" (live remote reinstrumentation payload,
+  # RemoteInstrumentationServiceImpl.INSTRUMENTATION_CONFIG) is NOT listed here — it collides
+  # with the existing local "instrumentation.hibernate.stats_sampler.enabled" key below
+  # (same top-level YAML key, incompatible shapes: List<Map> vs nested object). Needs a
+  # decision on how to disambiguate before it can be added.
+  account_id:
+  agent_run_id:
+  application_id:
+  beacon:
+  browser_key:
+
+  # Account-wide server flag gating AI Monitoring; overrides ai_monitoring.enabled. Surfaced
+  # read-only in the Fleet Control UI.
+  collect_ai:
+
+  error_beacon:
+  js_agent_file:
+  js_agent_loader:
+
+  messages: []
+  otlp_resource_attributes: {}
+  request_headers_map: {}
+
+  # Kotlin Coroutines instrumentation configuration. Allows excluding specific coroutine
+  # continuations, scopes, dispatched calls, and suspend functions from tracing (by exact
+  # name or regex), and controls tracing of delayed coroutines.
+  coroutines:
+    continuations:
+      # Comma-separated list of continuation class/method names to exclude from tracing.
+      # Default: none
+      ignore: ''
+
+      # Regex pattern for continuation names to exclude from tracing.
+      # Default: none
+      ignoreRegex: ''
+
+    scopes:
+      # Comma-separated list of coroutine scope names to exclude from tracing.
+      # Default: none
+      ignore: ''
+
+      # Regex pattern for coroutine scope names to exclude from tracing.
+      # Default: none
+      ignoreRegex: ''
+
+    dispatched:
+      # Comma-separated list of dispatched coroutine names to exclude from tracing.
+      # Default: none
+      ignore: ''
+
+      # Regex pattern for dispatched coroutine names to exclude from tracing.
+      # Default: none
+      ignoreRegex: ''
+
+    suspends:
+      # Comma-separated list of suspend function names to exclude from tracing.
+      # Default: none
+      ignore: ''
+
+      # Regex pattern for suspend function names to exclude from tracing.
+      # Default: none
+      ignoreRegex: ''
+
+    # Controls tracing of delayed coroutines.
+    delayed:
+      # Default: true
+      enabled: true
 
   # Report Reactor Netty errors.
   # Default: false
@@ -323,6 +609,26 @@ common: &default_settings
     # on spans to enable code level metrics in CodeStream.
     enabled: true
 
+  # Provides integration with New Relic Agent Control, a sidecar responsible for agent
+  # supervision and health reporting in containerized/Kubernetes environments.
+  agent_control:
+
+    # When true, the agent periodically reports its health status to Agent Control.
+    # Default is false.
+    enabled: false
+
+    # Health check reporting settings for the Agent Control integration.
+    health:
+
+      # Location the agent writes health status files to, in URI format. The client type
+      # used to report health (file, etc.) is derived from the URI scheme.
+      # Default: file:///newrelic/apm/health
+      delivery_location: 'file:///newrelic/apm/health'
+
+      # How often, in seconds, the agent reports its health status to Agent Control.
+      # Default is 5.
+      frequency: 5
+
   # Proxy settings for connecting to the New Relic server:
   # If a proxy is used, the host setting is required. Other settings
   # are optional. Default port is 8080. The username and password
@@ -377,6 +683,18 @@ common: &default_settings
     # Read Docker info from file system.
     # Default: true
     detect_docker: true
+
+    # Overrides the detected total RAM, in MiB.
+    # Default: none (auto-detected)
+    total_ram_mib:
+
+    # Overrides the detected logical processor count.
+    # Default: none (auto-detected)
+    logical_processors:
+
+    # Overrides the billing hostname reported in utilization data.
+    # Default: none (auto-detected)
+    billing_hostname:
 
   # Limits the number of lines to capture for each stack trace.
   # Default is 30
@@ -487,6 +805,35 @@ common: &default_settings
     # Default is 20.
     top_n: 20
 
+    # Includes GC time in transaction traces. Disabled by default because it's inaccurate
+    # in async scenarios.
+    # Default: false
+    gc_time_enabled: false
+
+    # Max length of inserted SQL text.
+    # Default: 2000
+    insert_sql_max_length: 2000
+
+    # Max stack trace segments captured per trace.
+    # Default: 20
+    max_stack_trace: 20
+
+    # Max segments captured per trace.
+    # Default: 3000
+    segment_limit: 3000
+
+    # Max explain plans captured per harvest.
+    # Default: 20
+    max_explain_plans: 20
+
+    # Max async tokens captured per trace.
+    # Default: 3000
+    token_limit: 3000
+
+    # Modules allowed to report slow queries while high security is enabled.
+    # Default: empty list
+    collect_slow_queries_from: []
+
     # This setting can be used to turn on or off all attributes for transaction traces.
     attributes:
       enabled: true
@@ -507,12 +854,34 @@ common: &default_settings
     # Default is true.
     enabled: true
 
+    # Legacy exception handler signatures (method signature strings) to instrument as
+    # error-producing exception handlers. Rarely used directly in YAML.
+    # Default: empty list
+    exception_handlers: []
+
     # Use this property to exclude specific exceptions from being reported as errors
     # by providing a comma separated list of full class names.
     # The default is to exclude akka.actor.ActorKilledException. If you want to override
     # this, you must provide any new value as an empty list is ignored.
     ignore_classes:
       - "akka.actor.ActorKilledException"
+
+    # Legacy predecessor of ignore_classes; deprecated but still honored if ignore_classes is unset.
+    # Default: same as ignore_classes
+    ignore_errors:
+      - "akka.actor.ActorKilledException"
+
+    # Local/server gate for error events, distinct from the top-level "enabled" flag.
+    # Default: true
+    capture_events: true
+
+    # Error event reservoir size.
+    # Default: 100
+    max_event_samples_stored: 100
+
+    # Controls whether ignored errors take priority over expected errors when both match.
+    # Default: true
+    ignoreErrorPriority: true
 
     # Use this property to exclude specific http status codes from being reported as errors
     # by providing a comma separated list of status codes.
@@ -548,6 +917,11 @@ common: &default_settings
     # Default is 2000. Setting to 0 will disable.
     max_samples_stored: 2000
 
+    # Custom request headers to capture on transaction events. Each entry has a required
+    # header_name and an optional header_alias used as the attribute name.
+    # Default: empty list
+    custom_request_headers: []
+
     # This setting can be used to turn on or off all attributes for transaction events.
     attributes:
       enabled: true
@@ -575,6 +949,24 @@ common: &default_settings
     # Default is false.
     exclude_newrelic_header: false
 
+    # Sends the NR-not-sampled header for message queues.
+    # Default: false
+    send_message_queue_not_sampled_header: false
+
+    # Trusted account key used to validate inbound distributed tracing payloads. Server-merged
+    # on connect; not typically set locally.
+    # Default: none
+    trusted_account_key:
+
+    # Account id embedded in distributed tracing trust checks. Server-merged on connect.
+    # Default: none
+    account_id:
+
+    # Primary application id embedded in outbound distributed tracing payloads. Server-merged
+    # on connect.
+    # Default: none
+    primary_application_id:
+
     # Agent version 8.20.0+ utilize these settings for controlling how to sample when we have a remote parent
     # involved. That is, if there is a valid traceparent with a value in the sampled flag on the inbound headers.
     # If the inbound traceparent is marked as sampled then the remote_parent_sampled setting will be used.
@@ -582,11 +974,26 @@ common: &default_settings
     # Otherwise New Relic's standard sampling will be used.
     # Note: Reservoir limits are still in effect on top of these settings, so spans may be dropped even if they
     # are marked for sampling, if the reservoir reaches its limit (max_samples_stored).
-    # Possible values:
+    #
+    # Each of root/remote_parent_sampled/remote_parent_not_sampled accepts either a plain string
+    # naming the sampler type, or a single-key object nesting type-specific options:
+    #   root: adaptive
+    # is equivalent to:
+    #   root:
+    #     adaptive:
+    # Possible sampler types:
     #   default: New Relic's standard sampling rules will be used.
+    #   adaptive: Target a specific number of sampled traces per harvest (sampling_target sub-option).
     #   always_on: Always sample spans in this case.
     #   always_off: Always skip sampling in this case.
+    #   trace_id_ratio_based: Sample a fixed ratio of traces (required ratio sub-option, 0.0-1.0).
     sampler:
+      # Shared adaptive sampling target used by any sampler configured as "adaptive" without its
+      # own sampling_target sub-option.
+      # Default: 120
+      adaptive_sampling_target: 120
+
+      root: default
       remote_parent_sampled: default
       remote_parent_not_sampled: default
 
@@ -603,6 +1010,10 @@ common: &default_settings
     # Increasing the number of Span events can lead to additional agent overhead. A maximum value may be imposed server side by New Relic.
     # Default is 2000
     max_samples_stored: 2000
+
+    # Reservoir target size used by the adaptive sampler.
+    # Default: 10
+    target_samples_stored: 10
 
     # Provides the ability to filter the attributes attached to Span events.
     # Custom attributes can be added to Span events using the NewRelic.getAgent().getTracedMethod().addCustomAttribute(...) API.
@@ -650,6 +1061,25 @@ common: &default_settings
 
     # Pages to skip auto instrumentation (comma-separated).
     disabled_auto_pages: []
+
+    # RUM loader type: rum, full, or none.
+    # Default: rum
+    loader: rum
+
+    # Sends non-minified browser JS for debugging.
+    # Default: false
+    debug: false
+
+    # Forces HTTPS RUM instrumentation on HTTP pages.
+    # Default: true
+    ssl_for_http: true
+
+    # Allows the RUM footer to be injected on every request instead of once per transaction.
+    # Default: false
+    allow_multiple_footers: false
+
+    # Version tag of the browser JS loader. Set by New Relic on connect; not user-configurable.
+    loader_version:
 
     attributes:
       # Enable attributes for browser monitoring.
@@ -704,8 +1134,76 @@ common: &default_settings
   # All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation
   class_transformer:
 
-    # Custom trace annotation class name.
-    #trace_annotation_class_name: ''
+    # Custom @Trace-equivalent annotation class names.
+    # Default: empty list
+    trace_annotation_class_name: []
+
+    # Set to false to disable the class transformer (and therefore all instrumentation).
+    # Default: true
+    enabled: true
+
+    # Enables all default (built-in) instrumentation modules. Only respected if instrumentation
+    # is not disabled by lite_mode.
+    # Default: true
+    instrumentation_default:
+      enabled: true
+
+    # Enables builtin extension instrumentation modules (in addition to instrumentation_default).
+    # Default: true
+    builtin_extensions:
+      enabled: true
+
+    # Classes force-included for transformation.
+    # Default: empty list
+    includes: []
+
+    # Classes excluded from transformation.
+    # Default: empty list
+    excludes: []
+
+    # Classloaders excluded from delegation.
+    # Default: empty list
+    classloader_delegation_excludes: []
+
+    # Classloaders included for delegation.
+    # Default: empty list
+    classloader_delegation_includes: []
+
+    # Grants package access during weaving.
+    # Default: false
+    grant_package_access: false
+
+    # Cache size for prevalidated classloaders.
+    # Default: 10
+    max_prevalidated_classloaders: 10
+
+    # Prevalidates weave packages at startup.
+    # Default: true
+    prevalidate_weave_packages: true
+
+    # Pre-filters weave method matches.
+    # Default: true
+    prematch_weave_methods: true
+
+    # Enables default method tracing.
+    # Default: true
+    default_method_tracing_enabled: true
+
+    # ASM COMPUTE_FRAMES toggle.
+    # Default: true
+    compute_frames: true
+
+    # Delay, in seconds, before shutdown class transform teardown. A value <= 0 disables the delay.
+    # Default: -1
+    shutdown_delay: -1
+
+    # Rate limit, in milliseconds, for auto async linking.
+    # Default: 1000
+    auto_async_link_rate_limit: 1000
+
+    # Comma-separated list of JDBC statement types to trace.
+    # Default: none
+    jdbc_statements:
 
     # This instrumentation reports the name of the user principal returned from
     # HttpServletRequest.getUserPrincipal() when servlets and filters are invoked.
@@ -766,9 +1264,13 @@ common: &default_settings
 
   # Extensions directory configuration.
   extensions:
-  # Location of extensions directory.
-  # Default: extensions subdirectory of newrelic.jar location
-  #dir: ''
+    # Location of extensions directory.
+    # Default: extensions subdirectory of newrelic.jar location
+    dir:
+
+    # Reload extension files when they're modified on disk.
+    # Default: true
+    reload_modified: true
 
   # Slow SQL tracing configuration.
   slow_sql:
@@ -776,19 +1278,23 @@ common: &default_settings
     # Default: true
     enabled: true
 
+    # Uses a longer (higher-entropy) id for slow SQL traces.
+    # Default: false
+    use_longer_sql_id: false
+
   # Metric ingest URI. Determines where dimensional metric data is sent for
   # JFR profiling. If not explicitly configured, the metric_ingest_uri
   # will be automatically derived from the license_key (recommended).
   #
   # The default URI is for the US region.
-  # metric_ingest_uri: https://metric-api.newrelic.com/metric/v1
+  metric_ingest_uri: https://metric-api.newrelic.com/metric/v1
 
   # Event ingest URI. Determines where event data is sent for
   # JFR profiling. If not explicitly configured, the event_ingest_uri
   # will be automatically derived from the license_key (recommended).
   #
   # The default URI is for the US region.
-  # event_ingest_uri: https://insights-collector.newrelic.com/v1/accounts/events
+  event_ingest_uri: https://insights-collector.newrelic.com/v1/accounts/events
 
   # Real-time profiling using Java Flight Recorder (JFR).
   # This feature reports dimensional metric and event data to the endpoints
@@ -829,18 +1335,30 @@ common: &default_settings
 
   # Infinite Tracing configuration.
   infinite_tracing:
-    trace_observer:
-    # Trace observer host (required to enable).
-    #host: ''
+    # Disables TLS to the trace observer.
+    # Default: false
+    plaintext: false
 
-    # Trace observer port.
-    # Default: 443
-    #port: 443
+    # Enables gRPC compression.
+    # Default: true
+    compression: true
+
+    # Enables gRPC batching.
+    # Default: true
+    batching: true
+
+    trace_observer:
+      # Trace observer host (required to enable).
+      host: ''
+
+      # Trace observer port.
+      # Default: 443
+      port: 443
 
     span_events:
-    # Span event queue size.
-    # Default: 10000
-    #queue_size: 10000
+      # Span event queue size.
+      # Default: 100000
+      queue_size: 100000
 
   # User-configurable custom labels for this agent.  Labels are name-value pairs.
   # There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters.

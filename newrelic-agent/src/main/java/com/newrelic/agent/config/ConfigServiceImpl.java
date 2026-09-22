@@ -206,7 +206,13 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
             mergedSettings.putAll(flattenLocalSettingsConfigMap("", AgentConfigFactory.getAgentData(savedServerData)));
         }
 
-        mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
+        // This can be modified to remove invalid config keys if needed with:
+        // mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
+        //
+        // Currently it will leave the invalid keys but change the value to the
+        // String: "Invalid config key"
+        Set<String> knownConfigKeys = ReferenceConfigLookup.getKnownConfigKeys();
+        mergedSettings.replaceAll((key, value) -> knownConfigKeys.contains(key) ? value : "Invalid config key");
         return mergedSettings;
     }
 

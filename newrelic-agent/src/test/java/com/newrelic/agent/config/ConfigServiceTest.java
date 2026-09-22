@@ -35,7 +35,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -379,6 +378,9 @@ public class ConfigServiceTest {
         configMap.put("agent_enabled", true);
         configMap.put("transaction_tracer", transactionTracerConfig);
         configMap.put("jfr", jfrConfig);
+        configMap.put("account_id", "12345");
+        // Invalid config keys should have their value replaced, not dropped
+        configMap.put("totally_bogus_key", "some_value");
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
         ConfigServiceImpl configService = new ConfigServiceImpl(agentConfig, null, configMap, false);
@@ -389,7 +391,8 @@ public class ConfigServiceTest {
         assertEquals("test", result.get("app_name"));
         assertEquals(true, result.get("jfr.enabled"));
         assertEquals("obfuscated", result.get("transaction_tracer.record_sql"));
-        assertNull(result.get("totally_bogus_key"));
+        assertEquals("12345", result.get("account_id"));
+        assertEquals("Invalid config key", result.get("totally_bogus_key"));
     }
 
     @Test
