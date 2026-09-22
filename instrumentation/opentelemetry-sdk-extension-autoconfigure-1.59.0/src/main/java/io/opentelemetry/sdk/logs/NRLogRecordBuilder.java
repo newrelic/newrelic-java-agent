@@ -42,6 +42,7 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
     private Severity severity = Severity.UNDEFINED_SEVERITY_NUMBER;
     private String severityText;
     private Value<?> bodyValue;
+    private String eventName;
 
     public NRLogRecordBuilder(String instrumentationScopeName, String instrumentationScopeVersion, String schemaUrl, LoggerSharedState loggerSharedState) {
         this.loggerSharedState = loggerSharedState;
@@ -109,6 +110,12 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
         return this;
     }
 
+    @Override
+    public LogRecordBuilder setEventName(String eventName) {
+        this.eventName = eventName;
+        return this;
+    }
+
     /**
      * Intercept here to create a NR LogEvent from the OpenTelemetry
      * LogRecord that is being emitted. The OpenTelemetry LogRecord
@@ -135,6 +142,7 @@ public class NRLogRecordBuilder implements LogRecordBuilder {
                 Span.fromContext(context).getSpanContext(),
                 severity,
                 severityText,
+                eventName,
                 bodyValue,
                 Collections.unmodifiableMap(new HashMap<>(attributes))
         );

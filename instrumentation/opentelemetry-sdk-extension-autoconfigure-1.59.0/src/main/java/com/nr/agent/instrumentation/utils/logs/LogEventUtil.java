@@ -38,6 +38,7 @@ import static com.newrelic.agent.bridge.logging.AppLoggingUtils.TIMESTAMP;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.UNKNOWN;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.isAppLoggingContextDataEnabled;
 import static io.opentelemetry.sdk.logs.NRLogRecord.BasicLogRecordData;
+import static io.opentelemetry.sdk.logs.NRLogRecord.NEWRELIC_EVENT_TYPE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_MESSAGE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_STACKTRACE;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_EXCEPTION_TYPE;
@@ -47,13 +48,17 @@ import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_SCOPE_NAME;
 import static io.opentelemetry.sdk.logs.NRLogRecord.OTEL_SCOPE_VERSION;
 
 public class LogEventUtil {
+    public static final LogAttributeKey EVENT_NAME = new LogAttributeKey("event.name", LogAttributeType.AGENT);
+
     private static final Set<String> OTEL_ATTRIBUTES = new HashSet<>(Arrays.asList(
             NRLogRecord.OTEL_EXCEPTION_MESSAGE.getKey(),
             NRLogRecord.OTEL_EXCEPTION_TYPE.getKey(),
             NRLogRecord.OTEL_EXCEPTION_STACKTRACE.getKey(),
             NRLogRecord.THREAD_NAME.getKey(),
             NRLogRecord.THREAD_ID_LONG.getKey(),
-            NRLogRecord.THREAD_ID_STRING.getKey())
+            NRLogRecord.THREAD_ID_STRING.getKey(),
+            NRLogRecord.NEWRELIC_EVENT_TYPE.getKey()
+        )
     );
 
     /**
@@ -158,6 +163,11 @@ public class LogEventUtil {
                         }
                     }
 
+                    String eventName = logRecordData.getEventName();
+                    if (eventName != null && !eventName.isEmpty()) {
+                        logEventMap.put(EVENT_NAME, eventName);
+                    }
+
                     String threadName = ((BasicLogRecordData) logRecordData).getThreadName();
                     if (threadName != null) {
                         logEventMap.put(THREAD_NAME, threadName);
@@ -165,6 +175,11 @@ public class LogEventUtil {
 
                     long threadId = ((BasicLogRecordData) logRecordData).getThreadId();
                     logEventMap.put(THREAD_ID, threadId);
+
+                    String newrelicEventType = contextAttributes.get(NEWRELIC_EVENT_TYPE);
+                    if (newrelicEventType != null && !newrelicEventType.isEmpty()) {
+                        logEventMap.put(new LogAttributeKey(NEWRELIC_EVENT_TYPE.getKey(), LogAttributeType.AGENT), newrelicEventType);
+                    }
 
                     AgentBridge.getAgent().getLogSender().recordLogEvent(logEventMap);
                 }

@@ -33,7 +33,9 @@ public class NRLogRecord implements ReadWriteLogRecord {
     public static final AttributeKey<String> OTEL_EXCEPTION_STACKTRACE = AttributeKey.stringKey("exception.stacktrace");
     public static final AttributeKey<String> THREAD_NAME = AttributeKey.stringKey("thread.name");
     public static final AttributeKey<Long> THREAD_ID_LONG = AttributeKey.longKey("thread.id");
+    public static final AttributeKey<String> EVENT_NAME = AttributeKey.stringKey("event.name");
     public static final AttributeKey<String> THREAD_ID_STRING = AttributeKey.stringKey("thread.id");
+    public static final AttributeKey<String> NEWRELIC_EVENT_TYPE = AttributeKey.stringKey("newrelic.event.type");
 
     private final LogLimits logLimits; // LogLimits is not used in this implementation, but kept for compatibility
     private final Resource resource;
@@ -43,6 +45,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
     private final SpanContext spanContext;
     private final Severity severity;
     private final String severityText;
+    private final String eventName;
     private final Value<?> bodyValue;
     private final Object lock = new Object();
     private final Map<String, Object> attributes;
@@ -56,6 +59,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
             SpanContext spanContext,
             Severity severity,
             String severityText,
+            String eventName,
             Value<?> bodyValue,
             Map<String, Object> attributes
     ) {
@@ -67,6 +71,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
         this.spanContext = spanContext;
         this.severity = severity;
         this.severityText = severityText;
+        this.eventName = eventName;
         this.bodyValue = bodyValue;
         this.attributes = attributes;
     }
@@ -83,6 +88,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
             SpanContext spanContext,
             Severity severity,
             String severityText,
+            String eventName,
             Value<?> bodyValue,
             Map<String, Object> attributes) {
         return new NRLogRecord(
@@ -94,6 +100,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
                 spanContext,
                 severity,
                 severityText,
+                eventName,
                 bodyValue,
                 attributes);
     }
@@ -123,6 +130,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
                     spanContext,
                     severity,
                     severityText,
+                    eventName,
                     bodyValue,
                     AttributesHelper.toAttributes(attributes),
                     attributes.size()
@@ -138,6 +146,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
         private final SpanContext spanContext;
         private final Severity severity;
         private final String severityText;
+        private final String eventName;
         private final Value<?> bodyValue;
         private final Attributes attributes;
         private final int totalAttributeCount;
@@ -153,6 +162,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
                 SpanContext spanContext,
                 Severity severity,
                 String severityText,
+                String eventName,
                 Value<?> bodyValue,
                 Attributes attributes,
                 int totalAttributeCount) {
@@ -163,6 +173,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
             this.spanContext = spanContext;
             this.severity = severity;
             this.severityText = severityText;
+            this.eventName = eventName;
             this.bodyValue = bodyValue;
             this.attributes = attributes;
             this.totalAttributeCount = totalAttributeCount;
@@ -194,6 +205,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
                 SpanContext spanContext,
                 Severity severity,
                 String severityText,
+                String eventName,
                 Value<?> bodyValue,
                 Attributes attributes,
                 int totalAttributeCount) {
@@ -205,6 +217,7 @@ public class NRLogRecord implements ReadWriteLogRecord {
                     spanContext,
                     severity,
                     severityText,
+                    eventName,
                     bodyValue,
                     attributes,
                     totalAttributeCount
@@ -255,6 +268,11 @@ public class NRLogRecord implements ReadWriteLogRecord {
         }
 
         @Override
+        public String getEventName() {
+            return eventName;
+        }
+
+        @Override
         public Body getBody() {
             return bodyValue == null ? Body.empty() : Body.string(bodyValue.asString());
         }
@@ -285,6 +303,8 @@ public class NRLogRecord implements ReadWriteLogRecord {
                     + this.severity
                     + ", severityText="
                     + this.severityText
+                    + ", eventName="
+                    + this.eventName
                     + ", body="
                     + this.bodyValue
                     + ", attributes="
