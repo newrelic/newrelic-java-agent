@@ -1,8 +1,13 @@
 configurationDefinitions:
   - platform: KUBERNETESCLUSTER
-    description: Java agent configuration
-    type: agent-config
+    type: AgentConfig
     version: 1.0.2
     schema: ./schemas/config.json
     format: yml
+    bindings:
+      - type: CONFIGURES
+        targetType: AGENT
+        target: NRJavaAgent
+        versions:
+          - ">8.0.2"
 
