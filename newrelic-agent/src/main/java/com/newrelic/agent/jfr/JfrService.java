@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import static com.newrelic.jfr.daemon.AttributeNames.ENTITY_GUID;
@@ -40,7 +41,9 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     private JfrConfig jfrConfig;
     private AgentConfig defaultAgentConfig;
     private JfrController jfrController;
+    private ExecutorService jfrMonitorService;
 
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final String JFR_SERVICE_THREAD_NAME = "New Relic JFR Service";
 
     public JfrService(JfrConfig jfrConfig, AgentConfig defaultAgentConfig) {
@@ -53,6 +56,10 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     @Override
     protected void doStart() {
         if (coreApisExist() && isEnabled()) {
+            if (!isRunning.compareAndSet(false, true)) {
+                Agent.LOG.log(Level.FINE, "New Relic JFR Monitor is already running; ignoring duplicate start request.");
+                return;
+            }
             Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
@@ -73,7 +80,7 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                 uploader.readyToSend(new EventConverter(commonAttrs, pattern));
                 jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
 
-                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
+                jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
                 jfrMonitorService.submit(
                         () -> {
                             try {
@@ -85,6 +92,7 @@ public class JfrService extends AbstractService implements AgentConfigListener {
                         });
             } catch (Throwable t) {
                 Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
+                isRunning.set(false);
             }
         } else {
             NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL);
@@ -115,8 +123,13 @@ public class JfrService extends AbstractService implements AgentConfigListener {
     protected void doStop() {
         NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS);
 
-        if (jfrController != null) {
-            jfrController.shutdown();
+        if (isRunning.compareAndSet(true, false)) {
+            if (jfrController != null) {
+                jfrController.shutdown();
+            }
+            if (jfrMonitorService != null) {
+                jfrMonitorService.shutdown();
+            }
         }
     }
 
