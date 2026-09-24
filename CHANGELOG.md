@@ -4,6 +4,44 @@ Noteworthy changes to the agent are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Version 9.5.0
+## New features and improvements
+
+* Java 27 support [3095](https://github.com/newrelic/newrelic-java-agent/pull/3095)
+* AI Monitoring - Support for AWS Converse APIs [2995](https://github.com/newrelic/newrelic-java-agent/pull/2995) [3003](https://github.com/newrelic/newrelic-java-agent/pull/3003)
+* Support Quarkus: rest-3.0.0 [3009](https://github.com/newrelic/newrelic-java-agent/pull/3009)
+* Support Quarkus resteasy 2.14 [3018](https://github.com/newrelic/newrelic-java-agent/pull/3018)
+* Support Spring Boot Actuator v4 [3040](https://github.com/newrelic/newrelic-java-agent/pull/3040)
+* Support for Ktor Http Clients, Http Server and Utils (Pipelines) [2892](https://github.com/newrelic/newrelic-java-agent/pull/2892) [2894](https://github.com/newrelic/newrelic-java-agent/pull/2894) [2895](https://github.com/newrelic/newrelic-java-agent/pull/2895)
+* Support for Redisson 3.28.0 and up [3050](https://github.com/newrelic/newrelic-java-agent/pull/3050)
+* Adobe AEM (Sling) browser script injection modules [2863](https://github.com/newrelic/newrelic-java-agent/pull/2863)
+* Oracle explain plan support [3080](https://github.com/newrelic/newrelic-java-agent/pull/3080)
+
+## Enhancements
+
+* Add (limited) Hybrid Agent proxy support [3013](https://github.com/newrelic/newrelic-java-agent/pull/3013)
+* Hybrid Agent - Logging - Allow empty message body when context attributes are present [3042](https://github.com/newrelic/newrelic-java-agent/pull/3042)
+* Add hybrid audit logging [3059](https://github.com/newrelic/newrelic-java-agent/pull/3059)
+* Enhance gRPC-Netty support [3063](https://github.com/newrelic/newrelic-java-agent/pull/3063)
+* Enable Hybrid Agent OTLP metric retry logic [3084](https://github.com/newrelic/newrelic-java-agent/pull/3084)
+* Add collector connection TTL and recovery tests [3081](https://github.com/newrelic/newrelic-java-agent/pull/3081)
+* Make weave related task thread count configurable [3103](https://github.com/newrelic/newrelic-java-agent/pull/3103)
+* Report Cluster Ids in Kafka Metrics [3054](https://github.com/newrelic/newrelic-java-agent/pull/3054)
+
+## Fixes
+
+* Properly handle exceptions thrown from the normalizer flow [3037](https://github.com/newrelic/newrelic-java-agent/pull/3037)
+* Resolve Micronaut duplicate transactions/lost custom attributes issues [3085](https://github.com/newrelic/newrelic-java-agent/pull/3085)
+
+## IAST
+
+* Bump CSEC agent version to v1.8.0 [3065](https://github.com/newrelic/newrelic-java-agent/pull/3065) Changelog: https://github.com/newrelic/csec-java-agent/releases#release-1.8.0
+
+## New Contributors
+* @PongPong made their first contribution in https://github.com/newrelic/newrelic-java-agent/pull/3081
+
+**Full Changelog**: https://github.com/newrelic/newrelic-java-agent/compare/v9.4.0...v9.5.0
+
 ## Version 9.4.0
 ## New features and improvements
 
