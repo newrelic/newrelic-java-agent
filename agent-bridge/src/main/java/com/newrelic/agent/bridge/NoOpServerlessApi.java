@@ -7,6 +7,9 @@
 
 package com.newrelic.agent.bridge;
 
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 public class NoOpServerlessApi implements ServerlessApi {
 
     @Override
@@ -31,6 +34,26 @@ public class NoOpServerlessApi implements ServerlessApi {
 
     @Override
     public boolean isApmLambdaModeEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isServerlessModeEnabled() {
+        return false;
+    }
+
+    @Override
+    public void removeMetricCollector(Object metricReader) {
+        // No-op
+    }
+
+    @Override
+    public void addMetricReader(Object metricReader, Consumer<Object> metricCollector) {
+        // No-op
+    }
+
+    @Override
+    public boolean otelHarvest(String metricPayload) {
         return false;
     }
 }

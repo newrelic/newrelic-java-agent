@@ -122,6 +122,11 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
+    public void sendServerlessOTLPMetricData(String payload) {
+        buffer.updateOtlpPayload(payload);
+    }
+
+    @Override
     public List<Long> sendProfileData(List<ProfileData> profiles) throws Exception {
         // The serverless data sender is not involved with profile data
         return Collections.emptyList();
