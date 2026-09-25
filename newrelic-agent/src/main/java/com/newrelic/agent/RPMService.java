@@ -47,6 +47,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.utilization.UtilizationData;
 import org.json.simple.JSONStreamAware;
 
@@ -60,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -135,9 +137,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
 
         if (this.isMainApp) {
-            // TODO This needs to be reverted when agent_settings is updated to send a correct settings payload
-            // scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
-            scheduler = null;
+            scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
         }
     }
 

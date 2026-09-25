@@ -266,6 +266,17 @@ public class AgentConfigFactoryTest {
         Assert.assertEquals(10, config.getTransactionEventsConfig().getTargetSamplesStored());
     }
 
+    @Test
+    public void serverSuppliedBrowserMonitoringLoaderTypeIsMerged() throws Exception {
+        Map<String, Object> localSettings = createMap();
+        Map<String, Object> serverData = createMap();
+        serverData.put("browser_monitoring.loader", "spa");
+
+        AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(localSettings, serverData, null);
+
+        Assert.assertEquals("spa", agentConfig.getBrowserMonitoringConfig().getLoaderType());
+    }
+
     private Map<String, Object> logForwardingSettingsEnabled(boolean enabled) {
         Map<String, Object> localSettings = createMap();
         Map<String, Object> loggingSettings = createMap();
