@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.bridge.logging;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 
 import java.io.UnsupportedEncodingException;
@@ -36,6 +37,15 @@ public class AppLoggingUtils {
     public static final String ENTITY_GUID = "entity.guid";
     public static final String ENTITY_NAME = "entity.name";
     public static final String SPAN_ID = "span.id";
+    // Kubernetes metadata injection attributes used in blob (see https://github.com/newrelic/k8s-metadata-injection)
+    public static final String K8S_CLUSTER_NAME = "k8s.clusterName";
+    public static final String K8S_NAMESPACE_NAME = "k8s.namespaceName";
+    public static final String K8S_POD_NAME = "k8s.podName";
+    public static final String K8S_NODE_NAME = "k8s.nodeName";
+    public static final String K8S_DEPLOYMENT_NAME = "k8s.deploymentName";
+    public static final String K8S_REPLICASET_NAME = "k8s.replicasetName";
+    public static final String K8S_CONTAINER_NAME = "k8s.containerName";
+    public static final String K8S_CONTAINER_IMAGE_NAME = "k8s.containerImageName";
     // Log attribute prefixes
     public static final String CONTEXT_DATA_ATTRIBUTE_PREFIX = "context.";
     // Enabled defaults
@@ -53,7 +63,7 @@ public class AppLoggingUtils {
      * @return agent linking metadata string blob
      */
     public static String getLinkingMetadataBlob() {
-        return constructLinkingMetadataBlob(NewRelic.getAgent().getLinkingMetadata());
+        return constructLinkingMetadataBlob(AgentBridge.getAgent().getLogLinkingMetadata());
     }
 
     /**
@@ -84,8 +94,32 @@ public class AppLoggingUtils {
             appendAttributeToBlob(agentLinkingMetadata.get(TRACE_ID), blob);
             appendAttributeToBlob(agentLinkingMetadata.get(SPAN_ID), blob);
             appendAttributeToBlob(urlEncode(agentLinkingMetadata.get(ENTITY_NAME)), blob);
+            appendKubernetesAttributesToBlob(agentLinkingMetadata, blob);
         }
         return blob.toString();
+    }
+
+    /**
+     * Appends Kubernetes metadata injection attributes to the blob, but only when at least one is present.
+     * This keeps the blob's shape unchanged for users not running in Kubernetes.
+     *
+     * @param agentLinkingMetadata map of linking metadata
+     * @param blob blob StringBuilder to append to
+     */
+    private static void appendKubernetesAttributesToBlob(Map<String, String> agentLinkingMetadata, StringBuilder blob) {
+        if (agentLinkingMetadata.containsKey(K8S_CLUSTER_NAME) || agentLinkingMetadata.containsKey(K8S_NAMESPACE_NAME)
+                || agentLinkingMetadata.containsKey(K8S_POD_NAME) || agentLinkingMetadata.containsKey(K8S_NODE_NAME)
+                || agentLinkingMetadata.containsKey(K8S_DEPLOYMENT_NAME) || agentLinkingMetadata.containsKey(K8S_REPLICASET_NAME)
+                || agentLinkingMetadata.containsKey(K8S_CONTAINER_NAME) || agentLinkingMetadata.containsKey(K8S_CONTAINER_IMAGE_NAME)) {
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_CLUSTER_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_NAMESPACE_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_POD_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_NODE_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_DEPLOYMENT_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_REPLICASET_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_CONTAINER_NAME), blob);
+            appendAttributeToBlob(agentLinkingMetadata.get(K8S_CONTAINER_IMAGE_NAME), blob);
+        }
     }
 
     private static void appendAttributeToBlob(String attribute, StringBuilder blob) {

@@ -98,4 +98,9 @@ class FakeExtensionAgent implements Agent {
     public Map<String, String> getServiceMetadata() {
         return Collections.emptyMap();
     }
+
+    @Override
+    public Map<String, String> getLogLinkingMetadata() {
+        return Collections.emptyMap();
+    }
 }

@@ -217,6 +217,21 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
     }
 
     @Override
+    public Map<String, String> getLogLinkingMetadata() {
+        try {
+            RPMServiceManager rpmServiceManager = ServiceFactory.getRPMServiceManager();
+            IRPMService rpmService = rpmServiceManager == null ? null : rpmServiceManager.getRPMService();
+            if (rpmService == null) {
+                return Collections.emptyMap();
+            }
+            return AgentLinkingMetadata.getLogEventLinkingMetadata(getTraceMetadata(), ServiceFactory.getConfigService(), rpmService);
+        } catch (Exception e) {
+            Agent.LOG.log(Level.SEVERE, "An error occurred trying to get Log Linking Metadata. Returning an empty map instead.", e);
+            return Collections.emptyMap();
+        }
+    }
+
+    @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         Agent.LOG.info("CRaC checkpoint requested");
         NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_CHECKPOINT);
