@@ -24,6 +24,7 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.DefaultTracer;
 import com.newrelic.agent.util.ExternalsUtil;
 import com.newrelic.agent.util.StackTraces;
+import com.newrelic.agent.util.Strings;
 import com.newrelic.api.agent.CloudParameters;
 import com.newrelic.api.agent.DatastoreParameters;
 import com.newrelic.api.agent.ExternalParameters;
@@ -49,8 +50,6 @@ import static com.newrelic.agent.model.SpanEvent.SPAN;
 public class SpanEventFactory {
 
     private static final Joiner TRACE_STATE_VENDOR_JOINER = Joiner.on(",");
-    // Truncate `db.statement` at 2000 characters
-    private static final int DB_STATEMENT_TRUNCATE_LENGTH = 4095;
     private static final int MAX_EVENT_ATTRIBUTE_STRING_LENGTH = 4095;
 
     public static final Supplier<Long> DEFAULT_SYSTEM_TIMESTAMP_SUPPLIER = System::currentTimeMillis;
@@ -59,8 +58,10 @@ public class SpanEventFactory {
     private final String appName;
     private final AttributeFilter filter;
     private final Supplier<Long> timestampSupplier;
+    private final int dbStatementTruncateLength;
 
     public SpanEventFactory(String appName, AttributeFilter filter, Supplier<Long> timestampSupplier, boolean removeNonEssentialAttrs) {
+        this.dbStatementTruncateLength = ServiceFactory.getConfigService().getAgentConfig(appName).getTransactionTracerConfig().getInsertSqlMaxLength();
         this.filter = filter;
         builder.putIntrinsic("type", SPAN);
         builder.putIntrinsic("category", SpanCategory.generic.name());
@@ -152,7 +153,7 @@ public class SpanEventFactory {
                 final List<StackTraceElement> preStackTraces = StackTraces.scrubAndTruncate(stackTraceList);
                 final List<String> postParentRemovalTrace = StackTraces.toStringList(preStackTraces);
 
-                putAgentAttribute(AttributeNames.CODE_STACKTRACE, truncateWithEllipsis(
+                putAgentAttribute(AttributeNames.CODE_STACKTRACE, Strings.truncateWithEllipsis(
                         Joiner.on(',').join(postParentRemovalTrace), MAX_EVENT_ATTRIBUTE_STRING_LENGTH));
             }
         }
@@ -347,7 +348,7 @@ public class SpanEventFactory {
     // datastore parameter
     public SpanEventFactory setDatabaseStatement(String query) {
         if (query != null) {
-            builder.putAgentAttribute("db.statement", truncateWithEllipsis(query, DB_STATEMENT_TRUNCATE_LENGTH));
+            builder.putAgentAttribute("db.statement", Strings.truncateWithEllipsis(query, dbStatementTruncateLength));
         }
         return this;
     }
@@ -362,14 +363,6 @@ public class SpanEventFactory {
     private SpanEventFactory setDatabaseOperation(String operation) {
         builder.putAgentAttribute("db.operation", operation);
         return this;
-    }
-
-    private String truncateWithEllipsis(String value, int maxLengthWithEllipsis) {
-        if (value.length() > maxLengthWithEllipsis) {
-            int maxLengthWithoutEllipsis = maxLengthWithEllipsis - 3;
-            return AttributeValidator.truncateString(value, maxLengthWithoutEllipsis) + "...";
-        }
-        return value;
     }
 
     private void setErrorClass(Class<?> throwableClass, Integer errorStatus) {

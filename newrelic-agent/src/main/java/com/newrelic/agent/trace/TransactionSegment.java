@@ -41,8 +41,6 @@ public class TransactionSegment implements JSONStreamAware {
      * should still be used.
      */
     private static final String PARTIAL_TRACE = "partialtrace";
-    private static final Pattern INSERT_INTO_VALUES_STATEMENT = Pattern.compile(
-            "\\s*insert\\s+into\\s+([^\\s(,]*)\\s+values.*", Pattern.CASE_INSENSITIVE);
     private static final String URL_PARAMETER_NAME = "http.url";
     public static final String ASYNC_EXCLUSIVE = "exclusive_duration_millis";
     private static final double NANO_TO_MILLI = 1000000.0;
@@ -253,10 +251,7 @@ public class TransactionSegment implements JSONStreamAware {
             return;
         }
 
-        if (INSERT_INTO_VALUES_STATEMENT.matcher(sql).matches()) {
-            int maxLength = ttConfig.getInsertSqlMaxLength();
-            sql = truncateSql(sql, maxLength);
-        }
+        sql = truncateSql(sql, ttConfig.getInsertSqlMaxLength());
         if (ttConfig.isLogSql()) {
             Agent.LOG.log(Level.INFO, MessageFormat.format("{0} SQL: {1}", ttConfig.getRecordSql(), sql));
             return;
