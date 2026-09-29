@@ -14,6 +14,10 @@
             "default": true,
             "description": "Agent enabled Use this setting to disable the agent instead of removing it from the startup command. Default is true."
         },
+        "appserver_port": {
+            "type": "string",
+            "description": "Differentiate JVMs for the same app on the same machine. Use -Dnewrelic.config.appserver_port=8081 in JVM startup args. Default: none"
+        },
         "app_name": {
             "type": "string",
             "default": "My Application",
@@ -69,6 +73,14 @@
             "default": "newrelic_agent.log",
             "description": "The name of the log file. Default is newrelic_agent.log."
         },
+        "log_file_path": {
+            "type": "string",
+            "description": "The log file directory. Default is the logs directory in the newrelic.jar parent directory."
+        },
+        "ca_bundle_path": {
+            "type": "string",
+            "description": "Path to custom SSL certificate bundle. Default: none"
+        },
         "datastore_multihost_preference": {
             "type": "string",
             "enum": [
@@ -79,10 +91,452 @@
             "default": "NONE",
             "description": "When multiple datastore addresses detected, determines which to use. Values: NONE, FIRST, LAST Default: NONE"
         },
+        "host": {
+            "type": "string",
+            "description": "FedRAMP compliant endpoint. Default: none (auto-derived from license key)"
+        },
+        "api_host": {
+            "type": "string",
+            "default": "rpm.newrelic.com",
+            "description": "Collector API host override. Default: rpm.newrelic.com"
+        },
+        "api_port": {
+            "type": "integer",
+            "default": 443,
+            "description": "Collector API port override. Default: 443"
+        },
         "legacy_async_api_skip_suspend": {
             "type": "boolean",
             "default": false,
             "description": "Workaround for memory leak with legacy async API instrumentation. Default: false"
+        },
+        "apm_lambda_mode": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables APM-in-Lambda mode. Default: false"
+        },
+        "experimental_runtime": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables experimental runtime support. Default: false"
+        },
+        "compressed_content_encoding": {
+            "type": "string",
+            "default": "gzip",
+            "description": "gzip/deflate encoding used for payloads sent to the collector. Default: gzip"
+        },
+        "cpu_sampling_enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enables the CPU sampler. Default: true"
+        },
+        "enable_bootstrap_class_instrumentation": {
+            "type": "boolean",
+            "default": true,
+            "description": "Toggles bootstrap classloader instrumentation. Default: true"
+        },
+        "enable_class_retransformation": {
+            "type": "string",
+            "description": "Toggles class retransformation support. Default: none (auto-detected)"
+        },
+        "ignore_jars": {
+            "anyOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "string"
+                }
+            ],
+            "default": [
+                
+            ],
+            "description": "Jar names to skip during instrumentation scanning. Default: empty list"
+        },
+        "jdbc_support": {
+            "type": "string",
+            "default": "generic",
+            "description": "Comma-separated list of enabled JDBC support modes. Default: generic"
+        },
+        "language": {
+            "type": "string",
+            "default": "java",
+            "description": "Reported agent language. Default: java"
+        },
+        "lite_mode": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disables default instrumentation for a minimal-footprint agent. Default: false"
+        },
+        "metric_debug": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables verbose metric debug logging. Default: false"
+        },
+        "platform_information_enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Reports platform/OS info to New Relic. Default: true"
+        },
+        "port": {
+            "type": "integer",
+            "default": 443,
+            "description": "Collector port override. Default: 443"
+        },
+        "put_for_data_send": {
+            "type": "boolean",
+            "default": false,
+            "description": "Uses HTTP PUT instead of POST when sending data to the collector. Default: false"
+        },
+        "simple_compression": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disables inner-payload compression. Default: false"
+        },
+        "startup_log_level": {
+            "type": "string",
+            "description": "Log level used only during agent startup, before the configured log_level takes effect. Default: none"
+        },
+        "startup_timing": {
+            "type": "boolean",
+            "default": true,
+            "description": "Logs agent startup timing breakdown. Default: true"
+        },
+        "thread_cpu_time_enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Records thread CPU time in transaction traces. Default: false"
+        },
+        "timeout": {
+            "type": "integer",
+            "default": 120,
+            "description": "Root-level HTTP request timeout, in seconds, to the collector. Default: 120"
+        },
+        "trace_data_calls": {
+            "type": "boolean",
+            "default": false,
+            "description": "Legacy audit-mode flag; also enables audit_mode when true. Default: false"
+        },
+        "transaction_size_limit": {
+            "type": "integer",
+            "default": 2000,
+            "description": "Maximum transaction trace size, in KB. Default: 2000"
+        },
+        "wait_for_rpm_connect": {
+            "type": "boolean",
+            "default": true,
+            "description": "Blocks startup until the first collector connect completes. Default: true"
+        },
+        "wait_for_transactions": {
+            "type": "integer",
+            "default": 0,
+            "description": "Milliseconds to wait for in-flight transactions to finish before shutdown. Default: 0"
+        },
+        "process_host": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "description": "Overrides the reported hostname. Default: none (auto-detected)"
+                },
+                "ipv_preference": {
+                    "type": "string",
+                    "description": "Set to \"6\" to force IPv6 address preference when auto-detecting the hostname. Default: none"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Process/host identification overrides."
+        },
+        "cross_application_tracer": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to false to disable Cross Application Tracing. Default: false"
+                },
+                "application_id": {
+                    "type": "string",
+                    "description": "Legacy CAT application id. Default: none"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Cross Application Tracing (CAT) \u2014 deprecated, superseded by distributed_tracing."
+        },
+        "datastore_tracer": {
+            "type": "object",
+            "properties": {
+                "instance_reporting": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Reports datastore instance information (host/port) on datastore spans. Default: true"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "database_name_reporting": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Reports the database name on datastore spans. Default: true"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "database_connection_metadata": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Reports database connection metadata on datastore spans. Default: true"
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Datastore instrumentation reporting configuration."
+        },
+        "external_tracer": {
+            "type": "object",
+            "properties": {
+                "exclude_request_uri": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Excludes the request URI from external call segment names. Default: false"
+                }
+            },
+            "additionalProperties": true,
+            "description": "External HTTP call tracer configuration."
+        },
+        "jar_collector": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables the jar collector. Default: true"
+                },
+                "skip_temp_jars": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Skips jars located in temp directories. Default: true"
+                },
+                "jars_per_second": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Throughput throttle, in jars per second. Default: 10"
+                }
+            },
+            "additionalProperties": true,
+            "description": "JAR collector configuration; reports the JARs loaded by the JVM."
+        },
+        "jmx": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Master on/off switch for JMX metric collection. Default: true"
+                },
+                "disabled_jmx_frameworks": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "JMX frameworks to disable. Default: empty list"
+                },
+                "enable_iterated_objectname_keys": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Iterates ObjectName keys when building JMX metric names. Default: true"
+                },
+                "linkingMetadataMBean": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Registers an MBean exposing agent linking metadata. Default: false"
+                }
+            },
+            "additionalProperties": true,
+            "description": "JMX metric collection configuration."
+        },
+        "reinstrument": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Set to false to disable remote reinstrumentation. Default: true"
+                },
+                "attributes_enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Captures attributes during remote reinstrumentation. Default: false"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Remote reinstrumentation (instrumentation editor) configuration."
+        },
+        "serverless_mode": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to true to enable serverless mode. Auto-detected in Lambda environments if not set explicitly. Default: false"
+                },
+                "file_path": {
+                    "type": "string",
+                    "default": "/tmp/newrelic-telemetry",
+                    "description": "Local file telemetry is written to in serverless mode. Default: /tmp/newrelic-telemetry"
+                },
+                "arn": {
+                    "type": "string",
+                    "description": "Lambda function ARN. Default: none"
+                },
+                "function_version": {
+                    "type": "string",
+                    "description": "Lambda function version. Default: none"
+                }
+            },
+            "additionalProperties": true,
+            "description": "AWS Lambda serverless mode configuration."
+        },
+        "strip_exception_messages": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to true to strip exception messages. Defaults to the high_security setting when unset. Default: false"
+                },
+                "allowed_classes": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Exception classes allowed to keep their messages even when stripping is enabled. Default: empty list"
+                }
+            },
+            "additionalProperties": true,
+            "description": "Strips exception messages from collected errors, for high security environments."
+        },
+        "collect_ai": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "Account-wide server flag gating AI Monitoring; overrides ai_monitoring.enabled. Surfaced read-only in the Fleet Control UI."
+        },
+        "coroutines": {
+            "type": "object",
+            "properties": {
+                "continuations": {
+                    "type": "object",
+                    "properties": {
+                        "ignore": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Comma-separated list of continuation class/method names to exclude from tracing. Default: none"
+                        },
+                        "ignoreRegex": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Regex pattern for continuation names to exclude from tracing. Default: none"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "scopes": {
+                    "type": "object",
+                    "properties": {
+                        "ignore": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Comma-separated list of coroutine scope names to exclude from tracing. Default: none"
+                        },
+                        "ignoreRegex": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Regex pattern for coroutine scope names to exclude from tracing. Default: none"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "dispatched": {
+                    "type": "object",
+                    "properties": {
+                        "ignore": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Comma-separated list of dispatched coroutine names to exclude from tracing. Default: none"
+                        },
+                        "ignoreRegex": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Regex pattern for dispatched coroutine names to exclude from tracing. Default: none"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "suspends": {
+                    "type": "object",
+                    "properties": {
+                        "ignore": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Comma-separated list of suspend function names to exclude from tracing. Default: none"
+                        },
+                        "ignoreRegex": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Regex pattern for suspend function names to exclude from tracing. Default: none"
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "delayed": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Default: true"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Controls tracing of delayed coroutines."
+                }
+            },
+            "additionalProperties": true,
+            "description": "Kotlin Coroutines instrumentation configuration. Allows excluding specific coroutine continuations, scopes, dispatched calls, and suspend functions from tracing (by exact name or regex), and controls tracing of delayed coroutines."
         },
         "reactor-netty": {
             "type": "object",
@@ -514,6 +968,35 @@
             "additionalProperties": true,
             "description": "Adds integration with CodeStream, introducing Code-Level Metrics! Golden Signals visible in your IDE through New Relic CodeStream."
         },
+        "agent_control": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When true, the agent periodically reports its health status to Agent Control. Default is false."
+                },
+                "health": {
+                    "type": "object",
+                    "properties": {
+                        "delivery_location": {
+                            "type": "string",
+                            "default": "file:///newrelic/apm/health",
+                            "description": "Location the agent writes health status files to, in URI format. The client type used to report health (file, etc.) is derived from the URI scheme. Default: file:///newrelic/apm/health"
+                        },
+                        "frequency": {
+                            "type": "integer",
+                            "default": 5,
+                            "description": "How often, in seconds, the agent reports its health status to Agent Control. Default is 5."
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Health check reporting settings for the Agent Control integration."
+                }
+            },
+            "additionalProperties": true,
+            "description": "Provides integration with New Relic Agent Control, a sidecar responsible for agent supervision and health reporting in containerized/Kubernetes environments."
+        },
         "proxy_host": {
             "type": "string",
             "description": "Proxy settings for connecting to the New Relic server: If a proxy is used, the host setting is required. Other settings are optional. Default port is 8080. The username and password settings will be used to authenticate to Basic Auth challenges from a proxy server. Proxy scheme will allow the agent to connect through proxies using the HTTPS scheme."
@@ -593,6 +1076,18 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Read Docker info from file system. Default: true"
+                },
+                "total_ram_mib": {
+                    "type": "string",
+                    "description": "Overrides the detected total RAM, in MiB. Default: none (auto-detected)"
+                },
+                "logical_processors": {
+                    "type": "string",
+                    "description": "Overrides the detected logical processor count. Default: none (auto-detected)"
+                },
+                "billing_hostname": {
+                    "type": "string",
+                    "description": "Overrides the billing hostname reported in utilization data. Default: none (auto-detected)"
                 }
             },
             "additionalProperties": true,
@@ -746,6 +1241,53 @@
                     "default": 20,
                     "description": "Use this setting to control the variety of transaction traces. The higher the setting, the greater the variety. Set this to 0 to always report the slowest transaction trace. Default is 20."
                 },
+                "gc_time_enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Includes GC time in transaction traces. Disabled by default because it's inaccurate in async scenarios. Default: false"
+                },
+                "insert_sql_max_length": {
+                    "type": "integer",
+                    "default": 2000,
+                    "description": "Max length of inserted SQL text. Default: 2000"
+                },
+                "max_stack_trace": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Max stack trace segments captured per trace. Default: 20"
+                },
+                "segment_limit": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Max segments captured per trace. Default: 3000"
+                },
+                "max_explain_plans": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Max explain plans captured per harvest. Default: 20"
+                },
+                "token_limit": {
+                    "type": "integer",
+                    "default": 3000,
+                    "description": "Max async tokens captured per trace. Default: 3000"
+                },
+                "collect_slow_queries_from": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Modules allowed to report slow queries while high security is enabled. Default: empty list"
+                },
                 "attributes": {
                     "type": "object",
                     "properties": {
@@ -803,6 +1345,23 @@
                     "default": true,
                     "description": "This property enables the collection of errors. If the property is not set or the property is set to false, then errors will not be collected. Default is true."
                 },
+                "exception_handlers": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Legacy exception handler signatures (method signature strings) to instrument as error-producing exception handlers. Rarely used directly in YAML. Default: empty list"
+                },
                 "ignore_classes": {
                     "type": "array",
                     "items": {
@@ -812,6 +1371,31 @@
                         "akka.actor.ActorKilledException"
                     ],
                     "description": "Use this property to exclude specific exceptions from being reported as errors by providing a comma separated list of full class names. The default is to exclude akka.actor.ActorKilledException. If you want to override this, you must provide any new value as an empty list is ignored."
+                },
+                "ignore_errors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [
+                        "akka.actor.ActorKilledException"
+                    ],
+                    "description": "Legacy predecessor of ignore_classes; deprecated but still honored if ignore_classes is unset. Default: same as ignore_classes"
+                },
+                "capture_events": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Local/server gate for error events, distinct from the top-level \"enabled\" flag. Default: true"
+                },
+                "max_event_samples_stored": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Error event reservoir size. Default: 100"
+                },
+                "ignoreErrorPriority": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Controls whether ignored errors take priority over expected errors when both match. Default: true"
                 },
                 "ignore_status_codes": {
                     "anyOf": [
@@ -896,6 +1480,28 @@
                     "default": 2000,
                     "description": "Events are collected up to the configured amount. Afterwards, events are sampled to maintain an even distribution across the harvest cycle. Default is 2000. Setting to 0 will disable."
                 },
+                "custom_request_headers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "header_name": {
+                                "type": "string"
+                            },
+                            "header_alias": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "header_name"
+                        ],
+                        "additionalProperties": false
+                    },
+                    "default": [
+                        
+                    ],
+                    "description": "Custom request headers to capture on transaction events. Each entry has a required header_name and an optional header_alias used as the attribute name. Default: empty list"
+                },
                 "attributes": {
                     "type": "object",
                     "properties": {
@@ -957,6 +1563,242 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Agent versions 5.10.0+ utilize both the newrelic header and W3C Trace Context headers for distributed tracing. The newrelic distributed tracing header allows interoperability with older agents that don't support W3C Trace Context headers. Agent versions that support W3C Trace Context headers will prioritize them over newrelic headers for distributed tracing. If you do not want to utilize the newrelic header, setting this to true will result in the agent excluding the newrelic header and only using W3C Trace Context headers for distributed tracing. Default is false."
+                },
+                "send_message_queue_not_sampled_header": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Sends the NR-not-sampled header for message queues. Default: false"
+                },
+                "trusted_account_key": {
+                    "type": "string",
+                    "description": "Trusted account key used to validate inbound distributed tracing payloads. Server-merged on connect; not typically set locally. Default: none"
+                },
+                "account_id": {
+                    "type": "string",
+                    "description": "Account id embedded in distributed tracing trust checks. Server-merged on connect. Default: none"
+                },
+                "primary_application_id": {
+                    "type": "string",
+                    "description": "Primary application id embedded in outbound distributed tracing payloads. Server-merged on connect. Default: none"
+                },
+                "sampler": {
+                    "type": "object",
+                    "properties": {
+                        "adaptive_sampling_target": {
+                            "type": "integer",
+                            "default": 120,
+                            "description": "Shared adaptive sampling target used by any sampler configured as \"adaptive\" without its own sampling_target sub-option. Default: 120"
+                        },
+                        "root": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "default",
+                                        "adaptive",
+                                        "always_on",
+                                        "always_off",
+                                        "trace_id_ratio_based"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "minProperties": 1,
+                                    "maxProperties": 1,
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "default": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_on": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_off": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "adaptive": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "sampling_target": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 120
+                                                }
+                                            }
+                                        },
+                                        "trace_id_ratio_based": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "ratio"
+                                            ],
+                                            "properties": {
+                                                "ratio": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "maximum": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "default": "default"
+                        },
+                        "remote_parent_sampled": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "default",
+                                        "adaptive",
+                                        "always_on",
+                                        "always_off",
+                                        "trace_id_ratio_based"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "minProperties": 1,
+                                    "maxProperties": 1,
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "default": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_on": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_off": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "adaptive": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "sampling_target": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 120
+                                                }
+                                            }
+                                        },
+                                        "trace_id_ratio_based": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "ratio"
+                                            ],
+                                            "properties": {
+                                                "ratio": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "maximum": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "default": "default"
+                        },
+                        "remote_parent_not_sampled": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "default",
+                                        "adaptive",
+                                        "always_on",
+                                        "always_off",
+                                        "trace_id_ratio_based"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "minProperties": 1,
+                                    "maxProperties": 1,
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "default": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_on": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "always_off": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ]
+                                        },
+                                        "adaptive": {
+                                            "type": [
+                                                "object",
+                                                "null"
+                                            ],
+                                            "additionalProperties": false,
+                                            "properties": {
+                                                "sampling_target": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 120
+                                                }
+                                            }
+                                        },
+                                        "trace_id_ratio_based": {
+                                            "type": "object",
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "ratio"
+                                            ],
+                                            "properties": {
+                                                "ratio": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "maximum": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ],
+                            "default": "default"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Agent version 8.20.0+ utilize these settings for controlling how to sample when we have a remote parent involved. That is, if there is a valid traceparent with a value in the sampled flag on the inbound headers. If the inbound traceparent is marked as sampled then the remote_parent_sampled setting will be used. If the inbound traceparent is marked as NOT sampled then the remote_parent_not_sampled setting will be used. Otherwise New Relic's standard sampling will be used. Note: Reservoir limits are still in effect on top of these settings, so spans may be dropped even if they are marked for sampling, if the reservoir reaches its limit (max_samples_stored).  Each of root/remote_parent_sampled/remote_parent_not_sampled accepts either a plain string naming the sampler type, or a single-key object nesting type-specific options: root: adaptive is equivalent to: root: adaptive: Possible sampler types: default: New Relic's standard sampling rules will be used. adaptive: Target a specific number of sampled traces per harvest (sampling_target sub-option). always_on: Always sample spans in this case. always_off: Always skip sampling in this case. trace_id_ratio_based: Sample a fixed ratio of traces (required ratio sub-option, 0.0-1.0)."
                 }
             },
             "additionalProperties": true,
@@ -974,6 +1816,11 @@
                     "type": "integer",
                     "default": 2000,
                     "description": "Determines the number of Span events that can be captured during an agent harvest cycle. Increasing the number of Span events can lead to additional agent overhead. A maximum value may be imposed server side by New Relic. Default is 2000"
+                },
+                "target_samples_stored": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Reservoir target size used by the adaptive sampler. Default: 10"
                 },
                 "attributes": {
                     "type": "object",
@@ -1071,6 +1918,30 @@
                         
                     ],
                     "description": "Pages to skip auto instrumentation (comma-separated)."
+                },
+                "loader": {
+                    "type": "string",
+                    "default": "rum",
+                    "description": "RUM loader type: rum, full, or none. Default: rum"
+                },
+                "debug": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Sends non-minified browser JS for debugging. Default: false"
+                },
+                "ssl_for_http": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Forces HTTPS RUM instrumentation on HTTP pages. Default: true"
+                },
+                "allow_multiple_footers": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Allows the RUM footer to be injected on every request instead of once per transaction. Default: false"
+                },
+                "loader_version": {
+                    "type": "string",
+                    "description": "Version tag of the browser JS loader. Set by New Relic on connect; not user-configurable."
                 },
                 "attributes": {
                     "type": "object",
@@ -1208,6 +2079,162 @@
         "class_transformer": {
             "type": "object",
             "properties": {
+                "trace_annotation_class_name": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Custom @Trace-equivalent annotation class names. Default: empty list"
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Set to false to disable the class transformer (and therefore all instrumentation). Default: true"
+                },
+                "instrumentation_default": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Enables all default (built-in) instrumentation modules. Only respected if instrumentation is not disabled by lite_mode. Default: true"
+                },
+                "builtin_extensions": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Enables builtin extension instrumentation modules (in addition to instrumentation_default). Default: true"
+                },
+                "includes": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Classes force-included for transformation. Default: empty list"
+                },
+                "excludes": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Classes excluded from transformation. Default: empty list"
+                },
+                "classloader_delegation_excludes": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Classloaders excluded from delegation. Default: empty list"
+                },
+                "classloader_delegation_includes": {
+                    "anyOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "default": [
+                        
+                    ],
+                    "description": "Classloaders included for delegation. Default: empty list"
+                },
+                "grant_package_access": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Grants package access during weaving. Default: false"
+                },
+                "max_prevalidated_classloaders": {
+                    "type": "integer",
+                    "default": 10,
+                    "description": "Cache size for prevalidated classloaders. Default: 10"
+                },
+                "prevalidate_weave_packages": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Prevalidates weave packages at startup. Default: true"
+                },
+                "prematch_weave_methods": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Pre-filters weave method matches. Default: true"
+                },
+                "default_method_tracing_enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables default method tracing. Default: true"
+                },
+                "compute_frames": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "ASM COMPUTE_FRAMES toggle. Default: true"
+                },
+                "shutdown_delay": {
+                    "type": "integer",
+                    "default": -1,
+                    "description": "Delay, in seconds, before shutdown class transform teardown. A value <= 0 disables the delay. Default: -1"
+                },
+                "auto_async_link_rate_limit": {
+                    "type": "integer",
+                    "default": 1000,
+                    "description": "Rate limit, in milliseconds, for auto async linking. Default: 1000"
+                },
+                "jdbc_statements": {
+                    "type": "string",
+                    "description": "Comma-separated list of JDBC statement types to trace. Default: none"
+                },
                 "classloader_excludes": {
                     "anyOf": [
                         {
@@ -1250,7 +2277,19 @@
             "description": "Class transformer can be used to disable all agent instrumentation or specific instrumentation modules. All instrumentation modules can be found here: https://github.com/newrelic/newrelic-java-agent/tree/main/instrumentation"
         },
         "extensions": {
-            "type": "string",
+            "type": "object",
+            "properties": {
+                "dir": {
+                    "type": "string",
+                    "description": "Location of extensions directory. Default: extensions subdirectory of newrelic.jar location"
+                },
+                "reload_modified": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Reload extension files when they're modified on disk. Default: true"
+                }
+            },
+            "additionalProperties": true,
             "description": "Extensions directory configuration."
         },
         "slow_sql": {
@@ -1260,6 +2299,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable slow SQL tracing. Default: true"
+                },
+                "use_longer_sql_id": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Uses a longer (higher-entropy) id for slow SQL traces. Default: false"
                 }
             },
             "additionalProperties": true,
@@ -1311,23 +2355,67 @@
         "infinite_tracing": {
             "type": "object",
             "properties": {
+                "plaintext": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Disables TLS to the trace observer. Default: false"
+                },
+                "compression": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables gRPC compression. Default: true"
+                },
+                "batching": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enables gRPC batching. Default: true"
+                },
                 "trace_observer": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "type": "string",
+                            "default": "",
+                            "description": "Trace observer host (required to enable)."
+                        },
+                        "port": {
+                            "type": "integer",
+                            "default": 443,
+                            "description": "Trace observer port. Default: 443"
+                        }
+                    },
+                    "additionalProperties": true
                 },
                 "span_events": {
-                    "type": "string"
+                    "type": "object",
+                    "properties": {
+                        "queue_size": {
+                            "type": "integer",
+                            "default": 100000,
+                            "description": "Span event queue size. Default: 100000"
+                        }
+                    },
+                    "additionalProperties": true
                 }
             },
             "additionalProperties": true,
             "description": "Infinite Tracing configuration."
         },
         "labels": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "string",
-                "maxLength": 255
-            },
-            "maxProperties": 64,
+            "anyOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "maxProperties": 64
+                },
+                {
+                    "type": "string",
+                    "description": "Semicolon-delimited key:value pairs, e.g. \"env:prod;team:core\"."
+                }
+            ],
             "description": "User-configurable custom labels for this agent.  Labels are name-value pairs. There is a maximum of 64 labels per agent.  Names and values are limited to 255 characters. Names and values may not contain colons (:) or semicolons (;)."
         },
         "opentelemetry": {
