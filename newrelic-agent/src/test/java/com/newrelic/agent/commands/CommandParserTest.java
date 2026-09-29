@@ -102,12 +102,24 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, ShutdownCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, ShutdownCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
         Assert.assertEquals(0, rpmService.getRestartCount());
         Assert.assertEquals(5, agentControl.getShutdownCount());
+    }
+
+    @Test
+    public void duplicateCommandIdIsOnlyExecutedOnce() {
+        MockRPMService rpmService = new MockRPMService();
+        for (int i = 0; i < 5; i++) {
+            List<List<?>> commands = new ArrayList<>();
+            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commandParser.processCommands(rpmService, commands);
+        }
+
+        Assert.assertEquals(1, rpmService.getRestartCount());
     }
 
     @Test
@@ -148,7 +160,7 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, ShutdownCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, ShutdownCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
@@ -162,13 +174,13 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, RestartCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
         Assert.assertEquals(5, rpmService.getRestartCount());
         Assert.assertEquals(0, agentControl.getShutdownCount());
-        
+
         // Second test with the disallow list (multiple values)
         agentControl = new MockCoreService();
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(ImmutableMap.<String, Object>of("command_parser",
@@ -178,7 +190,7 @@ public class CommandParserTest {
         rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 6, RestartCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
