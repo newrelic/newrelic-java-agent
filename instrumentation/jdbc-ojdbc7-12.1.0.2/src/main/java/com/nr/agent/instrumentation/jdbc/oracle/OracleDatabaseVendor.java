@@ -18,12 +18,13 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Supplier;
+import java.util.function.LongSupplier;
 
 public class OracleDatabaseVendor extends JdbcDatabaseVendor {
 
     public static final DatabaseVendor INSTANCE = new OracleDatabaseVendor();
-    private static final Supplier<Long> EXPLAIN_PLAN_ID_GENERATOR = () -> Math.abs(ThreadLocalRandom.current().nextLong());
+    // And with Long.MAX_VALUE to clear the sign bit
+    private static final LongSupplier EXPLAIN_PLAN_ID_GENERATOR = () -> ThreadLocalRandom.current().nextLong() & Long.MAX_VALUE;
 
     private OracleDatabaseVendor() {
         super("Oracle", "oracle", true);
@@ -36,7 +37,7 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
 
     @Override
     public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
-        String statementId = Long.toString(EXPLAIN_PLAN_ID_GENERATOR.get());
+        String statementId = Long.toString(EXPLAIN_PLAN_ID_GENERATOR.getAsLong());
         return new ExplainPlanSqlInfo("EXPLAIN PLAN SET STATEMENT_ID = '" + statementId + "' FOR " + sqlToExplain, statementId);
     }
 
