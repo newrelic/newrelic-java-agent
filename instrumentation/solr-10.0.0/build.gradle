@@ -1,0 +1,43 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation(project(":agent-bridge-datastore"))
+    implementation(project(":newrelic-api"))
+    implementation(project(":newrelic-weaver-api"))
+
+    implementation("org.apache.lucene:lucene-core:10.0.0")
+
+    implementation("org.apache.solr:solr-core:10.0.0") {
+        transitive = false
+    }
+    implementation("org.apache.solr:solr-solrj:10.0.0") {
+        transitive = false
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.solr-10.0.0' }
+}
+
+test {
+    onlyIf {
+        // These instrumentation tests only run on Java 21+ regardless of the -PtestN gradle property that is set.
+        !project.hasProperty('test8') && !project.hasProperty('test11') && !project.hasProperty('test17')
+    }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.solr:solr-core:[10.0.0,)'
+
+    excludeRegex 'org.apache.solr:solr-core:.*(ALPHA|BETA)+$'
+}
+
+site {
+    title 'Solr'
+    type 'Datastore'
+}
