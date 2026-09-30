@@ -17,12 +17,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 
 public class OracleDatabaseVendor extends JdbcDatabaseVendor {
 
     public static final DatabaseVendor INSTANCE = new OracleDatabaseVendor();
-    private static final AtomicInteger EXPLAIN_PLAN_ID_GENERATOR = new AtomicInteger(0);
+    private static final Supplier<Long> EXPLAIN_PLAN_ID_GENERATOR = () -> Math.abs(ThreadLocalRandom.current().nextLong());
 
     private OracleDatabaseVendor() {
         super("Oracle", "oracle", true);
@@ -35,7 +36,7 @@ public class OracleDatabaseVendor extends JdbcDatabaseVendor {
 
     @Override
     public ExplainPlanSqlInfo getExplainPlanSqlInfo(String sqlToExplain) throws SQLException {
-        String statementId = Integer.toString(EXPLAIN_PLAN_ID_GENERATOR.getAndIncrement());
+        String statementId = Long.toString(EXPLAIN_PLAN_ID_GENERATOR.get());
         return new ExplainPlanSqlInfo("EXPLAIN PLAN SET STATEMENT_ID = '" + statementId + "' FOR " + sqlToExplain, statementId);
     }
 
