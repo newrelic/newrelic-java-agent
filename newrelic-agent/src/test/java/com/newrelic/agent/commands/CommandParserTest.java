@@ -14,6 +14,7 @@ import com.newrelic.agent.HarvestServiceImpl;
 import com.newrelic.agent.MockCoreService;
 import com.newrelic.agent.MockRPMService;
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.RPMServiceManager;
 import com.newrelic.agent.ThreadService;
 import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.config.AgentConfig;
@@ -31,6 +32,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,12 +102,24 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, ShutdownCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, ShutdownCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
         Assert.assertEquals(0, rpmService.getRestartCount());
         Assert.assertEquals(5, agentControl.getShutdownCount());
+    }
+
+    @Test
+    public void duplicateCommandIdIsOnlyExecutedOnce() {
+        MockRPMService rpmService = new MockRPMService();
+        for (int i = 0; i < 5; i++) {
+            List<List<?>> commands = new ArrayList<>();
+            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commandParser.processCommands(rpmService, commands);
+        }
+
+        Assert.assertEquals(1, rpmService.getRestartCount());
     }
 
     @Test
@@ -146,7 +160,7 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, ShutdownCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, ShutdownCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
@@ -160,13 +174,13 @@ public class CommandParserTest {
         MockRPMService rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 1, RestartCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
         Assert.assertEquals(5, rpmService.getRestartCount());
         Assert.assertEquals(0, agentControl.getShutdownCount());
-        
+
         // Second test with the disallow list (multiple values)
         agentControl = new MockCoreService();
         AgentConfig agentConfig = AgentConfigImpl.createAgentConfig(ImmutableMap.<String, Object>of("command_parser",
@@ -176,12 +190,50 @@ public class CommandParserTest {
         rpmService = new MockRPMService();
         for (int i = 0; i < 5; i++) {
             List<List<?>> commands = new ArrayList<>();
-            commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+            commands.add(createCommand(i + 6, RestartCommand.COMMAND_NAME));
             commandParser.processCommands(rpmService, commands);
         }
 
         Assert.assertEquals(5, rpmService.getRestartCount());
         Assert.assertEquals(0, agentControl.getShutdownCount());
+    }
+
+    @Test
+    public void testAfterHarvestProcessesCommandsFromMetricDataResponse() throws Exception {
+        MockServiceManager serviceManager = createServiceManager(new HashMap<String, Object>());
+        agentControl = new MockCoreService();
+        commandParser = new CommandParser();
+        commandParser.doStart();
+        commandParser.addCommands(new ShutdownCommand(agentControl), new RestartCommand());
+
+        final List<Map<Long, Object>> sentResults = new ArrayList<>();
+        MockRPMService rpmService = new MockRPMService() {
+            @Override
+            public List<List<?>> getAgentCommands() throws Exception {
+                List<List<?>> commands = new ArrayList<>();
+                commands.add(createCommand(1, RestartCommand.COMMAND_NAME));
+                return commands;
+            }
+
+            @Override
+            public void sendCommandResults(Map<Long, Object> commandResults) throws Exception {
+                sentResults.add(commandResults);
+            }
+        };
+
+        RPMServiceManager rpmServiceManager = Mockito.mock(RPMServiceManager.class);
+        Mockito.when(rpmServiceManager.getOrCreateRPMService("MyApplication")).thenReturn(rpmService);
+        serviceManager.setRPMServiceManager(rpmServiceManager);
+
+        // beforeHarvest is now a no-op; commands are only processed on afterHarvest.
+        commandParser.beforeHarvest("MyApplication", null);
+        Assert.assertEquals(0, rpmService.getRestartCount());
+        Assert.assertEquals(0, sentResults.size());
+
+        commandParser.afterHarvest("MyApplication");
+
+        Assert.assertEquals(1, rpmService.getRestartCount());
+        Assert.assertEquals(1, sentResults.size());
     }
 
     @Test

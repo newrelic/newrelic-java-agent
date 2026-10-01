@@ -460,7 +460,7 @@ public class DataSenderImplTest {
     }
 
     @Test
-    public void testReturnsParsedAgentCommands() throws Exception {
+    public void testReturnsParsedAgentCommandsFromMetricDataResponse() throws Exception {
         AgentConfig config = AgentConfigImpl.createAgentConfig(configMap());
         HttpClientWrapper wrapperEmptyReturn = getHttpClientWrapper(ReadResult.create(
                 HttpResponseCode.OK,
@@ -470,7 +470,8 @@ public class DataSenderImplTest {
         DataSenderImpl target = new DataSenderImpl(config, wrapperEmptyReturn, null, logger, ServiceFactory.getConfigService());
         target.setAgentRunId("agent run id");
 
-        List<List<?>> result = target.getAgentCommands();
+        List<List<?>> result = target.sendMetricData(System.currentTimeMillis() - 5000, System.currentTimeMillis(),
+                createMetricData(5));
         assertEquals(1, result.size());
         assertEquals(3, result.get(0).size());
         assertEquals(4L, result.get(0).get(1));

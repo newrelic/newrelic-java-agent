@@ -10,7 +10,6 @@ package com.newrelic.agent.transport;
 public class CollectorMethods {
     public static final String CONNECT = "connect";
     public static final String METRIC_DATA = "metric_data";
-    public static final String GET_AGENT_COMMANDS = "get_agent_commands";
     public static final String AGENT_COMMAND_RESULTS = "agent_command_results";
     public static final String PRECONNECT = "preconnect";
     public static final String ERROR_DATA = "error_data";
