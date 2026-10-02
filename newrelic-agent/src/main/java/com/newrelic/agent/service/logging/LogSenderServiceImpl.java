@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -58,6 +59,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 
@@ -584,6 +586,31 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // within the attribute sender, the modified value won't be "interned" in our map.
         AttributeSender sender = new LogEventAttributeSender(logEventAttributes);
 
+        boolean usePrefix = AppLoggingUtils.isPrefixContextAttrs();
+
+        // first let's separate the context attributes from everything else
+        Map<LogAttributeKey, Object> contextAttrs = new HashMap<>();
+        Iterator<? extends Map.Entry<LogAttributeKey, ?>> iter = attributes.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<LogAttributeKey, ?> entry = iter.next();
+            if (entry.getKey().type == LogAttributeType.CONTEXT) {
+                contextAttrs.put(entry.getKey(), entry.getValue());
+                iter.remove();
+            }
+        }
+
+        // now deal with the context attributes first
+        addAttributesToSender(sender, contextAttrs, contextDataKeyFilter, usePrefix);
+
+        // now add the other attributes to overwrite any duplicates that in the context attributes
+        // this ensures that context attributes can never overwrite first-class attributes
+        addAttributesToSender(sender, attributes, contextDataKeyFilter, usePrefix);
+
+        return event;
+    }
+
+    private static void addAttributesToSender (AttributeSender sender, Map<LogAttributeKey, ?> attributes,
+            ExcludeIncludeFilter contextDataKeyFilter, Boolean usePrefix) {
         for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
             LogAttributeKey logAttrKey = entry.getKey();
             Object value = entry.getValue();
@@ -602,19 +629,19 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
                 continue;
             }
 
-            String prefixedKey = mapInternString(logAttrKey.getPrefixedKey());
+            if (usePrefix) key = logAttrKey.getPrefixedKey();
+            key = mapInternString(key);
             if (value instanceof String) {
-                sender.addAttribute(prefixedKey, mapInternString((String) value), METHOD);
+                sender.addAttribute(key, mapInternString((String) value), METHOD);
             } else if (value instanceof Number) {
-                sender.addAttribute(prefixedKey, (Number) value, METHOD);
+                sender.addAttribute(key, (Number) value, METHOD);
             } else if (value instanceof Boolean) {
-                sender.addAttribute(prefixedKey, (Boolean) value, METHOD);
+                sender.addAttribute(key, (Boolean) value, METHOD);
             } else {
                 // Java Agent specific - toString the value. This allows for e.g. enums as arguments.
-                sender.addAttribute(prefixedKey, mapInternString(value.toString()), METHOD);
+                sender.addAttribute(key, mapInternString(value.toString()), METHOD);
             }
         }
-        return event;
     }
 
     /**
