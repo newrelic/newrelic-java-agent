@@ -90,16 +90,7 @@ public class LogEventUtil {
                         logEventMap.put(TIMESTAMP, logRecordData.getObservedTimestampEpochNanos());
                     }
 
-                    for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
-                        String key = entry.getKey();
-                        Object value = entry.getValue();
-                        LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
-                        // These custom log events are over-writable by standard log attributes.
-                        // In addition, previously added attributes take priority.
-                        if (!logEventMap.containsKey(logAttrKey)) {
-                            logEventMap.put(logAttrKey, value);
-                        }
-                    }
+                    AppLoggingUtils.addCustomLogAttributes(logEventMap);
 
                     // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
                     String instrumentationScopeName = logRecordData.getInstrumentationScopeInfo().getName();

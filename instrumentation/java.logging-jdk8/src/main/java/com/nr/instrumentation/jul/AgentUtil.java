@@ -53,16 +53,7 @@ public class AgentUtil {
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
 
-                for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
-                    String key = entry.getKey();
-                    Object value = entry.getValue();
-                    LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
-                    // These custom log events are over-writable by standard log attributes.
-                    // In addition, previously added attributes take priority.
-                    if (!logEventMap.containsKey(logAttrKey)) {
-                        logEventMap.put(logAttrKey, value);
-                    }
-                }
+                AppLoggingUtils.addCustomLogAttributes(logEventMap);
 
                 Level level = record.getLevel();
                 if (level != null) {

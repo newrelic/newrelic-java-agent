@@ -57,15 +57,7 @@ class LoggingEventMap {
     }
 
     private static void addCustomLogAttrs(Map<LogAttributeKey, Object> map) {
-        Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
-        for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.AGENT);
-            if (!map.containsKey(logAttrKey)) {
-                map.put(logAttrKey, value);
-            }
-        }
+        AppLoggingUtils.addCustomLogAttributes(map);
     }
 
     private static void addMessageAndTs(LoggingEvent event, Map<LogAttributeKey, Object> map) {
