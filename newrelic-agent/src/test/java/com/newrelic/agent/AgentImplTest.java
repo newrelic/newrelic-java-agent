@@ -95,6 +95,38 @@ public class AgentImplTest {
         }
     }
 
+    @Test
+    public void testGetConfiguredCustomLogAttributesDelegatesToConfig() throws Exception {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        Map<String, Object> forwarding = new HashMap<>();
+        forwarding.put("custom_attributes", customAttributes);
+        Map<String, Object> applicationLogging = new HashMap<>();
+        applicationLogging.put("forwarding", forwarding);
+        Map<String, Object> map = new HashMap<>();
+        map.put("application_logging", applicationLogging);
+
+        MockServiceManager serviceManager = (MockServiceManager) ServiceFactory.getServiceManager();
+        ConfigService savedConfigService = serviceManager.getConfigService();
+        try {
+            AgentConfig agentConfig = AgentHelper.createAgentConfig(true, map, Collections.<String, Object>emptyMap());
+            ConfigService configService = ConfigServiceFactory.createConfigService(agentConfig, map);
+            serviceManager.setConfigService(configService);
+
+            Map<String, Object> actual = agentImpl.getConfiguredCustomLogAttributes();
+            Assert.assertEquals(Collections.singletonMap("env", "prod"), actual);
+        } finally {
+            serviceManager.setConfigService(savedConfigService);
+        }
+    }
+
+    @Test
+    public void testGetConfiguredCustomLogAttributesReturnsEmptyMapWhenNoneConfigured() {
+        Map<String, Object> actual = agentImpl.getConfiguredCustomLogAttributes();
+        Assert.assertNotNull(actual);
+        Assert.assertTrue(actual.isEmpty());
+    }
+
     private static Map<String, Object> createConfigMap() {
         Map<String, Object> map = new HashMap<>();
         return map;

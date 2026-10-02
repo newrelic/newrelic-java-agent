@@ -23,6 +23,7 @@ class LoggingEventMap {
     static Map<LogAttributeKey, Object> from(LoggingEvent event, boolean appLoggingContextDataEnabled) {
         Map<LogAttributeKey, Object> logEventMap = initialMapWithMdcIfEnabled(event, appLoggingContextDataEnabled);
         logEventMap.put(INSTRUMENTATION, "apache-log4j-1");
+        addCustomLogAttrs(logEventMap);
         addLoggerInfo(event, logEventMap);
         addMessageAndTs(event, logEventMap);
         addLevel(event, logEventMap);
@@ -52,6 +53,18 @@ class LoggingEventMap {
             Object value = entry.getValue();
             LogAttributeKey logAttrKey = new LogAttributeKey(key.toString(), LogAttributeType.CONTEXT);
             map.put(logAttrKey, value);
+        }
+    }
+
+    private static void addCustomLogAttrs(Map<LogAttributeKey, Object> map) {
+        Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
+        for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.AGENT);
+            if (!map.containsKey(logAttrKey)) {
+                map.put(logAttrKey, value);
+            }
         }
     }
 

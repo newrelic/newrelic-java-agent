@@ -8,7 +8,9 @@
 package com.nr.instrumentation.glassfish.jul;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
+import com.newrelic.agent.bridge.logging.LogAttributeType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,11 +44,25 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
+                Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
+
                 // JUL does not directly support MDC, so we only initialize the map size based on standard attributes
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + configuredCustomAttributes.size());
+
                 logEventMap.put(INSTRUMENTATION, "glassfish-jul-extension-7");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
+
+                for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
+                    // These custom log events are over-writable by standard log attributes.
+                    // In addition, previously added attributes take priority.
+                    if (!logEventMap.containsKey(logAttrKey)) {
+                        logEventMap.put(logAttrKey, value);
+                    }
+                }
 
                 Level level = record.getLevel();
                 if (level != null) {

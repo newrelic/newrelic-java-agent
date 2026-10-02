@@ -8,9 +8,9 @@
 package com.newrelic.agent.config;
 
 import com.newrelic.agent.Agent;
-import com.newrelic.api.agent.NewRelic;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +23,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     public static final String MAX_SAMPLES_STORED = "max_samples_stored";
     public static final String AUTO_APP_NAMING_ASSOC = "auto_app_naming_association";
     public static final String LOG_LEVEL_DENYLIST = "log_level_denylist";
+    public static final String CUSTOM_ATTRIBUTES = "custom_attributes";
 
     public static final boolean DEFAULT_ENABLED = true;
     public static final int DEFAULT_MAX_SAMPLES_STORED = 10000;
@@ -36,6 +37,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
     private final ApplicationLoggingContextDataConfig contextDataConfig;
     private final ApplicationLoggingLabelsConfig loggingLabelsConfig;
     private final Set<String> logLevelDenylist;
+    private final Map<String, Object> customAttributes;
 
     public ApplicationLoggingForwardingConfig(Map<String, Object> props, String parentRoot, boolean highSecurity, boolean isAutoAppNamingEnabled) {
         super(props, parentRoot + ROOT + ".");
@@ -46,6 +48,7 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
         loggingLabelsConfig = createLoggingLabelsConfig();
         autoAppNamingAssociation = initAutoAppNamingAssociationEnabledFlag(isAutoAppNamingEnabled);
         logLevelDenylist = createLogLevelDenylist();
+        customAttributes = createCustomAttributes(highSecurity);
     }
 
     private int initMaxSamplesStored() {
@@ -123,6 +126,26 @@ public class ApplicationLoggingForwardingConfig extends BaseConfig {
 
     public Set<String> getLoggingLabelsExcludeSet() {
         return loggingLabelsConfig.getExcludeSet();
+    }
+
+    public Map<String, Object> getCustomAttributes() {
+        if (customAttributes != null) {
+            return customAttributes;
+        }
+        return Collections.emptyMap();
+    }
+
+    private Map<String, Object> createCustomAttributes(boolean highSecurity) {
+        Map<String, Object> customAttributes = new HashMap<>();
+        Map<?, ?> property = getProperty(CUSTOM_ATTRIBUTES, Collections.emptyMap());
+        if (property != null && !highSecurity) {
+            for (Map.Entry<?, ?> entry : property.entrySet()) {
+                if (entry.getKey() != null && entry.getValue() != null) {
+                    customAttributes.put(entry.getKey().toString(), entry.getValue());
+                }
+            }
+        }
+        return Collections.unmodifiableMap(customAttributes);
     }
 
     /**

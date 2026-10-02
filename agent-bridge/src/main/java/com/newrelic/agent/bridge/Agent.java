@@ -104,6 +104,13 @@ public interface Agent extends com.newrelic.api.agent.Agent {
      */
     Logs getLogSender();
 
+    /**
+     * Returns the configured custom log attributes
+     *
+     * @return Map of custom log attributes configured by the customer, keyed by attribute name.
+     */
+    Map<String, Object> getConfiguredCustomLogAttributes();
+
     String getEntityGuid(boolean wait);
 
     /**

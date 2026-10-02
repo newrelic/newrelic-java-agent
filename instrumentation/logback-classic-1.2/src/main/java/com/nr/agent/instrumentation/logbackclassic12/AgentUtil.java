@@ -40,7 +40,8 @@ public class AgentUtil {
      */
     public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
-        Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
+        Map<String, Object> configuredCustomLoggingAttributes = AppLoggingUtils.getCustomLoggingAttributes();
+        Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap, configuredCustomLoggingAttributes));
 
         if (shouldCreateLogEvent(message, logEventMap, throwable)) {
             logEventMap.put(INSTRUMENTATION, "logback-classic-1.2");
@@ -48,6 +49,17 @@ public class AgentUtil {
                 logEventMap.put(MESSAGE, message);
             }
             logEventMap.put(TIMESTAMP, timeStampMillis);
+
+            for (Map.Entry<String, Object> entry : configuredCustomLoggingAttributes.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
+                // These custom log events are over-writable by standard log attributes.
+                // In addition, previously added attributes take priority.
+                if (!logEventMap.containsKey(logAttrKey)) {
+                    logEventMap.put(logAttrKey, value);
+                }
+            }
 
             if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
                 for (Map.Entry<String, String> mdcEntry : mdcPropertyMap.entrySet()) {
@@ -113,9 +125,9 @@ public class AgentUtil {
                 !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap, Map<?, ?> configuredCustomLoggingAttributes) {
         return AppLoggingUtils.isAppLoggingContextDataEnabled()
-                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                ? mdcPropertyMap.size() + configuredCustomLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : configuredCustomLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }

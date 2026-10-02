@@ -1,0 +1,14 @@
+common: &default_settings
+  application_logging:
+    enabled: true
+    forwarding:
+      enabled: true
+      max_samples_stored: 10000
+      custom_attributes:
+        env: prod
+        region: us-east-1
+        instrumentation: customInstrumentationValue
+    metrics:
+      enabled: true
+    local_decorating:
+      enabled: false

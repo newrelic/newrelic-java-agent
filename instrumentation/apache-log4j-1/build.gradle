@@ -13,6 +13,10 @@ dependencies {
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.8.2'
 }
 
+test {
+    useJUnitPlatform()
+}
+
 verifyInstrumentation {
     passesOnly("log4j:log4j:[1.2.17,)")
 }

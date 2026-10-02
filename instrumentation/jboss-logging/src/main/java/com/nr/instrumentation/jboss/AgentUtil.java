@@ -44,10 +44,24 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, mdcCopy, throwable)) {
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
+                Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
+
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy, configuredCustomAttributes));
+
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
+
+                for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
+                    // These custom log events are over-writable by standard log attributes.
+                    // In addition, previously added attributes take priority.
+                    if (!logEventMap.containsKey(logAttrKey)) {
+                        logEventMap.put(logAttrKey, value);
+                    }
+                }
 
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
                     for (Map.Entry<String, String> entry : mdcCopy.entrySet()) {
@@ -123,9 +137,9 @@ public class AgentUtil {
                 !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap, Map<String, ?> customLoggingAttributes) {
         return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
-                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                ? mdcPropertyMap.size() + customLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + customLoggingAttributes.size();
     }
 }

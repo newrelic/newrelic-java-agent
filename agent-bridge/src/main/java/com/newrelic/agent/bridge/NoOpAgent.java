@@ -96,6 +96,11 @@ class NoOpAgent implements Agent {
     }
 
     @Override
+    public Map<String, Object> getConfiguredCustomLogAttributes() {
+        return Collections.emptyMap();
+    }
+
+    @Override
     public String getEntityGuid(boolean wait) {
         return null;
     }

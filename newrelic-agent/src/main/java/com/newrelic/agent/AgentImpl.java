@@ -170,6 +170,11 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
     }
 
     @Override
+    public Map<String, Object> getConfiguredCustomLogAttributes() {
+        return ServiceFactory.getConfigService().getDefaultAgentConfig().getApplicationLoggingConfig().getCustomLogAttributes();
+    }
+
+    @Override
     public String getEntityGuid(boolean wait) {
         final RPMServiceManager rpmServiceManager = ServiceFactory.getServiceManager().getRPMServiceManager();
         final IRPMService rpmService = rpmServiceManager.getRPMService();

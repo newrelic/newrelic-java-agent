@@ -70,7 +70,10 @@ public class LogEventUtil {
             if (shouldCreateLogEvent(bodyValue, contextAttributes, errorClass, errorMessage)) {
                 // It is possible that logs are being emitted from OTel instrumentation of a logging framework that we also instrument (e.g. logback, log4j), which could lead to double reporting of LogEvents. We can prevent this by checking if the logs are coming from a known OTel instrumentation source and favoring our own framework instrumentation over it.
                 if (LogDuplicationChecker.shouldRecordLogFromOTelAPI()) {
-                    Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextAttributes));
+                    Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
+
+                    Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextAttributes, configuredCustomAttributes));
+
                     logEventMap.put(INSTRUMENTATION, "opentelemetry-sdk-extension-autoconfigure-1.59.0");
                     if (bodyValue != null && bodyValue.getType() == ValueType.STRING) {
                         String bodyString = bodyValue.asString();
@@ -85,6 +88,17 @@ public class LogEventUtil {
                         logEventMap.put(TIMESTAMP, timestampEpochNanos);
                     } else {
                         logEventMap.put(TIMESTAMP, logRecordData.getObservedTimestampEpochNanos());
+                    }
+
+                    for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
+                        String key = entry.getKey();
+                        Object value = entry.getValue();
+                        LogAttributeKey logAttrKey = new LogAttributeKey(key,  LogAttributeType.AGENT);
+                        // These custom log events are over-writable by standard log attributes.
+                        // In addition, previously added attributes take priority.
+                        if (!logEventMap.containsKey(logAttrKey)) {
+                            logEventMap.put(logAttrKey, value);
+                        }
                     }
 
                     // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
@@ -188,9 +202,9 @@ public class LogEventUtil {
                 (ExceptionUtil.getErrorMessage(errorMessage) != null);
     }
 
-    private static int calculateInitialMapSize(Attributes attributes) {
+    private static int calculateInitialMapSize(Attributes attributes, Map<?, ?> configuredCustomLogAttributes) {
         return isAppLoggingContextDataEnabled() && attributes != null
-                ? attributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                ? attributes.size() + configuredCustomLogAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : configuredCustomLogAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }
