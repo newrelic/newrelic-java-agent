@@ -14,18 +14,35 @@ on:
   workflow_call:
     inputs:
       page:
-        required: true
+        required: false
+        default: '1/1'
         type: string
-        description: 'The page to process (eg: 1/2 or 5/5)'
+        description: 'The page to process (eg: 1/2 or 5/5). Ignored when explicit-modules-list is set.'
+      explicit-modules-list:
+        # A JSON array of module directory names (eg: '["kafka-clients-3.6.0","spring-webmvc-6.0.0"]').
+        # When set, this explicit list is used instead of paginating everything in the instrumentation/** directory.
+        # Since pagination is skipped, callers should ensure that this list is not too long (<250 modules).
+        required: false
+        default: ''
+        type: string
+        description: 'Explicit JSON array of module names to verify. If set, pagination will be skipped.'
       ref:
         required: true
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
+      grouping:
+        #One of [ALL, LATEST_MINOR, LATEST_MAJOR, LATEST].
+        #If not set, falls back to a module's locally configured grouping or ALL.
+        required: false
+        default: ''
+        type: string
+        description: 'The versionGrouping scheme to apply to the verify task (eg: LATEST_MAJOR)'
 
 jobs:
   # this job reads the directories in newrelic-java-agent/instrumentation and creates a JSON with the list of the modules
   # this list is paginated and will be used in the verify-module job.
+  # when inputs.modules-json is provided, that explicit list is used as-is instead.
   read-modules:
     runs-on: ubuntu-24.04
     outputs:
@@ -33,12 +50,22 @@ jobs:
     steps:
 #       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+        # Only the implicit/paginated version of this action requires the checkout (so we can read the contents of instrumentation/**)
+        if: ${{ inputs.explicit-modules-list == '' }}
         with:
           ref: ${{ inputs.ref }}
 
       - id: set-modules
         name: get instrumentation modules as json
         run: |
+          # parses the explicit modules list if one was provided
+          if [ -n '${{ inputs.explicit-modules-list }}' ]; then
+            modules=$(jq -c -n --argjson modules '${{ inputs.explicit-modules-list }}' '{ "modules": $modules }')
+            echo "modules=$modules" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # if no explicit modules list was provided, parse all modules out of the instrumentation directory
           cd instrumentation
           tmpfile=$(mktemp /tmp/dirs.XXXXXXXXXX)
           # lists the folders inside instrumentation, and removes the trailing '/'
@@ -82,7 +109,14 @@ jobs:
       # Currently, the maximum configured toolchain in this project is Java 17.
       # If you added an instrumentation module with a toolchain > 17, and this job is failing, that may be why.
       # Increase JAVA_HOME to the new maximum configured toolchain version.
-      - name: Running verifyInstrumentation on (${{ matrix.modules }})
+      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (all versions)
+        if: ${{ inputs.grouping == ''}}
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
+
+      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (limited versions)
+        if: ${{ inputs.grouping != ''}}
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
+        run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation  -PversionGrouping=${{ inputs.grouping }}

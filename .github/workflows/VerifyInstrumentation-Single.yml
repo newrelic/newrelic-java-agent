@@ -16,35 +16,29 @@ on:
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
+      grouping:
+        required: false
+        default: ''
+        type: string
+        description: 'The versionGrouping scheme to apply to the verify task (one among: [ALL, LATEST_MINOR, LATEST_MAJOR, LATEST]).'
+
+env:
+  MODULE_AS_LIST: ${{ format('[{0}]', toJson(inputs.module)) }}
 
 jobs:
+  build-agent:
+    name: Build agent
+    uses: ./.github/workflows/X-Reusable-BuildAgent.yml
+    with:
+      agent-ref: ${{ github.sha }}
+    secrets: inherit
+
   verify-module:
-    name: Verify Instrumentation (${{ github.event.inputs.module || inputs.module }})
-    runs-on: ubuntu-24.04
-    env:
-      MODULE: ${{ github.event.inputs.module || inputs.module }}
-      AWS_KEY: ${{ secrets.aws-secret-access-key }}
-    steps:
-#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
-        with:
-          ref: ${{ inputs.ref }}
-
-      - name: Configure AWS Credentials
-        if: ${{ env.AWS_KEY != '' }}
-        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
-        with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
-          aws-region: us-east-2
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Build agent
-        run: ./gradlew $GRADLE_OPTIONS clean jar
-
-      - name: Running verifyInstrumentation on (${{ env.MODULE }})
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-        run: ./gradlew $GRADLE_OPTIONS :instrumentation:${{ env.MODULE }}:verifyInstrumentation
+    name: Verify module
+    needs: build-agent
+    uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
+    with:
+      ref: ${{ inputs.ref }}
+      explicit-modules-list: ${{ env.MODULE_AS_LIST }}
+      grouping: ${{ inputs.grouping }}
+    secrets: inherit
