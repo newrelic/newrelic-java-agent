@@ -50,7 +50,8 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +66,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     private SSLContext sslContext;
     private final int defaultTimeoutInMillis;
     private final long collectorConnectionTtlInMillis;
+    private final boolean setDefaultJsonContentTypeHeader;
 
     public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis) {
         this(proxyManager, sslContext, defaultTimeoutInMillis, 0);
@@ -72,7 +74,20 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
 
     public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis,
             long collectorConnectionTtlInMillis) {
+        this(proxyManager, sslContext, defaultTimeoutInMillis, collectorConnectionTtlInMillis, true);
+    }
+
+    /**
+     * @param setDefaultJsonContentTypeHeader whether every request from this client should default to
+     *      {@code Content-Type: application/json}. Pass {@code false} for a client whose requests set their own
+     *      Content-Type (e.g. OTLP's binary protobuf payloads) — Apache HttpClient adds default headers
+     *      unconditionally, so a client with this set to {@code true} would otherwise send two conflicting
+     *      Content-Type headers on every request.
+     */
+    public ApacheHttpClientWrapper(ApacheProxyManager proxyManager, SSLContext sslContext, int defaultTimeoutInMillis,
+            long collectorConnectionTtlInMillis, boolean setDefaultJsonContentTypeHeader) {
         this.proxyManager = proxyManager;
+        this.setDefaultJsonContentTypeHeader = setDefaultJsonContentTypeHeader;
         this.connectionManager = createHttpClientConnectionManager(sslContext, collectorConnectionTtlInMillis);
         this.httpClient = createHttpClient(defaultTimeoutInMillis);
 
@@ -122,10 +137,7 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
     private CloseableHttpClient createHttpClient(int requestTimeoutInMillis) {
         HttpClientBuilder builder = HttpClientBuilder.create()
                 .setUserAgent(USER_AGENT_HEADER_VALUE)
-                .setDefaultHeaders(Arrays.<Header>asList(
-                        new BasicHeader("Connection", "Keep-Alive"),
-                        new BasicHeader("CONTENT-TYPE", "application/json"),
-                        new BasicHeader("ACCEPT-ENCODING", GZIP_ENCODING)))
+                .setDefaultHeaders(buildDefaultHeaders())
                 .setSSLHostnameVerifier(new DefaultHostnameVerifier())
                 .setDefaultRequestConfig(RequestConfig.custom()
                         // Timeout in millis until a connection is established.
@@ -148,6 +160,16 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
         }
 
         return builder.build();
+    }
+
+    private List<Header> buildDefaultHeaders() {
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Connection", "Keep-Alive"));
+        if (setDefaultJsonContentTypeHeader) {
+            headers.add(new BasicHeader("CONTENT-TYPE", "application/json"));
+        }
+        headers.add(new BasicHeader("ACCEPT-ENCODING", GZIP_ENCODING));
+        return headers;
     }
 
     @Override
@@ -196,8 +218,10 @@ public class ApacheHttpClientWrapper implements HttpClientWrapper, Resource {
 
     private void logConnectionPoolStatus(HttpUriRequest apacheRequest) {
         if (Agent.isDebugEnabled()) {
-            Agent.LOG.debug("Datasender HTTP connection pool status: "
-                    + apacheRequest.getURI().getQuery().split("&")[0] + ", " + connectionManager.getTotalStats());
+            // OTLP request URIs have no query string, so fall back to the path to identify the request
+            String query = apacheRequest.getURI().getQuery();
+            String requestId = query != null ? query.split("&")[0] : apacheRequest.getURI().getPath();
+            Agent.LOG.debug("Datasender HTTP connection pool status: " + requestId + ", " + connectionManager.getTotalStats());
         }
     }
 

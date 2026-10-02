@@ -28,6 +28,7 @@ import com.newrelic.agent.errors.ThrowableError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.model.LogEvent;
+import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
 import com.newrelic.agent.normalization.NormalizationRuleFactory;
 import com.newrelic.agent.profile.IProfile;
@@ -65,7 +66,9 @@ import com.newrelic.agent.transport.DataSenderFactory;
 import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.DataSenderWriter;
 import com.newrelic.agent.transport.HttpError;
+import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.transport.IDataSenderFactory;
+import com.newrelic.agent.transport.otlp.OtlpDataSender;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessImpl;
 import com.newrelic.agent.transport.serverless.ServerlessWriter;
@@ -75,6 +78,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 
 import javax.net.ssl.SSLHandshakeException;
 import javax.servlet.http.HttpServletResponse;
@@ -99,6 +104,9 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -673,6 +681,151 @@ public class RPMServiceTest {
         List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
 
         assertEquals("No log events sent currently", logEvents.size(), seen.size());
+    }
+
+    @Test(timeout = 30000)
+    public void logEventsAreSentOnlyViaOtlpWhenOtlpLogsAreEnabled() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        List<LogEvent> logEvents = Collections.singletonList(new LogEvent(null, 1));
+
+        svc.sendLogEvents(logEvents);
+
+        verify(otlpDataSender).sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), eq(logEvents));
+        assertNull(dataSenderFactory.getLastDataSender().getLogEvents());
+    }
+
+    @Test(timeout = 30000)
+    public void logEventsAreSentToCollectorWhenOtlpLogsAreDisabled() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(false, true);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        List<LogEvent> logEvents = Collections.singletonList(new LogEvent(null, 1));
+
+        svc.sendLogEvents(logEvents);
+
+        verify(otlpDataSender, never()).sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<LogEvent>anyCollection());
+        assertEquals(logEvents, dataSenderFactory.getLastDataSender().getLogEvents());
+    }
+
+    @Test(timeout = 30000)
+    public void retryableOtlpLogErrorIsThrownForHarvestRetry() throws Exception {
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        doThrow(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0)).when(otlpDataSender)
+                .sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<LogEvent>anyCollection());
+        RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
+
+        try {
+            svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
+            fail("Expected HttpError");
+        } catch (HttpError expected) {
+            assertEquals(HttpResponseCode.SERVICE_UNAVAILABLE, expected.getStatusCode());
+        }
+    }
+
+    @Test(timeout = 30000)
+    public void otlpResourceAttributesIncludeServiceName() throws Exception {
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
+
+        svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
+
+        ArgumentCaptor<Map<String, Object>> resourceCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(otlpDataSender).sendLogEvents(resourceCaptor.capture(), ArgumentMatchers.<LogEvent>anyCollection());
+        assertEquals("OTLP Test App", resourceCaptor.getValue().get("service.name"));
+    }
+
+    @Test(timeout = 30000)
+    public void spanEventsAreSentToCollectorAndOtlp() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
+
+        svc.sendSpanEvents(1, 1, spans);
+
+        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
+        verify(otlpDataSender).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), eq(spans));
+    }
+
+    @Test(timeout = 30000)
+    public void spanEventsAreNotSentViaOtlpWhenOtlpSpansAreDisabled() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, false);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
+
+        svc.sendSpanEvents(1, 1, spans);
+
+        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
+        verify(otlpDataSender, never()).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
+    }
+
+    @Test(timeout = 30000)
+    public void spanEventsAreNotSentViaOtlpWhenCollectorWillRetryThem() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        dataSenderFactory.getLastDataSender().setException(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0));
+
+        try {
+            svc.sendSpanEvents(1, 1, Collections.singletonList(SpanEvent.builder().build()));
+            fail("Expected HttpError");
+        } catch (HttpError expected) {
+            assertFalse(expected.discardHarvestData());
+        }
+        verify(otlpDataSender, never()).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
+    }
+
+    @Test(timeout = 30000)
+    public void spanEventsAreSentViaOtlpWhenCollectorDiscardsThem() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        dataSenderFactory.getLastDataSender().setException(new HttpError("bad request", HttpResponseCode.BAD_REQUEST, 0));
+        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
+
+        try {
+            svc.sendSpanEvents(1, 1, spans);
+            fail("Expected HttpError");
+        } catch (HttpError expected) {
+            assertTrue(expected.discardHarvestData());
+        }
+        verify(otlpDataSender).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), eq(spans));
+    }
+
+    @Test(timeout = 30000)
+    public void otlpSpanFailureDoesNotAffectCollectorSend() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        doThrow(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0)).when(otlpDataSender)
+                .sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
+        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
+        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
+
+        svc.sendSpanEvents(1, 1, spans);
+
+        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
+    }
+
+    private RPMService launchWithOtlp(MockDataSenderFactory dataSenderFactory, OtlpDataSender otlpDataSender) throws Exception {
+        Map<String, Object> map = createStagingMap(true, false);
+        map.put("app_name", "Test");
+        createServiceManager(AgentConfigImpl.createAgentConfig(map), map);
+        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
+        RPMService svc = new RPMService(singletonList("OTLP Test App"), null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+        svc.setOtlpDataSender(otlpDataSender);
+        svc.launch();
+        assertTrue(svc.isConnected());
+        return svc;
+    }
+
+    private static OtlpDataSender mockOtlpDataSender(boolean logsEnabled, boolean spansEnabled) {
+        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
+        when(otlpDataSender.isLogsEnabled()).thenReturn(logsEnabled);
+        when(otlpDataSender.isSpansEnabled()).thenReturn(spansEnabled);
+        return otlpDataSender;
     }
 
     @Test(timeout = 30000)

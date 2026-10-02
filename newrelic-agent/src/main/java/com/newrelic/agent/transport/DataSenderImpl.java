@@ -688,7 +688,7 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         int payloadBytesReceived = payloadJsonReceived.getBytes().length;
 
         // COLLECTOR is always the destination for data reported via DataSenderImpl.
-        // OTLP as a destination is not currently supported by the Java agent.
+        // OTLP destined usage data is recorded by OtlpDataSender.
         // INFINITE_TRACING destined usage data is sent via SpanEventSender.
         ServiceFactory.getStatsService().doStatsWork(
                 StatsWorks.getRecordDataUsageMetricWork(

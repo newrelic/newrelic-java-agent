@@ -2793,6 +2793,64 @@
             },
             "additionalProperties": true,
             "description": "Slow transaction detection will report an event to New Relic (\"SlowTransaction\") whenever a Transaction's time exceeds the threshold value (in ms). A transaction will only be reported once and by default, only transactions that are in-process during a harvest cycle will be checked. Only the slowest single transaction will be reported even if multiple transactions exceed the threshold."
+        },
+        "otlp_export": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to true to enable OTLP export. Default is false."
+                },
+                "endpoint": {
+                    "type": "string",
+                    "description": "The base OTLP endpoint used by every signal that doesn't set its own endpoint. The signal path (/v1/logs or /v1/traces) is appended to it. By default, the New Relic OTLP endpoint for the license key's region is used (https://collector.newrelic.com or https://collector.eu01.nr-data.net). Set this explicitly for the FedRAMP (https://gov-collector.newrelic.com) endpoint, or to send data to a non-New Relic OTLP endpoint."
+                },
+                "headers": {
+                    "type": "string",
+                    "description": "Additional headers to send with OTLP requests for every signal that doesn't set its own headers, as a comma-delimited list of key=value pairs (e.g. \"header1=value1,header2=value2\"). The license key is sent in the api-key header to New Relic OTLP endpoints (hosts ending in .newrelic.com or .nr-data.net) unless an api-key header is configured. It is never sent to other endpoints."
+                },
+                "logs": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Set to true to send log events via OTLP instead of the collector. Default is true."
+                        },
+                        "endpoint": {
+                            "type": "string",
+                            "description": "The full URL to send log events to, including the path (e.g. https://collector.newrelic.com/v1/logs). It's used as is. When not set, /v1/logs is appended to otlp_export.endpoint."
+                        },
+                        "headers": {
+                            "type": "string",
+                            "description": "Headers to send with log event requests, in the same format as otlp_export.headers. When set, these replace otlp_export.headers for log event requests rather than being merged with them."
+                        }
+                    },
+                    "additionalProperties": true
+                },
+                "spans": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "Set to true to send span events via OTLP in addition to the collector. When the endpoint is the New Relic OTLP endpoint for the same account, spans will be reported twice. Default is true."
+                        },
+                        "endpoint": {
+                            "type": "string",
+                            "description": "The full URL to send span events to, including the path (e.g. https://collector.newrelic.com/v1/traces). It's used as is. When not set, /v1/traces is appended to otlp_export.endpoint."
+                        },
+                        "headers": {
+                            "type": "string",
+                            "description": "Headers to send with span event requests, in the same format as otlp_export.headers. When set, these replace otlp_export.headers for span event requests rather than being merged with them."
+                        }
+                    },
+                    "additionalProperties": true
+                }
+            },
+            "additionalProperties": true,
+            "description": "Export log and span events over OTLP/HTTP using binary protobuf encoding. When enabled, log events are sent via OTLP instead of the collector, and span events are sent via OTLP in addition to the collector. Attribute names are the same as when the data is sent to the collector. Payloads that are 1MB (10^6 bytes) or larger after gzip compression are dropped."
         }
     },
     "required": [

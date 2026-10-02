@@ -7,6 +7,7 @@
 
 package com.newrelic.agent;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigImpl;
@@ -15,6 +16,7 @@ import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.BrowserMonitoringConfig;
 import com.newrelic.agent.config.BrowserMonitoringConfigImpl;
 import com.newrelic.agent.config.Hostname;
+import com.newrelic.agent.config.OtlpExportConfig;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
@@ -46,6 +48,7 @@ import com.newrelic.agent.transport.DataSenderListener;
 import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
+import com.newrelic.agent.transport.otlp.OtlpDataSender;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
 import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.utilization.UtilizationData;
@@ -99,6 +102,8 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private volatile String entityGuid = "";
     private volatile Map<String, String> serviceMetadata = Collections.emptyMap();
     private final DataSender dataSender;
+    // Null when OTLP export is disabled
+    private volatile OtlpDataSender otlpDataSender;
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
     private final AtomicInteger retryCount = new AtomicInteger(0);
@@ -125,6 +130,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
                     config.getServerlessConfig());
         } else {
             dataSender = DataSenderFactory.create(config, dataSenderListener);
+            otlpDataSender = createOtlpDataSender(config);
         }
         this.appNames = appNames;
         this.connectionConfigListener = connectionConfigListener;
@@ -139,6 +145,30 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         if (this.isMainApp) {
             scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
         }
+    }
+
+    private static OtlpDataSender createOtlpDataSender(AgentConfig config) {
+        OtlpExportConfig otlpExportConfig = config.getOtlpExportConfig();
+        if (!otlpExportConfig.isEnabled()) {
+            return null;
+        }
+        try {
+            OtlpDataSender sender = new OtlpDataSender(otlpExportConfig, config.getLicenseKey(), config.isAuditMode(),
+                    DataSenderFactory.createHttpClientWrapper(config, Agent.LOG, false));
+            Agent.LOG.log(Level.INFO, "OTLP export is enabled. Logs: {0} ({1}), spans: {2} ({3})", otlpExportConfig.isLogsEnabled(),
+                    otlpExportConfig.getLogsEndpoint(), otlpExportConfig.isSpansEnabled(), otlpExportConfig.getSpansEndpoint());
+            return sender;
+        } catch (Exception e) {
+            Agent.LOG.log(Level.WARNING, e, "Unable to enable OTLP export to {0} and {1}: {2}. Log and span events will only be sent to the collector."
+                    + " Check that otlp_export.endpoint, otlp_export.logs.endpoint and otlp_export.spans.endpoint are valid URLs.",
+                    otlpExportConfig.getLogsEndpoint(), otlpExportConfig.getSpansEndpoint(), e.toString());
+            return null;
+        }
+    }
+
+    @VisibleForTesting
+    void setOtlpDataSender(OtlpDataSender otlpDataSender) {
+        this.otlpDataSender = otlpDataSender;
     }
 
     @Override
@@ -624,6 +654,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public void sendLogEvents(final Collection<? extends LogEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
+        OtlpDataSender otlpSender = otlpDataSender;
+        if (otlpSender != null && otlpSender.isLogsEnabled()) {
+            sendLogEventsToOtlp(otlpSender, events);
+            return;
+        }
         try {
             sendLogEventsSyncRestart(events);
         } catch (HttpError e) {
@@ -642,6 +677,51 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
+    /**
+     * When OTLP export is enabled for logs, logs are sent via OTLP instead of the collector.
+     */
+    private void sendLogEventsToOtlp(OtlpDataSender otlpSender, Collection<? extends LogEvent> events) throws Exception {
+        // Like the collector, wait for a connection so that the entity guid and OTLP resource attributes are known
+        if (!isConnected()) {
+            Agent.LOG.log(Level.FINER, "Not sending {0} log event(s) via OTLP because the agent is not connected", events.size());
+            return;
+        }
+        try {
+            otlpSender.sendLogEvents(getOtlpResourceAttributes(), events);
+        } catch (HttpError e) {
+            Agent.LOG.log(Level.WARNING, "Unable to send {0} log event(s) via OTLP: {1}", events.size(), e.getMessage());
+            // We don't want to resend the data for certain response codes, retry for all others
+            if (e.isRetryableError()) {
+                throw e;
+            }
+        }
+    }
+
+    /**
+     * When OTLP export is enabled for spans, spans are sent via OTLP in addition to the collector. OTLP failures are logged
+     * and never thrown, so they can't cause the harvest to retry a batch that the collector already accepted.
+     */
+    private void sendSpanEventsToOtlp(OtlpDataSender otlpSender, Collection<SpanEvent> events) {
+        if (!isConnected()) {
+            Agent.LOG.log(Level.FINER, "Not sending {0} span event(s) via OTLP because the agent is not connected", events.size());
+            return;
+        }
+        try {
+            otlpSender.sendSpanEvents(getOtlpResourceAttributes(), events);
+        } catch (Exception e) {
+            Agent.LOG.log(Level.WARNING, "Unable to send {0} span event(s) via OTLP: {1}", events.size(), e.toString());
+            Agent.LOG.log(Level.FINEST, e, e.toString());
+        }
+    }
+
+    private Map<String, Object> getOtlpResourceAttributes() {
+        Map<String, Object> resourceAttributes = new HashMap<>();
+        resourceAttributes.put("service.name", appName);
+        // Resource attributes provided by New Relic in the connect response take precedence
+        resourceAttributes.putAll(serviceMetadata);
+        return resourceAttributes;
+    }
+
     private void sendSpanEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
         try {
             dataSender.sendSpanEvents(reservoirSize, eventsSeen, events);
@@ -655,11 +735,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} span event(s)", events.size());
+        // When the collector keeps the batch for the next harvest, OTLP gets it then; this prevents sending it twice via OTLP
+        boolean batchRetainedForRetry = false;
         try {
             sendSpanEventsSyncRestart(reservoirSize, eventsSeen, events);
         } catch (HttpError e) {
             // We don't want to resend the data for certain response codes, retry for all others
             if (e.isRetryableError()) {
+                batchRetainedForRetry = !e.discardHarvestData();
                 throw e;
             }
         } catch (ForceRestartException e) {
@@ -670,6 +753,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceDisconnectException(e);
             shutdownAsync();
             throw e;
+        } finally {
+            OtlpDataSender otlpSender = otlpDataSender;
+            if (otlpSender != null && otlpSender.isSpansEnabled() && !batchRetainedForRetry) {
+                sendSpanEventsToOtlp(otlpSender, events);
+            }
         }
     }
 
@@ -1096,6 +1184,15 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         } catch (Exception e) {
             Level level = e instanceof ConnectException ? Level.FINER : Level.SEVERE;
             Agent.LOG.log(level, "An error occurred in the NewRelic agent shutdown", e);
+        } finally {
+            OtlpDataSender otlpSender = otlpDataSender;
+            if (otlpSender != null) {
+                try {
+                    otlpSender.shutdown();
+                } catch (Exception e) {
+                    Agent.LOG.log(Level.SEVERE, "An error occurred shutting down the OTLP data sender", e);
+                }
+            }
         }
         ServiceFactory.getEnvironmentService().getEnvironment().removeEnvironmentChangeListener(this);
         ServiceFactory.getConfigService().removeIAgentConfigListener(this);

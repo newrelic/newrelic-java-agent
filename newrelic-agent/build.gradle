@@ -210,6 +210,8 @@ dependencies {
     testImplementation("org.eclipse.jetty:jetty-servlet:8.1.22.v20160922")
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
     testImplementation("org.mockito:mockito-inline:4.11.0")
+    // Generated OTLP message classes, used only to decode the payloads written by the OTLP encoders in tests
+    testImplementation("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
 }
 
 /**

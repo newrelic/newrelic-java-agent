@@ -74,26 +74,42 @@ public class DataSenderFactory {
         public DataSender create(DataSenderConfig config, DataSenderListener dataSenderListener) {
             return new DataSenderImpl(
                     config,
-                    buildApacheHttpClientWrapper(config, Agent.LOG),
+                    createHttpClientWrapper(config, Agent.LOG),
                     dataSenderListener,
                     Agent.LOG,
                     ServiceFactory.getConfigService());
         }
+    }
 
-        private ApacheHttpClientWrapper buildApacheHttpClientWrapper(DataSenderConfig config, Logger logger) {
-            SSLContext sslContext = ApacheSSLManager.createSSLContext(config);
+    /**
+     * Creates an HTTP client that honors the agent's proxy, CA bundle, and timeout configuration, defaulting
+     * every request's Content-Type to {@code application/json} for the New Relic collector protocol.
+     */
+    public static HttpClientWrapper createHttpClientWrapper(DataSenderConfig config, Logger logger) {
+        return createHttpClientWrapper(config, logger, true);
+    }
 
-            ApacheProxyManager proxyManager = new ApacheProxyManager(
-                    config.getProxyHost(),
-                    config.getProxyPort(),
-                    config.getProxyScheme(),
-                    config.getProxyUser(),
-                    config.getProxyPassword(),
-                    logger);
+    /**
+     * Creates an HTTP client that honors the agent's proxy, CA bundle, and timeout configuration.
+     *
+     * @param setDefaultJsonContentTypeHeader whether every request should default to
+     *      {@code Content-Type: application/json}. Pass {@code false} for a client whose requests set their own
+     *      Content-Type (e.g. OTLP export's binary protobuf payloads).
+     */
+    public static HttpClientWrapper createHttpClientWrapper(DataSenderConfig config, Logger logger,
+            boolean setDefaultJsonContentTypeHeader) {
+        SSLContext sslContext = ApacheSSLManager.createSSLContext(config);
 
-            return new ApacheHttpClientWrapper(proxyManager, sslContext, config.getTimeoutInMilliseconds(),
-                    config.getCollectorConnectionTtlInMilliseconds());
-        }
+        ApacheProxyManager proxyManager = new ApacheProxyManager(
+                config.getProxyHost(),
+                config.getProxyPort(),
+                config.getProxyScheme(),
+                config.getProxyUser(),
+                config.getProxyPassword(),
+                logger);
+
+        return new ApacheHttpClientWrapper(proxyManager, sslContext, config.getTimeoutInMilliseconds(),
+                config.getCollectorConnectionTtlInMilliseconds(), setDefaultJsonContentTypeHeader);
     }
 
 }

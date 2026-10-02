@@ -37,7 +37,7 @@ common: &default_settings
     headers:              # "k1=v1,k2=v2", used by every signal without its own headers
     logs:
       enabled: true       # send logs via OTLP instead of the collector
-      endpoint:           # full URL, used as-is (e.g. https://otlp.nr-data.net/v1/logs)
+      endpoint:           # full URL, used as-is (e.g. https://collector.newrelic.com/v1/logs)
       headers:            # replaces otlp_export.headers for logs
     spans:
       enabled: true       # send spans via OTLP in addition to the collector
@@ -57,14 +57,14 @@ These rules follow the OTel SDK convention (`OTEL_EXPORTER_OTLP_ENDPOINT` vs `OT
 - A per-signal `endpoint` is used **as-is**.
 - Otherwise, `/v1/logs` or `/v1/traces` is appended to the base `endpoint`. Trailing slashes on the base are removed first.
 - If the base `endpoint` isn't set, it's derived from the license key region, using the same logic as the collector host:
-  - `https://otlp.nr-data.net` when the license key has no region prefix.
-  - `https://otlp.<region>.nr-data.net` otherwise, e.g. `otlp.eu01.nr-data.net`.
-- JP (`https://otlp.jp.nr-data.net`) and FedRAMP (`https://gov-otlp.nr-data.net`) don't follow that host pattern, so they must be configured explicitly.
+  - `https://collector.newrelic.com` when the license key has no region prefix.
+  - `https://collector.<region>.nr-data.net` otherwise, e.g. `collector.eu01.nr-data.net`.
+- [FedRAMP](https://docs.newrelic.com/docs/security/security-privacy/compliance/fedramp-compliant-endpoints/) (`https://gov-collector.newrelic.com`) doesn't follow that host pattern, so it must be configured explicitly. 
 
 ### Headers and authentication
 
 - **Per-signal headers replace the shared headers** for that signal; they aren't merged. This matches how the OTel SDK treats `OTEL_EXPORTER_OTLP_LOGS_HEADERS`. Credentials meant for one endpoint are therefore never sent to another.
-- **The license key is sent only to New Relic endpoints.** The `api-key: <license key>` header is added automatically only when the endpoint host ends in `.nr-data.net`, and only if no `api-key` header is configured. For any other host it's never sent, and the agent logs an INFO message.
+- **The license key is sent only to New Relic endpoints.** The `api-key: <license key>` header is added automatically only when the endpoint host ends in `newrelic.com` or `.nr-data.net`, and only if no `api-key` header is configured. For any other host it's never sent, and the agent logs an INFO message.
 - **YAML caveat**: in YAML, an empty `headers:` line counts as "not set", so the signal falls back to the shared headers. Use `headers: ""` to send none.
 
 ### Other behavior
@@ -180,7 +180,7 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 | `transport/otlp/OtlpAttributesTest.java` | Hex conversion: padding, case, invalid and all-zero IDs |
 | `transport/otlp/OtlpLogEncoderTest.java` | Every LogRecord field, decoded with the generated OTLP classes; minimal and empty input; invalid IDs; ms vs ns timestamps; severity mapping |
 | `transport/otlp/OtlpSpanEncoderTest.java` | Every Span field; span kind mapping; error status; short trace IDs; missing timing; events and links; empty input |
-| `transport/otlp/OtlpDataSenderTest.java` | URLs, gzip, Content-Type, per-signal endpoints and headers, license key only for `*.nr-data.net`, oversized payload dropped, 200/202 success, 429/503/400/413 retry semantics, metrics |
+| `transport/otlp/OtlpDataSenderTest.java` | URLs, gzip, Content-Type, per-signal endpoints and headers, license key only for `*.newrelic.com` or `*.nr-data.net`, oversized payload dropped, 200/202 success, 429/503/400/413 retry semantics, metrics |
 | `transport/otlp/OtlpTestUtil.java` | Helpers for decoding attributes and IDs |
 | `config/OtlpExportConfigImplTest.java` | Defaults, signal enablement, serverless, region endpoint, endpoint override and fallback, header parsing and replacement, env var and system property overrides, `AgentConfigImpl` wiring |
 | `RPMServiceTest.java` (+9 tests), `MockDataSender.java` | Logs routed to OTLP only when enabled; retryable OTLP log errors rethrown; resource attributes; spans sent to both; OTLP skipped when the collector keeps the batch; OTLP sent when the collector discards it; OTLP span failures isolated |

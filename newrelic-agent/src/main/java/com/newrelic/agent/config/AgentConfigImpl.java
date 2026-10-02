@@ -142,6 +142,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String TRANSACTION_SEGMENTS = "transaction_segments";
     public static final String TRANSACTION_TRACER = "transaction_tracer";
     public static final String SLOW_TRANSACTIONS = "slow_transactions";
+    public static final String OTLP_EXPORT = OtlpExportConfigImpl.ROOT;
 
     // defaults (alphabetized)
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
@@ -293,6 +294,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final ServerlessConfig serverlessConfig;
     private final TransactionTracerConfigImpl requestTransactionTracerConfig;
     private final SlowTransactionsConfig slowTransactionsConfig;
+    private final OtlpExportConfig otlpExportConfig;
     private final SpanEventsConfig spanEventsConfig;
     private final SqlTraceConfig sqlTraceConfig;
     private final StripExceptionConfig stripExceptionConfig;
@@ -405,6 +407,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         commandParserConfig = initCommandParserConfig();
         normalizationRuleConfig = new NormalizationRuleConfig(props);
         slowTransactionsConfig = initSlowTransactionsConfig();
+        otlpExportConfig = new OtlpExportConfigImpl(nestedProps(OTLP_EXPORT), region, serverlessConfig.isEnabled());
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
         agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
         //This setting should use the locally configured distributed_tracing.sampler.adaptive_sampling_target setting
@@ -1160,6 +1163,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public SlowTransactionsConfig getSlowTransactionsConfig() {
         return slowTransactionsConfig;
+    }
+
+    @Override
+    public OtlpExportConfig getOtlpExportConfig() {
+        return otlpExportConfig;
     }
 
     @Override

@@ -22,11 +22,11 @@ public class ReadResult {
         this.proxyAuthenticateHeader = proxyAuthenticateHeader;
     }
 
-    int getStatusCode() {
+    public int getStatusCode() {
         return statusCode;
     }
 
-    String getResponseBody() {
+    public String getResponseBody() {
         return responseBody;
     }
 

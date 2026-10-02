@@ -417,6 +417,11 @@ public class MetricNames {
     // {0} = destination (Collector, OTLP, or InfiniteTracing). {1} = agent endpoint (connect, analytic_event_data, error_data, etc)
     public static final String SUPPORTABILITY_DATA_USAGE_DESTINATION_ENDPOINT_OUTPUT_BYTES = "Supportability/Java/{0}/{1}/Output/Bytes";
 
+    // Supportability metrics for OTLP export. {0} = OTLP signal path (v1/logs, v1/traces)
+    public static final String SUPPORTABILITY_OTLP_HTTP_CODE = "Supportability/Java/OTLP/HttpCode/{0}"; // {response code}
+    public static final String SUPPORTABILITY_OTLP_PAYLOAD_SIZE_EXCEEDS_MAX = "Supportability/Java/OTLP/MaxPayloadSizeLimit/{0}";
+    public static final String SUPPORTABILITY_OTLP_ENDPOINT_DURATION = "Supportability/Java/OTLP/{0}/Duration";
+
     public static final String SUPPORTABILITY_AGENT_CONNECT_BACKOFF_ATTEMPTS = "Supportability/Agent/Collector/Connect/BackoffAttempts";
 
     public static final String SUPPORTABILITY_AGENT_CRAC_CHECKPOINT = "Supportability/Agent/CracCheckpoint";
