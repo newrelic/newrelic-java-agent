@@ -44,15 +44,12 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, mdcCopy, throwable)) {
-                Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
 
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy, configuredCustomAttributes));
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
 
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
-
-                AppLoggingUtils.addCustomLogAttributes(logEventMap);
 
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcCopy != null) {
                     for (Map.Entry<String, String> entry : mdcCopy.entrySet()) {
@@ -128,9 +125,9 @@ public class AgentUtil {
                 !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap, Map<String, ?> customLoggingAttributes) {
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
         return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
-                ? mdcPropertyMap.size() + customLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + customLoggingAttributes.size();
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }

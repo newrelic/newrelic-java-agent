@@ -46,9 +46,7 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
 
             if (shouldCreateLogEvent(message, contextData, throwable)) {
-                Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
-
-                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData, configuredCustomAttributes));
+                Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
                 logEventMap.put(INSTRUMENTATION, "apache-log4j-2.11");
                 if (message != null) {
                     String formattedMessage = message.getFormattedMessage();
@@ -57,8 +55,6 @@ public class AgentUtil {
                     }
                 }
                 logEventMap.put(TIMESTAMP, event.getTimeMillis());
-
-                AppLoggingUtils.addCustomLogAttributes(logEventMap);
 
                 if (AppLoggingUtils.isAppLoggingContextDataEnabled() && contextData != null) {
                     for (Map.Entry<String, String> entry : contextData.toMap().entrySet()) {
@@ -134,10 +130,10 @@ public class AgentUtil {
                 !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(ReadOnlyStringMap mdcPropertyMap, Map<String, ?> customLoggingAttrMap) {
+    private static int calculateInitialMapSize(ReadOnlyStringMap mdcPropertyMap) {
         return  AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
-                ? mdcPropertyMap.size() + customLoggingAttrMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES + customLoggingAttrMap.size();
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 
     /**

@@ -40,8 +40,7 @@ public class AgentUtil {
      */
     public static void recordNewRelicLogEvent(String message, Map<String, String> mdcPropertyMap, long timeStampMillis, Level level, Throwable throwable, String threadName, long threadId,
             String loggerName, String fqcnLoggerName) {
-        Map<String, Object> configuredCustomLoggingAttributes = AppLoggingUtils.getCustomLoggingAttributes();
-        Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap, configuredCustomLoggingAttributes));
+        Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcPropertyMap));
 
         if (shouldCreateLogEvent(message, logEventMap, throwable)) {
             logEventMap.put(INSTRUMENTATION, "logback-classic-1.2");
@@ -49,8 +48,6 @@ public class AgentUtil {
                 logEventMap.put(MESSAGE, message);
             }
             logEventMap.put(TIMESTAMP, timeStampMillis);
-
-            AppLoggingUtils.addCustomLogAttributes(logEventMap);
 
             if (AppLoggingUtils.isAppLoggingContextDataEnabled()) {
                 for (Map.Entry<String, String> mdcEntry : mdcPropertyMap.entrySet()) {
@@ -116,9 +113,9 @@ public class AgentUtil {
                 !ExceptionUtil.isThrowableNull(throwable);
     }
 
-    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap, Map<?, ?> configuredCustomLoggingAttributes) {
+    private static int calculateInitialMapSize(Map<String, String> mdcPropertyMap) {
         return AppLoggingUtils.isAppLoggingContextDataEnabled()
-                ? mdcPropertyMap.size() + configuredCustomLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
-                : configuredCustomLoggingAttributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
+                ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }

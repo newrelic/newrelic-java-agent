@@ -6,7 +6,6 @@
  */
 package com.newrelic.agent.bridge.logging;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.NewRelic;
 
 import java.io.UnsupportedEncodingException;
@@ -170,32 +169,5 @@ public class AppLoggingUtils {
     public static boolean isAppLoggingContextDataEnabled() {
         return NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.context_data.enabled",
                 APP_LOGGING_FORWARDING_CONTEXT_DATA_DEFAULT_ENABLED);
-    }
-
-    /**
-     * Get custom logging attributes
-     *
-     * @return A map of string and objects containing custom log attributes.
-     */
-    public static Map<String, Object> getCustomLoggingAttributes() {
-        return AgentBridge.getAgent().getConfiguredCustomLogAttributes();
-    }
-
-    /**
-     * Modifies a log event map to include custom logging attributes so long as those attributes are not already in the map.
-     * These attributes take the lowest priority and are subject to being overwritten.
-     *
-     * @param logEventMap A map of log attribute keys and values used to create a log event
-     */
-    public static void addCustomLogAttributes(Map<LogAttributeKey, Object> logEventMap) {
-        Map<String, Object> configuredCustomAttributes = AppLoggingUtils.getCustomLoggingAttributes();
-        for (Map.Entry<String, Object> entry : configuredCustomAttributes.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            LogAttributeKey logAttrKey = new LogAttributeKey(key, LogAttributeType.AGENT);
-            if (!logEventMap.containsKey(logAttrKey)) {
-                logEventMap.put(logAttrKey, value);
-            }
-        }
     }
 }

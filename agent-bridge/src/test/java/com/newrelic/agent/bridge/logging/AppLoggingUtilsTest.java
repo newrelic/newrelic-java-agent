@@ -202,23 +202,4 @@ public class AppLoggingUtilsTest {
         }
     }
 
-    @Test
-    public void getCustomLoggingAttributes_delegatesToAgentBridge() {
-        com.newrelic.agent.bridge.Agent mockBridgeAgent = Mockito.mock(com.newrelic.agent.bridge.Agent.class);
-        Map<String, Object> customAttributes = new HashMap<>();
-        customAttributes.put("env", "prod");
-        Mockito.when(mockBridgeAgent.getConfiguredCustomLogAttributes()).thenReturn(customAttributes);
-        AgentBridge.agent = mockBridgeAgent;
-
-        Assert.assertEquals(customAttributes, AppLoggingUtils.getCustomLoggingAttributes());
-    }
-
-    @Test
-    public void getCustomLoggingAttributes_returnsEmptyMapWhenNoneConfigured() {
-        com.newrelic.agent.bridge.Agent mockBridgeAgent = Mockito.mock(com.newrelic.agent.bridge.Agent.class);
-        Mockito.when(mockBridgeAgent.getConfiguredCustomLogAttributes()).thenReturn(Collections.emptyMap());
-        AgentBridge.agent = mockBridgeAgent;
-
-        Assert.assertTrue(AppLoggingUtils.getCustomLoggingAttributes().isEmpty());
-    }
 }
