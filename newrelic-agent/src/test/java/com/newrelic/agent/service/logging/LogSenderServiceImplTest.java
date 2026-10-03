@@ -20,6 +20,7 @@ import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.config.ApplicationLoggingLocalDecoratingConfig;
 import com.newrelic.agent.config.ApplicationLoggingMetricsConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,7 +66,13 @@ public class LogSenderServiceImplTest {
         when(serviceManager.getRPMServiceManager()).thenReturn(Mockito.mock(RPMServiceManager.class));
         when(serviceManager.getRPMServiceManager().getRPMService()).thenReturn(Mockito.mock(RPMService.class));
         when(serviceManager.getConfigService()).thenReturn(Mockito.mock(ConfigService.class));
-        when(serviceManager.getConfigService().getDefaultAgentConfig()).thenReturn(AgentConfigImpl.createAgentConfig(config));
+        AgentConfig defaultAgentConfig = AgentConfigImpl.createAgentConfig(config);
+        when(serviceManager.getConfigService().getDefaultAgentConfig()).thenReturn(defaultAgentConfig);
+        // ConfigServiceImpl.getAgentConfig(String) never returns null in production - it falls back to the
+        // default config for a null/unregistered app name. Mirror that for any argument here; tests that need a
+        // distinct app-level config (e.g. for custom log attribute precedence) can re-stub this for a specific
+        // app name after createService() returns, since Mockito prefers the most recently defined matching stub.
+        when(serviceManager.getConfigService().getAgentConfig(any())).thenReturn(defaultAgentConfig);
         when(serviceManager.getRPMServiceManager().getRPMService().getApplicationName()).thenReturn(appName);
         ServiceFactory.setServiceManager(serviceManager);
 
@@ -421,6 +429,131 @@ public class LogSenderServiceImplTest {
         assertEquals(3, analyticsData.getEvents().size());
     }
 
+
+    @Test
+    public void testCustomLogAttributesAreAddedWhenConfigured() throws Exception {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        LogSenderServiceImpl logSenderService = createService(createConfigWithCustomAttributes(customAttributes));
+        logSenderService.addHarvestableToService(appName);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(1, analyticsData.getEvents().size());
+        AnalyticsEvent logEvent = analyticsData.getEvents().iterator().next();
+        assertEquals("prod", logEvent.getUserAttributesCopy().get("env"));
+    }
+
+    @Test
+    public void testCustomLogAttributesDoNotOverrideExplicitlyReportedAttributes() throws Exception {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("field", "customValue");
+        LogSenderServiceImpl logSenderService = createService(createConfigWithCustomAttributes(customAttributes));
+        logSenderService.addHarvestableToService(appName);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "explicitValue"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(1, analyticsData.getEvents().size());
+        AnalyticsEvent logEvent = analyticsData.getEvents().iterator().next();
+        assertEquals("explicitValue", logEvent.getUserAttributesCopy().get("field"));
+    }
+
+    @Test
+    public void testAppConfigCustomLogAttributesTakePriorityOverDefaultConfigWhenTransactionIsActive() throws Exception {
+        Map<String, Object> defaultCustomAttributes = new HashMap<>();
+        defaultCustomAttributes.put("env", "default-env");
+        LogSenderServiceImpl logSenderService = createService(createConfigWithCustomAttributes(defaultCustomAttributes));
+
+        Map<String, Object> appCustomAttributes = new HashMap<>();
+        appCustomAttributes.put("env", "app-env");
+        AgentConfig appConfig = AgentConfigImpl.createAgentConfig(createConfigWithCustomAttributes(appCustomAttributes));
+        when(ServiceFactory.getConfigService().getAgentConfig(appName)).thenReturn(appConfig);
+
+        Transaction transaction = Mockito.mock(Transaction.class);
+        when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
+        when(transaction.getApplicationName()).thenReturn(appName);
+        when(transaction.isInProgress()).thenReturn(true);
+
+        LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+        when(transaction.getLogEventData()).thenReturn(logs);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+
+        assertEquals(1, logs.getEventsForTesting().size());
+        LogEvent logEvent = logs.getEventsForTesting().iterator().next();
+        assertEquals("app-env", logEvent.getUserAttributesCopy().get("env"));
+    }
+
+    @Test
+    public void testFallsBackToDefaultConfigCustomLogAttributesWhenAppConfigHasNone() throws Exception {
+        Map<String, Object> defaultCustomAttributes = new HashMap<>();
+        defaultCustomAttributes.put("env", "default-env");
+        LogSenderServiceImpl logSenderService = createService(createConfigWithCustomAttributes(defaultCustomAttributes));
+
+        // App-specific config has no custom_attributes configured
+        AgentConfig appConfig = AgentConfigImpl.createAgentConfig(createConfig());
+        when(ServiceFactory.getConfigService().getAgentConfig(appName)).thenReturn(appConfig);
+
+        Transaction transaction = Mockito.mock(Transaction.class);
+        when(ServiceFactory.getTransactionService().getTransaction(false)).thenReturn(transaction);
+        when(transaction.getApplicationName()).thenReturn(appName);
+        when(transaction.isInProgress()).thenReturn(true);
+
+        LogSenderServiceImpl.TransactionLogs logs = new LogSenderServiceImpl.TransactionLogs(
+                AgentConfigImpl.createAgentConfig(Collections.emptyMap()), allowAllFilter());
+        when(transaction.getLogEventData()).thenReturn(logs);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+
+        assertEquals(1, logs.getEventsForTesting().size());
+        LogEvent logEvent = logs.getEventsForTesting().iterator().next();
+        assertEquals("default-env", logEvent.getUserAttributesCopy().get("env"));
+    }
+
+    @Test
+    public void testNoCustomLogAttributesConfigured_doesNotAddExtraAttributes() throws Exception {
+        LogSenderServiceImpl logSenderService = createService(createConfig());
+        logSenderService.addHarvestableToService(appName);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(1, analyticsData.getEvents().size());
+        AnalyticsEvent logEvent = analyticsData.getEvents().iterator().next();
+        assertEquals("value", logEvent.getUserAttributesCopy().get("field"));
+    }
+
+    private static Map<String, Object> createConfigWithCustomAttributes(Map<String, Object> customAttributes) {
+        Map<String, Object> subForwardingMap = new HashMap<>();
+        subForwardingMap.put(ApplicationLoggingForwardingConfig.ENABLED, true);
+        subForwardingMap.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+
+        Map<String, Object> loggingMap = new HashMap<>();
+        loggingMap.put(ApplicationLoggingConfigImpl.FORWARDING, subForwardingMap);
+
+        Map<String, Object> config = new HashMap<>();
+        config.put(AgentConfigImpl.APPLICATION_LOGGING, loggingMap);
+        config.put(AgentConfigImpl.APP_NAME, appName);
+        return config;
+    }
 
     private static Map<String, Object> createConfig() {
         return createConfig(null, null, null, null);

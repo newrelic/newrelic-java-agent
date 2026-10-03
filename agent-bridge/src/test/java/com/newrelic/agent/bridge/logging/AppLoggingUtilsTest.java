@@ -6,10 +6,8 @@
  */
 package com.newrelic.agent.bridge.logging;
 
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.MockedStatic;
@@ -18,17 +16,10 @@ import org.mockito.Mockito;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class AppLoggingUtilsTest {
-    private final com.newrelic.agent.bridge.Agent originalBridgeAgent = AgentBridge.getAgent();
-
-    @After
-    public void restoreAgentBridge() {
-        AgentBridge.agent = originalBridgeAgent;
-    }
 
     @Test
     public void testUrlEncoding() {

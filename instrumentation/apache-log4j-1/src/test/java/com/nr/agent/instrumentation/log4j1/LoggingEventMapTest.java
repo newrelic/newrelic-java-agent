@@ -7,8 +7,6 @@
 
 package com.nr.agent.instrumentation.log4j1;
 
-import com.newrelic.agent.bridge.Agent;
-import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
 import com.newrelic.agent.bridge.logging.LogAttributeType;
@@ -19,14 +17,10 @@ import org.apache.log4j.MDC;
 import org.apache.log4j.Priority;
 import org.apache.log4j.TestCategoryFactory;
 import org.apache.log4j.spi.LoggingEvent;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Proxy;
-import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -38,27 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 // Log4J1 has a quirk with Java 23(.0.0), maybe this will work when 23.0.1 is released
 @org.junit.experimental.categories.Category({ Java25IncompatibleTest.class, Java26IncompatibleTest.class })
 public class LoggingEventMapTest {
-
-    private Agent originalBridgeAgent;
-
-    // Other test classes in this module run against a real Agent configured with custom log attributes
-    // (see CustomLogAttributesTest). Since Gradle may run test classes in the same JVM, AgentBridge.agent
-    // is stubbed here so these size assertions don't depend on test execution order.
-    @BeforeEach
-    void stubNoCustomLogAttributes() {
-        originalBridgeAgent = AgentBridge.getAgent();
-        AgentBridge.agent = (Agent) Proxy.newProxyInstance(
-                Agent.class.getClassLoader(),
-                new Class<?>[] { Agent.class },
-                (proxy, method, args) -> "getConfiguredCustomLogAttributes".equals(method.getName())
-                        ? Collections.emptyMap()
-                        : method.invoke(originalBridgeAgent, args));
-    }
-
-    @AfterEach
-    void restoreAgentBridge() {
-        AgentBridge.agent = originalBridgeAgent;
-    }
 
     private static Stream<Arguments> providerParamsForLoggingEventMapTest() {
         return Stream.of(
