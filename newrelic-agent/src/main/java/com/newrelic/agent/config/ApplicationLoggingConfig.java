@@ -108,4 +108,11 @@ public interface ApplicationLoggingConfig {
      * @return A Set of uppercase Strings of log levels that should not be sent to New Relic. May be empty.
      */
     Set<String> getLogLevelDenylist();
+
+    /**
+     * Get a list of custom logging attributes configured by the customer.
+     *
+     * @return A map of custom logging attributes, keyed by attribute name.
+     */
+    Map<String, Object> getCustomLogAttributes();
 }

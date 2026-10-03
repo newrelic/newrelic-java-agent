@@ -227,4 +227,5 @@ public class AppLoggingUtilsTest {
             Assert.assertFalse(AppLoggingUtils.isAppLoggingContextDataEnabled());
         }
     }
+
 }

@@ -150,5 +150,10 @@ public class ApplicationLoggingConfigImpl extends BaseConfig implements Applicat
     public Set<String> getLogLevelDenylist(){
         return applicationLoggingForwardingConfig.getLogLevelDenylist();
     }
+
+    @Override
+    public Map<String, Object> getCustomLogAttributes() {
+        return applicationLoggingForwardingConfig.getCustomAttributes();
+    }
 }
 
