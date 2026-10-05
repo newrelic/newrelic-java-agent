@@ -22,9 +22,6 @@ on:
         type: string
         description: 'The versionGrouping scheme to apply to the verify task (one among: [ALL, LATEST_MINOR, LATEST_MAJOR, LATEST]).'
 
-env:
-  MODULE_AS_LIST: ${{ format('[{0}]', toJson(inputs.module)) }}
-
 jobs:
   build-agent:
     name: Build agent
@@ -39,6 +36,6 @@ jobs:
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       ref: ${{ inputs.ref }}
-      explicit-modules-list: ${{ env.MODULE_AS_LIST }}
+      explicit-modules-list: ${{ format('[{0}]', toJson(inputs.module)) }}
       grouping: ${{ inputs.grouping }}
     secrets: inherit

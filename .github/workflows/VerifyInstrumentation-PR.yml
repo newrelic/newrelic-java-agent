@@ -36,8 +36,8 @@ jobs:
             instrumentation:
               - 'instrumentation/**'
 
-      - id: set-modules
-        name: Extract module names from changed files
+      - name: Extract module names from changed files
+        id: set-modules
         env:
           CHANGED_FILES: ${{ steps.filter.outputs.instrumentation_files }}
         run: |
@@ -59,7 +59,7 @@ jobs:
   verify-changed-modules:
     name: Verify changed modules
     needs: [ get-changed-modules, build-agent ]
-    if: needs.changed-modules.outputs.any == 'true'
+    if: needs.get-changed-modules.outputs.any == 'true'
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       # On PR, verifyInstrumentation should be in default version grouping mode.
