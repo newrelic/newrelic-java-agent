@@ -840,6 +840,11 @@
                             "default": false,
                             "description": "When true and \"enable_auto_app_naming\" is also true, log events will be sent to their corresponding named entity rather than the roll up entity. Default is false."
                         },
+                        "prefix_context_attrs": {
+                            "type": "boolean",
+                            "default": true,
+                            "description": "When logging with context attributes, this setting controls whether to prefix those same attributes on the tracing data with \"context.\" to avoid attribute conflicts. Default is true."
+                        },
                         "max_samples_stored": {
                             "type": "integer",
                             "default": 10000,

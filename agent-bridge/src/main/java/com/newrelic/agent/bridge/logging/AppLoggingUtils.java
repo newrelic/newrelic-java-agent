@@ -55,6 +55,7 @@ public class AppLoggingUtils {
     private static final boolean APP_LOGGING_LOCAL_DECORATING_DEFAULT_ENABLED = false;
     private static final boolean APP_LOGGING_FORWARDING_CONTEXT_DATA_DEFAULT_ENABLED = false;
     private static final boolean APP_LOGGING_REPORT_EMPTY_LOG_MESSAGES_DEFAULT = true;
+    private static final boolean APP_LOGGING_PREFIX_CONTEXT_ATTRS_DEFAULT = true;
 
     /**
      * Gets a String representing the agent linking metadata in blob format:
@@ -193,6 +194,12 @@ public class AppLoggingUtils {
         return isAppLoggingContextDataEnabled() &&
                 NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.report_empty_log_messages",
                         APP_LOGGING_REPORT_EMPTY_LOG_MESSAGES_DEFAULT);
+    }
+
+    public static boolean isPrefixContextAttrs() {
+        return isAppLoggingContextDataEnabled() &&
+                NewRelic.getAgent().getConfig().getValue("application_logging.forwarding.prefix_context_attrs",
+                        APP_LOGGING_PREFIX_CONTEXT_ATTRS_DEFAULT);
     }
 
     /**
