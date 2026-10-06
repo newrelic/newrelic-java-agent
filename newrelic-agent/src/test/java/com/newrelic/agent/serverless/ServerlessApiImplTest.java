@@ -8,12 +8,18 @@
 package com.newrelic.agent.serverless;
 
 import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ServerlessApiImplTest {
 
@@ -23,6 +29,16 @@ public class ServerlessApiImplTest {
     public void setup() {
         ServiceFactory.setServiceManager(new MockServiceManager());
         serverlessApi = new ServerlessApiImpl();
+    }
+
+    private void setServerlessModeEnabled(boolean enabled) {
+        MockServiceManager serviceManager = new MockServiceManager();
+        Map<String, Object> serverlessModeSettings = new HashMap<>();
+        serverlessModeSettings.put("enabled", enabled);
+        Map<String, Object> settings = new HashMap<>();
+        settings.put("serverless_mode", serverlessModeSettings);
+        serviceManager.setConfigService(ConfigServiceFactory.createConfigServiceUsingSettings(settings));
+        ServiceFactory.setServiceManager(serviceManager);
     }
 
     @Test
@@ -89,5 +105,35 @@ public class ServerlessApiImplTest {
         serverlessApi.setFunctionVersion("v1");
         serverlessApi.setFunctionVersion("v2");
         assertEquals("v2", serverlessApi.getFunctionVersion());
+    }
+
+    @Test
+    public void isServerlessModeEnabled_delegatesToServerlessConfig() {
+        setServerlessModeEnabled(true);
+        assertTrue(serverlessApi.isServerlessModeEnabled());
+
+        setServerlessModeEnabled(false);
+        assertFalse(serverlessApi.isServerlessModeEnabled());
+    }
+
+    @Test
+    public void addAndRemoveMetricCollector_delegatesToServerlessService() {
+        Object metricReader = new Object();
+        serverlessApi.addMetricReader(metricReader, o -> { });
+        assertTrue(ServiceFactory.getServiceManager().getServerlessService().otelMetricsRegistered());
+
+        serverlessApi.removeMetricCollector(metricReader);
+        assertFalse(ServiceFactory.getServiceManager().getServerlessService().otelMetricsRegistered());
+    }
+
+    @Test
+    public void otelHarvest_delegatesToServerlessService() {
+        setServerlessModeEnabled(true);
+        serverlessApi = new ServerlessApiImpl();
+
+        boolean result = serverlessApi.otelHarvest("base64Payload");
+
+        assertTrue(result);
+        assertEquals("base64Payload", ServiceFactory.getServiceManager().getServerlessService().otelMetricsPayload());
     }
 }

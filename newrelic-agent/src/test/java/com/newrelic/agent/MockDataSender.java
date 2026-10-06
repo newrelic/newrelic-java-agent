@@ -99,6 +99,10 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
+    public void sendServerlessOTLPMetricData(String payload) throws Exception {
+    }
+
+    @Override
     public List<Long> sendProfileData(List<ProfileData> profiles) throws Exception {
         return null;
     }
