@@ -391,6 +391,10 @@
                             "default": 10000,
                             "description": "Application log events are collected up to the configured amount. Afterwards, events are sampled to maintain an even distribution across the harvest cycle. Default is 10000. Setting to 0 will disable."
                         },
+                        "custom_attributes": {
+                            "type": "string",
+                            "description": "custom_attributes are name-value pairs that are added to every log event. These attributes operate at the lowest priority level and DO NOT overwrite standard agent attributes and MDC attributes."
+                        },
                         "labels": {
                             "type": "object",
                             "properties": {
