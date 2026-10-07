@@ -235,6 +235,38 @@
             "default": 0,
             "description": "Milliseconds to wait for in-flight transactions to finish before shutdown. Default: 0"
         },
+        "url_obfuscation": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Set to true to enable URL obfuscation. Default is false"
+                },
+                "regex": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": {
+                            "type": "string",
+                            "description": "The regular expression to match against. A blank pattern disables this feature. For example: (/accounts/)\\d+"
+                        },
+                        "replacement": {
+                            "type": "string",
+                            "description": "The replacement pattern to use when a match is found. A blank value will replace the match with an empty String. For example: $1{id}"
+                        },
+                        "ignore_case": {
+                            "type": "boolean",
+                            "default": false,
+                            "description": "Whether to ignore case when applying the pattern. Default is false"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "description": "Obfuscation regular expression related items"
+                }
+            },
+            "additionalProperties": true,
+            "description": "When enabled, URL paths can be obfuscated when it matches the supplied pattern. Matched Strings will be replaced by the replacement String value. The following items can be obfuscated: request.uri, sql trace URIs, transaction names, external call http.url attributes (and associated metrics)."
+        },
         "process_host": {
             "type": "object",
             "properties": {
