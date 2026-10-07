@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import static com.newrelic.agent.config.SpanEventsConfig.SERVER_SPAN_HARVEST_CONFIG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
@@ -188,6 +189,36 @@ public class SpanEventsServiceTest {
         assertEquals(0, reservoir.getTotalSampledPriorityEvents());
     }
 
+
+    //This is a temporary test to validate that only FG events are created, regardless of the Transaction's PG Type.
+    //Note that the sampled count in the reservoir is cumulative (so it should increase by 7 each time a new txn is processed).
+    //Temporary, #NRCT
+    @Test
+    public void testNoPartialGranularitySpansRegardlessOfType() {
+        try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
+
+            //reduced
+            SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.REDUCED);
+            assertEquals(7, reservoir.size());
+            assertEquals(7, reservoir.getTotalSampledPriorityEvents());
+            assertTraceNotMarkedPG(reservoir);
+
+            reservoir.clear();
+
+            //essential
+            runPartialGranularityTest(Transaction.PartialSampleType.ESSENTIAL);
+            assertEquals(14, reservoir.getTotalSampledPriorityEvents());
+            assertTraceNotMarkedPG(reservoir);
+
+            reservoir.clear();
+
+            //compact
+            runPartialGranularityTest(Transaction.PartialSampleType.COMPACT);
+            assertEquals(21, reservoir.getTotalSampledPriorityEvents());
+            assertTraceNotMarkedPG(reservoir);
+        }
+    }
+
     // should become: (with all attributes intact)
     // entry span to service A (root)
     //   exit span 1 to service B
@@ -195,7 +226,9 @@ public class SpanEventsServiceTest {
     //   exit span 1 to service C
     //   LLM Span
     //       exit span to service D
-    @Test
+
+    //Disabled, #NRCT
+    //@Test
     public void testPartialGranularity_Reduced() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
             SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.REDUCED);
@@ -215,7 +248,9 @@ public class SpanEventsServiceTest {
     //   exit span 1 to service C
     //   LLM Span
     //       exit span to service D
-    @Test
+
+    //Disabled, #NRCT
+    //@Test
     public void testPartialGranularity_Essential() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
             SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.ESSENTIAL);
@@ -234,7 +269,9 @@ public class SpanEventsServiceTest {
     //   exit span 1 to service C
     //   LLM Span
     //   exit span to service D  (note: everything is re-parented to the root span for COMPACT)
-    @Test
+
+    //Disabled, #NRCT
+    //@Test
     public void testPartialGranularity_Compact() {
         try (MockedStatic<NewRelic> newRelic = mockStatic(NewRelic.class)) {
             SamplingPriorityQueue<SpanEvent> reservoir = runPartialGranularityTest(Transaction.PartialSampleType.COMPACT);
@@ -305,6 +342,17 @@ public class SpanEventsServiceTest {
         harvestService.startHarvestables(ServiceFactory.getRPMService(), AgentConfigImpl.createAgentConfig(connectionInfo));
         //then
         assertEquals("max samples stored should be: " + maxSamples, maxSamples, spanEventsService.getMaxSamplesStored());
+    }
+
+    private void assertTraceNotMarkedPG(SamplingPriorityQueue<SpanEvent> reservoir) {
+        SpanEvent rootSpan = reservoir.asList().stream()
+                .filter(span ->
+                        "Java/com.newrelic.agent.service.analytics.SpanEventsServiceTest/root".equals(span.getIntrinsics().get("name")))
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(rootSpan);
+        assertNull(rootSpan.getIntrinsics().get("nr.pg"));
     }
 
     private void assertAllPartialGranularitySpans(SamplingPriorityQueue<SpanEvent> reservoir, boolean shouldNonEssentialAttrsBeThere, boolean compactMode) {

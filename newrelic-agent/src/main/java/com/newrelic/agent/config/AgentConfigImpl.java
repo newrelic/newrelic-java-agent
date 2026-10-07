@@ -51,13 +51,13 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String ADAPTIVE_SAMPLER_SAMPLING_PERIOD = "adaptive_sampler_sampling_period";
     public static final String CLOUD = "cloud";
     public static final String CODE_LEVEL_METRICS = "code_level_metrics";
+    public static final String COLLECTOR_CONNECTION_TTL = "collector_connection_ttl";
     public static final String COMPRESSED_CONTENT_ENCODING_PROPERTY = "compressed_content_encoding";
     public static final String CPU_SAMPLING_ENABLED = "cpu_sampling_enabled";
     public static final String DATASTORE_MULTIHOST_PREFERENCE = "datastore_multihost_preference";
     public static final String ENABLED = "enabled";
     private static final String APM_LAMBDA_MODE = "apm_lambda_mode";
     public static final String ENABLE_AUTO_APP_NAMING = "enable_auto_app_naming";
-    public static final String ENABLE_AGENT_SETTINGS = "enable_agent_settings";
     public static final String ENABLE_AUTO_TRANSACTION_NAMING = "enable_auto_transaction_naming";
     public static final String ENABLE_BOOTSTRAP_CLASS_INSTRUMENTATION = "enable_bootstrap_class_instrumentation";
     public static final String ENABLE_CLASS_RETRANSFORMATION = "enable_class_retransformation";
@@ -147,12 +147,12 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
     public static final String DEFAULT_API_HOST = "rpm.newrelic.com";
     public static final String DEFAULT_CA_BUNDLE_PATH = null;
+    public static final int DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS = 0;
     public static final String DEFAULT_COMPRESSED_CONTENT_ENCODING = DataSenderImpl.GZIP_ENCODING;
     public static final boolean DEFAULT_CPU_SAMPLING_ENABLED = true;
     public static final String DEFAULT_DATASTORE_MULTIHOST_PREFERENCE = DatastoreInstanceDetection.MultiHostConfig.NONE.name();
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_ENABLE_AUTO_APP_NAMING = false;
-    public static final boolean DEFAULT_ENABLE_AGENT_SETTINGS = false;
     public static final boolean DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING = true;
     public static final boolean DEFAULT_ENABLE_CUSTOM_TRACING = true;
     public static final boolean DEFAULT_EXPERIMENTAL_RUNTIME = false;
@@ -215,9 +215,9 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final String appName;
     private final List<String> appNames;
     private final boolean autoAppNamingEnabled;
-    private final boolean agentSettingsEnabled;
     private final boolean autoTransactionNamingEnabled;
     private final String caBundlePath;
+    private final long collectorConnectionTtlInMillis;
     private final String compressedContentEncoding;
     private final boolean cpuSamplingEnabled;
     private final boolean customInstrumentationEditorAllowed;
@@ -350,7 +350,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         appName = getPrimaryAppName();
         cpuSamplingEnabled = getProperty(CPU_SAMPLING_ENABLED, DEFAULT_CPU_SAMPLING_ENABLED);
         autoAppNamingEnabled = getProperty(ENABLE_AUTO_APP_NAMING, DEFAULT_ENABLE_AUTO_APP_NAMING);
-        agentSettingsEnabled = getProperty(ENABLE_AGENT_SETTINGS, DEFAULT_ENABLE_AGENT_SETTINGS);
         autoTransactionNamingEnabled = getProperty(ENABLE_AUTO_TRANSACTION_NAMING, DEFAULT_ENABLE_AUTO_TRANSACTION_NAMING);
         transactionSizeLimit = getIntProperty(TRANSACTION_SIZE_LIMIT, DEFAULT_TRANSACTION_SIZE_LIMIT) * 1024;
         waitForRPMConnect = getProperty(WAIT_FOR_RPM_CONNECT, DEFAULT_WAIT_FOR_RPM_CONNECT);
@@ -366,6 +365,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         String[] jdbcSupport = getProperty(JDBC_SUPPORT, DEFAULT_JDBC_SUPPORT).split(",");
         this.jdbcSupport = new HashSet<>(Arrays.asList(jdbcSupport));
         genericJdbcSupportEnabled = this.jdbcSupport.contains(GENERIC_JDBC_SUPPORT);
+        collectorConnectionTtlInMillis = initCollectorConnectionTtl();
         requestTimeoutInMillis = getProperty(REQUEST_TIMEOUT_IN_SECONDS_PROPERTY, DEFAULT_REQUEST_TIMEOUT_IN_SECONDS) * 1000;
         instrumentationConfig = new BaseConfig(nestedProps(INSTRUMENTATION), SYSTEM_PROPERTY_ROOT + INSTRUMENTATION);
         transactionTracerConfig = initTransactionTracerConfig(apdexTInMillis, highSecurity);
@@ -946,6 +946,34 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     }
 
     @Override
+    public long getCollectorConnectionTtlInMilliseconds() {
+        return collectorConnectionTtlInMillis;
+    }
+
+    private long initCollectorConnectionTtl() {
+        Object configuredValue = getProperty(COLLECTOR_CONNECTION_TTL);
+        if (configuredValue == null) {
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+        if (!(configuredValue instanceof Number)) {
+            Agent.LOG.log(Level.WARNING,
+                    "The {0} configuration must be a non-negative number of seconds; using the default value of {1}.",
+                    COLLECTOR_CONNECTION_TTL, DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+
+        Number configuredNumber = (Number) configuredValue;
+        long configuredSeconds = configuredNumber.longValue();
+        if (configuredSeconds < 0 || configuredNumber.doubleValue() != configuredSeconds) {
+            Agent.LOG.log(Level.WARNING,
+                    "The {0} configuration must be a non-negative whole number; using the default value of {1}.",
+                    COLLECTOR_CONNECTION_TTL, DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+            return TimeUnit.SECONDS.toMillis(DEFAULT_COLLECTOR_CONNECTION_TTL_IN_SECONDS);
+        }
+        return TimeUnit.SECONDS.toMillis(configuredSeconds);
+    }
+
+    @Override
     public String getHost() {
         return host;
     }
@@ -1013,11 +1041,6 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public boolean isAutoAppNamingEnabled() {
         return autoAppNamingEnabled;
-    }
-
-    @Override
-    public boolean isAgentSettingsEnabled() {
-        return agentSettingsEnabled;
     }
 
     @Override

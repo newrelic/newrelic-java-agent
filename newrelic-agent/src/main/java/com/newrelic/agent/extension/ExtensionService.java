@@ -8,7 +8,6 @@
 package com.newrelic.agent.extension;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
@@ -261,8 +260,10 @@ public class ExtensionService extends AbstractService implements HarvestListener
                 Class<?>[] allLoadedClasses = ServiceFactory.getCoreService().getInstrumentation().getAllLoadedClasses();
                 retransformer.setClassMethodMatchers(pointCuts);
                 InstrumentationContextClassMatcherHelper matcherHelper = new InstrumentationContextClassMatcherHelper();
+                int weaveTaskThreadCount = ServiceFactory.getConfigService().getDefaultAgentConfig()
+                        .getClassTransformerConfig().getWeaveTaskThreadCount();
                 Set<Class<?>> classesToRetransform = ClassesMatcher.getMatchingClasses(
-                        retransformer.getMatchers(), matcherHelper, allLoadedClasses);
+                        retransformer.getMatchers(), matcherHelper, weaveTaskThreadCount, allLoadedClasses);
                 ReinstrumentUtils.checkClassExistsAndRetransformClasses(new ReinstrumentResult(),
                         Collections.<ExtensionClassAndMethodMatcher>emptyList(), null, classesToRetransform);
             }

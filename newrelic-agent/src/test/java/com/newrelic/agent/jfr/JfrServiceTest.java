@@ -96,54 +96,54 @@ public class JfrServiceTest {
     }
 
     @Test
-    public void jfrLoopDoesNotStartWhenCoreApiIsFalse() throws JfrRecorderException {
+    public void jfrLoopDoesNotStartWhenCoreApiIsFalse() throws Exception {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
         when(spyJfr.coreApisExist()).thenReturn(false);
         when(spyJfr.isEnabled()).thenReturn(true);
 
-        spyJfr.doStart();
+        spyJfr.start();
 
         assertFalse(spyJfr.coreApisExist());
         verify(spyJfr, times(0)).startJfrLoop();
     }
 
     @Test
-    public void jfrLoopDoesNotStartWhenIsEnabledIsFalse() throws JfrRecorderException {
+    public void jfrLoopDoesNotStartWhenIsEnabledIsFalse() throws Exception {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
         when(spyJfr.coreApisExist()).thenReturn(true);
         when(spyJfr.isEnabled()).thenReturn(false);
 
-        spyJfr.doStart();
+        spyJfr.start();
 
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
     }
 
     @Test
-    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndHighSecurityIsTrue() throws JfrRecorderException {
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndHighSecurityIsTrue() throws Exception {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
         when(agentConfig.isHighSecurity()).thenReturn(true);
         when(jfrConfig.isEnabled()).thenReturn(true);
         when(spyJfr.coreApisExist()).thenReturn(true);
 
-        spyJfr.doStart();
+        spyJfr.start();
 
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
     }
 
     @Test
-    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndServerlessModeIsTrue() throws JfrRecorderException {
+    public void jfrLoopDoesNotStartWhenIsEnabledIsTrueAndServerlessModeIsTrue() throws Exception {
         JfrService jfrService = new JfrService(jfrConfig, agentConfig);
         JfrService spyJfr = spy(jfrService);
         when(serverlessConfig.isEnabled()).thenReturn(true);
         when(jfrConfig.isEnabled()).thenReturn(true);
         when(spyJfr.coreApisExist()).thenReturn(true);
 
-        spyJfr.doStart();
+        spyJfr.start();
 
         assertFalse(spyJfr.isEnabled());
         verify(spyJfr, times(0)).startJfrLoop();
@@ -165,13 +165,12 @@ public class JfrServiceTest {
         when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
         when(mockRPMService.getEntityGuid()).thenReturn("test_guid");
 
-        spyJfr.doStart();
-
         try {
+            spyJfr.start();
             //The timeout wait is necessary because jfr loop is being executed on async thread.
             verify(spyJfr, timeout(100)).startJfrLoop();
             spyJfr.doStop();
-        } catch (JfrRecorderException e) {
+        } catch (Exception e) {
             fail("Should not have thrown any exception");
         }
     }
@@ -218,6 +217,28 @@ public class JfrServiceTest {
 
         String result = spyJfr.getJfrHostnameOrDisplayName();
         assertEquals("my-custom-display-name", result);
+    }
+
+    //Test the very specific bug where JFR disabled locally + JFR enabled via SSC on initial connect = 2 JFRs get started.
+    @Test
+    public void jfrEnabledViaSSCAtStartupDoesNotCreateMultipleJFRs() throws Exception {
+        //Initial Setup: JFR is disabled locally.
+        when(jfrConfig.isEnabled()).thenReturn(false);
+        JfrService jfrService = new JfrService(jfrConfig, agentConfig);
+        JfrService spyJfr = spy(jfrService);
+
+        setupRPMService();
+
+        JfrConfig newJfrConfig = mock(JfrConfig.class);
+        when(newJfrConfig.isEnabled()).thenReturn(true);
+        AgentConfig newAgentConfig = buildMinimumAgentConfig(newJfrConfig);
+
+        //In the RPMService.launch(), these events happen in sequence.
+        spyJfr.configChanged("my-app", newAgentConfig);
+        spyJfr.start();
+
+        //Only one JFR should have been created during the preceding calls.
+        verify(spyJfr, timeout(100).times(1)).startJfrLoop();
     }
 
     @Test
@@ -361,5 +382,36 @@ public class JfrServiceTest {
         labels.put("environment", "production");
         labels.put("region", "us-east-1");
         return labels;
+    }
+
+    private void setupRPMService() {
+        MockServiceManager manager = new MockServiceManager();
+        ServiceFactory.setServiceManager(manager);
+        RPMServiceManager mockRPMServiceManager = manager.getRPMServiceManager();
+        RPMService mockRPMService = mock(RPMService.class);
+        when(mockRPMServiceManager.getRPMService()).thenReturn(mockRPMService);
+        when(mockRPMService.getEntityGuid()).thenReturn("test_guid");
+    }
+
+    private AgentConfig buildMinimumAgentConfig(JfrConfig jfrConfigMock) {
+        AgentConfig agentConfigMock = mock(AgentConfig.class);
+
+        when(jfrConfigMock.useLicenseKey()).thenReturn(true);
+        when(jfrConfigMock.getHarvestInterval()).thenReturn(22);
+        when(jfrConfigMock.getQueueSize()).thenReturn(300_000);
+        when(agentConfigMock.getJfrConfig()).thenReturn(jfrConfigMock);
+
+        when(agentConfigMock.getApplicationName()).thenReturn("test_app_name");
+        when(agentConfigMock.getMetricIngestUri()).thenReturn(DEFAULT_METRIC_INGEST_URI);
+        when(agentConfigMock.getEventIngestUri()).thenReturn(DEFAULT_EVENT_INGEST_URI);
+        when(agentConfigMock.getLicenseKey()).thenReturn("test_1234_license_key");
+        when(agentConfigMock.getProxyScheme()).thenReturn("http");
+        when(agentConfigMock.getValue(eq(ThreadService.NAME_PATTERN_CFG_KEY), any(String.class)))
+                .thenReturn(ThreadNameNormalizer.DEFAULT_PATTERN);
+
+        ServerlessConfig serverlessConfigMock = mock(ServerlessConfig.class);
+        when(agentConfigMock.getServerlessConfig()).thenReturn(serverlessConfigMock);
+        when(serverlessConfigMock.isEnabled()).thenReturn(false);
+        return agentConfigMock;
     }
 }

@@ -38,6 +38,7 @@ public class ClassesMatcherTest {
 
         Set<Class<?>> matchingClasses = ClassesMatcher.getMatchingClasses(
                 Collections.singletonList(matcher), matcherHelper,
+                Runtime.getRuntime().availableProcessors(),
                 ArrayList.class);
 
         assertFalse(matchingClasses.isEmpty());
@@ -56,6 +57,7 @@ public class ClassesMatcherTest {
 
         Set<Class<?>> matchingClasses = ClassesMatcher.getMatchingClasses(
                 Collections.singletonList(matcher), matcherHelper,
+                Runtime.getRuntime().availableProcessors(),
                 ClassesMatcherTest.class,
                 ArrayList.class,
                 HashMap.class);
@@ -76,6 +78,7 @@ public class ClassesMatcherTest {
 
         Set<Class<?>> matchingClasses = ClassesMatcher.getMatchingClasses(
                 Collections.singletonList(matcher), matcherHelper,
+                Runtime.getRuntime().availableProcessors(),
                 Arrays.class,
                 ArrayList.class,
                 HashMap.class,

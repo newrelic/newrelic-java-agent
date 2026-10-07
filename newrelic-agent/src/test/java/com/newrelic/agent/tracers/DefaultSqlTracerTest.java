@@ -16,6 +16,7 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.Hostname;
 import com.newrelic.agent.config.TransactionTracerConfig;
+import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.database.DatastoreMetrics;
 import com.newrelic.agent.interfaces.SamplingPriorityQueue;
@@ -130,6 +131,7 @@ public class DefaultSqlTracerTest {
         when(ttConfig.getRecordSql()).thenReturn(RecordSql.obfuscated.name());
         when(ttConfig.isExplainEnabled()).thenReturn(true);
         when(ttConfig.isEnabled()).thenReturn(true);
+        when(ttConfig.getInsertSqlMaxLength()).thenReturn(TransactionTracerConfigImpl.DEFAULT_INSERT_SQL_MAX_LENGTH);
 
         AgentConfig agentConfig = AgentHelper.mockAgentConfig(ttConfig);
         when(agentConfig.isHighSecurity()).thenReturn(true);
@@ -182,6 +184,7 @@ public class DefaultSqlTracerTest {
         when(ttConfig.getRecordSql()).thenReturn(RecordSql.obfuscated.name());
         when(ttConfig.isExplainEnabled()).thenReturn(true);
         when(ttConfig.isEnabled()).thenReturn(true);
+        when(ttConfig.getInsertSqlMaxLength()).thenReturn(TransactionTracerConfigImpl.DEFAULT_INSERT_SQL_MAX_LENGTH);
 
         AgentConfig agentConfig = AgentHelper.mockAgentConfig(ttConfig);
         when(agentConfig.isHighSecurity()).thenReturn(true);
@@ -231,7 +234,7 @@ public class DefaultSqlTracerTest {
     @Test
     public void testInsertValuesTruncates() throws Exception {
         String sql = " Insert  Into  test       \t\t   VALUES ";
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 300; i++) {
             sql += "(333,444,555,666,777,888,999,111,222),";
         }
 

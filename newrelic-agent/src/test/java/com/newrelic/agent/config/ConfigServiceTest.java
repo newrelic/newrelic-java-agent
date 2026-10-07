@@ -9,6 +9,7 @@ package com.newrelic.agent.config;
 
 import com.google.common.collect.ImmutableMap;
 import com.newrelic.agent.ConnectionConfigListener;
+import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.HarvestService;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.MockHarvestService;
@@ -16,6 +17,8 @@ import com.newrelic.agent.MockRPMService;
 import com.newrelic.agent.MockRPMServiceManager;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
+import com.newrelic.agent.config.internal.MapEnvironmentFacade;
+import com.newrelic.agent.config.internal.MapSystemProps;
 import com.newrelic.agent.instrumentation.ClassTransformerService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -35,7 +38,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -230,7 +232,7 @@ public class ConfigServiceTest {
         configMap.put(AgentConfigImpl.PROXY_USER, "secret_user");
         configMap.put(AgentConfigImpl.PROXY_PASS, "secret_pass");
         configMap.put(AgentConfigImpl.PROXY_HOST, "secret_host");
-        configMap.put(AgentConfigImpl.LICENSE_KEY, "secret_key");
+        configMap.put(AgentConfigImpl.LICENSE_KEY, "secret_key_1234");
         createServiceManager(configMap);
 
         ConfigService configService = ServiceFactory.getServiceManager().getConfigService();
@@ -238,7 +240,7 @@ public class ConfigServiceTest {
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_USER), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_PASS), "****");
         assertEquals(sanitizedSettings.get(AgentConfigImpl.PROXY_HOST), "****");
-        assertEquals(sanitizedSettings.get(AgentConfigImpl.LICENSE_KEY), "****");
+        assertEquals(sanitizedSettings.get(AgentConfigImpl.LICENSE_KEY), "secret_key*****");
 
     }
 
@@ -379,17 +381,33 @@ public class ConfigServiceTest {
         configMap.put("agent_enabled", true);
         configMap.put("transaction_tracer", transactionTracerConfig);
         configMap.put("jfr", jfrConfig);
+        configMap.put("account_id", "12345");
+        // Invalid config keys should have their value replaced, not dropped
+        configMap.put("totally_bogus_key", "some_value");
 
         AgentConfig agentConfig = AgentConfigFactory.createAgentConfig(configMap, null, null);
         ConfigServiceImpl configService = new ConfigServiceImpl(agentConfig, null, configMap, false);
 
-        Map<String, Object> result = configService.getExplicitlySetConfig();
+        // Insure sys props are also sanitized
+        SystemPropertyProvider originalSystemPropertyProvider = SystemPropertyFactory.getSystemPropertyProvider();
+        try {
+            Map<String, String> sysProps = new HashMap<>();
+            sysProps.put("newrelic.config.license_key", "secret-license-key-from-sysprop");
+            SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                    new MapSystemProps(sysProps), new MapEnvironmentFacade(Collections.<String, String>emptyMap())));
 
-        assertEquals(true, result.get("agent_enabled"));
-        assertEquals("test", result.get("app_name"));
-        assertEquals(true, result.get("jfr.enabled"));
-        assertEquals("obfuscated", result.get("transaction_tracer.record_sql"));
-        assertNull(result.get("totally_bogus_key"));
+            Map<String, Object> result = configService.getExplicitlySetConfig();
+
+            assertEquals(true, result.get("agent_enabled"));
+            assertEquals("test", result.get("app_name"));
+            assertEquals(true, result.get("jfr.enabled"));
+            assertEquals("obfuscated", result.get("transaction_tracer.record_sql"));
+            assertEquals("12345", result.get("account_id"));
+            assertEquals("Invalid yml file config key", result.get("totally_bogus_key"));
+            assertEquals("secret-lic*********************", result.get("license_key"));
+        } finally {
+            SystemPropertyFactory.setSystemPropertyProvider(originalSystemPropertyProvider);
+        }
     }
 
     @Test
@@ -413,6 +431,30 @@ public class ConfigServiceTest {
 
         // server-supplied transaction_tracer.record_sql should be present
         assertEquals("off", result.get("transaction_tracer.record_sql"));
+    }
+
+    @Test
+    public void getExplicitlySetConfig_includesTopLevelServerDataNotNestedUnderAgentConfig() throws Exception {
+        Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(configMap);
+
+        ConfigService configService = ServiceFactory.getConfigService();
+        MockRPMServiceManager rpmServiceManager = (MockRPMServiceManager) ServiceFactory.getRPMServiceManager();
+        ConnectionConfigListener connectionConfigListener = rpmServiceManager.getConnectionConfigListener();
+        MockRPMService rpmService = (MockRPMService) rpmServiceManager.getRPMService();
+
+        Map<String, Object> serverData = new HashMap<>();
+        serverData.put("browser_monitoring.loader", "spa");
+        serverData.put(BrowserConfig.BROWSER_KEY, "NRJS-e4e3964356cf5aabe76");
+        serverData.put(CrossProcessConfigImpl.ENCODING_KEY, "d67afc830dab717fd163bfcb0b8b88423e9a1a3b");
+
+        connectionConfigListener.connected(rpmService, serverData);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+
+        assertEquals("spa", result.get("browser_monitoring.loader"));
+        assertEquals("NRJS-e4e39**************", result.get(BrowserConfig.BROWSER_KEY));
+        assertEquals("d67afc830d******************************", result.get(CrossProcessConfigImpl.ENCODING_KEY));
     }
 
     @Test

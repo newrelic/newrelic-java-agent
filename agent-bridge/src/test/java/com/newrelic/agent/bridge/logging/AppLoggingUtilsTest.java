@@ -6,6 +6,7 @@
  */
 package com.newrelic.agent.bridge.logging;
 
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.NewRelic;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ public class AppLoggingUtilsTest {
 
     @Test
     public void getLinkingMetadataBlob_withNonNullMetadata_createsProperlyFormattedBlob() {
-        Agent mockAgent = Mockito.mock(Agent.class);
+        com.newrelic.agent.bridge.Agent mockAgent = Mockito.mock(com.newrelic.agent.bridge.Agent.class);
 
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(AppLoggingUtils.ENTITY_GUID, "1234");
@@ -57,23 +58,57 @@ public class AppLoggingUtilsTest {
         metadataMap.put(AppLoggingUtils.SPAN_ID, "567");
         metadataMap.put(AppLoggingUtils.ENTITY_NAME, "name");
 
-        Mockito.when(mockAgent.getLinkingMetadata()).thenReturn(metadataMap);
-        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
-            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
-
+        Mockito.when(mockAgent.getLogLinkingMetadata()).thenReturn(metadataMap);
+        com.newrelic.agent.bridge.Agent originalAgent = AgentBridge.agent;
+        AgentBridge.agent = mockAgent;
+        try {
             Assert.assertEquals(" NR-LINKING|1234|host|9876|567|name|", AppLoggingUtils.getLinkingMetadataBlob());
+        } finally {
+            AgentBridge.agent = originalAgent;
         }
     }
 
     @Test
     public void getLinkingMetadataBlob_withNullMetadata_createsSparseBlob() {
-        Agent mockAgent = Mockito.mock(Agent.class);
+        com.newrelic.agent.bridge.Agent mockAgent = Mockito.mock(com.newrelic.agent.bridge.Agent.class);
 
-        Mockito.when(mockAgent.getLinkingMetadata()).thenReturn(null);
-        try (MockedStatic<NewRelic> mockNewRelic = Mockito.mockStatic(NewRelic.class)) {
-            mockNewRelic.when(NewRelic::getAgent).thenReturn(mockAgent);
-
+        Mockito.when(mockAgent.getLogLinkingMetadata()).thenReturn(null);
+        com.newrelic.agent.bridge.Agent originalAgent = AgentBridge.agent;
+        AgentBridge.agent = mockAgent;
+        try {
             Assert.assertEquals(" NR-LINKING|", AppLoggingUtils.getLinkingMetadataBlob());
+        } finally {
+            AgentBridge.agent = originalAgent;
+        }
+    }
+
+    @Test
+    public void getLinkingMetadataBlob_withKubernetesMetadata_appendsKubernetesAttributes() {
+        com.newrelic.agent.bridge.Agent mockAgent = Mockito.mock(com.newrelic.agent.bridge.Agent.class);
+
+        Map<String, String> metadataMap = new HashMap<>();
+        metadataMap.put(AppLoggingUtils.ENTITY_GUID, "1234");
+        metadataMap.put(AppLoggingUtils.HOSTNAME, "host");
+        metadataMap.put(AppLoggingUtils.TRACE_ID, "9876");
+        metadataMap.put(AppLoggingUtils.SPAN_ID, "567");
+        metadataMap.put(AppLoggingUtils.ENTITY_NAME, "name");
+        metadataMap.put(AppLoggingUtils.K8S_CLUSTER_NAME, "my-cluster");
+        metadataMap.put(AppLoggingUtils.K8S_NAMESPACE_NAME, "my-namespace");
+        metadataMap.put(AppLoggingUtils.K8S_POD_NAME, "my-pod");
+        metadataMap.put(AppLoggingUtils.K8S_NODE_NAME, "my-node");
+        metadataMap.put(AppLoggingUtils.K8S_DEPLOYMENT_NAME, "my-deployment");
+        metadataMap.put(AppLoggingUtils.K8S_REPLICASET_NAME, "my-replicaset");
+        metadataMap.put(AppLoggingUtils.K8S_CONTAINER_NAME, "my-container");
+        metadataMap.put(AppLoggingUtils.K8S_CONTAINER_IMAGE_NAME, "my-image");
+
+        Mockito.when(mockAgent.getLogLinkingMetadata()).thenReturn(metadataMap);
+        com.newrelic.agent.bridge.Agent originalAgent = AgentBridge.agent;
+        AgentBridge.agent = mockAgent;
+        try {
+            Assert.assertEquals(" NR-LINKING|1234|host|9876|567|name|my-cluster|my-namespace|my-pod|my-node|my-deployment|my-replicaset|my-container|my-image|",
+                    AppLoggingUtils.getLinkingMetadataBlob());
+        } finally {
+            AgentBridge.agent = originalAgent;
         }
     }
 

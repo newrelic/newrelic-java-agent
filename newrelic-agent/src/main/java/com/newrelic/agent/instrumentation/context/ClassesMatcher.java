@@ -20,28 +20,24 @@ import java.util.logging.Level;
 
 public class ClassesMatcher {
 
-    public static final int MAX_NUMBER_OF_THREADS = 8;
-
     /**
      * This parallelizes matching of a large number of classes by firing up threads to handle
-     * a partition of the classes.  It uses an interesting and difficult algorithm to decide
-     * how many threads to start, with a max of 8.
+     * a partition of the classes, capped at {@code maxThreads}, e.g. a value sourced from
+     * {@link com.newrelic.agent.config.ClassTransformerConfig#getWeaveTaskThreadCount()}.
      *
-     * We think that there is room to improve/fix/optimize this to better match available
-     * cores on the underlying hardware.
-     *
-     * If 10 classes are passed in, it will create 5 threads.
-     * If 100 classes are passed in, it will create 8 threads.
+     * If 10 classes are passed in and the cap is 5, it will create 5 threads.
+     * If 100 classes are passed in and the cap is 8, it will create 8 threads.
      */
     public static Set<Class<?>> getMatchingClasses(final Collection<ClassMatchVisitorFactory> matchers,
                                                    final InstrumentationContextClassMatcherHelper matchHelper,
+                                                   int maxThreads,
                                                    Class<?>... classes) {
         final Set<Class<?>> matchingClasses = Sets.newConcurrentHashSet();
         if (classes == null || classes.length == 0) {
             return matchingClasses;
         }
 
-        double partitions = Math.min(classes.length, MAX_NUMBER_OF_THREADS);
+        double partitions = Math.min(classes.length, maxThreads);
         int estimatedPerPartition = (int) Math.ceil(classes.length / partitions);
         List<List<Class<?>>> partitionsClasses = Lists.partition(Arrays.asList(classes), estimatedPerPartition);
 

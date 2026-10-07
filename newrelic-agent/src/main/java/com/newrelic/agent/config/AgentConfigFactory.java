@@ -288,6 +288,8 @@ public class AgentConfigFactory {
 
         // Browser settings
         addServerProp(BrowserConfig.BROWSER_KEY, serverData.get(BrowserConfig.BROWSER_KEY), settings);
+        String browserMonitoringLoader = AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.LOADER_TYPE;
+        addServerProp(browserMonitoringLoader, serverData.get(browserMonitoringLoader), settings);
         addServerProp(BrowserConfig.BROWSER_LOADER_VERSION, serverData.get(BrowserConfig.BROWSER_LOADER_VERSION), settings);
         addServerProp(BrowserConfig.JS_AGENT_LOADER, serverData.get(BrowserConfig.JS_AGENT_LOADER), settings);
         addServerProp(BrowserConfig.JS_AGENT_FILE, serverData.get(BrowserConfig.JS_AGENT_FILE), settings);

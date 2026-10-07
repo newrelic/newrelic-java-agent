@@ -50,15 +50,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
     boolean isAutoAppNamingEnabled();
 
     /**
-     * If <code>true</code> agent configuration settings are sent to the agent_settings collector method
-     * during every "connect" sequence.
-     * Note that this setting is NOT "hot reloadable" and is only checked once at startup.
-     *
-     * @return <code>true</code> if the agent_settings flag is enabled
-     */
-    boolean isAgentSettingsEnabled();
-
-    /**
      * If the enable_auto_transaction_naming property is <code>true</code> the name of a web transaction is determined
      * automatically.
      *

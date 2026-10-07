@@ -514,7 +514,9 @@ public class MetricNames {
     // JFR Service
     public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS = "Supportability/JfrService/Started/Success";
     public static final String SUPPORTABILITY_JFR_SERVICE_STOPPED_SUCCESS = "Supportability/JfrService/Stopped/Success";
-    public static final String SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL = "Supportability/JfrService/Started/Fail";
+    public static final String SUPPORTABILITY_JFR_SERVICE_IGNORED_SERVICE_NOT_STARTED = "Supportability/JfrService/IgnoreStart/ServiceNotStarted";
+    public static final String SUPPORTABILITY_JFR_SERVICE_IGNORED_DISABLED = "Supportability/JfrService/IgnoreStart/Disabled";
+    public static final String SUPPORTABILITY_JFR_SERVICE_IGNORED_APIS_MISSING = "Supportability/JfrService/IgnoreStart/ApisMissing";
     public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE = "Supportability/JfrService/Config/QueueSize";
     public static final String SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL = "Supportability/JfrService/Config/HarvestInterval";
 
