@@ -100,6 +100,11 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private static final String ENV_METADATA = "metadata";
     private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1_000_000;
 
+    // Attributes for the logging common block
+    public static final String ENTITY_GUID = "entity.guid";
+    public static final String ENTITY_NAME = "entity.name";
+    public static final String HOSTNAME = "hostname";
+
     // Destinations for agent data
     private static final String COLLECTOR = "Collector";
 
@@ -348,8 +353,9 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     }
 
     @Override
-    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
-        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
+    public void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes,
+            String entityGuid, String entityName, String hostName) throws Exception {
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events, customAttributes, entityGuid, entityName, hostName);
     }
 
     @Override
@@ -396,7 +402,8 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
     // Sends LogEvent data in the MELT format for logs
     // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
-    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events) throws Exception {
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events,
+            Map<String, Object> customAttributes, String entityGuid, String entityName, String hostName) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
             return;
@@ -405,12 +412,26 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         JSONObject commonAttributes = new JSONObject();
 
         // build attributes object
-        JSONObject attributes = new JSONObject();
-        attributes.put("attributes", commonAttributes);
+        JSONObject commonBlock = new JSONObject();
+
+        for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
+            commonAttributes.put(entry.getKey(), entry.getValue());
+        }
+        if (entityGuid != null && !entityGuid.isEmpty()) {
+            commonAttributes.put(ENTITY_GUID, entityGuid);
+        }
+        if (entityName != null && !entityName.isEmpty()) {
+            commonAttributes.put(ENTITY_NAME, entityName);
+        }
+        if (hostName != null && !hostName.isEmpty()) {
+            commonAttributes.put(HOSTNAME, hostName);
+        }
+
+        commonBlock.put("attributes", commonAttributes);
 
         // build common object
         JSONObject common = new JSONObject();
-        common.put("common", attributes);
+        common.put("common", commonBlock);
 
         // build logs object
         JSONObject logs = new JSONObject();

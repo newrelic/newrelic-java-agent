@@ -584,18 +584,18 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // within the attribute sender, the modified value won't be "interned" in our map.
         AttributeSender sender = new LogEventAttributeSender(logEventAttributes);
 
-        // We first add custom attributes added via the agent config
-        Map<String, Object> customAttributes = getCustomLoggingAttributes(txn);
-
-        if (customAttributes != null) {
-            for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
-                String key = entry.getKey();
-                LogAttributeKey logAttributeKey = new LogAttributeKey(key, LogAttributeType.AGENT);
-                if (!attributes.containsKey(logAttributeKey)) {
-                    addLogAttribute(sender, logAttributeKey, entry.getValue(), contextDataKeyFilter);
-                }
-            }
-        }
+//        // We first add custom attributes added via the agent config
+//        Map<String, Object> customAttributes = getCustomLoggingAttributes(txn);
+//
+//        if (customAttributes != null) {
+//            for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
+//                String key = entry.getKey();
+//                LogAttributeKey logAttributeKey = new LogAttributeKey(key, LogAttributeType.AGENT);
+//                if (!attributes.containsKey(logAttributeKey)) {
+//                    addLogAttribute(sender, logAttributeKey, entry.getValue(), contextDataKeyFilter);
+//                }
+//            }
+//        }
 
         // We then add the attributes sent via the log API
         for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {

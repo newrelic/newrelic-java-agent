@@ -381,7 +381,7 @@ public class DataSenderServerlessImplTest {
         attrs.put("attr", "val");
         LogEvent logEvent = new LogEvent(attrs, 0.332f);
         logEvents.add(logEvent);
-        dataSender.sendLogEvents(logEvents);
+        dataSender.sendLogEvents(logEvents, attrs, null, null, null);
         Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
     }
 
