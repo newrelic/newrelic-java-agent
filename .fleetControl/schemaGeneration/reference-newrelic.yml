@@ -222,6 +222,31 @@ common: &default_settings
   # Default: 0
   wait_for_transactions: 0
 
+  # When enabled, URL paths can be obfuscated when it matches the supplied pattern.
+  # Matched Strings will be replaced by the replacement String value. The following
+  # items can be obfuscated: request.uri, sql trace URIs, transaction names,
+  # external call http.url attributes (and associated metrics).
+  url_obfuscation:
+
+    # Set to true to enable URL obfuscation.
+    # Default is false
+    enabled: false
+
+    # Obfuscation regular expression related items
+    regex:
+
+      # The regular expression to match against. A blank pattern disables this feature.
+      # For example: (/accounts/)\d+
+      pattern:
+
+      # The replacement pattern to use when a match is found. A blank value will
+      # replace the match with an empty String. For example: $1{id}
+      replacement:
+
+      # Whether to ignore case when applying the pattern.
+      # Default is false
+      ignore_case: false
+
   # Process/host identification overrides.
   process_host:
     # Overrides the reported hostname.

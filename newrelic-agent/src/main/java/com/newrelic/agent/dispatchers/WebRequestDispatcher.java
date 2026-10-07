@@ -204,7 +204,7 @@ public class WebRequestDispatcher extends DefaultDispatcher implements WebRespon
             if (uri == null || uri.length() == 0) {
                 Agent.LOG.log(Level.FINER, "requestURI is null: setting requestURI to {0}", result);
             } else {
-                result = ServiceFactory.getNormalizationService().getUrlBeforeParameters(uri);
+                result = ServiceFactory.getUrlPathObfuscator().obfuscatePath(ServiceFactory.getNormalizationService().getUrlBeforeParameters(uri));
             }
         } catch (Throwable e) {
             Agent.LOG.log(Level.FINER, "Error calling requestURI: " + e.toString());
