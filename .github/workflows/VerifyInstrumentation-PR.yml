@@ -1,0 +1,69 @@
+# Runs verifyInstrumentation only against the instrumentation modules touched by a PR.
+
+name: Verify Instrumentation on PR
+
+# Permissions granted to all jobs in the workflow.
+# Permissions that aren't explicitly defined here will default to a value of none.
+permissions: {}
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'instrumentation/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # detects which instrumentation/<module> directories were touched by this PR
+  get-changed-modules:
+    runs-on: ubuntu-24.04
+    outputs:
+      modules: ${{ steps.set-modules.outputs.modules }}
+      any: ${{ steps.set-modules.outputs.any }}
+    steps:
+#       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+
+      - name: Find changed files under instrumentation/**
+        id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # pin@v4.0.3
+        with:
+          list-files: json
+          filters: |
+            instrumentation:
+              - 'instrumentation/**'
+
+      - name: Extract module names from changed files
+        id: set-modules
+        env:
+          CHANGED_FILES: ${{ steps.filter.outputs.instrumentation_files }}
+        run: |
+          # the module name is the 2nd segment (instrumentation/<module-name>/..)
+          modules=$(jq -c '[.[] | split("/")[1]] | unique' <<< "$CHANGED_FILES")
+          echo "modules=$modules" >> $GITHUB_OUTPUT
+          echo "any=$([ "$modules" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  build-agent:
+    name: Build agent
+    needs: get-changed-modules
+    # Skip this job if no module changes were found.
+    if: needs.get-changed-modules.outputs.any == 'true'
+    uses: ./.github/workflows/X-Reusable-BuildAgent.yml
+    with:
+      agent-ref: ${{ github.sha }}
+    secrets: inherit
+
+  verify-changed-modules:
+    name: Verify changed modules
+    needs: [ get-changed-modules, build-agent ]
+    if: needs.get-changed-modules.outputs.any == 'true'
+    uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
+    with:
+      # On PR, verifyInstrumentation should be in default version grouping mode.
+      # This means that ALL versions of a library will be checked by the verifier, unless a module is explicitly configured otherwise.
+      ref: ${{ github.sha }}
+      explicit-modules-list: ${{ needs.get-changed-modules.outputs.modules }}
+    secrets: inherit
