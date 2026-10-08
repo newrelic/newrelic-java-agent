@@ -29,7 +29,7 @@ public class KafkaProducer_Instrumentation<K, V> {
         if (!metricsReporterInstalled) {
             NewRelic.getAgent().getLogger().log(Level.INFO,
                 "newrelic-kafka-clients-enhancements engaged for producer {0}", clientId);
-            metrics.addReporter(new NewRelicMetricsReporter(ClientType.PRODUCER, metadata.fetch().nodes()));
+            metrics.addReporter(new NewRelicMetricsReporter(ClientType.PRODUCER, metadata.fetch().nodes(), metadata));
             metricsReporterInstalled = true;
         }
     }

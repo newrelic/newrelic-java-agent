@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -58,6 +59,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import static com.newrelic.agent.model.LogEvent.LOG_EVENT_TYPE;
 
@@ -584,72 +586,61 @@ public class LogSenderServiceImpl extends AbstractService implements LogSenderSe
         // within the attribute sender, the modified value won't be "interned" in our map.
         AttributeSender sender = new LogEventAttributeSender(logEventAttributes);
 
-//        // We first add custom attributes added via the agent config
-//        Map<String, Object> customAttributes = getCustomLoggingAttributes(txn);
-//
-//        if (customAttributes != null) {
-//            for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
-//                String key = entry.getKey();
-//                LogAttributeKey logAttributeKey = new LogAttributeKey(key, LogAttributeType.AGENT);
-//                if (!attributes.containsKey(logAttributeKey)) {
-//                    addLogAttribute(sender, logAttributeKey, entry.getValue(), contextDataKeyFilter);
-//                }
-//            }
-//        }
+        boolean usePrefix = AppLoggingUtils.isPrefixContextAttrs();
 
-        // We then add the attributes sent via the log API
-        for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
-            LogAttributeKey logAttrKey = entry.getKey();
-            Object value = entry.getValue();
-
-            addLogAttribute(sender, logAttrKey, value, contextDataKeyFilter);
+        // first let's separate the context attributes from everything else
+        Map<LogAttributeKey, Object> contextAttrs = new HashMap<>();
+        Iterator<? extends Map.Entry<LogAttributeKey, ?>> iter = attributes.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry<LogAttributeKey, ?> entry = iter.next();
+            if (entry.getKey().type == LogAttributeType.CONTEXT) {
+                contextAttrs.put(entry.getKey(), entry.getValue());
+                iter.remove();
+            }
         }
 
+        // now deal with the context attributes first
+        addAttributesToSender(sender, contextAttrs, contextDataKeyFilter, usePrefix);
+
+        // now add the other attributes to overwrite any duplicates that in the context attributes
+        // this ensures that context attributes can never overwrite first-class attributes
+        addAttributesToSender(sender, attributes, contextDataKeyFilter, usePrefix);
 
         return event;
     }
 
-    private static Map<String, Object> getCustomLoggingAttributes(Transaction txn) {
-        AgentConfig defaultConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
-        AgentConfig appConfig = defaultConfig;
-        if (txn != null) {
-            appConfig = ServiceFactory.getConfigService().getAgentConfig(txn.getApplicationName());
-        }
+    private static void addAttributesToSender (AttributeSender sender, Map<LogAttributeKey, ?> attributes,
+            ExcludeIncludeFilter contextDataKeyFilter, Boolean usePrefix) {
+        for (Map.Entry<LogAttributeKey, ?> entry : attributes.entrySet()) {
+            LogAttributeKey logAttrKey = entry.getKey();
+            Object value = entry.getValue();
+            String key = logAttrKey.getKey();
 
-        Map<String, Object> appConfigCustomAttributes = appConfig.getApplicationLoggingConfig().getCustomLogAttributes();
-        if (appConfigCustomAttributes == null || appConfigCustomAttributes.isEmpty()) {
-            return  defaultConfig.getApplicationLoggingConfig().getCustomLogAttributes();
-        }
+            // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
+            if (key == null || value == null) {
+                Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction."
+                        + " This attribute will be ignored. Each key should be a String and each value should be a String, Number, or Boolean."
+                        + " Key: " + (key == null ? "[null]" : Strings.obfuscate(key)));
+                continue;
+            }
 
-        return appConfigCustomAttributes;
-    }
+            // filter out context attrs that should not be included
+            if (logAttrKey.type == LogAttributeType.CONTEXT && !contextDataKeyFilter.shouldInclude(logAttrKey.getKey())) {
+                continue;
+            }
 
-    private static void addLogAttribute(AttributeSender sender, LogAttributeKey logAttrKey, Object value, ExcludeIncludeFilter contextDataKeyFilter) {
-        String key = logAttrKey.getKey();
-
-        // key or value is null, skip it with a log message and iterate to next entry in attributes.entrySet()
-        if (key == null || value == null) {
-            Agent.LOG.log(Level.FINEST, "Log event with invalid attributes key or value of null was reported for a transaction."
-                    + " This attribute will be ignored. Each key should be a String and each value should be a String, Number, or Boolean."
-                    + " Key: " + (key == null ? "[null]" : Strings.obfuscate(key)));
-            return;
-        }
-
-        // filter out context attrs that should not be included
-        if (logAttrKey.type == LogAttributeType.CONTEXT && !contextDataKeyFilter.shouldInclude(logAttrKey.getKey())) {
-            return;
-        }
-
-        String prefixedKey = mapInternString(logAttrKey.getPrefixedKey());
-        if (value instanceof String) {
-            sender.addAttribute(prefixedKey, mapInternString((String) value), METHOD);
-        } else if (value instanceof Number) {
-            sender.addAttribute(prefixedKey, (Number) value, METHOD);
-        } else if (value instanceof Boolean) {
-            sender.addAttribute(prefixedKey, (Boolean) value, METHOD);
-        } else {
-            // Java Agent specific - toString the value. This allows for e.g. enums as arguments.
-            sender.addAttribute(prefixedKey, mapInternString(value.toString()), METHOD);
+            if (usePrefix) key = logAttrKey.getPrefixedKey();
+            key = mapInternString(key);
+            if (value instanceof String) {
+                sender.addAttribute(key, mapInternString((String) value), METHOD);
+            } else if (value instanceof Number) {
+                sender.addAttribute(key, (Number) value, METHOD);
+            } else if (value instanceof Boolean) {
+                sender.addAttribute(key, (Boolean) value, METHOD);
+            } else {
+                // Java Agent specific - toString the value. This allows for e.g. enums as arguments.
+                sender.addAttribute(key, mapInternString(value.toString()), METHOD);
+            }
         }
     }
 

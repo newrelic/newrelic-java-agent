@@ -22,6 +22,8 @@ import org.json.simple.JSONStreamAware;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,8 +43,6 @@ public class TransactionSegment implements JSONStreamAware {
      * should still be used.
      */
     private static final String PARTIAL_TRACE = "partialtrace";
-    private static final Pattern INSERT_INTO_VALUES_STATEMENT = Pattern.compile(
-            "\\s*insert\\s+into\\s+([^\\s(,]*)\\s+values.*", Pattern.CASE_INSENSITIVE);
     private static final String URL_PARAMETER_NAME = "http.url";
     public static final String ASYNC_EXCLUSIVE = "exclusive_duration_millis";
     private static final double NANO_TO_MILLI = 1000000.0;
@@ -139,7 +139,30 @@ public class TransactionSegment implements JSONStreamAware {
         if (excludeRequestUri) {
             return null;
         }
-        return tracer.getTransactionSegmentUri();
+
+        String uri = tracer.getTransactionSegmentUri();
+        if (uri == null || uri.isEmpty() || tracer.getExternalParameters() != null) {
+            // The getExternalParameters check is so we don't run the obfuscation twice. If this
+            // is present, the path has already been obfuscated.
+            return uri;
+        }
+
+        return obfuscateLegacyTransactionSegmentUri(uri);
+    }
+
+    /**
+     * This is for URIs that don't go through the "reportExternal" flow. All we have is a raw string,
+     * so we send it through a URI constructor to see if it parses. If it fails, we send the entire
+     * String through the obfuscator.
+     */
+    private static String obfuscateLegacyTransactionSegmentUri(String uri) {
+        try {
+            URI parsed = new URI(uri);
+            String obfuscatedPath = ServiceFactory.getUrlPathObfuscator().obfuscatePath(parsed.getPath());
+            return new URI(parsed.getScheme(), null, parsed.getHost(), parsed.getPort(), obfuscatedPath, null, null).toString();
+        } catch (URISyntaxException e) {
+            return ServiceFactory.getUrlPathObfuscator().obfuscatePath(uri);
+        }
     }
 
     void setMetricName(String name) {
@@ -253,10 +276,7 @@ public class TransactionSegment implements JSONStreamAware {
             return;
         }
 
-        if (INSERT_INTO_VALUES_STATEMENT.matcher(sql).matches()) {
-            int maxLength = ttConfig.getInsertSqlMaxLength();
-            sql = truncateSql(sql, maxLength);
-        }
+        sql = truncateSql(sql, ttConfig.getInsertSqlMaxLength());
         if (ttConfig.isLogSql()) {
             Agent.LOG.log(Level.INFO, MessageFormat.format("{0} SQL: {1}", ttConfig.getRecordSql(), sql));
             return;

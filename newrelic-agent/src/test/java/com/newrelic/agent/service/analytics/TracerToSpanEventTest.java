@@ -7,16 +7,21 @@
 
 package com.newrelic.agent.service.analytics;
 
+import com.newrelic.agent.MockConfigService;
+import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.TransactionData;
 import com.newrelic.agent.attributes.AttributeNames;
 import com.newrelic.agent.bridge.TransactionNamePriority;
 import com.newrelic.agent.bridge.opentelemetry.SpanLink;
+import com.newrelic.agent.config.AgentConfig;
+import com.newrelic.agent.config.TransactionTracerConfigImpl;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
 import com.newrelic.agent.environment.EnvironmentService;
 import com.newrelic.agent.model.AttributeFilter;
 import com.newrelic.agent.model.SpanError;
 import com.newrelic.agent.model.SpanEvent;
+import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.TransactionStats;
 import com.newrelic.agent.tracers.ErrorTracer;
 import com.newrelic.agent.tracers.Tracer;
@@ -104,6 +109,13 @@ public class TracerToSpanEventTest {
 
     @Before
     public void setup() {
+        MockServiceManager serviceManager = new MockServiceManager();
+        AgentConfig agentConfig = mock(AgentConfig.class, RETURNS_DEEP_STUBS);
+        when(agentConfig.getTransactionTracerConfig().getInsertSqlMaxLength())
+                .thenReturn(TransactionTracerConfigImpl.DEFAULT_INSERT_SQL_MAX_LENGTH);
+        serviceManager.setConfigService(new MockConfigService(agentConfig));
+        ServiceFactory.setServiceManager(serviceManager);
+
         transactionAgentAttributes = new HashMap<>();
         transactionUserAttributes = new HashMap<>();
         tracerAgentAttributes = new HashMap<>();

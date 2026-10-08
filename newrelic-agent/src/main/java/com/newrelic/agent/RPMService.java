@@ -138,7 +138,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         isMainApp = appName.equals(config.getApplicationName());
         this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
 
-        if (config.isAgentSettingsEnabled() && this.isMainApp) {
+        if (this.isMainApp) {
             scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
         }
     }
@@ -151,10 +151,10 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     protected void doStart() throws Exception {
         addHarvestablesToServices();
-        connect();
         ServiceFactory.getEnvironmentService().getEnvironment().addEnvironmentChangeListener(this);
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
         ServiceFactory.getServiceManager().getCircuitBreakerService().addRPMService(this);
+        connect();
         errorService.start();
     }
 

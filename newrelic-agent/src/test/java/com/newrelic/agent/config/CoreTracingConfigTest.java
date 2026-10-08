@@ -23,6 +23,12 @@ import java.util.Properties;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
+/***
+ * This tests the complete set of CoreTracing configurations - samplings and granularities.
+ *
+ * Currently, the granularity configs are hardcoded on/off for full/partial, respectively. Some tests have been marked Disabled, #NRCT for this reason
+ * (or otherwise have their .isEnabled() assertions adjusted).
+ */
 public class CoreTracingConfigTest {
 
     private DistributedTracingConfig distributedTracingConfig;
@@ -137,7 +143,7 @@ public class CoreTracingConfigTest {
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
 
         //partial granularity assertions
-        assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertFalse(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.COMPACT, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
@@ -169,7 +175,7 @@ public class CoreTracingConfigTest {
 
         distributedTracingConfig = new DistributedTracingConfig(dtSettings);
 
-        assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertFalse(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.ESSENTIAL, distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE, distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplerType());
         assertNull(distributedTracingConfig.getPartialGranularityConfig().getRootSampler().getSamplingTarget());
@@ -179,7 +185,9 @@ public class CoreTracingConfigTest {
         assertNull(distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplingTarget());
     }
 
-    @Test
+    //Disabled, #NRCT
+    //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
+    //@Test
     public void testRatiosAreAdditiveWhenLayered(){
         Map<String, Object> dtSettings = new DTConfigMapBuilder()
                 .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
@@ -212,7 +220,9 @@ public class CoreTracingConfigTest {
         assertEquals(0.48f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
     }
 
-    @Test
+    //Disabled, #NRCT.
+    //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
+    //@Test
     public void testLayeredPartialRatiosDoNotAdjustWhenFullDisabled(){
         Map<String, Object> dtSettings = new DTConfigMapBuilder()
                 .withSamplerSetting("root", "trace_id_ratio_based", "ratio", 0.25)
@@ -240,7 +250,9 @@ public class CoreTracingConfigTest {
         assertEquals(0.15f, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerRatio(), 0.00001f);
     }
 
-    @Test
+    //Disabled, #NRCT
+    //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
+    //@Test
     public void testGiantExampleFromLocalConfig(){
         // This example is lifted directly from the spec.
         /*
@@ -303,7 +315,54 @@ public class CoreTracingConfigTest {
         assertEquals(SamplerConfig.ALWAYS_OFF, distributedTracingConfig.getPartialGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
     }
 
+    //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
+    //This is the FGT-only portion of the complete sys props test.
+    //Temporary, #NRCT
     @Test
+    public void testGiantExampleFromSysPropsFullGranularityOnly() {
+        // This example has a little bit of everything. Overlapping properties, different samplers, you name it.
+
+        /*
+         *  distributed_tracing:
+         *    sampler:
+         *      adaptive_sampling_target: 9
+         *      root: default
+         *      remote_parent_sampled:
+         *        trace_id_ratio_based:
+         *          ratio: 0.25f
+         */
+
+        Properties props = new Properties();
+        props.setProperty("newrelic.config.distributed_tracing.enabled", String.valueOf(true));
+        props.setProperty("newrelic.config.distributed_tracing.sampler.adaptive_sampling_target", String.valueOf(9));
+        props.setProperty("newrelic.config.distributed_tracing.sampler.root", "default");
+        props.setProperty("newrelic.config.distributed_tracing.sampler.remote_parent_sampled", "trace_id_ratio_based");
+        props.setProperty("newrelic.config.distributed_tracing.sampler.remote_parent_sampled.trace_id_ratio_based.ratio", String.valueOf(0.25));
+
+        SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(
+                new SaveSystemPropertyProviderRule.TestSystemProps(props),
+                new SaveSystemPropertyProviderRule.TestEnvironmentFacade()
+        ));
+
+        distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
+
+        //all the assertions!
+        //top level configs
+        assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+        assertEquals(9, distributedTracingConfig.getAdaptiveSamplingTarget());
+        //full granularity configs
+        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplerType());
+        assertNull(distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
+        assertEquals(SamplerConfig.TRACE_ID_RATIO_BASED, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerType());
+        assertEquals(0.25f, distributedTracingConfig.getFullGranularityConfig().getRemoteParentSampledSampler().getSamplerRatio(), 0.0f);
+        assertEquals(SamplerConfig.ADAPTIVE, distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
+        assertNull(distributedTracingConfig.getFullGranularityConfig().getRootSampler().getSamplingTarget());
+    }
+
+    //Disabled, #NRCT
+    //FGT is hardcoded on and PGT is hardcoded off, so there is no testable interaction between them.
+    //The sys props part of this test is still valuable, so that half of the test still exists above.
+    //@Test
     public void testGiantExampleFromSysProps() {
         // This example has a little bit of everything. Overlapping properties, different samplers, you name it.
 
@@ -381,7 +440,7 @@ public class CoreTracingConfigTest {
 
         distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
 
-        assertFalse(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+        assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
     }
 
     @Test
@@ -396,7 +455,7 @@ public class CoreTracingConfigTest {
 
         distributedTracingConfig = new DistributedTracingConfig(new HashMap<>());
 
-        assertFalse(distributedTracingConfig.getFullGranularityConfig().isEnabled());
+        assertTrue(distributedTracingConfig.getFullGranularityConfig().isEnabled());
     }
 
     @Test
@@ -461,7 +520,7 @@ public class CoreTracingConfigTest {
                 distributedTracingConfig.getFullGranularityConfig().getRemoteParentNotSampledSampler().getSamplerType());
 
         // Partial granularity assertions - enabled via env var
-        assertTrue(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
+        assertFalse(distributedTracingConfig.getPartialGranularityConfig().isEnabled());
         assertEquals(Transaction.PartialSampleType.REDUCED,
                 distributedTracingConfig.getPartialGranularityConfig().getType());
         assertEquals(SamplerConfig.DEFAULT_SAMPLER_TYPE,

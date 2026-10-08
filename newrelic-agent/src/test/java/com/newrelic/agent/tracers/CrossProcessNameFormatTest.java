@@ -7,12 +7,21 @@
 
 package com.newrelic.agent.tracers;
 
+import com.newrelic.agent.MockServiceManager;
+import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.util.Obfuscator;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import com.newrelic.agent.util.Obfuscator;
-
 public class CrossProcessNameFormatTest {
+
+    @Before
+    public void setup() {
+        // CrossProcessNameFormat.create() calls ExternalsUtil.sanitizeURI(), which calls
+        // ServiceFactory.getUrlPathObfuscator() and needs a ServiceManager to be wired up.
+        ServiceFactory.setServiceManager(new MockServiceManager());
+    }
 
     @Test
     public void test() {

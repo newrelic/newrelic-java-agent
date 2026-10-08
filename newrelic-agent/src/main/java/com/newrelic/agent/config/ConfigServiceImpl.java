@@ -13,12 +13,14 @@ import com.newrelic.agent.ConnectionConfigListener;
 import com.newrelic.agent.DebugFlag;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.IRPMService;
+import com.newrelic.agent.browser.BrowserConfig;
 import com.newrelic.agent.config.coretracing.SamplerConfig;
 import com.newrelic.agent.config.internal.DeepMapClone;
 import com.newrelic.agent.logging.AgentLogManager;
 import com.newrelic.agent.service.AbstractService;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsEngine;
+import com.newrelic.agent.util.LicenseKeyUtil;
 import com.newrelic.api.agent.NewRelic;
 import org.json.simple.JSONObject;
 
@@ -32,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 public class ConfigServiceImpl extends AbstractService implements ConfigService, ConnectionConfigListener, HarvestListener {
@@ -184,42 +187,64 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
 
     @Override
     public Map<String, Object> getExplicitlySetConfig() {
-        Map<String, Object> localSettings = getSanitizedLocalSettings();
-        Map<String, Object> systemProperties = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicPropertiesWithoutPrefix();
-        Map<String, Object> envVars = SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix();
+        Set<String> knownConfigKeys = ReferenceConfigLookup.getKnownConfigKeys();
 
-        Map<String, Object> mergedSettings = new HashMap<>(flattenLocalSettingsConfigMap("", localSettings));
+        // Flatten the keys into dot-property notation and then filter unknown config
+        // keys
+        Map<String, Object> localSettings = filterInvalidConfigKeys(
+                flattenLocalSettingsConfigMap("", getSanitizedLocalSettings()), Function.identity(), knownConfigKeys, "yml file");
+        Map<String, Object> systemProperties = filterInvalidConfigKeys(
+                SystemPropertyFactory.getSystemPropertyProvider().getNewRelicPropertiesWithoutPrefix(), Function.identity(), knownConfigKeys, "sys prop");
+
+        Map<String, Object> mergedSettings = new HashMap<>(localSettings);
         mergedSettings.putAll(systemProperties);
 
-        // This uses the non-prefixed env var --> dot notation map to convert configs supplied via
-        // env vars to dot notation.
+        // Pass a key mapper function to the filter method in order to convert the
+        // env variable key form to dot-property notation (using the lookup map derived
+        // from the reference yaml)
         Map<String, String> envVarKeyToConfigKey = ReferenceConfigLookup.getEnvVarKeyToConfigKeyMap();
-        for (Map.Entry<String, Object> envEntry : envVars.entrySet()) {
-            String configKey = envVarKeyToConfigKey.get(envEntry.getKey());
-            if (configKey != null) {
-                mergedSettings.put(configKey, envEntry.getValue());
-            }
-        }
+        Map<String, Object> envVars = filterInvalidConfigKeys(
+                SystemPropertyFactory.getSystemPropertyProvider().getNewRelicEnvVarsWithoutPrefix(),
+                envVarKeyToConfigKey::get, knownConfigKeys, "env var");
+        mergedSettings.putAll(envVars);
 
-        // Server-side config is highest priority — overlay last.
+        // Server-side config is highest priority — overlay last. Server-generated values are always
+        // valid, so this source is not run through filterInvalidConfigKeys.
+        //
+        // savedServerData contains both agent-configurable values (under the "agent_config") key
+        // and other values that exist as top level keys. This grabs both so we have a complete
+        // set of server side configuration.
         if (savedServerData != null) {
+            Map<String, Object> topLevelServerData = new HashMap<>(savedServerData);
+            topLevelServerData.remove(AgentConfigFactory.AGENT_CONFIG);
+            mergedSettings.putAll(flattenLocalSettingsConfigMap("", topLevelServerData));
             mergedSettings.putAll(flattenLocalSettingsConfigMap("", AgentConfigFactory.getAgentData(savedServerData)));
         }
 
-        mergedSettings.keySet().retainAll(ReferenceConfigLookup.getKnownConfigKeys());
+        // Sanitize the fully merged map
+        sanitizeSettingsFromConfigMap(mergedSettings);
+
         return mergedSettings;
     }
 
-    private Map<String, Object> unflattenToNestedMap(Map<String, Object> flatMap) {
+    /**
+     * Convert each key in the supplied map to dot-property notation (using the supplied mapper function)
+     * and check if it's valid. If not, replace the value with the String "Invalid " + keySource + " config key"
+     * and log a warning message.
+     */
+    private Map<String, Object> filterInvalidConfigKeys(Map<String, Object> configKeyMap, Function<String, String> keyMapper,
+            Set<String> knownConfigKeys, String keySource) {
         Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, Object> entry : flatMap.entrySet()) {
-            String[] parts = entry.getKey().split("\\.");
-            Map<String, Object> current = result;
-            for (int i = 0; i < parts.length - 1; i++) {
-                current = (Map<String, Object>) current.computeIfAbsent(parts[i], k -> new HashMap<>());
+        for (Map.Entry<String, Object> entry : configKeyMap.entrySet()) {
+            String mappedKey = keyMapper.apply(entry.getKey());
+            if (mappedKey != null && knownConfigKeys.contains(mappedKey)) {
+                result.put(mappedKey, entry.getValue());
+            } else {
+                getLogger().warning(keySource + " config key is not valid");
+                result.put(entry.getKey(), "Invalid " + keySource + " config key");
             }
-            current.put(parts[parts.length - 1], entry.getValue());
         }
+
         return result;
     }
 
@@ -257,8 +282,19 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         if (settings.containsKey(AgentConfigImpl.PROXY_PASS)) {
             settings.put(AgentConfigImpl.PROXY_PASS, SANITIZED_SETTING);
         }
-        if (settings.containsKey(AgentConfigImpl.LICENSE_KEY)) {
-            settings.put(AgentConfigImpl.LICENSE_KEY, SANITIZED_SETTING);
+        partiallyObfuscateIfPresent(settings, AgentConfigImpl.LICENSE_KEY);
+        partiallyObfuscateIfPresent(settings, BrowserConfig.BROWSER_KEY);
+        partiallyObfuscateIfPresent(settings, CrossProcessConfigImpl.ENCODING_KEY);
+    }
+
+    /**
+     * Partially obfuscate the value at the given key, if present, using {@link LicenseKeyUtil}'s
+     * "first 10 characters + asterisks" format
+     */
+    private void partiallyObfuscateIfPresent(Map<String, Object> settings, String key) {
+        Object value = settings.get(key);
+        if (value instanceof String) {
+            settings.put(key, LicenseKeyUtil.obfuscateLicenseKeyValue((String) value));
         }
     }
 

@@ -46,9 +46,13 @@ public class BaseSamplerCoreTracingConfig extends CoreTracingConfig {
         return partialGranularityConfig;
     }
 
+    //At the moment, isEnabled is always hardcoded to true- i.e., full granularity sampling is always on.
+    //Code throughout this repo has been tagged with #NRCT to denote places where code was changed or excluded
+    //to accommodate for the hardcoded override.
     @Override
     public boolean isEnabled() {
-        return isFullGranularityEnabled;
+        //Hardcoded override
+        return true;
     }
 
     @Override

@@ -6,10 +6,12 @@ import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManagerImpl;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -197,5 +199,62 @@ public class AgentLinkingMetadataTest {
         // trace.id and span.id would be empty values if getLogEventLinkingMetadata was called outside of a transaction, in which case they are omitted
         assertFalse("empty trace.id value should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.TRACE_ID));
         assertFalse("empty span.id value should not be included in LogEvent linking metadata", linkingMetadata.containsKey(AgentLinkingMetadata.SPAN_ID));
+
+        // Outside of Kubernetes no k8s.* attributes should be present
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_CLUSTER_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_NAMESPACE_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_POD_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_NODE_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_DEPLOYMENT_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_REPLICASET_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_CONTAINER_NAME));
+        assertFalse(linkingMetadata.containsKey(AgentLinkingMetadata.K8S_CONTAINER_IMAGE_NAME));
+    }
+
+    @Test
+    public void buildKubernetesMetadata_includesAllPresentAttributes() {
+        Map<String, String> env = new HashMap<>();
+        env.put("NEW_RELIC_METADATA_KUBERNETES_CLUSTER_NAME", "my-cluster");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_NAMESPACE_NAME", "my-namespace");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_POD_NAME", "my-pod");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_NODE_NAME", "my-node");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_DEPLOYMENT_NAME", "my-deployment");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_REPLICASET_NAME", "my-replicaset");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_CONTAINER_NAME", "my-container");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_CONTAINER_IMAGE_NAME", "my-image");
+        // Unrelated env vars should be ignored
+        env.put("SOME_OTHER_VAR", "ignored");
+
+        Map<String, String> k8sMetadata = AgentLinkingMetadata.buildKubernetesMetadata(env);
+
+        assertEquals(8, k8sMetadata.size());
+        assertEquals("my-cluster", k8sMetadata.get(AgentLinkingMetadata.K8S_CLUSTER_NAME));
+        assertEquals("my-namespace", k8sMetadata.get(AgentLinkingMetadata.K8S_NAMESPACE_NAME));
+        assertEquals("my-pod", k8sMetadata.get(AgentLinkingMetadata.K8S_POD_NAME));
+        assertEquals("my-node", k8sMetadata.get(AgentLinkingMetadata.K8S_NODE_NAME));
+        assertEquals("my-deployment", k8sMetadata.get(AgentLinkingMetadata.K8S_DEPLOYMENT_NAME));
+        assertEquals("my-replicaset", k8sMetadata.get(AgentLinkingMetadata.K8S_REPLICASET_NAME));
+        assertEquals("my-container", k8sMetadata.get(AgentLinkingMetadata.K8S_CONTAINER_NAME));
+        assertEquals("my-image", k8sMetadata.get(AgentLinkingMetadata.K8S_CONTAINER_IMAGE_NAME));
+    }
+
+    @Test
+    public void buildKubernetesMetadata_returnsEmptyMapWhenNoEnvVarsSet() {
+        Map<String, String> k8sMetadata = AgentLinkingMetadata.buildKubernetesMetadata(new HashMap<String, String>());
+
+        assertTrue("k8s metadata should be empty outside of Kubernetes", k8sMetadata.isEmpty());
+    }
+
+    @Test
+    public void buildKubernetesMetadata_ignoresBlankValues() {
+        Map<String, String> env = new HashMap<>();
+        env.put("NEW_RELIC_METADATA_KUBERNETES_CLUSTER_NAME", "");
+        env.put("NEW_RELIC_METADATA_KUBERNETES_NAMESPACE_NAME", "my-namespace");
+
+        Map<String, String> k8sMetadata = AgentLinkingMetadata.buildKubernetesMetadata(env);
+
+        assertEquals(1, k8sMetadata.size());
+        assertFalse(k8sMetadata.containsKey(AgentLinkingMetadata.K8S_CLUSTER_NAME));
+        assertEquals("my-namespace", k8sMetadata.get(AgentLinkingMetadata.K8S_NAMESPACE_NAME));
     }
 }

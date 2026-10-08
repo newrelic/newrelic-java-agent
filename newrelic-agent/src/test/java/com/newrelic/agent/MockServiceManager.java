@@ -54,6 +54,7 @@ import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
+import com.newrelic.agent.util.UrlPathObfuscatorService;
 import com.newrelic.agent.utilization.UtilizationService;
 import com.newrelic.api.agent.MetricAggregator;
 import org.mockito.Mockito;
@@ -93,6 +94,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     private volatile JfrService jfrService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
+    private volatile UrlPathObfuscatorService urlPathObfuscatorService;
     private volatile DistributedTraceService distributedTraceService;
     private volatile SpanEventsService spanEventsService;
     private volatile SourceLanguageService sourceLanguageService;
@@ -159,6 +161,7 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         JmxConfig jmxConfig = this.configService.getDefaultAgentConfig().getJmxConfig();
         jmxService = new JmxService(jmxConfig);
         circuitBreakerService = new CircuitBreakerService();
+        urlPathObfuscatorService = new UrlPathObfuscatorService();
         spanEventsService = Mockito.mock(SpanEventsService.class);
         insights = Mockito.mock(InsightsServiceImpl.class);
         logSenderService = Mockito.mock(LogSenderServiceImpl.class);
@@ -333,6 +336,9 @@ public class MockServiceManager extends AbstractService implements ServiceManage
         if (circuitBreakerService != null) {
             circuitBreakerService.start();
         }
+        if (urlPathObfuscatorService != null) {
+            urlPathObfuscatorService.start();
+        }
         if (remoteInstrumentationService != null) {
             remoteInstrumentationService.start();
         }
@@ -408,6 +414,9 @@ public class MockServiceManager extends AbstractService implements ServiceManage
     protected void doStop() throws Exception {
         if (circuitBreakerService != null) {
             circuitBreakerService.stop();
+        }
+        if (urlPathObfuscatorService != null) {
+            urlPathObfuscatorService.stop();
         }
         if (remoteInstrumentationService != null) {
             remoteInstrumentationService.stop();
@@ -638,6 +647,15 @@ public class MockServiceManager extends AbstractService implements ServiceManage
 
     public void setCircuitBreakerService(CircuitBreakerService newCB) {
         circuitBreakerService = newCB;
+    }
+
+    @Override
+    public UrlPathObfuscatorService getUrlPathObfuscator() {
+        return urlPathObfuscatorService;
+    }
+
+    public void setUrlPathObfuscator(UrlPathObfuscatorService urlPathObfuscatorService) {
+        this.urlPathObfuscatorService = urlPathObfuscatorService;
     }
 
     @Override

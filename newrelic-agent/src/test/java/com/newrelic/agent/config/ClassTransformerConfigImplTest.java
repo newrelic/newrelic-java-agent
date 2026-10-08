@@ -13,7 +13,6 @@ import com.newrelic.agent.ForceDisconnectException;
 import com.newrelic.agent.InstrumentationProxy;
 import com.newrelic.agent.MockServiceManager;
 import com.newrelic.agent.instrumentation.PointCutConfiguration;
-import com.newrelic.agent.instrumentation.context.ClassMatchVisitorFactory;
 import com.newrelic.agent.instrumentation.context.InstrumentationContextManager;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -36,7 +35,6 @@ import static com.newrelic.agent.config.ConfigHelper.buildConfigMap;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ClassTransformerConfigImplTest {
 
@@ -103,6 +101,22 @@ public class ClassTransformerConfigImplTest {
         classTransformerMap.put("shutdown_delay", 44.10);
         config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
         Assert.assertEquals(44000000000L, config.getShutdownDelayInNanos());
+    }
+
+    @Test
+    public void getWeaveTaskThreadCount() throws Exception {
+        Map<String, Object> classTransformerMap = new HashMap<>();
+        ClassTransformerConfig config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap,
+                true, false, false);
+        Assert.assertEquals(8, config.getWeaveTaskThreadCount());
+
+        classTransformerMap.put("weave_task_thread_count", 2);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
+        Assert.assertEquals(2, config.getWeaveTaskThreadCount());
+
+        classTransformerMap.put("weave_task_thread_count", 0);
+        config = ClassTransformerConfigImpl.createClassTransformerConfig(classTransformerMap, true, false, false);
+        Assert.assertEquals(Runtime.getRuntime().availableProcessors(), config.getWeaveTaskThreadCount());
     }
 
     @Test

@@ -51,6 +51,7 @@ import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
+import com.newrelic.agent.util.UrlPathObfuscatorService;
 import com.newrelic.agent.utilization.UtilizationService;
 
 import java.util.*;
@@ -84,6 +85,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     private volatile JfrService jfrService;
     private volatile AsyncTransactionService asyncTxService;
     private volatile CircuitBreakerService circuitBreakerService;
+    private volatile UrlPathObfuscatorService urlPathObfuscatorService;
     private volatile InsightsService insightsService;
     private volatile LogSenderService logSenderService;
     private volatile DistributedTraceServiceImpl distributedTraceService;
@@ -170,6 +172,7 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
         jmxService = new JmxService(configService.getDefaultAgentConfig().getJmxConfig());
         attributesService = new AttributesService();
         circuitBreakerService = new CircuitBreakerService();
+        urlPathObfuscatorService = new UrlPathObfuscatorService();
         AgentConfig agentConfig = createAgentConfig(config, (Map) config.get("distributed_tracing"));
         distributedTraceService.connected(null, agentConfig);
         ReservoirManager<SpanEvent> reservoirManager = new CollectorSpanEventReservoirManager(configService);
@@ -416,6 +419,11 @@ class IntrospectorServiceManager extends AbstractService implements ServiceManag
     @Override
     public CircuitBreakerService getCircuitBreakerService() {
         return circuitBreakerService;
+    }
+
+    @Override
+    public UrlPathObfuscatorService getUrlPathObfuscator() {
+        return urlPathObfuscatorService;
     }
 
     @Override

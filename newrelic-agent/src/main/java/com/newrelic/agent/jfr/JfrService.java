@@ -50,44 +50,62 @@ public class JfrService extends AbstractService implements AgentConfigListener {
         ServiceFactory.getConfigService().addIAgentConfigListener(this);
     }
 
+    /**
+     * IMPORTANT: take care when modifying JFR.doStart() and its callers to prevent a scenario where doStart can succeed multiple times (without a doStop in between).
+     * <p>
+     * We found a bug where receiving a jfr.enabled = true signal from SSC at startup (with JFR disabled locally) allowed doStart to be called
+     * twice: first, in JfrService.configChanged(), and second, in JfrService.start(). Both these calls succeeded, which created two JFRs. If JFR starts
+     * behaving strangely, consider further modifying doStart to explicitly guard against multiple instances.
+     */
     @Override
     protected void doStart() {
-        if (coreApisExist() && isEnabled()) {
-            Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
+        //At startup, it is possible for configChanged to be called ahead of JFR.start(), in which case, decline to start the controller.
+        if (!isStartedOrStarting()) {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_IGNORED_SERVICE_NOT_STARTED);
+            NewRelic.getAgent().getLogger().log(Level.INFO, "JfrService is not yet started. Not attaching New Relic JFR Monitor.");
+            return;
+        }
+        if (!coreApisExist()) {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_IGNORED_APIS_MISSING);
+            return;
+        }
+        if (!isEnabled()) {
+            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_IGNORED_DISABLED);
+            return;
+        }
 
-            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
-            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL, jfrConfig.getHarvestInterval());
-            NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE, jfrConfig.getQueueSize());
+        Agent.LOG.log(Level.INFO, "Attaching New Relic JFR Monitor");
 
-            try {
-                final DaemonConfig daemonConfig = buildDaemonConfig();
-                final Attributes commonAttrs = buildCommonAttributes(daemonConfig);
-                final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
-                Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
-                commonAttrs.put(ENTITY_GUID, entityGuid);
-                final String hostname = getJfrHostnameOrDisplayName();
-                commonAttrs.put(HOSTNAME, hostname);
-                addLabelsIfEnabled(commonAttrs);
-                final JFRUploader uploader = buildUploader(daemonConfig);
-                String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
-                uploader.readyToSend(new EventConverter(commonAttrs, pattern));
-                jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
+        NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_SUCCESS);
+        NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_HARVEST_INTERVAL, jfrConfig.getHarvestInterval());
+        NewRelic.getAgent().getMetricAggregator().recordMetric(MetricNames.SUPPORTABILITY_JFR_SERVICE_CONFIGURED_QUEUE_SIZE, jfrConfig.getQueueSize());
 
-                ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
-                jfrMonitorService.submit(
-                        () -> {
-                            try {
-                                startJfrLoop();
-                            } catch (JfrRecorderException e) {
-                                Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
-                                jfrController.shutdown();
-                            }
-                        });
-            } catch (Throwable t) {
-                Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
-            }
-        } else {
-            NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_JFR_SERVICE_STARTED_FAIL);
+        try {
+            final DaemonConfig daemonConfig = buildDaemonConfig();
+            final Attributes commonAttrs = buildCommonAttributes(daemonConfig);
+            final String entityGuid = ServiceFactory.getRPMService().getEntityGuid();
+            Agent.LOG.log(Level.INFO, "JFR Monitor obtained entity guid from agent: " + entityGuid);
+            commonAttrs.put(ENTITY_GUID, entityGuid);
+            final String hostname = getJfrHostnameOrDisplayName();
+            commonAttrs.put(HOSTNAME, hostname);
+            addLabelsIfEnabled(commonAttrs);
+            final JFRUploader uploader = buildUploader(daemonConfig);
+            String pattern = defaultAgentConfig.getValue(ThreadService.NAME_PATTERN_CFG_KEY, ThreadNameNormalizer.DEFAULT_PATTERN);
+            uploader.readyToSend(new EventConverter(commonAttrs, pattern));
+            jfrController = SetupUtils.buildJfrController(daemonConfig, uploader);
+
+            ExecutorService jfrMonitorService = Executors.newSingleThreadExecutor(new DefaultThreadFactory(JFR_SERVICE_THREAD_NAME, true));
+            jfrMonitorService.submit(
+                    () -> {
+                        try {
+                            startJfrLoop();
+                        } catch (JfrRecorderException e) {
+                            Agent.LOG.log(Level.INFO, "Error in JFR Monitor, shutting down", e);
+                            jfrController.shutdown();
+                        }
+                    });
+        } catch (Throwable t) {
+            Agent.LOG.log(Level.INFO, "Unable to attach JFR Monitor", t);
         }
     }
 
