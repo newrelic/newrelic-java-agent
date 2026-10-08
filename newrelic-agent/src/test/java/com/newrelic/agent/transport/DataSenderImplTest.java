@@ -609,7 +609,7 @@ public class DataSenderImplTest {
     private void sendLogEventsPayloadTooBig(DataSenderImpl dataSender) {
         boolean exceptionThrown = false;
         try {
-            dataSender.sendLogEvents(createLogEvents(10000), null, null, null, null);
+            dataSender.sendLogEvents(createLogEvents(10000), null);
         } catch (Exception e) {
             assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
             exceptionThrown = true;

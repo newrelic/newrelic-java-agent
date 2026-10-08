@@ -688,16 +688,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void sendLogEventsSyncRestart(final Collection<? extends LogEvent> events)
             throws Exception {
-        String entityGuid = getEntityGuid();
-        String entityName = appName;
-        String hostName = getHostname(appName);
         Map<String, Object> customLoggingAttributes = getCustomLogAttributes(appName);
         try {
-            dataSender.sendLogEvents(events, customLoggingAttributes, entityGuid, entityName, hostName);
+            dataSender.sendLogEvents(events, customLoggingAttributes);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectSync();
-            dataSender.sendLogEvents(events, customLoggingAttributes, entityGuid, entityName, hostName);
+            dataSender.sendLogEvents(events, customLoggingAttributes);
         }
     }
 
@@ -1167,15 +1164,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             return customAttributes;
         }
         return defaultAgentConfig.getApplicationLoggingConfig().getCustomLogAttributes();
-    }
-
-    private static String getHostname(String appName) {
-        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(appName);
-        String fullHostname = Hostname.getFullHostname(agentConfig);
-        if (fullHostname == null || fullHostname.isEmpty() || fullHostname.equals(LOCALHOST)) {
-            return Hostname.getHostname(agentConfig);
-        }
-        return fullHostname;
     }
 
 }
