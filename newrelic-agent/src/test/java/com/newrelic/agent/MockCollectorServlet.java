@@ -34,9 +34,17 @@ public class MockCollectorServlet extends HttpServlet {
 
     private static final int ERROR_DATA_SIZE_LIMIT_IN_BYTES = 1000000; // 1MB
 
-    private static boolean inPingCommand = false;
+    private static List<List<?>> nextAgentCommands = new ArrayList<>();
 
     public MockCollectorServlet() {
+    }
+
+    /**
+     * Queues agent commands to be returned, once, as the {@code return_value} of the next {@code metric_data}
+     * response — simulating a collector piggybacking commands on the metric harvest.
+     */
+    public static void queueAgentCommands(List<List<?>> commands) {
+        nextAgentCommands = commands;
     }
 
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -86,33 +94,12 @@ public class MockCollectorServlet extends HttpServlet {
                 inner.put("url_rules", rulesList);
                 json.put("return_value", inner);
             }
-        } else if ("get_agent_commands".equals(request.getParameter("method"))) {
-            if (inPingCommand) {
-                inPingCommand = false;
-                // necessary value for the ping command test:
-                @SuppressWarnings("rawtypes")
-                ArrayList<ArrayList> inner = new ArrayList<>();
-                ArrayList<Object> commands = new ArrayList<>();
-                inner.add(commands);
-                commands.add(1000);
-                JSONObject pingCommand = new JSONObject();
-                pingCommand.put("name", "ping");
-                pingCommand.put("arguments", null);
-                commands.add(pingCommand);
-                json.put("return_value", inner);
-            } else {
-                ArrayList<String> inner = new ArrayList<>();
-                json.put("return_value", inner);
-            }
         } else if ("profile_data".equals(request.getParameter("method"))) {
             List<Integer> inner = Arrays.asList(1, 2);
             json.put("return_value", inner);
-        } else if ("queue_ping_command".equals(request.getParameter("method"))) {
-            inPingCommand = true;
-            json.put("return_value", 1000);
         } else if ("metric_data".equals(request.getParameter("method"))) {
-            ArrayList<String> inner = new ArrayList<>();
-            json.put("return_value", inner);
+            json.put("return_value", nextAgentCommands);
+            nextAgentCommands = new ArrayList<>();
         } else if ("agent_command_results".equals(request.getParameter("method"))) {
             json.put("return_value", null);
         } else if ("error_data".equals(request.getParameter("method"))) {
