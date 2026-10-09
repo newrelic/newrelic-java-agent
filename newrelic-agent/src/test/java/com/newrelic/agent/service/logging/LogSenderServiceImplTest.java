@@ -20,6 +20,7 @@ import com.newrelic.agent.config.ApplicationLoggingForwardingConfig;
 import com.newrelic.agent.config.ApplicationLoggingLocalDecoratingConfig;
 import com.newrelic.agent.config.ApplicationLoggingMetricsConfig;
 import com.newrelic.agent.config.ConfigService;
+import com.newrelic.agent.model.AnalyticsEvent;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.service.ServiceManager;
@@ -421,6 +422,23 @@ public class LogSenderServiceImplTest {
         assertEquals(3, analyticsData.getEvents().size());
     }
 
+    @Test
+    public void testNoCustomLogAttributesConfigured_doesNotAddExtraAttributes() throws Exception {
+        LogSenderServiceImpl logSenderService = createService(createConfig());
+        logSenderService.addHarvestableToService(appName);
+
+        logSenderService.recordLogEvent(createAgentLogAttrs("field", "value"));
+
+        MockRPMService analyticsData = new MockRPMService();
+        when(ServiceFactory.getServiceManager().getRPMServiceManager().getOrCreateRPMService(appName)).thenReturn(
+                analyticsData);
+
+        logSenderService.harvestHarvestables();
+
+        assertEquals(1, analyticsData.getEvents().size());
+        AnalyticsEvent logEvent = analyticsData.getEvents().iterator().next();
+        assertEquals("value", logEvent.getUserAttributesCopy().get("field"));
+    }
 
     private static Map<String, Object> createConfig() {
         return createConfig(null, null, null, null);

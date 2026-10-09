@@ -140,4 +140,78 @@ public class ApplicationLoggingForwardingConfigTest {
         assertEquals(Collections.emptySet(), config.getLogLevelDenylist());
     }
 
+    @Test
+    public void getCustomAttributes_returnsEmptyMapByDefault() {
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
+        assertTrue(config.getCustomAttributes().isEmpty());
+    }
+
+    @Test
+    public void getCustomAttributes_returnsConfiguredAttributes() {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        customAttributes.put("region", "us-east-1");
+        localProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
+
+        Map<String, Object> expected = new HashMap<>();
+        expected.put("env", "prod");
+        expected.put("region", "us-east-1");
+        assertEquals(expected, config.getCustomAttributes());
+    }
+
+    @Test
+    public void getCustomAttributes_coercesNonStringKeysToStringsAndPreservesValueType() {
+        Map<Object, Object> customAttributes = new HashMap<>();
+        customAttributes.put(42, "answer");
+        localProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
+
+        assertEquals("answer", config.getCustomAttributes().get("42"));
+    }
+
+    @Test
+    public void getCustomAttributes_skipsNullKeysAndValues() {
+        Map<Object, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        customAttributes.put(null, "shouldBeSkipped");
+        customAttributes.put("nullValue", null);
+        localProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
+
+        assertEquals(Collections.singletonMap("env", "prod"), config.getCustomAttributes());
+    }
+
+    @Test
+    public void getCustomAttributes_returnsEmptyMapWhenHighSecurityEnabled() {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        localProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, true, false);
+
+        assertTrue(config.getCustomAttributes().isEmpty());
+    }
+
+    @Test
+    public void getCustomAttributes_returnsUnmodifiableMap() {
+        ApplicationLoggingForwardingConfig config = new ApplicationLoggingForwardingConfig(localProps,
+                ApplicationLoggingConfigImpl.SYSTEM_PROPERTY_ROOT, false, false);
+
+        try {
+            config.getCustomAttributes().put("env", "prod");
+            org.junit.Assert.fail("Expected UnsupportedOperationException");
+        } catch (UnsupportedOperationException expected) {
+            // expected
+        }
+    }
+
 }

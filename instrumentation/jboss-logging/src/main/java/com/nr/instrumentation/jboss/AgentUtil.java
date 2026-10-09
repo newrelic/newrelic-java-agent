@@ -44,7 +44,9 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, mdcCopy, throwable)) {
+
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(mdcCopy));
+
                 logEventMap.put(INSTRUMENTATION, "jboss.logging");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());

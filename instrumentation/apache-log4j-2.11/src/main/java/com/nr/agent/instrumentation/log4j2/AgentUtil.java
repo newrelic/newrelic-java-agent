@@ -131,7 +131,7 @@ public class AgentUtil {
     }
 
     private static int calculateInitialMapSize(ReadOnlyStringMap mdcPropertyMap) {
-        return AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
+        return  AppLoggingUtils.isAppLoggingContextDataEnabled() && mdcPropertyMap != null
                 ? mdcPropertyMap.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }

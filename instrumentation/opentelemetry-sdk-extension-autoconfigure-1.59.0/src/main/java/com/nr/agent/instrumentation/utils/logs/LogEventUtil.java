@@ -70,7 +70,9 @@ public class LogEventUtil {
             if (shouldCreateLogEvent(bodyValue, contextAttributes, errorClass, errorMessage)) {
                 // It is possible that logs are being emitted from OTel instrumentation of a logging framework that we also instrument (e.g. logback, log4j), which could lead to double reporting of LogEvents. We can prevent this by checking if the logs are coming from a known OTel instrumentation source and favoring our own framework instrumentation over it.
                 if (LogDuplicationChecker.shouldRecordLogFromOTelAPI()) {
+
                     Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextAttributes));
+
                     logEventMap.put(INSTRUMENTATION, "opentelemetry-sdk-extension-autoconfigure-1.59.0");
                     if (bodyValue != null && bodyValue.getType() == ValueType.STRING) {
                         String bodyString = bodyValue.asString();
@@ -190,7 +192,7 @@ public class LogEventUtil {
 
     private static int calculateInitialMapSize(Attributes attributes) {
         return isAppLoggingContextDataEnabled() && attributes != null
-                ? attributes.size() + DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
+                ? attributes.size() +  DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES
                 : DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
     }
 }
