@@ -81,7 +81,7 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest` or `ExportTrac
 - POST to the signal's endpoint.
 
 **Resource and scope**
-- Resource: `service.name` = app name, plus the `otlp_resource_attributes` from the connect response, which take precedence.
+- Resource: `service.name` = app name, plus any other resource attributes that should be included.
 - Instrumentation scope: `newrelic-java-agent` and the agent version.
 
 ### LogEvent → LogRecord

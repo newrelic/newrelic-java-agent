@@ -681,13 +681,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
      * When OTLP export is enabled for logs, logs are sent via OTLP instead of the collector.
      */
     private void sendLogEventsToOtlp(OtlpDataSender otlpSender, Collection<? extends LogEvent> events) throws Exception {
-        // Like the collector, wait for a connection so that the entity guid and OTLP resource attributes are known
+        // Like the collector, wait for a connection so that the entity guid is known
         if (!isConnected()) {
             Agent.LOG.log(Level.FINER, "Not sending {0} log event(s) via OTLP because the agent is not connected", events.size());
             return;
         }
         try {
-            otlpSender.sendLogEvents(getOtlpResourceAttributes(), events);
+            otlpSender.sendLogEvents(getLogOtlpResourceAttributes(), events);
         } catch (HttpError e) {
             Agent.LOG.log(Level.WARNING, "Unable to send {0} log event(s) via OTLP: {1}", events.size(), e.getMessage());
             // We don't want to resend the data for certain response codes, retry for all others
@@ -707,17 +707,31 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             return;
         }
         try {
-            otlpSender.sendSpanEvents(getOtlpResourceAttributes(), events);
+            otlpSender.sendSpanEvents(getSpanOtlpResourceAttributes(), events);
         } catch (Exception e) {
             Agent.LOG.log(Level.WARNING, "Unable to send {0} span event(s) via OTLP: {1}", events.size(), e.toString());
             Agent.LOG.log(Level.FINEST, e, e.toString());
         }
     }
 
-    private Map<String, Object> getOtlpResourceAttributes() {
+    /**
+     * Map of global resource attributes to add to OTLP Log payload
+     * @return Map of attributes
+     */
+    private Map<String, Object> getLogOtlpResourceAttributes() {
         Map<String, Object> resourceAttributes = new HashMap<>();
         resourceAttributes.put("service.name", appName);
-        // Resource attributes provided by New Relic in the connect response take precedence
+        resourceAttributes.putAll(serviceMetadata);
+        return resourceAttributes;
+    }
+
+    /**
+     * Map of global resource attributes to add to OTLP Span payload
+     * @return Map of attributes
+     */
+    private Map<String, Object> getSpanOtlpResourceAttributes() {
+        Map<String, Object> resourceAttributes = new HashMap<>();
+        resourceAttributes.put("service.name", appName);
         resourceAttributes.putAll(serviceMetadata);
         return resourceAttributes;
     }
