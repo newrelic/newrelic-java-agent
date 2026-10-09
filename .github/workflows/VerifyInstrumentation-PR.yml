@@ -62,8 +62,9 @@ jobs:
     if: needs.get-changed-modules.outputs.any == 'true'
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
-      # On PR, verifyInstrumentation should be in default version grouping mode.
-      # This means that ALL versions of a library will be checked by the verifier, unless a module is explicitly configured otherwise.
+      # On PR, verifyInstrumentation should be in ALL mode.
+      # When we change instrumentation it is important to check ALL library versions.
       ref: ${{ github.sha }}
       explicit-modules-list: ${{ needs.get-changed-modules.outputs.modules }}
+      grouping: ALL
     secrets: inherit

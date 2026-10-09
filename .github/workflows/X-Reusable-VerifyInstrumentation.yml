@@ -109,13 +109,13 @@ jobs:
       # Currently, the maximum configured toolchain in this project is Java 17.
       # If you added an instrumentation module with a toolchain > 17, and this job is failing, that may be why.
       # Increase JAVA_HOME to the new maximum configured toolchain version.
-      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (all versions)
+      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (default grouping)
         if: ${{ inputs.grouping == ''}}
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
         run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation
 
-      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (limited versions)
+      - name: Running verifyInstrumentation on (${{ matrix.modules }}) (${{ inputs.grouping }} grouping)
         if: ${{ inputs.grouping != ''}}
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
