@@ -740,21 +740,6 @@ common: &default_settings
       # When set, these replace otlp_export.headers for log event requests rather than being merged with them.
       headers:
 
-    spans:
-
-      # Set to true to send span events via OTLP in addition to the collector. When the endpoint is the New Relic
-      # OTLP endpoint for the same account, spans will be reported twice.
-      # Default is true.
-      enabled: true
-
-      # The full URL to send span events to, including the path (e.g. https://collector.newrelic.com/v1/traces).
-      # It's used as is. When not set, /v1/traces is appended to otlp_export.endpoint.
-      endpoint:
-
-      # Headers to send with span event requests, in the same format as otlp_export.headers.
-      # When set, these replace otlp_export.headers for span event requests rather than being merged with them.
-      headers:
-
 # Application Environments
 # ------------------------------------------
 # Environment specific settings are in this section.

@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * Sends log and span events to an OTLP/HTTP endpoint using binary protobuf encoding and gzip compression.
+ * Sends log events to an OTLP/HTTP endpoint using binary protobuf encoding and gzip compression.
  * <p>
  * Unlike {@link DataSenderImpl}, this sender doesn't use the New Relic collector protocol: there is no agent run id, and
  * the license key is sent in the {@code api-key} header rather than the query string. The license key is only sent to
@@ -46,7 +46,6 @@ public class OtlpDataSender {
 
     // Signal names used in supportability metrics and log messages
     static final String LOGS_SIGNAL = "v1/logs";
-    static final String TRACES_SIGNAL = "v1/traces";
     static final String CONTENT_TYPE_HEADER = "Content-Type";
     static final String CONTENT_TYPE_PROTOBUF = "application/x-protobuf";
     static final String API_KEY_HEADER = "api-key";
@@ -62,9 +61,7 @@ public class OtlpDataSender {
     private final HttpClientWrapper httpClientWrapper;
     private final boolean auditMode;
     private final URL logsUrl;
-    private final URL tracesUrl;
     private final Map<String, String> logsRequestHeaders;
-    private final Map<String, String> tracesRequestHeaders;
 
     public OtlpDataSender(OtlpExportConfig config, String licenseKey, boolean auditMode, HttpClientWrapper httpClientWrapper)
             throws MalformedURLException {
@@ -72,9 +69,7 @@ public class OtlpDataSender {
         this.httpClientWrapper = httpClientWrapper;
         this.auditMode = auditMode;
         this.logsUrl = new URL(config.getLogsEndpoint());
-        this.tracesUrl = new URL(config.getSpansEndpoint());
         this.logsRequestHeaders = buildRequestHeaders(logsUrl, config.getLogsHeaders(), licenseKey);
-        this.tracesRequestHeaders = buildRequestHeaders(tracesUrl, config.getSpansHeaders(), licenseKey);
     }
 
     private static Map<String, String> buildRequestHeaders(URL url, Map<String, String> configuredHeaders, String licenseKey) {
@@ -104,22 +99,11 @@ public class OtlpDataSender {
         return config.isLogsEnabled();
     }
 
-    public boolean isSpansEnabled() {
-        return config.isSpansEnabled();
-    }
-
     public void sendLogEvents(Map<String, ?> resourceAttributes, Collection<? extends LogEvent> events) throws Exception {
         if (events.isEmpty()) {
             return;
         }
         send(LOGS_SIGNAL, logsUrl, logsRequestHeaders, OtlpLogEncoder.encode(resourceAttributes, events), events.size());
-    }
-
-    public void sendSpanEvents(Map<String, ?> resourceAttributes, Collection<SpanEvent> events) throws Exception {
-        if (events.isEmpty()) {
-            return;
-        }
-        send(TRACES_SIGNAL, tracesUrl, tracesRequestHeaders, OtlpSpanEncoder.encode(resourceAttributes, events), events.size());
     }
 
     public void shutdown() {
@@ -134,7 +118,7 @@ public class OtlpDataSender {
             String metricName = MessageFormat.format(MetricNames.SUPPORTABILITY_OTLP_PAYLOAD_SIZE_EXCEEDS_MAX, signalPath);
             statsService.doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1), metricName);
             String message = MessageFormat.format("OTLP payload of {0} bytes for {1} exceeded the maximum size of {2} bytes and was dropped ({3} events)."
-                    + " Reduce application_logging.forwarding.max_samples_stored or span_events.max_samples_stored to send smaller payloads.",
+                    + " Reduce application_logging.forwarding.max_samples_stored to send smaller payloads.",
                     compressedPayload.length, signalPath,
                     MAX_PAYLOAD_SIZE_IN_BYTES, eventCount);
             Agent.LOG.log(Level.WARNING, message);

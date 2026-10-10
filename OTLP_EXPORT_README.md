@@ -1,9 +1,8 @@
-# OTLP Export for Log and Span Events
+# OTLP Export for Log Events
 
-The Java agent can export `LogEvent` and `SpanEvent` data over **OTLP/HTTP with binary protobuf encoding**. This works with New Relic's OTLP endpoint and with any other OTLP/HTTP endpoint.
+The Java agent can export `LogEvent` data over **OTLP/HTTP with binary protobuf encoding**. This works with New Relic's OTLP endpoint.
 
 - **Logs**: when enabled, sent via OTLP *instead of* the collector (`log_event_data`).
-- **Spans**: when enabled, sent via OTLP *in addition to* the collector (`span_event_data`).
 - **Infinite Tracing**: no interaction. With Infinite Tracing on, spans never reach the span reservoir, so neither the collector nor OTLP receives them.
 - **Attribute names**: New Relic names are kept, not translated to OTel semantic conventions, so the New Relic UI keeps working.
 - **Default**: off. Export is opt-in.
@@ -18,7 +17,7 @@ Three options were evaluated:
 
 The SDK exporters were rejected for these reasons:
 - **Size**: ~1.4 MB of OTel jars, or ~4.4 MB with okhttp/okio/kotlin.
-- **Copies**: every harvested event would need converting to `SpanData`/`LogRecordData`.
+- **Copies**: every harvested event would need converting to `LogRecordData`.
 - **Unstable APIs**: the marshalers and senders are in `*.internal` packages.
 - **Shading**: ServiceLoader lookups, a multi-release jar, `GlobalOpenTelemetry` self-metrics, and a second HTTP stack with its own proxy/TLS setup.
 
@@ -39,15 +38,11 @@ common: &default_settings
       enabled: true       # send logs via OTLP instead of the collector
       endpoint:           # full URL, used as-is (e.g. https://collector.newrelic.com/v1/logs)
       headers:            # replaces otlp_export.headers for logs
-    spans:
-      enabled: true       # send spans via OTLP in addition to the collector
-      endpoint:           # full URL, used as-is
-      headers:            # replaces otlp_export.headers for spans
 ```
 
 Every setting can also be set through an environment variable or a system property. For example:
 - `NEW_RELIC_OTLP_EXPORT_ENABLED=true`
-- `NEW_RELIC_OTLP_EXPORT_SPANS_ENDPOINT=...`
+- `NEW_RELIC_OTLP_EXPORT_LOGS_ENDPOINT=...`
 - `-Dnewrelic.config.otlp_export.logs.headers=...`
 
 ### Endpoint resolution
@@ -55,7 +50,7 @@ Every setting can also be set through an environment variable or a system proper
 These rules follow the OTel SDK convention (`OTEL_EXPORTER_OTLP_ENDPOINT` vs `OTEL_EXPORTER_OTLP_<SIGNAL>_ENDPOINT`):
 
 - A per-signal `endpoint` is used **as-is**.
-- Otherwise, `/v1/logs` or `/v1/traces` is appended to the base `endpoint`. Trailing slashes on the base are removed first.
+- Otherwise, `/v1/logs` is appended to the base `endpoint`. Trailing slashes on the base are removed first.
 - If the base `endpoint` isn't set, it's derived from the license key region, using the same logic as the collector host:
   - `https://collector.newrelic.com` when the license key has no region prefix.
   - `https://collector.<region>.nr-data.net` otherwise, e.g. `collector.eu01.nr-data.net`.
@@ -75,7 +70,7 @@ These rules follow the OTel SDK convention (`OTEL_EXPORTER_OTLP_ENDPOINT` vs `OT
 
 ## Wire format and mapping
 
-Each harvest sends one gzip-compressed `ExportLogsServiceRequest` or `ExportTraceServiceRequest`:
+Each harvest sends one gzip-compressed `ExportLogsServiceRequest`:
 - `Content-Type: application/x-protobuf`
 - `Content-Encoding: gzip`
 - POST to the signal's endpoint.
@@ -96,19 +91,6 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest` or `ExportTrac
 | `trace_id` / `span_id` | `trace.id` / `span.id` (hex → bytes) |
 | `attributes` | Every other attribute under its New Relic name, e.g. `level`, `entity.guid`, `entity.name`, `hostname`, `thread.*`, `logger.*`, `error.*`, `context.*`, `tags.*`, `k8s.*` |
 
-### SpanEvent → Span
-
-| Span field | Source |
-|---|---|
-| `trace_id` / `span_id` / `parent_span_id` | `traceId` / `guid` / `parentId`. Hex is left-padded to 16 or 8 bytes; invalid or all-zero IDs are omitted. |
-| `name` | `name` |
-| `kind` | `span.kind` intrinsic (client/producer/consumer/server/internal). Otherwise SERVER for `nr.entryPoint` spans and INTERNAL for everything else. |
-| `start_time_unix_nano` / `end_time_unix_nano` | `timestamp` (ms) and `timestamp + duration` (seconds) |
-| `status` | ERROR with `error.message` when the `error.class` agent attribute is present |
-| `attributes` | Intrinsics (minus `traceId`, `guid`, `parentId`, `name`, `timestamp`, `duration`, `type`), plus agent attributes and user attributes, all under their New Relic names |
-| `events` | Span events (`EventOnSpan`): timestamp, name, user attributes |
-| `links` | Span links (`LinkOnSpan`): `linkedTraceId`, `linkedSpanId`, user attributes |
-
 **Attribute values**
 - String, Boolean, Integer/Long/Short/Byte and Float/Double map to the matching `AnyValue` type.
 - Anything else is written as a string, the same as in the collector JSON.
@@ -121,8 +103,6 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest` or `ExportTrac
 | HTTP 200 / 202 | Success |
 | Any other status | `HttpError`. The agent's existing retry rules apply: 408/429/500/503 keep the batch for the next harvest; everything else discards it. |
 | Logs: retryable error | Rethrown, so `LogSenderServiceImpl` merges the batch into the next harvest |
-| Spans: any OTLP failure | Logged and swallowed. It never affects the collector send or triggers a collector retry. |
-| Spans: collector fails with a retryable error that keeps the batch | OTLP is skipped for that harvest because the batch comes back next harvest. OTLP never receives the same batch twice. |
 
 ## Supportability metrics
 
@@ -134,7 +114,7 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest` or `ExportTrac
 | `Supportability/Java/OTLP/Output/Bytes` | Data usage, uncompressed payload bytes, matching the collector's data usage metrics |
 | `Supportability/Java/OTLP/{signal}/Output/Bytes` | Data usage per signal, uncompressed payload bytes |
 
-`{signal}` is `v1/logs` or `v1/traces`.
+`{signal}` is `v1/logs`.
 
 In audit mode, each OTLP request is logged with its URL, event count, compressed size and response code. The protobuf body itself isn't logged.
 
@@ -147,7 +127,6 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 | `ProtobufWriter.java` | Minimal proto3 wire encoder: varint, fixed32/64, double, string, bytes, and nested messages. Each nested message's length prefix is written in place, with no second pass. |
 | `OtlpAttributes.java` | Shared encoding for `KeyValue`/`AnyValue`, `Resource` and `InstrumentationScope`, plus hex ID → bytes conversion |
 | `OtlpLogEncoder.java` | Builds `ExportLogsServiceRequest` from `LogEvent`s |
-| `OtlpSpanEncoder.java` | Builds `ExportTraceServiceRequest` from `SpanEvent`s |
 | `OtlpDataSender.java` | Handles gzip, the size check, per-signal URLs and headers, the license key host check, the HTTP POST, status handling and metrics |
 
 ### New: config
@@ -161,7 +140,7 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 
 | File | Change |
 |---|---|
-| `RPMService.java` | Owns an optional `OtlpDataSender`. `sendLogEvents` routes to OTLP when OTLP logs are enabled. `sendSpanEvents` sends to the collector, then to OTLP. Adds the resource attributes, shutdown, and a `@VisibleForTesting` setter. |
+| `RPMService.java` | Owns an optional `OtlpDataSender`. `sendLogEvents` routes to OTLP when OTLP logs are enabled. Adds the resource attributes, shutdown, and a `@VisibleForTesting` setter. |
 | `config/AgentConfig.java`, `config/AgentConfigImpl.java` | Register `getOtlpExportConfig()`, passing the license key region and serverless flag |
 | `transport/DataSenderFactory.java` | Moves HTTP client creation into a public static `createHttpClientWrapper(config, logger[, setDefaultJsonContentTypeHeader])` |
 | `transport/apache/ApacheHttpClientWrapper.java` | Null check in `logConnectionPoolStatus`, whose debug logging crashed on query-less OTLP URLs. Adds a constructor option to leave out the default `Content-Type: application/json` header; the OTLP client uses it. |
@@ -179,11 +158,10 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 | `transport/otlp/ProtobufWriterTest.java` | Varint edge cases, fixed-width types, nested length prefixes (including multi-byte), deep nesting, misuse errors |
 | `transport/otlp/OtlpAttributesTest.java` | Hex conversion: padding, case, invalid and all-zero IDs |
 | `transport/otlp/OtlpLogEncoderTest.java` | Every LogRecord field, decoded with the generated OTLP classes; minimal and empty input; invalid IDs; ms vs ns timestamps; severity mapping |
-| `transport/otlp/OtlpSpanEncoderTest.java` | Every Span field; span kind mapping; error status; short trace IDs; missing timing; events and links; empty input |
 | `transport/otlp/OtlpDataSenderTest.java` | URLs, gzip, Content-Type, per-signal endpoints and headers, license key only for `*.newrelic.com` or `*.nr-data.net`, oversized payload dropped, 200/202 success, 429/503/400/413 retry semantics, metrics |
 | `transport/otlp/OtlpTestUtil.java` | Helpers for decoding attributes and IDs |
 | `config/OtlpExportConfigImplTest.java` | Defaults, signal enablement, serverless, region endpoint, endpoint override and fallback, header parsing and replacement, env var and system property overrides, `AgentConfigImpl` wiring |
-| `RPMServiceTest.java` (+9 tests), `MockDataSender.java` | Logs routed to OTLP only when enabled; retryable OTLP log errors rethrown; resource attributes; spans sent to both; OTLP skipped when the collector keeps the batch; OTLP sent when the collector discards it; OTLP span failures isolated |
+| `RPMServiceTest.java` (+9 tests), `MockDataSender.java` | Logs routed to OTLP only when enabled; retryable OTLP log errors rethrown; resource attributes; OTLP skipped when the collector keeps the batch; OTLP sent when the collector discards it; OTLP span failures isolated |
 
 ## Verification status
 
@@ -196,11 +174,10 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 - **No unit tests for the `ApacheHttpClientWrapper` changes.** Neither the null-query check (the debug flag is fixed at JVM startup) nor the option to leave out the default `Content-Type` header is covered.
 - **No end-to-end testing:**
   1. Against a local OTel Collector (`otlphttp` receiver + `debug` exporter), to confirm the payloads are well formed.
-  2. Against a New Relic test account, to confirm Log and Span data appear with New Relic attribute names and link to the existing APM entity (logs in context).
+  2. Against a New Relic test account, to confirm Log data appears with New Relic attribute names and link to the existing APM entity (logs in context).
 
 ## Known limitations and follow-ups
 
-- **Duplicate spans**: if the span endpoint is the New Relic OTLP endpoint for the same account, spans are reported twice, once from the collector and once via OTLP. Span export is meant for a different account or a non-New Relic endpoint.
 - **Entity linking**: whether New Relic links OTLP data to the existing APM entity, rather than creating a new OTel service entity, still needs end-to-end confirmation.
 - **Not implemented in v1**:
   - honouring `Retry-After` (the next harvest acts as the backoff)

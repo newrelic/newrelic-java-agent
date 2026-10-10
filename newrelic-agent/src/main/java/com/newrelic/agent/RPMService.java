@@ -155,13 +155,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         try {
             OtlpDataSender sender = new OtlpDataSender(otlpExportConfig, config.getLicenseKey(), config.isAuditMode(),
                     DataSenderFactory.createHttpClientWrapper(config, Agent.LOG, false));
-            Agent.LOG.log(Level.INFO, "OTLP export is enabled. Logs: {0} ({1}), spans: {2} ({3})", otlpExportConfig.isLogsEnabled(),
-                    otlpExportConfig.getLogsEndpoint(), otlpExportConfig.isSpansEnabled(), otlpExportConfig.getSpansEndpoint());
+            Agent.LOG.log(Level.INFO, "OTLP export is enabled. Logs: {0} ({1})", otlpExportConfig.isLogsEnabled(),
+                    otlpExportConfig.getLogsEndpoint());
             return sender;
         } catch (Exception e) {
-            Agent.LOG.log(Level.WARNING, e, "Unable to enable OTLP export to {0} and {1}: {2}. Log and span events will only be sent to the collector."
-                    + " Check that otlp_export.endpoint, otlp_export.logs.endpoint and otlp_export.spans.endpoint are valid URLs.",
-                    otlpExportConfig.getLogsEndpoint(), otlpExportConfig.getSpansEndpoint(), e.toString());
+            Agent.LOG.log(Level.WARNING, e, "Unable to enable OTLP export to {0}: {1}. Log events will be sent to the collector."
+                    + " Check that otlp_export.endpoint and otlp_export.logs.endpoint are valid URLs.",
+                    otlpExportConfig.getLogsEndpoint(), e.toString());
             return null;
         }
     }
@@ -698,23 +698,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     /**
-     * When OTLP export is enabled for spans, spans are sent via OTLP in addition to the collector. OTLP failures are logged
-     * and never thrown, so they can't cause the harvest to retry a batch that the collector already accepted.
-     */
-    private void sendSpanEventsToOtlp(OtlpDataSender otlpSender, Collection<SpanEvent> events) {
-        if (!isConnected()) {
-            Agent.LOG.log(Level.FINER, "Not sending {0} span event(s) via OTLP because the agent is not connected", events.size());
-            return;
-        }
-        try {
-            otlpSender.sendSpanEvents(getSpanOtlpResourceAttributes(), events);
-        } catch (Exception e) {
-            Agent.LOG.log(Level.WARNING, "Unable to send {0} span event(s) via OTLP: {1}", events.size(), e.toString());
-            Agent.LOG.log(Level.FINEST, e, e.toString());
-        }
-    }
-
-    /**
      * Map of global resource attributes to add to OTLP Log payload
      * @return Map of attributes
      */
@@ -749,14 +732,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} span event(s)", events.size());
-        // When the collector keeps the batch for the next harvest, OTLP gets it then; this prevents sending it twice via OTLP
-        boolean batchRetainedForRetry = false;
         try {
             sendSpanEventsSyncRestart(reservoirSize, eventsSeen, events);
         } catch (HttpError e) {
             // We don't want to resend the data for certain response codes, retry for all others
             if (e.isRetryableError()) {
-                batchRetainedForRetry = !e.discardHarvestData();
                 throw e;
             }
         } catch (ForceRestartException e) {
@@ -767,11 +747,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceDisconnectException(e);
             shutdownAsync();
             throw e;
-        } finally {
-            OtlpDataSender otlpSender = otlpDataSender;
-            if (otlpSender != null && otlpSender.isSpansEnabled() && !batchRetainedForRetry) {
-                sendSpanEventsToOtlp(otlpSender, events);
-            }
         }
     }
 

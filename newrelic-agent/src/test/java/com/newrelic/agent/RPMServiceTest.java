@@ -28,7 +28,6 @@ import com.newrelic.agent.errors.ThrowableError;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
 import com.newrelic.agent.model.LogEvent;
-import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.normalization.NormalizationRule;
 import com.newrelic.agent.normalization.NormalizationRuleFactory;
 import com.newrelic.agent.profile.IProfile;
@@ -736,78 +735,6 @@ public class RPMServiceTest {
         assertEquals("OTLP Test App", resourceCaptor.getValue().get("service.name"));
     }
 
-    @Test(timeout = 30000)
-    public void spanEventsAreSentToCollectorAndOtlp() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
-
-        svc.sendSpanEvents(1, 1, spans);
-
-        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
-        verify(otlpDataSender).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), eq(spans));
-    }
-
-    @Test(timeout = 30000)
-    public void spanEventsAreNotSentViaOtlpWhenOtlpSpansAreDisabled() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, false);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
-
-        svc.sendSpanEvents(1, 1, spans);
-
-        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
-        verify(otlpDataSender, never()).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
-    }
-
-    @Test(timeout = 30000)
-    public void spanEventsAreNotSentViaOtlpWhenCollectorWillRetryThem() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        dataSenderFactory.getLastDataSender().setException(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0));
-
-        try {
-            svc.sendSpanEvents(1, 1, Collections.singletonList(SpanEvent.builder().build()));
-            fail("Expected HttpError");
-        } catch (HttpError expected) {
-            assertFalse(expected.discardHarvestData());
-        }
-        verify(otlpDataSender, never()).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
-    }
-
-    @Test(timeout = 30000)
-    public void spanEventsAreSentViaOtlpWhenCollectorDiscardsThem() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        dataSenderFactory.getLastDataSender().setException(new HttpError("bad request", HttpResponseCode.BAD_REQUEST, 0));
-        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
-
-        try {
-            svc.sendSpanEvents(1, 1, spans);
-            fail("Expected HttpError");
-        } catch (HttpError expected) {
-            assertTrue(expected.discardHarvestData());
-        }
-        verify(otlpDataSender).sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), eq(spans));
-    }
-
-    @Test(timeout = 30000)
-    public void otlpSpanFailureDoesNotAffectCollectorSend() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
-        doThrow(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0)).when(otlpDataSender)
-                .sendSpanEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<SpanEvent>anyCollection());
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        List<SpanEvent> spans = Collections.singletonList(SpanEvent.builder().build());
-
-        svc.sendSpanEvents(1, 1, spans);
-
-        assertEquals(spans, dataSenderFactory.getLastDataSender().getSpanEvents());
-    }
 
     private RPMService launchWithOtlp(MockDataSenderFactory dataSenderFactory, OtlpDataSender otlpDataSender) throws Exception {
         Map<String, Object> map = createStagingMap(true, false);
@@ -824,7 +751,6 @@ public class RPMServiceTest {
     private static OtlpDataSender mockOtlpDataSender(boolean logsEnabled, boolean spansEnabled) {
         OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
         when(otlpDataSender.isLogsEnabled()).thenReturn(logsEnabled);
-        when(otlpDataSender.isSpansEnabled()).thenReturn(spansEnabled);
         return otlpDataSender;
     }
 

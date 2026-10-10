@@ -23,21 +23,16 @@ public class OtlpExportConfigImpl extends BaseConfig implements OtlpExportConfig
     public static final String ENDPOINT = "endpoint";
     public static final String HEADERS = "headers";
     public static final String LOGS = "logs";
-    public static final String SPANS = "spans";
 
     public static final boolean DEFAULT_ENABLED = false;
     public static final boolean DEFAULT_SIGNAL_ENABLED = true;
     public static final String DEFAULT_ENDPOINT = "https://collector.newrelic.com";
     public static final String LOGS_PATH = "/v1/logs";
-    public static final String TRACES_PATH = "/v1/traces";
 
     private final boolean isEnabled;
     private final boolean isLogsEnabled;
-    private final boolean isSpansEnabled;
     private final String logsEndpoint;
-    private final String spansEndpoint;
     private final Map<String, String> logsHeaders;
-    private final Map<String, String> spansHeaders;
 
     /**
      * @param props            the otlp_export config stanza
@@ -54,20 +49,16 @@ public class OtlpExportConfigImpl extends BaseConfig implements OtlpExportConfig
         }
         isEnabled = enabled;
         SignalConfig logsConfig = new SignalConfig(nestedProps(LOGS), SYSTEM_PROPERTY_ROOT + LOGS + ".");
-        SignalConfig spansConfig = new SignalConfig(nestedProps(SPANS), SYSTEM_PROPERTY_ROOT + SPANS + ".");
         isLogsEnabled = isEnabled && logsConfig.isEnabled();
-        isSpansEnabled = isEnabled && spansConfig.isEnabled();
 
         // Like the OpenTelemetry SDK exporters, a signal specific endpoint is used as is, while the base endpoint has the signal path appended
         String baseEndpoint = parseBaseEndpoint(region);
         logsEndpoint = logsConfig.getEndpoint() != null ? logsConfig.getEndpoint() : baseEndpoint + LOGS_PATH;
-        spansEndpoint = spansConfig.getEndpoint() != null ? spansConfig.getEndpoint() : baseEndpoint + TRACES_PATH;
 
         // Also like the OpenTelemetry SDK exporters, signal specific headers replace the shared headers rather than being merged with them,
         // so that headers meant for one endpoint (such as credentials) aren't sent to a different endpoint
         Map<String, String> sharedHeaders = parseHeaders(this, HEADERS);
         logsHeaders = logsConfig.hasHeaders() ? parseHeaders(logsConfig, LOGS + "." + HEADERS) : sharedHeaders;
-        spansHeaders = spansConfig.hasHeaders() ? parseHeaders(spansConfig, SPANS + "." + HEADERS) : sharedHeaders;
     }
 
     /**
@@ -123,28 +114,13 @@ public class OtlpExportConfigImpl extends BaseConfig implements OtlpExportConfig
     }
 
     @Override
-    public boolean isSpansEnabled() {
-        return isSpansEnabled;
-    }
-
-    @Override
     public String getLogsEndpoint() {
         return logsEndpoint;
     }
 
     @Override
-    public String getSpansEndpoint() {
-        return spansEndpoint;
-    }
-
-    @Override
     public Map<String, String> getLogsHeaders() {
         return logsHeaders;
-    }
-
-    @Override
-    public Map<String, String> getSpansHeaders() {
-        return spansHeaders;
     }
 
     private static class SignalConfig extends BaseConfig {

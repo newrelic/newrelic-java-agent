@@ -92,65 +92,16 @@ public class OtlpDataSenderTest {
     }
 
     @Test
-    public void sendsSpansToTracesPath() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender(config("http://localhost:4318", Collections.<String, String>emptyMap()),
-                LICENSE_KEY, false, httpClientWrapper);
-        SpanEvent span = SpanEvent.builder().putIntrinsic("name", "span").putIntrinsic("guid", "b7ad6b7169203331").build();
-
-        sender.sendSpanEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(span));
-
-        HttpClientWrapper.Request request = captureRequest();
-        assertEquals("http://localhost:4318/v1/traces", request.getURL().toString());
-        ExportTraceServiceRequest decoded = ExportTraceServiceRequest.parseFrom(gunzip(request.getData()));
-        assertEquals("span", decoded.getResourceSpans(0).getScopeSpans(0).getSpans(0).getName());
-    }
-
-    @Test
-    public void logsAndSpansAreSentToTheirOwnEndpoints() throws Exception {
-        OtlpExportConfig config = config("https://unused.example.com", Collections.<String, String>emptyMap());
-        when(config.getLogsEndpoint()).thenReturn("https://otlp.nr-data.net/v1/logs");
-        when(config.getSpansEndpoint()).thenReturn("http://localhost:4318/custom/traces");
-        OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
-
-        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
-        sender.sendSpanEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(SpanEvent.builder().build()));
-
-        List<HttpClientWrapper.Request> requests = captureRequests(2);
-        assertEquals("https://otlp.nr-data.net/v1/logs", requests.get(0).getURL().toString());
-        assertEquals("http://localhost:4318/custom/traces", requests.get(1).getURL().toString());
-    }
-
-    @Test
     public void licenseKeyIsOnlySentToNewRelicEndpoints() throws Exception {
         OtlpExportConfig config = config("https://unused.example.com", Collections.<String, String>emptyMap());
         when(config.getLogsEndpoint()).thenReturn("https://otlp.nr-data.net/v1/logs");
-        when(config.getSpansEndpoint()).thenReturn("https://otlp.example.com/v1/traces");
         OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
-        sender.sendSpanEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(SpanEvent.builder().build()));
 
-        List<HttpClientWrapper.Request> requests = captureRequests(2);
+        List<HttpClientWrapper.Request> requests = captureRequests(1);
         assertEquals(LICENSE_KEY, requests.get(0).getRequestMetadata().get("api-key"));
-        assertFalse(requests.get(1).getRequestMetadata().containsKey("api-key"));
-        assertEquals("application/x-protobuf", requests.get(1).getRequestMetadata().get("Content-Type"));
-    }
-
-    @Test
-    public void logsAndSpansSendTheirOwnHeaders() throws Exception {
-        OtlpExportConfig config = config("https://otlp.example.com", Collections.<String, String>emptyMap());
-        when(config.getLogsHeaders()).thenReturn(Collections.singletonMap("x-logs", "1"));
-        when(config.getSpansHeaders()).thenReturn(Collections.singletonMap("authorization", "Bearer token"));
-        OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
-
-        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
-        sender.sendSpanEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(SpanEvent.builder().build()));
-
-        List<HttpClientWrapper.Request> requests = captureRequests(2);
-        assertEquals("1", requests.get(0).getRequestMetadata().get("x-logs"));
-        assertFalse(requests.get(0).getRequestMetadata().containsKey("authorization"));
-        assertEquals("Bearer token", requests.get(1).getRequestMetadata().get("authorization"));
-        assertFalse(requests.get(1).getRequestMetadata().containsKey("x-logs"));
+        assertEquals("application/x-protobuf", requests.get(0).getRequestMetadata().get("Content-Type"));
     }
 
     @Test
@@ -184,7 +135,6 @@ public class OtlpDataSenderTest {
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.<LogEvent>emptyList());
-        sender.sendSpanEvents(Collections.<String, Object>emptyMap(), Collections.<SpanEvent>emptyList());
 
         verify(httpClientWrapper, never()).execute(any(HttpClientWrapper.Request.class), any(HttpClientWrapper.ExecuteEventHandler.class));
     }
@@ -236,11 +186,9 @@ public class OtlpDataSenderTest {
     public void enabledSignalsComeFromConfig() throws Exception {
         OtlpExportConfig config = config("https://otlp.nr-data.net", Collections.<String, String>emptyMap());
         when(config.isLogsEnabled()).thenReturn(false);
-        when(config.isSpansEnabled()).thenReturn(true);
         OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
 
         assertFalse(sender.isLogsEnabled());
-        assertTrue(sender.isSpansEnabled());
     }
 
     private void assertHttpError(int statusCode, boolean discardHarvestData) throws Exception {
@@ -280,12 +228,9 @@ public class OtlpDataSenderTest {
     private static OtlpExportConfig config(String endpoint, Map<String, String> headers) {
         OtlpExportConfig config = mock(OtlpExportConfig.class);
         when(config.getLogsEndpoint()).thenReturn(endpoint + "/v1/logs");
-        when(config.getSpansEndpoint()).thenReturn(endpoint + "/v1/traces");
         when(config.getLogsHeaders()).thenReturn(headers);
-        when(config.getSpansHeaders()).thenReturn(headers);
         when(config.isEnabled()).thenReturn(true);
         when(config.isLogsEnabled()).thenReturn(true);
-        when(config.isSpansEnabled()).thenReturn(true);
         return config;
     }
 
