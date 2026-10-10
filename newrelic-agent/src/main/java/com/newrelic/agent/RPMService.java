@@ -708,17 +708,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         return resourceAttributes;
     }
 
-    /**
-     * Map of global resource attributes to add to OTLP Span payload
-     * @return Map of attributes
-     */
-    private Map<String, Object> getSpanOtlpResourceAttributes() {
-        Map<String, Object> resourceAttributes = new HashMap<>();
-        resourceAttributes.put("service.name", appName);
-        resourceAttributes.putAll(serviceMetadata);
-        return resourceAttributes;
-    }
-
     private void sendSpanEventsSyncRestart(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
         try {
             dataSender.sendSpanEvents(reservoirSize, eventsSeen, events);

@@ -135,7 +135,6 @@ public class OtlpExportConfigImplTest {
         OtlpExportConfig config = new OtlpExportConfigImpl(configProps, "", false);
 
         assertTrue(config.getLogsHeaders().isEmpty());
-//        assertEquals(Collections.singletonMap("api-key", "nr-key"), config.getSpansHeaders());
     }
 
     @Test
@@ -158,7 +157,6 @@ public class OtlpExportConfigImplTest {
         props.setProperty("newrelic.config.otlp_export.logs.enabled", "false");
         props.setProperty("newrelic.config.otlp_export.headers", "x-tenant=team-a");
         props.setProperty("newrelic.config.otlp_export.logs.endpoint", "https://logs.example.com/v1/logs");
-        props.setProperty("newrelic.config.otlp_export.spans.headers", "authorization=Bearer token");
         SystemPropertyFactory.setSystemPropertyProvider(new SystemPropertyProvider(new TestSystemProps(props), new TestEnvironmentFacade()));
 
         OtlpExportConfig config = new OtlpExportConfigImpl(configProps, "", false);
@@ -166,7 +164,6 @@ public class OtlpExportConfigImplTest {
         assertTrue(config.isEnabled());
         assertFalse(config.isLogsEnabled());
         assertEquals(Collections.singletonMap("x-tenant", "team-a"), config.getLogsHeaders());
-//        assertEquals(Collections.singletonMap("authorization", "Bearer token"), config.getSpansHeaders());
         assertEquals("https://logs.example.com/v1/logs", config.getLogsEndpoint());
     }
 

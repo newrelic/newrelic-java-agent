@@ -24,7 +24,7 @@ The SDK exporters were rejected for these reasons:
 The hand-written encoder:
 - **Dependencies**: adds no runtime dependencies.
 - **Transport**: reuses the agent's existing Apache HTTP client, so the agent's proxy, `ca_bundle_path` and timeout settings apply.
-- **Spec stability**: the OTLP trace and log protos it covers are marked Stable.
+- **Spec stability**: the OTLP log protos it covers are marked Stable.
 
 ## Configuration
 
@@ -161,7 +161,7 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 | `transport/otlp/OtlpDataSenderTest.java` | URLs, gzip, Content-Type, per-signal endpoints and headers, license key only for `*.newrelic.com` or `*.nr-data.net`, oversized payload dropped, 200/202 success, 429/503/400/413 retry semantics, metrics |
 | `transport/otlp/OtlpTestUtil.java` | Helpers for decoding attributes and IDs |
 | `config/OtlpExportConfigImplTest.java` | Defaults, signal enablement, serverless, region endpoint, endpoint override and fallback, header parsing and replacement, env var and system property overrides, `AgentConfigImpl` wiring |
-| `RPMServiceTest.java` (+9 tests), `MockDataSender.java` | Logs routed to OTLP only when enabled; retryable OTLP log errors rethrown; resource attributes; OTLP skipped when the collector keeps the batch; OTLP sent when the collector discards it; OTLP span failures isolated |
+| `RPMServiceTest.java` (+9 tests), `MockDataSender.java` | Logs routed to OTLP only when enabled; retryable OTLP log errors rethrown; resource attributes |
 
 ## Verification status
 
