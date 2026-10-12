@@ -100,11 +100,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     private static final String ENV_METADATA = "metadata";
     private static final int DEFAULT_MAX_PAYLOAD_SIZE_IN_BYTES = 1_000_000;
 
-    // Attributes for the logging common block
-    public static final String ENTITY_GUID = "entity.guid";
-    public static final String ENTITY_NAME = "entity.name";
-    public static final String HOSTNAME = "hostname";
-
     // Destinations for agent data
     private static final String COLLECTOR = "Collector";
 
