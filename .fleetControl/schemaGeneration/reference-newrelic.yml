@@ -382,7 +382,6 @@ common: &default_settings
 
   error_beacon:
   js_agent_file:
-  js_agent_loader:
 
   messages: []
   otlp_resource_attributes: {}
@@ -1108,6 +1107,12 @@ common: &default_settings
     # Allows the RUM footer to be injected on every request instead of once per transaction.
     # Default: false
     allow_multiple_footers: false
+
+    # If set, this specifies the version of the JS loader to be returned in the connect response. If this
+    # value is invalid, malformed, etc, no loader will be returned. An empty String will return the
+    # latest version of the loader.
+    # Default: empty String
+    version: ''
 
     # Version tag of the browser JS loader. Set by New Relic on connect; not user-configurable.
     loader_version:

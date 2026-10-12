@@ -249,6 +249,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             BrowserMonitoringConfig browserConfig = ServiceFactory.getConfigService().getAgentConfig(appName).getBrowserMonitoringConfig();
             settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.LOADER_TYPE, browserConfig.getLoaderType());
             settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.DEBUG, browserConfig.isDebug());
+            settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.VERSION, browserConfig.getVersion());
         }
 
         // Always send the services configuration as RPM thread profiler depends on it.
