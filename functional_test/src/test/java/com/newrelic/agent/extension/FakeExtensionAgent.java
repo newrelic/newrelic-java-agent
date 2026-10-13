@@ -90,11 +90,6 @@ class FakeExtensionAgent implements Agent {
     }
 
     @Override
-    public Map<String, Object> getConfiguredCustomLogAttributes() {
-        return Collections.emptyMap();
-    }
-
-    @Override
     public String getEntityGuid(boolean wait) {
         throw new RuntimeException();
     }
