@@ -45,7 +45,6 @@ public class AgentUtil {
             Throwable throwable = event.getThrown();
 
             if (shouldCreateLogEvent(message, contextData, throwable)) {
-
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(calculateInitialMapSize(contextData));
                 logEventMap.put(INSTRUMENTATION, "apache-log4j-2.6");
                 if (message != null) {

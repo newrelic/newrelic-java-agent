@@ -8,9 +8,7 @@
 package com.nr.instrumentation.glassfish.jul;
 
 import com.newrelic.agent.bridge.AgentBridge;
-import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.bridge.logging.LogAttributeKey;
-import com.newrelic.agent.bridge.logging.LogAttributeType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,10 +42,8 @@ public class AgentUtil {
             Throwable throwable = record.getThrown();
 
             if (shouldCreateLogEvent(message, throwable)) {
-
                 // JUL does not directly support MDC, so we only initialize the map size based on standard attributes
                 Map<LogAttributeKey, Object> logEventMap = new HashMap<>(DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES);
-
                 logEventMap.put(INSTRUMENTATION, "glassfish-jul-extension-7");
                 logEventMap.put(MESSAGE, message);
                 logEventMap.put(TIMESTAMP, record.getMillis());
