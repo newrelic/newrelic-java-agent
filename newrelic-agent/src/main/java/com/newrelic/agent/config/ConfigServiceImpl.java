@@ -285,6 +285,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService,
         partiallyObfuscateIfPresent(settings, AgentConfigImpl.LICENSE_KEY);
         partiallyObfuscateIfPresent(settings, BrowserConfig.BROWSER_KEY);
         partiallyObfuscateIfPresent(settings, CrossProcessConfigImpl.ENCODING_KEY);
+
+        // These settings shouldn't be sent up
+        settings.remove(BrowserConfig.JS_AGENT_LOADER);
     }
 
     /**

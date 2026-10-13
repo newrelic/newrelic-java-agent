@@ -434,6 +434,28 @@ public class ConfigServiceTest {
     }
 
     @Test
+    public void getExplicitlySetConfig_removesNecessaryKeys() throws Exception {
+        Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
+        createServiceManager(configMap);
+
+        ConfigService configService = ServiceFactory.getConfigService();
+        MockRPMServiceManager rpmServiceManager = (MockRPMServiceManager) ServiceFactory.getRPMServiceManager();
+        ConnectionConfigListener connectionConfigListener = rpmServiceManager.getConnectionConfigListener();
+        MockRPMService rpmService = (MockRPMService) rpmServiceManager.getRPMService();
+
+        Map<String, Object> agentData = new HashMap<>();
+        agentData.put("js_agent_loader", "blah blah blah");
+        Map<String, Object> serverData = new HashMap<>();
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentData);
+
+        connectionConfigListener.connected(rpmService, serverData);
+
+        Map<String, Object> result = configService.getExplicitlySetConfig();
+
+        assertFalse(result.containsKey("js_agent_loader"));
+    }
+
+    @Test
     public void getExplicitlySetConfig_includesTopLevelServerDataNotNestedUnderAgentConfig() throws Exception {
         Map<String, Object> configMap = AgentConfigFactoryTest.createStagingMap();
         createServiceManager(configMap);

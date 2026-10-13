@@ -350,7 +350,6 @@ final Set<String> EXCLUDE_KEYS = [
         'browser_key',
         'error_beacon',
         'js_agent_file',
-        'js_agent_loader',
         'messages',
         'otlp_resource_attributes',
         'request_headers_map',

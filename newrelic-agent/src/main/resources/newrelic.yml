@@ -454,6 +454,12 @@ common: &default_settings
     # the regex if you have more complex start head elements (attributes for example). The defined pattern is case-insensitive.
     tag_lib_head_pattern: '<head>'
 
+    # If set, this specifies the version of the JS loader to be returned in the connect response. If this
+    # value is invalid, malformed, etc, no loader will be returned. An empty String will return the
+    # latest version of the loader.
+    # Default: empty String
+    version: ''
+
   # By default, the agent sends JVM input arguments to New Relic, where they are visible as Environment data.
   # Set to false to disable the sending of JVM props.
   send_jvm_props: true

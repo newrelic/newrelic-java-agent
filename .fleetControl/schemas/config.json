@@ -1976,6 +1976,11 @@
                     "default": false,
                     "description": "Allows the RUM footer to be injected on every request instead of once per transaction. Default: false"
                 },
+                "version": {
+                    "type": "string",
+                    "default": "",
+                    "description": "If set, this specifies the version of the JS loader to be returned in the connect response. If this value is invalid, malformed, etc, no loader will be returned. An empty String will return the latest version of the loader. Default: empty String"
+                },
                 "loader_version": {
                     "type": "string",
                     "description": "Version tag of the browser JS loader. Set by New Relic on connect; not user-configurable."
