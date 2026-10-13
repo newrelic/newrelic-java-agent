@@ -1,3 +1,5 @@
+# Runs verifyInstrumentation for all modules.
+
 name: Verify Instrumentation
 
 # Permissions granted to all jobs in the workflow.
@@ -12,6 +14,12 @@ on:
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
+      grouping:
+        required: false
+        default: ''
+        type: string
+        description: 'The version grouping scheme to use when verifying versions of a library, one of [ALL, LATEST_MINOR, LATEST_MAJOR, LATEST]. If not specified, will fall back 
+        to the module-configured scheme or ALL.'
   workflow_call:
     inputs:
       agent-ref:
@@ -19,10 +27,36 @@ on:
         default: main
         type: string
         description: 'The ref (branch, SHA, tag?) to run the tests on'
+      grouping:
+        required: false
+        default: ''
+        type: string
+        description: 'The version grouping scheme to use when verifying versions of a library, one of [ALL, LATEST_MINOR, LATEST_MAJOR, LATEST]. If not specified, will fall back
+        to the module-configured scheme or ALL.'
   schedule:
-    - cron: '0 8 * * MON-FRI'
+    - cron: '0 8 * * TUE-FRI' #This string is exact-matched in the resolve-grouping job. If you update this, update that job too.
+    - cron: '0 8 * * MON'
+
+env:
+  #If a version grouping scheme was input by the caller, use it.
+  #The daily job (Tuesday - Friday) will use the LATEST_MAJOR scheme for all modules.
+  #All other runs (weekly job or no grouping input set by caller) will use the default, which falls back to a module's locally configured scheme or ALL.
+  VERSION_GROUPING: ${{ inputs.grouping != '' && inputs.grouping || ( github.event.schedule == '0 8 * * TUE-FRI' && 'LATEST_MAJOR' || '')}}
 
 jobs:
+
+  # The env variable can't be read by reusable workflow calls, so output it as a step byproduct here.
+  resolve-grouping:
+    name: Resolve version grouping
+    runs-on: ubuntu-24.04
+    outputs:
+      grouping: ${{ steps.set-grouping.outputs.grouping }}
+    steps:
+      - id: set-grouping
+        name: Resolve version grouping
+        run: |
+          echo "grouping=${{ env.VERSION_GROUPING }}" >> "$GITHUB_OUTPUT"
+
   # build the agent and saves Gradle's cache so all modules can use the cache
   build-agent:
     name: Build agent
@@ -39,20 +73,22 @@ jobs:
 
   verify-instrumentation-1:
     name: Page 1/2
-    needs: build-agent
+    needs: [ build-agent, resolve-grouping ]
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       page: 1/2
       ref: ${{ inputs.agent-ref || 'main' }}
+      grouping: ${{ needs.resolve-grouping.outputs.grouping }}
     secrets: inherit
 
   verify-instrumentation-2:
     name: Page 2/2
-    needs: build-agent
+    needs: [ build-agent, resolve-grouping ]
     uses: ./.github/workflows/X-Reusable-VerifyInstrumentation.yml
     with:
       page: 2/2
       ref: ${{ inputs.agent-ref || 'main' }}
+      grouping: ${{ needs.resolve-grouping.outputs.grouping }}
     secrets: inherit
 
   notify-failure:
