@@ -1,0 +1,17 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+    implementation("org.apache.cxf:cxf-rt-frontend-simple:3.5.3")
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.cxf-invoker-2.2.7' }
+}
+
+verifyInstrumentation {
+    passesOnly 'org.apache.cxf:cxf-rt-frontend-simple:[2.2.7,)'
+}
+
+site {
+    title 'CXF'
+    type 'Framework'
+}
