@@ -101,7 +101,7 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
-    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes) throws Exception {
         buffer.updateAnalyticEvents(events);
         buffer.updateLogEventsReservoir(events.size());
         buffer.updateLogEventsSeen(events.size());
