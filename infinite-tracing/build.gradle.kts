@@ -13,7 +13,6 @@ java {
 }
 
 dependencies {
-    // The shaded com.google.protobuf:protobuf-java dependency pulled in by infinite-tracing-protobuf is also used by the agent's OtlpDataSender. If this infinite-tracing-protobuf dependency is ever removed, the transitive protobuf-java dependency must be added to the newrelic-agent:build.gradle so that it is still available.
     implementation("com.newrelic.agent.java:infinite-tracing-protobuf:3.5")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation(project(":agent-model"))
