@@ -9,7 +9,6 @@ package com.newrelic.agent.transport.otlp;
 
 import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
@@ -70,7 +69,7 @@ public class OtlpDataSenderTest {
 
     @Test
     public void sendsLogsAsGzippedProtobufToLogsPath() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender("https://otlp.eu01.nr-data.net",
+        OtlpDataSender sender = new OtlpDataSender("otlp.eu01.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.singletonMap("service.name", "My App"), Collections.singletonList(logEvent("hello")));
@@ -91,14 +90,12 @@ public class OtlpDataSenderTest {
 
     @Test
     public void licenseKeyIsOnlySentToNewRelicEndpoints() throws Exception {
-        AgentConfig config = config("https://unused.example.com");
-        when(config.getHost()).thenReturn("https://otlp.nr-data.net/v1/logs"); // FIXME
-        OtlpDataSender sender = new OtlpDataSender(config.getHost(), LICENSE_KEY, false, httpClientWrapper);
+        OtlpDataSender sender = new OtlpDataSender("unused.example.com", LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
 
         List<HttpClientWrapper.Request> requests = captureRequests(1);
-        assertEquals(LICENSE_KEY, requests.get(0).getRequestMetadata().get("api-key"));
+        assertFalse(requests.get(0).getRequestMetadata().containsKey("api-key"));
         assertEquals("application/x-protobuf", requests.get(0).getRequestMetadata().get("Content-Type"));
     }
 
@@ -114,7 +111,7 @@ public class OtlpDataSenderTest {
 
     @Test
     public void emptyBatchesAreNotSent() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.<LogEvent>emptyList());
@@ -125,7 +122,7 @@ public class OtlpDataSenderTest {
     @Test
     public void acceptedResponseIsSuccess() throws Exception {
         respondWith(202);
-        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
@@ -143,7 +140,7 @@ public class OtlpDataSenderTest {
 
     @Test
     public void payloadAtMaxSizeIsDropped() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         // Random messages don't compress, so this batch is larger than the maximum payload size after gzip
@@ -167,7 +164,7 @@ public class OtlpDataSenderTest {
 
     private void assertHttpError(int statusCode, boolean discardHarvestData) throws Exception {
         respondWith(statusCode);
-        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
         try {
             sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
@@ -197,12 +194,6 @@ public class OtlpDataSenderTest {
 
     private void verifyMetricRecorded(String metricName) {
         verify(statsService).doStatsWork(any(StatsWork.class), eq(metricName));
-    }
-
-    private static AgentConfig config(String endpoint) {
-        AgentConfig config = mock(AgentConfig.class);
-        when(config.getHost()).thenReturn(endpoint + "/v1/logs");
-        return config;
     }
 
     private static LogEvent logEvent(String message) {
