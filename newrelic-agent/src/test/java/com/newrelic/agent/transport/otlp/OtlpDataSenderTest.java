@@ -9,7 +9,7 @@ package com.newrelic.agent.transport.otlp;
 
 import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MockServiceManager;
-import com.newrelic.agent.config.OtlpExportConfig;
+import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
@@ -70,7 +70,7 @@ public class OtlpDataSenderTest {
 
     @Test
     public void sendsLogsAsGzippedProtobufToLogsPath() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.eu01.nr-data.net", Collections.<String, String>emptyMap()),
+        OtlpDataSender sender = new OtlpDataSender("https://otlp.eu01.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.singletonMap("service.name", "My App"), Collections.singletonList(logEvent("hello")));
@@ -86,14 +86,14 @@ public class OtlpDataSenderTest {
         assertEquals("hello", decoded.getResourceLogs(0).getScopeLogs(0).getLogRecords(0).getBody().getStringValue());
         verifyMetricRecorded("Supportability/Java/OTLP/HttpCode/200");
         verifyMetricRecorded("Supportability/Java/OTLP/Output/Bytes");
-        verifyMetricRecorded("Supportability/Java/OTLP/v1/logs/Output/Bytes");
+        verifyMetricRecorded("Supportability/Java/OTLP/Logs/Output/Bytes");
     }
 
     @Test
     public void licenseKeyIsOnlySentToNewRelicEndpoints() throws Exception {
-        OtlpExportConfig config = config("https://unused.example.com", Collections.<String, String>emptyMap());
-        when(config.getLogsEndpoint()).thenReturn("https://otlp.nr-data.net/v1/logs");
-        OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
+        AgentConfig config = config("https://unused.example.com");
+        when(config.getHost()).thenReturn("https://otlp.nr-data.net/v1/logs"); // FIXME
+        OtlpDataSender sender = new OtlpDataSender(config.getHost(), LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
 
@@ -113,23 +113,8 @@ public class OtlpDataSenderTest {
     }
 
     @Test
-    public void configuredHeadersAreSentAndConfiguredApiKeyReplacesLicenseKey() throws Exception {
-        Map<String, String> headers = new HashMap<>();
-        headers.put("API-KEY", "configured-key");
-        headers.put("x-tenant", "team-a");
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.example.com", headers), LICENSE_KEY, false, httpClientWrapper);
-
-        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
-
-        Map<String, String> sentHeaders = captureRequest().getRequestMetadata();
-        assertEquals("configured-key", sentHeaders.get("API-KEY"));
-        assertFalse(sentHeaders.containsKey("api-key"));
-        assertEquals("team-a", sentHeaders.get("x-tenant"));
-    }
-
-    @Test
     public void emptyBatchesAreNotSent() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.nr-data.net", Collections.<String, String>emptyMap()),
+        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.<LogEvent>emptyList());
@@ -140,7 +125,7 @@ public class OtlpDataSenderTest {
     @Test
     public void acceptedResponseIsSuccess() throws Exception {
         respondWith(202);
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.nr-data.net", Collections.<String, String>emptyMap()),
+        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
@@ -158,7 +143,7 @@ public class OtlpDataSenderTest {
 
     @Test
     public void payloadAtMaxSizeIsDropped() throws Exception {
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.nr-data.net", Collections.<String, String>emptyMap()),
+        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
 
         // Random messages don't compress, so this batch is larger than the maximum payload size after gzip
@@ -174,24 +159,15 @@ public class OtlpDataSenderTest {
             sender.sendLogEvents(Collections.<String, Object>emptyMap(), events);
             fail("Expected MaxPayloadException");
         } catch (MaxPayloadException expected) {
-            assertTrue(expected.getMessage().contains("v1/logs"));
+            assertTrue(expected.getMessage().contains("Logs"));
         }
         verify(httpClientWrapper, never()).execute(any(HttpClientWrapper.Request.class), any(HttpClientWrapper.ExecuteEventHandler.class));
-        verifyMetricRecorded("Supportability/Java/OTLP/MaxPayloadSizeLimit/v1/logs");
-    }
-
-    @Test
-    public void enabledSignalsComeFromConfig() throws Exception {
-        OtlpExportConfig config = config("https://otlp.nr-data.net", Collections.<String, String>emptyMap());
-        when(config.isLogsEnabled()).thenReturn(false);
-        OtlpDataSender sender = new OtlpDataSender(config, LICENSE_KEY, false, httpClientWrapper);
-
-        assertFalse(sender.isLogsEnabled());
+        verifyMetricRecorded("Supportability/Java/OTLP/MaxPayloadSizeLimit/Logs");
     }
 
     private void assertHttpError(int statusCode, boolean discardHarvestData) throws Exception {
         respondWith(statusCode);
-        OtlpDataSender sender = new OtlpDataSender(config("https://otlp.nr-data.net", Collections.<String, String>emptyMap()),
+        OtlpDataSender sender = new OtlpDataSender("https://otlp.nr-data.net",
                 LICENSE_KEY, false, httpClientWrapper);
         try {
             sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
@@ -223,12 +199,9 @@ public class OtlpDataSenderTest {
         verify(statsService).doStatsWork(any(StatsWork.class), eq(metricName));
     }
 
-    private static OtlpExportConfig config(String endpoint, Map<String, String> headers) {
-        OtlpExportConfig config = mock(OtlpExportConfig.class);
-        when(config.getLogsEndpoint()).thenReturn(endpoint + "/v1/logs");
-        when(config.getLogsHeaders()).thenReturn(headers);
-        when(config.isEnabled()).thenReturn(true);
-        when(config.isLogsEnabled()).thenReturn(true);
+    private static AgentConfig config(String endpoint) {
+        AgentConfig config = mock(AgentConfig.class);
+        when(config.getHost()).thenReturn(endpoint + "/v1/logs");
         return config;
     }
 

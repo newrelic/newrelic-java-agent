@@ -10,9 +10,7 @@ package com.newrelic.agent.transport.otlp;
 import com.newrelic.agent.Agent;
 import com.newrelic.agent.MaxPayloadException;
 import com.newrelic.agent.MetricNames;
-import com.newrelic.agent.config.OtlpExportConfig;
 import com.newrelic.agent.model.LogEvent;
-import com.newrelic.agent.model.SpanEvent;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.stats.StatsWorks;
@@ -45,7 +43,9 @@ import java.util.zip.GZIPOutputStream;
 public class OtlpDataSender {
 
     // Signal names used in supportability metrics and log messages
-    static final String LOGS_SIGNAL = "v1/logs";
+    static final String HTTPS = "https://";
+    static final String LOGS_PATH = "/v1/logs";
+    static final String LOGS_SIGNAL = "Logs";
     static final String CONTENT_TYPE_HEADER = "Content-Type";
     static final String CONTENT_TYPE_PROTOBUF = "application/x-protobuf";
     static final String API_KEY_HEADER = "api-key";
@@ -57,46 +57,35 @@ public class OtlpDataSender {
 
     private static final String DESTINATION = "OTLP";
 
-    private final OtlpExportConfig config;
     private final HttpClientWrapper httpClientWrapper;
     private final boolean auditMode;
     private final URL logsUrl;
     private final Map<String, String> logsRequestHeaders;
 
-    public OtlpDataSender(OtlpExportConfig config, String licenseKey, boolean auditMode, HttpClientWrapper httpClientWrapper)
+    public OtlpDataSender(String host, String licenseKey, boolean auditMode, HttpClientWrapper httpClientWrapper)
             throws MalformedURLException {
-        this.config = config;
         this.httpClientWrapper = httpClientWrapper;
         this.auditMode = auditMode;
-        this.logsUrl = new URL(config.getLogsEndpoint());
-        this.logsRequestHeaders = buildRequestHeaders(logsUrl, config.getLogsHeaders(), licenseKey);
+        this.logsUrl = new URL(HTTPS + host + LOGS_PATH);
+        this.logsRequestHeaders = buildRequestHeaders(logsUrl, licenseKey);
     }
 
-    private static Map<String, String> buildRequestHeaders(URL url, Map<String, String> configuredHeaders, String licenseKey) {
+    private static Map<String, String> buildRequestHeaders(URL url, String licenseKey) {
         Map<String, String> headers = new HashMap<>();
         headers.put(CONTENT_TYPE_HEADER, CONTENT_TYPE_PROTOBUF);
-        boolean hasApiKey = false;
-        for (String name : configuredHeaders.keySet()) {
-            hasApiKey |= API_KEY_HEADER.equalsIgnoreCase(name);
-        }
-        if (!hasApiKey && licenseKey != null) {
+        if (licenseKey != null) {
             if (isNewRelicHost(url.getHost())) {
                 headers.put(API_KEY_HEADER, licenseKey);
             } else {
-                Agent.LOG.log(Level.INFO, "Not sending the license key to {0} because it isn''t a New Relic OTLP endpoint."
-                        + " Configure otlp_export headers if the endpoint requires authentication.", url);
+                Agent.LOG.log(Level.INFO, "Not sending the license key to {0} because it isn't a New Relic OTLP endpoint.", url);
             }
         }
-        headers.putAll(configuredHeaders);
         return Collections.unmodifiableMap(headers);
     }
 
     static boolean isNewRelicHost(String host) {
-        return host != null && (host.toLowerCase(Locale.ROOT).endsWith(NR_DATA_NET_HOST_SUFFIX) || host.toLowerCase(Locale.ROOT).endsWith(NEW_RELIC_COM_HOST_SUFFIX));
-    }
-
-    public boolean isLogsEnabled() {
-        return config.isLogsEnabled();
+        return host != null &&
+                (host.toLowerCase(Locale.ROOT).endsWith(NR_DATA_NET_HOST_SUFFIX) || host.toLowerCase(Locale.ROOT).endsWith(NEW_RELIC_COM_HOST_SUFFIX));
     }
 
     public void sendLogEvents(Map<String, ?> resourceAttributes, Collection<? extends LogEvent> events) throws Exception {
@@ -118,7 +107,7 @@ public class OtlpDataSender {
             String metricName = MessageFormat.format(MetricNames.SUPPORTABILITY_OTLP_PAYLOAD_SIZE_EXCEEDS_MAX, signalPath);
             statsService.doStatsWork(StatsWorks.getIncrementCounterWork(metricName, 1), metricName);
             String message = MessageFormat.format("OTLP payload of {0} bytes for {1} exceeded the maximum size of {2} bytes and was dropped ({3} events)."
-                    + " Reduce application_logging.forwarding.max_samples_stored to send smaller payloads.",
+                            + " Reduce application_logging.forwarding.max_samples_stored to send smaller payloads.",
                     compressedPayload.length, signalPath,
                     MAX_PAYLOAD_SIZE_IN_BYTES, eventCount);
             Agent.LOG.log(Level.WARNING, message);

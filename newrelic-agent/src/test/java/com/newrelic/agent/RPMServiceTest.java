@@ -103,9 +103,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -676,41 +674,14 @@ public class RPMServiceTest {
         logEvents.add(logEvent2);
 
         svc.sendLogEvents(logEvents);
-
         List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
 
         assertEquals("No log events sent currently", logEvents.size(), seen.size());
     }
 
     @Test(timeout = 30000)
-    public void logEventsAreSentOnlyViaOtlpWhenOtlpLogsAreEnabled() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        List<LogEvent> logEvents = Collections.singletonList(new LogEvent(null, 1));
-
-        svc.sendLogEvents(logEvents);
-
-        verify(otlpDataSender).sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), eq(logEvents));
-        assertNull(dataSenderFactory.getLastDataSender().getLogEvents());
-    }
-
-    @Test(timeout = 30000)
-    public void logEventsAreSentToCollectorWhenOtlpLogsAreDisabled() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(false, true);
-        RPMService svc = launchWithOtlp(dataSenderFactory, otlpDataSender);
-        List<LogEvent> logEvents = Collections.singletonList(new LogEvent(null, 1));
-
-        svc.sendLogEvents(logEvents);
-
-        verify(otlpDataSender, never()).sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<LogEvent>anyCollection());
-        assertEquals(logEvents, dataSenderFactory.getLastDataSender().getLogEvents());
-    }
-
-    @Test(timeout = 30000)
     public void retryableOtlpLogErrorIsThrownForHarvestRetry() throws Exception {
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
         doThrow(new HttpError("unavailable", HttpResponseCode.SERVICE_UNAVAILABLE, 0)).when(otlpDataSender)
                 .sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<LogEvent>anyCollection());
         RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
@@ -725,7 +696,7 @@ public class RPMServiceTest {
 
     @Test(timeout = 30000)
     public void otlpResourceAttributesIncludeServiceName() throws Exception {
-        OtlpDataSender otlpDataSender = mockOtlpDataSender(true, true);
+        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
         RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
 
         svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
@@ -734,7 +705,6 @@ public class RPMServiceTest {
         verify(otlpDataSender).sendLogEvents(resourceCaptor.capture(), ArgumentMatchers.<LogEvent>anyCollection());
         assertEquals("OTLP Test App", resourceCaptor.getValue().get("service.name"));
     }
-
 
     private RPMService launchWithOtlp(MockDataSenderFactory dataSenderFactory, OtlpDataSender otlpDataSender) throws Exception {
         Map<String, Object> map = createStagingMap(true, false);
@@ -746,12 +716,6 @@ public class RPMServiceTest {
         svc.launch();
         assertTrue(svc.isConnected());
         return svc;
-    }
-
-    private static OtlpDataSender mockOtlpDataSender(boolean logsEnabled, boolean spansEnabled) {
-        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
-        when(otlpDataSender.isLogsEnabled()).thenReturn(logsEnabled);
-        return otlpDataSender;
     }
 
     @Test(timeout = 30000)

@@ -16,7 +16,6 @@ import com.newrelic.agent.config.AgentJarHelper;
 import com.newrelic.agent.config.BrowserMonitoringConfig;
 import com.newrelic.agent.config.BrowserMonitoringConfigImpl;
 import com.newrelic.agent.config.Hostname;
-import com.newrelic.agent.config.OtlpExportConfig;
 import com.newrelic.agent.config.SystemPropertyFactory;
 import com.newrelic.agent.environment.AgentIdentity;
 import com.newrelic.agent.environment.Environment;
@@ -148,20 +147,11 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     }
 
     private static OtlpDataSender createOtlpDataSender(AgentConfig config) {
-        OtlpExportConfig otlpExportConfig = config.getOtlpExportConfig();
-        if (!otlpExportConfig.isEnabled()) {
-            return null;
-        }
         try {
-            OtlpDataSender sender = new OtlpDataSender(otlpExportConfig, config.getLicenseKey(), config.isAuditMode(),
+            return new OtlpDataSender(config.getHost(), config.getLicenseKey(), config.isAuditMode(),
                     DataSenderFactory.createHttpClientWrapper(config, Agent.LOG, false));
-            Agent.LOG.log(Level.INFO, "OTLP export is enabled. Logs: {0} ({1})", otlpExportConfig.isLogsEnabled(),
-                    otlpExportConfig.getLogsEndpoint());
-            return sender;
         } catch (Exception e) {
-            Agent.LOG.log(Level.WARNING, e, "Unable to enable OTLP export to {0}: {1}. Log events will be sent to the collector."
-                    + " Check that otlp_export.endpoint and otlp_export.logs.endpoint are valid URLs.",
-                    otlpExportConfig.getLogsEndpoint(), e.toString());
+            Agent.LOG.log(Level.WARNING, e, "Error creating OTLP DataSender", e.toString());
             return null;
         }
     }
@@ -655,12 +645,12 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     public void sendLogEvents(final Collection<? extends LogEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
         OtlpDataSender otlpSender = otlpDataSender;
-        if (otlpSender != null && otlpSender.isLogsEnabled()) {
+        if (otlpSender != null) {
             sendLogEventsToOtlp(otlpSender, events);
             return;
         }
         try {
-            sendLogEventsSyncRestart(events);
+            sendLogEventsSyncRestart(events); // TODO rip out old non-OTLP data sender logic or leave as fallback?
         } catch (HttpError e) {
             // We don't want to resend the data for certain response codes, retry for all others
             if (e.isRetryableError()) {

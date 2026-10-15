@@ -33,7 +33,6 @@ public class MockDataSender implements DataSender {
 
     private List<TransactionTrace> traces;
     private List<LogEvent> logEvents;
-    private List<SpanEvent> spanEvents;
     Map<String, Object> startupOptions;
     private Exception exception;
     private boolean isConnected;
@@ -176,14 +175,6 @@ public class MockDataSender implements DataSender {
 
     @Override
     public void sendSpanEvents(int reservoirSize, int eventsSeen, final Collection<SpanEvent> events) throws Exception {
-        if (exception != null) {
-            throw exception;
-        }
-        spanEvents = new ArrayList<>(events);
-    }
-
-    public List<SpanEvent> getSpanEvents() {
-        return spanEvents;
     }
 
     @Override

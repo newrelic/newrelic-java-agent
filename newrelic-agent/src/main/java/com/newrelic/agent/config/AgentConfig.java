@@ -387,8 +387,6 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     SlowTransactionsConfig getSlowTransactionsConfig();
 
-    OtlpExportConfig getOtlpExportConfig();
-
     AgentControlIntegrationConfig getAgentControlIntegrationConfig();
 
 }
