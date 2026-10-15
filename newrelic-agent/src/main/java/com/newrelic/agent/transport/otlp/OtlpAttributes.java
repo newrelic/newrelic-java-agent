@@ -8,13 +8,19 @@
 package com.newrelic.agent.transport.otlp;
 
 import com.newrelic.agent.Agent;
+import io.opentelemetry.proto.common.v1.AnyValue;
+import io.opentelemetry.proto.common.v1.InstrumentationScope;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.resource.v1.Resource;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Encodes OTLP messages shared by every signal: {@code KeyValue}, {@code AnyValue}, {@code Resource} and
+ * Builds OTLP messages shared by every signal: {@code KeyValue}, {@code AnyValue}, {@code Resource} and
  * {@code InstrumentationScope} (see opentelemetry/proto/common/v1/common.proto and resource/v1/resource.proto).
  */
 final class OtlpAttributes {
@@ -25,84 +31,66 @@ final class OtlpAttributes {
     static final String SCOPE_NAME = "newrelic-java-agent";
     static final String SERVICE_NAME = "service.name";
 
-    // KeyValue
-    private static final int KEY_VALUE_KEY = 1;
-    private static final int KEY_VALUE_VALUE = 2;
-
-    // AnyValue
-    private static final int ANY_VALUE_STRING = 1;
-    private static final int ANY_VALUE_BOOL = 2;
-    private static final int ANY_VALUE_INT = 3;
-    private static final int ANY_VALUE_DOUBLE = 4;
-
-    // Resource
-    private static final int RESOURCE_ATTRIBUTES = 1;
-
-    // InstrumentationScope
-    private static final int SCOPE_NAME_FIELD = 1;
-    private static final int SCOPE_VERSION_FIELD = 2;
-
     private OtlpAttributes() {
     }
 
     /**
-     * Writes every entry of the map as a {@code KeyValue} field, skipping null maps, null keys, null values and excluded keys.
+     * Builds a {@code KeyValue} for every entry of the map, skipping null maps, null keys, null values and excluded keys.
      */
-    static void writeAttributes(ProtobufWriter writer, int fieldNumber, Map<String, ?> attributes, Set<String> excludedKeys) {
+    static List<KeyValue> buildAttributes(Map<String, ?> attributes, Set<String> excludedKeys) {
         if (attributes == null) {
-            return;
+            return Collections.emptyList();
         }
+        List<KeyValue> result = new ArrayList<>(attributes.size());
         for (Map.Entry<String, ?> entry : attributes.entrySet()) {
             if (!excludedKeys.contains(entry.getKey())) {
-                writeAttribute(writer, fieldNumber, entry.getKey(), entry.getValue());
+                KeyValue attribute = buildAttribute(entry.getKey(), entry.getValue());
+                if (attribute != null) {
+                    result.add(attribute);
+                }
             }
         }
+        return result;
     }
 
-    static void writeAttribute(ProtobufWriter writer, int fieldNumber, String key, Object value) {
+    static KeyValue buildAttribute(String key, Object value) {
         if (key == null || value == null) {
-            return;
+            return null;
         }
-        writer.startMessage(fieldNumber);
-        writer.writeString(KEY_VALUE_KEY, key);
-        writer.startMessage(KEY_VALUE_VALUE);
-        writeAnyValue(writer, value);
-        writer.endMessage();
-        writer.endMessage();
+        return KeyValue.newBuilder().setKey(key).setValue(buildAnyValue(value)).build();
     }
 
     /**
-     * Writes the fields of an {@code AnyValue}. Values that aren't strings, booleans or numbers are written as strings,
+     * Builds the fields of an {@code AnyValue}. Values that aren't strings, booleans or numbers are written as strings,
      * which matches how they are serialized to JSON for the collector.
      */
-    static void writeAnyValue(ProtobufWriter writer, Object value) {
+    static AnyValue buildAnyValue(Object value) {
         if (value instanceof String) {
-            writer.writeString(ANY_VALUE_STRING, (String) value);
+            return AnyValue.newBuilder().setStringValue((String) value).build();
         } else if (value instanceof Boolean) {
-            writer.writeBool(ANY_VALUE_BOOL, (Boolean) value);
+            return AnyValue.newBuilder().setBoolValue((Boolean) value).build();
         } else if (value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte) {
-            writer.writeVarint(ANY_VALUE_INT, ((Number) value).longValue());
+            return AnyValue.newBuilder().setIntValue(((Number) value).longValue()).build();
         } else if (value instanceof Number) {
-            writer.writeDouble(ANY_VALUE_DOUBLE, ((Number) value).doubleValue());
+            return AnyValue.newBuilder().setDoubleValue(((Number) value).doubleValue()).build();
         } else {
-            writer.writeString(ANY_VALUE_STRING, String.valueOf(value));
+            return AnyValue.newBuilder().setStringValue(String.valueOf(value)).build();
         }
     }
 
-    static void writeResource(ProtobufWriter writer, int fieldNumber, Map<String, ?> resourceAttributes) {
-        writer.startMessage(fieldNumber);
-        writeAttributes(writer, RESOURCE_ATTRIBUTES, resourceAttributes, Collections.<String>emptySet());
-        writer.endMessage();
+    static Resource buildResource(Map<String, ?> resourceAttributes) {
+        return Resource.newBuilder()
+                .addAllAttributes(buildAttributes(resourceAttributes, Collections.<String>emptySet()))
+                .build();
     }
 
-    static void writeScope(ProtobufWriter writer, int fieldNumber) {
-        writer.startMessage(fieldNumber);
-        writer.writeString(SCOPE_NAME_FIELD, SCOPE_NAME);
+    static InstrumentationScope buildScope() {
+        InstrumentationScope.Builder builder = InstrumentationScope.newBuilder().setName(SCOPE_NAME);
         String version = Agent.getVersion();
         if (version != null) {
-            writer.writeString(SCOPE_VERSION_FIELD, version);
+            builder.setVersion(version);
         }
-        writer.endMessage();
+        return builder.build();
     }
 
     /**

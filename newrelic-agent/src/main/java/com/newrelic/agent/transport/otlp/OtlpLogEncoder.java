@@ -7,8 +7,13 @@
 
 package com.newrelic.agent.transport.otlp;
 
+import com.google.protobuf.ByteString;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.model.LogEvent;
+import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
+import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.proto.logs.v1.ResourceLogs;
+import io.opentelemetry.proto.logs.v1.ScopeLogs;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,27 +31,6 @@ import java.util.concurrent.TimeUnit;
  * Only the attributes that map onto native {@code LogRecord} fields are removed from the attribute list.
  */
 final class OtlpLogEncoder {
-
-    // ExportLogsServiceRequest
-    private static final int REQUEST_RESOURCE_LOGS = 1;
-
-    // ResourceLogs
-    private static final int RESOURCE_LOGS_RESOURCE = 1;
-    private static final int RESOURCE_LOGS_SCOPE_LOGS = 2;
-
-    // ScopeLogs
-    private static final int SCOPE_LOGS_SCOPE = 1;
-    private static final int SCOPE_LOGS_LOG_RECORDS = 2;
-
-    // LogRecord
-    private static final int LOG_RECORD_TIME_UNIX_NANO = 1;
-    private static final int LOG_RECORD_SEVERITY_NUMBER = 2;
-    private static final int LOG_RECORD_SEVERITY_TEXT = 3;
-    private static final int LOG_RECORD_BODY = 5;
-    private static final int LOG_RECORD_ATTRIBUTES = 6;
-    private static final int LOG_RECORD_TRACE_ID = 9;
-    private static final int LOG_RECORD_SPAN_ID = 10;
-    private static final int LOG_RECORD_OBSERVED_TIME_UNIX_NANO = 11;
 
     // SeverityNumber
     static final int SEVERITY_UNSPECIFIED = 0;
@@ -68,62 +52,56 @@ final class OtlpLogEncoder {
     // The OpenTelemetry SDK bridge instrumentation records log timestamps in nanoseconds.
     private static final long MAX_EPOCH_MILLIS = 1_000_000_000_000_000L;
 
-    private static final int ESTIMATED_BYTES_PER_LOG = 512;
-
     private OtlpLogEncoder() {
     }
 
     static byte[] encode(Map<String, ?> resourceAttributes, Collection<? extends LogEvent> events) {
-        ProtobufWriter writer = new ProtobufWriter(events.size() * ESTIMATED_BYTES_PER_LOG);
-        writer.startMessage(REQUEST_RESOURCE_LOGS);
-        OtlpAttributes.writeResource(writer, RESOURCE_LOGS_RESOURCE, resourceAttributes);
-        writer.startMessage(RESOURCE_LOGS_SCOPE_LOGS);
-        OtlpAttributes.writeScope(writer, SCOPE_LOGS_SCOPE);
+        ScopeLogs.Builder scopeLogs = ScopeLogs.newBuilder().setScope(OtlpAttributes.buildScope());
         for (LogEvent event : events) {
-            writeLogRecord(writer, event);
+            scopeLogs.addLogRecords(buildLogRecord(event));
         }
-        writer.endMessage();
-        writer.endMessage();
-        return writer.toByteArray();
+        ResourceLogs resourceLogs = ResourceLogs.newBuilder()
+                .setResource(OtlpAttributes.buildResource(resourceAttributes))
+                .addScopeLogs(scopeLogs)
+                .build();
+        return ExportLogsServiceRequest.newBuilder().addResourceLogs(resourceLogs).build().toByteArray();
     }
 
-    private static void writeLogRecord(ProtobufWriter writer, LogEvent event) {
+    private static LogRecord buildLogRecord(LogEvent event) {
         Map<String, Object> attributes = event.getUserAttributesCopy();
         long observedTimeNanos = TimeUnit.MILLISECONDS.toNanos(event.getTimestamp());
 
-        writer.startMessage(SCOPE_LOGS_LOG_RECORDS);
-        writer.writeFixed64(LOG_RECORD_TIME_UNIX_NANO, toEpochNanos(attributes.get(TIMESTAMP), observedTimeNanos));
+        LogRecord.Builder builder = LogRecord.newBuilder()
+                .setTimeUnixNano(toEpochNanos(attributes.get(TIMESTAMP), observedTimeNanos))
+                .setObservedTimeUnixNano(observedTimeNanos);
 
         Object level = attributes.get(LEVEL);
         if (level != null) {
             String levelText = level.toString();
             int severityNumber = toSeverityNumber(levelText);
             if (severityNumber != SEVERITY_UNSPECIFIED) {
-                writer.writeVarint(LOG_RECORD_SEVERITY_NUMBER, severityNumber);
+                builder.setSeverityNumberValue(severityNumber);
             }
-            writer.writeString(LOG_RECORD_SEVERITY_TEXT, levelText);
+            builder.setSeverityText(levelText);
         }
 
         Object message = attributes.get(MESSAGE);
         if (message != null) {
-            writer.startMessage(LOG_RECORD_BODY);
-            OtlpAttributes.writeAnyValue(writer, message);
-            writer.endMessage();
+            builder.setBody(OtlpAttributes.buildAnyValue(message));
         }
 
-        OtlpAttributes.writeAttributes(writer, LOG_RECORD_ATTRIBUTES, attributes, NATIVE_FIELD_ATTRIBUTES);
+        builder.addAllAttributes(OtlpAttributes.buildAttributes(attributes, NATIVE_FIELD_ATTRIBUTES));
 
-        byte[] traceId = toIdBytes(attributes.get(AppLoggingUtils.TRACE_ID), OtlpAttributes.TRACE_ID_BYTES);
+        ByteString traceId = toIdBytes(attributes.get(AppLoggingUtils.TRACE_ID), OtlpAttributes.TRACE_ID_BYTES);
         if (traceId != null) {
-            writer.writeBytes(LOG_RECORD_TRACE_ID, traceId);
+            builder.setTraceId(traceId);
         }
-        byte[] spanId = toIdBytes(attributes.get(AppLoggingUtils.SPAN_ID), OtlpAttributes.SPAN_ID_BYTES);
+        ByteString spanId = toIdBytes(attributes.get(AppLoggingUtils.SPAN_ID), OtlpAttributes.SPAN_ID_BYTES);
         if (spanId != null) {
-            writer.writeBytes(LOG_RECORD_SPAN_ID, spanId);
+            builder.setSpanId(spanId);
         }
 
-        writer.writeFixed64(LOG_RECORD_OBSERVED_TIME_UNIX_NANO, observedTimeNanos);
-        writer.endMessage();
+        return builder.build();
     }
 
     static long toEpochNanos(Object timestamp, long defaultNanos) {
@@ -165,7 +143,11 @@ final class OtlpLogEncoder {
         }
     }
 
-    private static byte[] toIdBytes(Object id, int byteLength) {
-        return id instanceof String ? OtlpAttributes.hexToBytes((String) id, byteLength) : null;
+    private static ByteString toIdBytes(Object id, int byteLength) {
+        if (!(id instanceof String)) {
+            return null;
+        }
+        byte[] bytes = OtlpAttributes.hexToBytes((String) id, byteLength);
+        return bytes == null ? null : ByteString.copyFrom(bytes);
     }
 }

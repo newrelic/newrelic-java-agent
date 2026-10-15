@@ -7,7 +7,7 @@ The Java agent can export `LogEvent` data over **OTLP/HTTP with binary protobuf 
 
 ## Why this approach
 
-Three options were evaluated:
+Three options were evaluated for building the payload:
 
 1. A handwritten OTLP protobuf encoder.
 2. Reusing the OpenTelemetry Java SDK exporters.
@@ -19,10 +19,28 @@ The SDK exporters were rejected for these reasons:
 - **Unstable APIs**: the marshalers and senders are in `*.internal` packages.
 - **Shading**: ServiceLoader lookups, a multi-release jar, `GlobalOpenTelemetry` self-metrics, and a second HTTP stack with its own proxy/TLS setup.
 
-The handwritten encoder:
-- **Dependencies**: adds no runtime dependencies.
-- **Transport**: reuses the agent's existing Apache HTTP client, so the agent's proxy, `ca_bundle_path` and timeout settings apply.
-- **Spec stability**: the OTLP log protos it covers are marked Stable.
+The current encoder builds the payload with the real generated protobuf message classes
+(`io.opentelemetry.proto:opentelemetry-proto`), not a hand-rolled wire-format writer, and not the OTel SDK/exporter:
+- **Not the rejected option**: `opentelemetry-proto` is pure generated message code with no OTel SDK/exporter — no
+  ServiceLoader, no `GlobalOpenTelemetry`, no second HTTP stack. (The OTel SDK/exporter itself doesn't even use
+  protobuf-java; it has its own hand-rolled marshaler.)
+- **No new runtime dependency, in practice**: the agent already shades `com.google.protobuf:protobuf-java:3.25.5` and
+  `io.grpc:*` into `newrelic-agent.jar` via `infinite-tracing` → `infinite-tracing-protobuf` (Infinite Tracing's
+  gRPC span-streaming client). `opentelemetry-proto` is pinned to `1.0.0-alpha`, the last release generated against
+  that pre-4.x protobuf-java codegen style, specifically so it shares that already-shaded protobuf-java runtime
+  instead of pulling in a second, newer copy — a newer `opentelemetry-proto` release requires protobuf-java 4.x,
+  which would both add real size and couple two independently-versioned dependencies at the class-load level
+  (newer protobuf-java gencode throws at static-init if the runtime version drifts too far from what it was
+  generated against). The net new footprint of staying on `1.0.0-alpha` is just that one ~650 KB jar.
+- **Transport unchanged**: reuses the agent's existing Apache HTTP client, so the agent's proxy, `ca_bundle_path`
+  and timeout settings still apply.
+- **Spec stability**: the OTLP log protos it covers (`LogRecord`, `Resource`, `InstrumentationScope`, `KeyValue`/
+  `AnyValue`) are marked Stable and have been unchanged since `1.0.0-alpha`, so pinning to that old release costs
+  nothing functionally.
+- **Trade-off**: this still promotes `opentelemetry-proto`/`protobuf-java` from a test-only dependency to a
+  production one, which is a one-way door — any future bump of either `infinite-tracing-protobuf`'s or this
+  module's protobuf dependency needs to be checked against the other. Hand-rolled wire-format code (and its test
+  coverage) is deleted in exchange, removing the risk of a hand-rolled encoding bug.
 
 ### Endpoint resolution
 
@@ -98,9 +116,8 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 
 | File | Purpose |
 |---|---|
-| `ProtobufWriter.java` | Minimal proto3 wire encoder: varint, fixed32/64, double, string, bytes, and nested messages. Each nested message's length prefix is written in place, with no second pass. |
-| `OtlpAttributes.java` | Shared encoding for `KeyValue`/`AnyValue`, `Resource` and `InstrumentationScope`, plus hex ID → bytes conversion |
-| `OtlpLogEncoder.java` | Builds `ExportLogsServiceRequest` from `LogEvent`s |
+| `OtlpAttributes.java` | Shared builders for `KeyValue`/`AnyValue`, `Resource` and `InstrumentationScope` (using the generated `io.opentelemetry.proto` classes), plus hex ID → bytes conversion |
+| `OtlpLogEncoder.java` | Builds `ExportLogsServiceRequest` from `LogEvent`s using the generated protobuf builders |
 | `OtlpDataSender.java` | Handles gzip, the size check, per-signal URLs and headers, the license key host check, the HTTP POST, status handling and metrics |
 
 ### Modified
@@ -113,13 +130,12 @@ In audit mode, each OTLP request is logged with its URL, event count, compressed
 | `transport/ReadResult.java` | `getStatusCode()` and `getResponseBody()` are now public, for the `otlp` subpackage |
 | `transport/DataSenderImpl.java` | Comment update: OTLP data usage is now recorded by `OtlpDataSender` |
 | `MetricNames.java` | OTLP supportability metric names |
-| `newrelic-agent/build.gradle` | Test-only dependency `io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha`, used to decode encoder output in tests. Compatible with the agent's protobuf-java 3.25.5. |
+| `newrelic-agent/build.gradle` | `io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha` is a `shadowIntoJar` (production) dependency, used by the encoders to build the payload and in tests to decode it. Relocated under `com.newrelic.agent.deps.io.opentelemetry.proto`; shares the protobuf-java 3.25.5 already shaded in via `infinite-tracing-protobuf`. |
 
 ### Tests
 
 | File | Coverage |
 |---|---|
-| `transport/otlp/ProtobufWriterTest.java` | Varint edge cases, fixed-width types, nested length prefixes (including multi-byte), deep nesting, misuse errors |
 | `transport/otlp/OtlpAttributesTest.java` | Hex conversion: padding, case, invalid and all-zero IDs |
 | `transport/otlp/OtlpLogEncoderTest.java` | Every LogRecord field, decoded with the generated OTLP classes; minimal and empty input; invalid IDs; ms vs ns timestamps; severity mapping |
 | `transport/otlp/OtlpDataSenderTest.java` | URLs, gzip, Content-Type, per-signal endpoints and headers, license key only for `*.newrelic.com` or `*.nr-data.net`, oversized payload dropped, 200/202 success, 429/503/400/413 retry semantics, metrics |

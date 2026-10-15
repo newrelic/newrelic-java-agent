@@ -210,7 +210,10 @@ dependencies {
     testImplementation("org.eclipse.jetty:jetty-servlet:8.1.22.v20160922")
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
     testImplementation("org.mockito:mockito-inline:4.11.0")
-    // Generated OTLP message classes, used only to decode the payloads written by the OTLP encoders in tests
+    // Generated OTLP message classes, used to build the OTLP encoders' payloads and (in tests) to decode them.
+    // Pinned to the pre-4.x codegen release so it shares the protobuf-java 3.25.5 runtime already shaded in via
+    // infinite-tracing-protobuf, instead of pulling in a second, newer protobuf-java copy.
+    shadowIntoJar("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
 }
 
@@ -299,7 +302,7 @@ task relocatedShadowJar(type: ShadowJar) {
             "com.google", "org.yaml", "org.slf4j", "org.objectweb", "org.json",
             "org.apache.commons", "org.apache.http", "org.apache.logging", "jregex",
             "io.grpc", "com.squareup", "okio", "io.perfmark", "android",
-            "org.crac",
+            "org.crac", "io.opentelemetry.proto",
 
             // The following rules are to prevent these transitive dependencies from breaking anything
             "org.apache.log4j", "org.apache.log", "org.apache.avalon",
