@@ -101,7 +101,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private volatile String entityGuid = "";
     private volatile Map<String, String> serviceMetadata = Collections.emptyMap();
     private final DataSender dataSender;
-    // Null when OTLP export is disabled
     private volatile OtlpDataSender otlpDataSender;
     private long connectionTimestamp = 0;
     private final AtomicInteger last503Error = new AtomicInteger(0);
