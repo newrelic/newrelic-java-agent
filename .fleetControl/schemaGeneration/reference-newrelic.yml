@@ -222,6 +222,31 @@ common: &default_settings
   # Default: 0
   wait_for_transactions: 0
 
+  # When enabled, URL paths can be obfuscated when it matches the supplied pattern.
+  # Matched Strings will be replaced by the replacement String value. The following
+  # items can be obfuscated: request.uri, sql trace URIs, transaction names,
+  # external call http.url attributes (and associated metrics).
+  url_obfuscation:
+
+    # Set to true to enable URL obfuscation.
+    # Default is false
+    enabled: false
+
+    # Obfuscation regular expression related items
+    regex:
+
+      # The regular expression to match against. A blank pattern disables this feature.
+      # For example: (/accounts/)\d+
+      pattern:
+
+      # The replacement pattern to use when a match is found. A blank value will
+      # replace the match with an empty String. For example: $1{id}
+      replacement:
+
+      # Whether to ignore case when applying the pattern.
+      # Default is false
+      ignore_case: false
+
   # Process/host identification overrides.
   process_host:
     # Overrides the reported hostname.
@@ -357,7 +382,6 @@ common: &default_settings
 
   error_beacon:
   js_agent_file:
-  js_agent_loader:
 
   messages: []
   otlp_resource_attributes: {}
@@ -554,10 +578,23 @@ common: &default_settings
       # Default is false.
       auto_app_naming_association: false
 
+      # When logging with context attributes, this setting controls whether to prefix
+      # those same attributes on the tracing data with "context." to avoid attribute
+      # conflicts.
+      # Default is true.
+      prefix_context_attrs: true
+
       # Application log events are collected up to the configured amount. Afterwards,
       # events are sampled to maintain an even distribution across the harvest cycle.
       # Default is 10000. Setting to 0 will disable.
       max_samples_stored: 10000
+
+      # custom_attributes are name-value pairs that are added to every log event.
+      custom_attributes:
+
+      # Example key-value pair of a custom log attribute and its values
+        example_attribute: example_value
+
 
       # Provides the ability to add custom tags(labels) to agent forwarded logs. Labels are
       # pulled from the top-level 'labels' section (located near the bottom of this config file).
@@ -1077,6 +1114,12 @@ common: &default_settings
     # Allows the RUM footer to be injected on every request instead of once per transaction.
     # Default: false
     allow_multiple_footers: false
+
+    # If set, this specifies the version of the JS loader to be returned in the connect response. If this
+    # value is invalid, malformed, etc, no loader will be returned. An empty String will return the
+    # latest version of the loader.
+    # Default: empty String
+    version: ''
 
     # Version tag of the browser JS loader. Set by New Relic on connect; not user-configurable.
     loader_version:

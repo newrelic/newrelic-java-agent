@@ -142,6 +142,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     public static final String TRANSACTION_SEGMENTS = "transaction_segments";
     public static final String TRANSACTION_TRACER = "transaction_tracer";
     public static final String SLOW_TRANSACTIONS = "slow_transactions";
+    public static final String URL_OBFUSCATION = "url_obfuscation";
 
     // defaults (alphabetized)
     public static final double DEFAULT_APDEX_T = 1.0; // 1 second
@@ -300,6 +301,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private final ThreadProfilerConfig threadProfilerConfig;
     private final TransactionEventsConfig transactionEventsConfig;
     private final TransactionTracerConfigImpl transactionTracerConfig;
+    private final UrlPathObfuscationConfig urlPathObfuscationConfig;
     private final UtilizationDataConfig utilizationConfig;
 
     private final ObfuscateJvmPropsConfig obfuscateJvmPropsConfig;
@@ -407,6 +409,7 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
         slowTransactionsConfig = initSlowTransactionsConfig();
         obfuscateJvmPropsConfig = initObfuscateJvmPropsConfig();
         agentControlIntegrationConfig = initAgentControlHealthCheckConfig();
+        urlPathObfuscationConfig = initUrlPathObfuscationConfig();
         //This setting should use the locally configured distributed_tracing.sampler.adaptive_sampling_target setting
         //until it is later merged with sampling_target from the server.
         //If nothing is configured, it will use the local default, which is 120.
@@ -847,6 +850,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     private CircuitBreakerConfig initCircuitBreakerConfig() {
         Map<String, Object> props = nestedProps(CircuitBreakerConfig.PROPERTY_NAME);
         return new CircuitBreakerConfig(props);
+    }
+
+    private UrlPathObfuscationConfig initUrlPathObfuscationConfig() {
+        Map<String, Object> props = nestedProps(URL_OBFUSCATION);
+        return new UrlPathObfuscationConfigImpl(props);
     }
 
     private UtilizationDataConfig initUtilizationConfig() {
@@ -1496,6 +1504,11 @@ public class AgentConfigImpl extends BaseConfig implements AgentConfig {
     @Override
     public TransactionNamingScheme getTransactionNamingScheme() {
         return transactionNamingMode;
+    }
+
+    @Override
+    public UrlPathObfuscationConfig getUrlPathObfuscationConfig() {
+        return urlPathObfuscationConfig;
     }
 
     @Override

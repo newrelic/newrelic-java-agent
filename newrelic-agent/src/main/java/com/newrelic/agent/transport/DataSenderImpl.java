@@ -348,8 +348,8 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     }
 
     @Override
-    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
-        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events);
+    public void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes) throws Exception {
+        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events, customAttributes);
     }
 
     @Override
@@ -396,7 +396,8 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
     // Sends LogEvent data in the MELT format for logs
     // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
-    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding, Collection<T> events) throws Exception {
+    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding,
+            Collection<T> events, Map<String, Object> customAttributes) throws Exception {
         Object runId = agentRunId;
         if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
             return;
@@ -405,20 +406,21 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         JSONObject commonAttributes = new JSONObject();
 
         // build attributes object
-        JSONObject attributes = new JSONObject();
-        attributes.put("attributes", commonAttributes);
+        JSONObject commonBlock = new JSONObject();
 
-        // build common object
-        JSONObject common = new JSONObject();
-        common.put("common", attributes);
+        for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
+            commonAttributes.put(entry.getKey(), entry.getValue());
+        }
+
+        commonBlock.put("attributes", commonAttributes);
 
         // build logs object
         JSONObject logs = new JSONObject();
         logs.put("logs", events);
+        logs.put("common", commonBlock); // ensure common attributes are added to logs.
 
         // params is top level
         InitialSizedJsonArray params = new InitialSizedJsonArray(3);
-        params.add(common);
         params.add(logs);
         invokeRunId(method, encoding, runId, params);
     }

@@ -94,6 +94,7 @@ import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
 import com.newrelic.agent.tracing.DistributedTraceServiceImpl;
 import com.newrelic.agent.util.DefaultThreadFactory;
+import com.newrelic.agent.util.UrlPathObfuscatorService;
 import com.newrelic.agent.utilization.UtilizationService;
 import com.newrelic.api.agent.Logger;
 import com.newrelic.api.agent.MetricAggregator;
@@ -167,6 +168,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     private volatile AgentControlIntegrationService agentControlIntegrationService;
     private volatile KotlinCoroutinesService kotlinCoroutinesService;
     private volatile KtorService ktorService;
+    private volatile UrlPathObfuscatorService urlPathObfuscatorService;
 
     public ServiceManagerImpl(CoreService coreService, ConfigService configService) {
         super(ServiceManagerImpl.class.getSimpleName());
@@ -187,6 +189,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
 
         threadService = new ThreadService();
         circuitBreakerService = new CircuitBreakerService();
+        urlPathObfuscatorService = new UrlPathObfuscatorService();
         classTransformerService = new ClassTransformerServiceImpl(coreService.getInstrumentation());
 
         AgentConfig config = configService.getDefaultAgentConfig();
@@ -342,6 +345,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         insightsService.start();
         logSenderService.start();
         circuitBreakerService.start();
+        urlPathObfuscatorService.start();
         distributedTraceService.start();
         spanEventsService.start();
         slowTransactionService.start();
@@ -402,6 +406,7 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
         insightsService.stop();
         logSenderService.stop();
         circuitBreakerService.stop();
+        urlPathObfuscatorService.stop();
         remoteInstrumentationService.stop();
         configService.stop();
         classTransformerService.stop();
@@ -683,6 +688,11 @@ public class ServiceManagerImpl extends AbstractService implements ServiceManage
     @Override
     public CircuitBreakerService getCircuitBreakerService() {
         return circuitBreakerService;
+    }
+
+    @Override
+    public UrlPathObfuscatorService getUrlPathObfuscator() {
+        return urlPathObfuscatorService;
     }
 
     private void replayStartupStatsWork() {

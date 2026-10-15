@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -72,5 +73,31 @@ public class ApplicationLoggingConfigImplTest {
 
         assertTrue(config.isForwardingEnabled());
 
+    }
+
+    @Test
+    public void getCustomLogAttributes_delegatesToForwardingConfig() {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        Map<String, Object> forwardingProps = new HashMap<>();
+        forwardingProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+        localProps.put(ApplicationLoggingConfigImpl.FORWARDING, forwardingProps);
+
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, false, false);
+
+        assertEquals(Collections.singletonMap("env", "prod"), config.getCustomLogAttributes());
+    }
+
+    @Test
+    public void getCustomLogAttributes_returnsEmptyMapWhenHighSecurityEnabled() {
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("env", "prod");
+        Map<String, Object> forwardingProps = new HashMap<>();
+        forwardingProps.put(ApplicationLoggingForwardingConfig.CUSTOM_ATTRIBUTES, customAttributes);
+        localProps.put(ApplicationLoggingConfigImpl.FORWARDING, forwardingProps);
+
+        ApplicationLoggingConfigImpl config = new ApplicationLoggingConfigImpl(localProps, true, false);
+
+        assertTrue(config.getCustomLogAttributes().isEmpty());
     }
 }

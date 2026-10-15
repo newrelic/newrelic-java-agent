@@ -8,6 +8,7 @@
 package com.newrelic.agent.util;
 
 import com.newrelic.agent.Agent;
+import com.newrelic.agent.service.ServiceFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -28,7 +29,8 @@ public class ExternalsUtil {
                 return null;
             }
 
-            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), null, null);
+            String obfuscatedUrlPath = ServiceFactory.getUrlPathObfuscator().obfuscatePath(uri.getPath());
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), obfuscatedUrlPath, null, null);
         } catch (URISyntaxException e) {
             return null;
         }

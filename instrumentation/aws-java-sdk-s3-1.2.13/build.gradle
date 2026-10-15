@@ -12,6 +12,7 @@ jar {
 }
 
 verifyInstrumentation {
+    versionGrouping 'LATEST_MINOR'
     // The support for S3 was released in `aws-java-sdk` 1.2.13.
     fails 'com.amazonaws:aws-java-sdk:[0,1.2.13)'
     // As of 1.9.0, Amazon provided `aws-java-sdk-s3` as a separate artifact.

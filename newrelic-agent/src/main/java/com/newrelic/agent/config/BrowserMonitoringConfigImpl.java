@@ -19,12 +19,14 @@ public final class BrowserMonitoringConfigImpl extends BaseConfig implements Bro
     public static final String SSL_FOR_HTTP = "ssl_for_http";
     public static final String LOADER_TYPE = "loader";
     public static final String DEBUG = "debug";
+    public static final String VERSION = "version";
     public static final String ALLOW_MULTIPLE_FOOTERS = "allow_multiple_footers";
 
     public static final boolean DEFAULT_AUTO_INSTRUMENT = true;
     public static final String SYSTEM_PROPERTY_ROOT = "newrelic.config.browser_monitoring.";
     public static final String DEFAULT_LOADER_TYPE = "rum";
     public static final boolean DEFAULT_DEBUG = false;
+    public static final String DEFAULT_VERSION = "";
     public static final boolean DEFAULT_SSL_FOR_HTTP = true;
     public static final boolean DEFAULT_ALLOW_MULTIPLE_FOOTERS = false;
 
@@ -32,6 +34,7 @@ public final class BrowserMonitoringConfigImpl extends BaseConfig implements Bro
     private final Set<String> disabledAutoPages;
     private final String loaderType;
     private final boolean debug;
+    private final String version;
     private final boolean sslForHttp;
     private final boolean isSslForHttpSet;
     private final boolean multipleFooters;
@@ -42,6 +45,7 @@ public final class BrowserMonitoringConfigImpl extends BaseConfig implements Bro
         disabledAutoPages = Collections.unmodifiableSet(new HashSet<>(getUniqueStrings(DISABLE_AUTO_PAGES)));
         loaderType = getProperty(LOADER_TYPE, DEFAULT_LOADER_TYPE);
         debug = getProperty(DEBUG, DEFAULT_DEBUG);
+        version = getProperty(VERSION, DEFAULT_VERSION);
         Boolean sslForHttpTmp = getProperty(SSL_FOR_HTTP);
         isSslForHttpSet = !(sslForHttpTmp == null);
         sslForHttp = isSslForHttpSet ? sslForHttpTmp : DEFAULT_SSL_FOR_HTTP;
@@ -90,4 +94,8 @@ public final class BrowserMonitoringConfigImpl extends BaseConfig implements Bro
         return multipleFooters;
     }
 
+    @Override
+    public String getVersion() {
+        return version;
+    }
 }
