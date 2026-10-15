@@ -645,6 +645,7 @@ public class RPMServiceTest {
     public void testSendLogEvents() throws Exception {
         Map<String, Object> map = createStagingMap(true, false);
         map.put("app_name", "Test");
+        map.put("host", "localhost.newrelic.com");
         AgentConfig config = AgentConfigImpl.createAgentConfig(map);
         createServiceManager(config, map);
         doSendLogEvent();
@@ -654,6 +655,7 @@ public class RPMServiceTest {
     public void testSendLogEventsWithPut() throws Exception {
         Map<String, Object> map = createStagingMap(true, false, true);
         map.put("app_name", "Test");
+        map.put("host", "localhost.newrelic.com");
         AgentConfig config = AgentConfigImpl.createAgentConfig(map);
         createServiceManager(config, map);
         doSendLogEvent();
@@ -664,6 +666,7 @@ public class RPMServiceTest {
         DataSenderFactory.setDataSenderFactory(dataSenderFactory);
         List<String> appNames = singletonList("Send Log Events Test App");
         RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
+        svc.setOtlpDataSender(null);
 
         svc.launch();
 
