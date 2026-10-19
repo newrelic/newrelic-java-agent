@@ -76,7 +76,7 @@ public abstract class PipeliningServerHandler_Instrumentation {
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$OptimisticBufferingInboundHandler")
     private static class OptimisticBufferingInboundHandler_Instrumentation {
 
-        @Trace
+        @Trace(excludeFromTransactionTrace = true)
         void read(Object message) {
             NewRelic.getAgent()
                     .getTracedMethod()
@@ -89,7 +89,7 @@ public abstract class PipeliningServerHandler_Instrumentation {
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$DroppingInboundHandler")
     private static class DroppingInboundHandler_Instrumentation {
 
-        @Trace
+        @Trace(excludeFromTransactionTrace = true)
         void read(Object message) {
             NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "DroppingInboundHandler", "read");
             Weaver.callOriginal();
@@ -100,7 +100,7 @@ public abstract class PipeliningServerHandler_Instrumentation {
     @Weave(type = MatchType.ExactClass, originalName = "io.micronaut.http.server.netty.handler.PipeliningServerHandler$StreamingInboundHandler")
     private static class StreamingInboundHandler_Instrumentation {
 
-        @Trace
+        @Trace(excludeFromTransactionTrace = true)
         void read(Object message) {
             NewRelic.getAgent().getTracedMethod().setMetricName("Micronaut", "HTTP", "Netty", "InboundHander", "StreamingInboundHandler", "read");
             Weaver.callOriginal();
