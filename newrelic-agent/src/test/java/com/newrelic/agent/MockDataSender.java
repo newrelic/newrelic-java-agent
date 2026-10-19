@@ -187,7 +187,7 @@ public class MockDataSender implements DataSender {
     }
 
     @Override
-    public void sendLogEvents(Collection<? extends LogEvent> events) throws Exception {
+    public void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes) throws Exception {
         if (exception != null) {
             throw exception;
         }

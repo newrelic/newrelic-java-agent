@@ -43,6 +43,7 @@ import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
+import com.newrelic.agent.util.UrlPathObfuscatorService;
 import com.newrelic.agent.utilization.UtilizationService;
 
 import java.util.Map;
@@ -221,6 +222,10 @@ public class ServiceFactory {
 
     public static KtorService getKtorService() {
         return SERVICE_MANAGER.getKtorService();
+    }
+
+    public static UrlPathObfuscatorService getUrlPathObfuscator() {
+        return SERVICE_MANAGER.getUrlPathObfuscator();
     }
 
 }

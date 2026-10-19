@@ -47,6 +47,7 @@ import com.newrelic.agent.transport.HostConnectException;
 import com.newrelic.agent.transport.HttpError;
 import com.newrelic.agent.transport.HttpResponseCode;
 import com.newrelic.agent.transport.serverless.DataSenderServerlessConfig;
+import com.newrelic.agent.util.DefaultThreadFactory;
 import com.newrelic.agent.utilization.UtilizationData;
 import org.json.simple.JSONStreamAware;
 
@@ -60,12 +61,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
+
+import static com.newrelic.agent.AgentLinkingMetadata.LOCALHOST;
 
 /**
  * The RPMService acts as a stub for communication between the agent and New Relic.
@@ -137,9 +141,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         this.agentConnectionEstablishedListeners = new ArrayList<>(agentConnectionEstablishedListeners);
 
         if (this.isMainApp) {
-            // TODO This needs to be reverted when agent_settings is updated to send a correct settings payload
-            // scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
-            scheduler = null;
+            scheduler = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("New Relic agent_settings submission thread", true));
         }
     }
 
@@ -251,6 +253,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             BrowserMonitoringConfig browserConfig = ServiceFactory.getConfigService().getAgentConfig(appName).getBrowserMonitoringConfig();
             settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.LOADER_TYPE, browserConfig.getLoaderType());
             settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.DEBUG, browserConfig.isDebug());
+            settings.put(AgentConfigImpl.BROWSER_MONITORING + "." + BrowserMonitoringConfigImpl.VERSION, browserConfig.getVersion());
         }
 
         // Always send the services configuration as RPM thread profiler depends on it.
@@ -688,12 +691,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private void sendLogEventsSyncRestart(final Collection<? extends LogEvent> events)
             throws Exception {
+        Map<String, Object> customLoggingAttributes = getCustomLogAttributes(appName);
         try {
-            dataSender.sendLogEvents(events);
+            dataSender.sendLogEvents(events, customLoggingAttributes);
         } catch (ForceRestartException e) {
             logForceRestartException(e);
             reconnectSync();
-            dataSender.sendLogEvents(events);
+            dataSender.sendLogEvents(events, customLoggingAttributes);
         }
     }
 
@@ -1135,4 +1139,15 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             }, 10, TimeUnit.MILLISECONDS);
         }
     }
+
+    private static Map<String, Object> getCustomLogAttributes(String appName) {
+        AgentConfig agentConfig = ServiceFactory.getConfigService().getAgentConfig(appName);
+        AgentConfig defaultAgentConfig = ServiceFactory.getConfigService().getDefaultAgentConfig();
+        Map<String, Object> customAttributes = agentConfig.getApplicationLoggingConfig().getCustomLogAttributes();
+        if (customAttributes != null && !customAttributes.isEmpty()) {
+            return customAttributes;
+        }
+        return defaultAgentConfig.getApplicationLoggingConfig().getCustomLogAttributes();
+    }
+
 }

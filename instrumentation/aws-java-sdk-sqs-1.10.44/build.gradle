@@ -13,6 +13,7 @@ jar {
 }
 
 verifyInstrumentation {
+    versionGrouping 'LATEST_MINOR'
     // this instrumentation matches the original sdk starting at 1.3.22 and all the way up to the current version
     // we only check up to 1.10.44 because it's the same as the sqs dependency onwards
     // note that in version 1.10.43 and earlier the method Future<SendMessageResult> sendMessageAsync(SendMessageRequest)

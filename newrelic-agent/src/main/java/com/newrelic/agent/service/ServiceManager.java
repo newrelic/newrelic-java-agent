@@ -45,6 +45,7 @@ import com.newrelic.agent.sql.SqlTraceService;
 import com.newrelic.agent.stats.StatsService;
 import com.newrelic.agent.trace.TransactionTraceService;
 import com.newrelic.agent.tracing.DistributedTraceService;
+import com.newrelic.agent.util.UrlPathObfuscatorService;
 import com.newrelic.agent.utilization.UtilizationService;
 
 import java.util.Map;
@@ -120,6 +121,8 @@ public interface ServiceManager extends Service {
     AsyncTransactionService getAsyncTxService();
 
     CircuitBreakerService getCircuitBreakerService();
+
+    UrlPathObfuscatorService getUrlPathObfuscator();
 
     UtilizationService getUtilizationService();
 

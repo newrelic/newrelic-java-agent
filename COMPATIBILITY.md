@@ -158,7 +158,7 @@ This version of the Java Agent supports Java versions 8 - 27.
 
   The agent instruments the following Kafka libraries. Not all Kafka instrumentation is enabled by default. See our [Kafka documentation](https://docs.newrelic.com/docs/apm/agents/java-agent/instrumentation/java-agent-instrument-kafka-message-queues/) for more information.
 
-  * Kafka Clients Config 1.1.0 to latest
+  * Kafka Clients Config 1.1.0 to 4.4.0 (exclusive)
   * Kafka Clients Heartbeat 0.10.1.0 to 2.5.0 (exclusive)
   * Kafka Clients Metrics 0.10.0.0 to latest
   * Kafka Clients Node Metrics 1.0.0 to latest

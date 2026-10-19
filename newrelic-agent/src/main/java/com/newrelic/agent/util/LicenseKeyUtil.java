@@ -58,6 +58,20 @@ public class LicenseKeyUtil {
         return sb.toString();
     }
 
+    /**
+     * Partially obfuscates a raw license_key value (as opposed to {@link #obfuscateLicenseKey}, which
+     * finds and obfuscates a license_key value embedded in a larger URL or JSON string).
+     *
+     * @param licenseKey the raw license_key value to obfuscate
+     * @return the obfuscated value, or null if licenseKey is null
+     */
+    public static String obfuscateLicenseKeyValue(String licenseKey) {
+        if (licenseKey == null) {
+            return null;
+        }
+        return partialObfuscation(licenseKey);
+    }
+
     private static String partialObfuscation(String licenseKey) {
         int keyLength = licenseKey.length();
 

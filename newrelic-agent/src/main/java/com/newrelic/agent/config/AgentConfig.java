@@ -344,6 +344,8 @@ public interface AgentConfig extends com.newrelic.api.agent.Config, DataSenderCo
 
     TransactionNamingScheme getTransactionNamingScheme();
 
+    UrlPathObfuscationConfig getUrlPathObfuscationConfig();
+
     UtilizationDataConfig getUtilizationDataConfig();
 
     DatastoreConfig getDatastoreConfig();

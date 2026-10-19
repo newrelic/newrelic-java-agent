@@ -21,6 +21,7 @@ import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.TransactionEventsConfig;
+import com.newrelic.agent.config.UrlPathObfuscationConfigImpl;
 import com.newrelic.agent.errors.ErrorServiceImpl;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.stats.TransactionStats;
@@ -33,6 +34,7 @@ import com.newrelic.agent.tracers.servlet.MockHttpResponse;
 import com.newrelic.api.agent.Response;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.List;
@@ -70,6 +72,37 @@ public class WebRequestDispatcherTest {
         Assert.assertFalse(agentAttributes.containsKey(HEADER_ALIAS));
         Assert.assertFalse(agentAttributes.containsKey(HEADER_WITH_ALIAS));
         Assert.assertFalse(agentAttributes.containsKey(UNUSED_HEADER));
+    }
+
+    @Test
+    public void testRequestUriIsObfuscated() throws Exception {
+        Map<String, Object> regexMap = new HashMap<>();
+        regexMap.put("pattern", "(/accounts/)\\d+");
+        regexMap.put("replacement", "$1{id}");
+
+        Map<String, Object> urlObfuscationMap = new HashMap<>();
+        urlObfuscationMap.put(UrlPathObfuscationConfigImpl.ENABLED, true);
+        urlObfuscationMap.put(UrlPathObfuscationConfigImpl.REGEX, regexMap);
+
+        Map<String, Object> configMap = ImmutableMap.<String, Object>builder()
+                .put(AgentConfigImpl.APP_NAME, APP_NAME)
+                .put(AgentConfigImpl.URL_OBFUSCATION, urlObfuscationMap)
+                .build();
+
+        createServiceManager(AgentConfigImpl.createAgentConfig(configMap), configMap);
+        Transaction.clearTransaction();
+        stats = new TransactionStats();
+
+        // MockServiceManager's NormalizationService mock doesn't stub getUrlBeforeParameters by default
+        Mockito.when(ServiceFactory.getNormalizationService().getUrlBeforeParameters(Mockito.anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        MockHttpRequest httpRequest = new MockHttpRequest();
+        httpRequest.setRequestURI("/accounts/123456");
+
+        WebRequestDispatcher dispatcher = createDispatcher(httpRequest);
+
+        Assert.assertEquals("/accounts/{id}", dispatcher.getUri());
     }
 
     private Map<String, Object> runTransactionAndGetAttributes() throws Exception {

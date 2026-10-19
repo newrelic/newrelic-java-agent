@@ -63,4 +63,11 @@ public interface BrowserMonitoringConfig {
      */
     boolean isAllowMultipleFooters();
 
+    /**
+     * Returns the configured loader version that will be requested by the agent. If this is an empty
+     * String, the latest version of the loader will be returned.
+     *
+     * @return the target loader version
+     */
+    String getVersion();
 }

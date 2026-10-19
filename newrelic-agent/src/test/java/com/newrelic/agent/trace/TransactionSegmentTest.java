@@ -14,15 +14,19 @@ import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigService;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.TransactionTracerConfig;
+import com.newrelic.agent.config.UrlPathObfuscationConfigImpl;
 import com.newrelic.agent.database.SqlObfuscator;
 import com.newrelic.agent.service.ServiceFactory;
 import com.newrelic.agent.tracers.ClassMethodSignature;
 import com.newrelic.agent.tracers.Tracer;
+import com.newrelic.api.agent.ExternalParameters;
+import com.newrelic.api.agent.HttpParameters;
 import org.json.simple.JSONArray;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,6 +56,75 @@ public class TransactionSegmentTest {
         Assert.assertNull(attributes.get("red"));
         Assert.assertNull(attributes.get("yellow"));
         Assert.assertNull(attributes.get("http.url"));
+    }
+
+    @Test
+    public void testLegacyTransactionSegmentUriIsObfuscated() {
+        MockServiceManager manager = setupServiceManager(new HashMap<>());
+        configureObfuscation("(/accounts/)\\d+", "$1REDACTED");
+
+        // getExternalParameters() == null: this tracer never called reportAsExternal(), so its uri was
+        // never run through ExternalsUtil.sanitizeURI()
+        TransactionSegment segment = createSegmentWithUri(manager, "http://host:1234/accounts/123456", null);
+
+        Assert.assertEquals("http://host:1234/accounts/REDACTED", segment.getUri());
+    }
+
+    @Test
+    public void testLegacyTransactionSegmentUriThatCannotBeParsed_obfuscatesWholeString() {
+        MockServiceManager manager = setupServiceManager(new HashMap<>());
+        configureObfuscation("(/accounts/)\\d+", "$1REDACTED");
+
+        // the space makes this an invalid URI, so new URI(...) throws and the whole string is obfuscated as-is
+        TransactionSegment segment = createSegmentWithUri(manager, "host:8080 /accounts/123456", null);
+
+        Assert.assertEquals("host:8080 /accounts/REDACTED", segment.getUri());
+    }
+
+    @Test
+    public void testExternalParametersUriIsNotDoubleObfuscated() {
+        MockServiceManager manager = setupServiceManager(new HashMap<>());
+        configureObfuscation("(/accounts/)\\d+", "$1REDACTED");
+
+        ExternalParameters externalParameters = HttpParameters.library("lib")
+                .uri(URI.create("http://host/accounts/123456"))
+                .procedure("GET")
+                .noInboundHeaders()
+                .build();
+
+        // already obfuscated by ExternalsUtil.sanitizeURI() by the time reportAsExternal() ran
+        TransactionSegment segment = createSegmentWithUri(manager, "http://host/accounts/REDACTED", externalParameters);
+
+        Assert.assertEquals("http://host/accounts/REDACTED", segment.getUri());
+    }
+
+    private TransactionSegment createSegmentWithUri(MockServiceManager manager, String uri, ExternalParameters externalParameters) {
+        TransactionTracerConfig ttConfig = manager.getConfigService().getDefaultAgentConfig().getTransactionTracerConfig();
+        Tracer tracer = Mockito.mock(Tracer.class);
+        Mockito.when(tracer.getClassMethodSignature()).thenReturn(new ClassMethodSignature("class", "method", "methodDesc"));
+        Mockito.when(tracer.getTransactionSegmentName()).thenReturn("segmentName");
+        Mockito.when(tracer.getAgentAttributes()).thenReturn(new HashMap<>());
+        Mockito.when(tracer.getTransactionSegmentUri()).thenReturn(uri);
+        Mockito.when(tracer.getExternalParameters()).thenReturn(externalParameters);
+
+        SqlObfuscator obfuscator = SqlObfuscator.getDefaultSqlObfuscator();
+        String appName = manager.getConfigService().getDefaultAgentConfig().getApplicationName();
+        return new TransactionSegment(ttConfig, appName, obfuscator, 0, tracer, null);
+    }
+
+    private void configureObfuscation(String pattern, String replacement) {
+        Map<String, Object> regexMap = new HashMap<>();
+        regexMap.put("pattern", pattern);
+        regexMap.put("replacement", replacement);
+
+        Map<String, Object> urlObfuscationMap = new HashMap<>();
+        urlObfuscationMap.put(UrlPathObfuscationConfigImpl.ENABLED, true);
+        urlObfuscationMap.put(UrlPathObfuscationConfigImpl.REGEX, regexMap);
+
+        Map<String, Object> configMap = new HashMap<>();
+        configMap.put(AgentConfigImpl.URL_OBFUSCATION, urlObfuscationMap);
+
+        ServiceFactory.getUrlPathObfuscator().configChanged("Unit Test", AgentConfigImpl.createAgentConfig(configMap));
     }
 
     private TransactionSegment createSegment(MockServiceManager manager, Map<String, Object> tracerAttributes) {

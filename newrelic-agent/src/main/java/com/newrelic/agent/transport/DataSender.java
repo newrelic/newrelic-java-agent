@@ -46,7 +46,7 @@ public interface DataSender {
     /**
      * Send non-aggregated Log events
      */
-    void sendLogEvents(Collection<? extends LogEvent> events) throws Exception;
+    void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes) throws Exception;
 
     /**
      * Send non-aggregated span events
