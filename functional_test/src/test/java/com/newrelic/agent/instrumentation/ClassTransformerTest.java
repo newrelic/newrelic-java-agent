@@ -9,9 +9,6 @@ package com.newrelic.agent.instrumentation;
 
 import com.newrelic.agent.instrumentation.pointcuts.MathCSConcurrentPointCut;
 import com.newrelic.agent.instrumentation.pointcuts.container.JasperCompilerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFInvokerPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.CXFPointCut;
-import com.newrelic.agent.instrumentation.pointcuts.frameworks.cxf.ClientProxyPointCut;
 import com.newrelic.agent.service.ServiceFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,10 +40,6 @@ public class ClassTransformerTest {
         }
 
         List<? extends PointCut> manual = Arrays.asList(
-                // CXF
-                new CXFPointCut(classTransformer),
-                new CXFInvokerPointCut(classTransformer),
-                new ClientProxyPointCut(classTransformer),
                 // Tomcat
                 new JasperCompilerPointCut(classTransformer),
                 // java concurrent
