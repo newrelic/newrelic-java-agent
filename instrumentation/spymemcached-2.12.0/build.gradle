@@ -5,6 +5,14 @@ dependencies {
     implementation(project(":newrelic-api"))
     implementation(project(":agent-bridge"))
     implementation(project(":newrelic-weaver-api"))
+
+    // The AWS client stores node addresses as the resolved IP only, which is what the configured host handling is
+    // for. It replaces spymemcached at test runtime and both define net.spy.memcached.MemcachedClient.
+    testImplementation("com.amazonaws:elasticache-java-cluster-client:1.2.4")
+}
+
+[configurations.testCompileClasspath, configurations.testRuntimeClasspath].each {
+    it.exclude group: 'net.spy', module: 'spymemcached'
 }
 
 jar {
