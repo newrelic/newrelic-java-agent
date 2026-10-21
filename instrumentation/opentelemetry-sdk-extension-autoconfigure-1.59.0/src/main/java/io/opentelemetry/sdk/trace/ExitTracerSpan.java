@@ -133,7 +133,10 @@ public class ExitTracerSpan implements ReadWriteSpan {
         this.resource = resource;
         this.instrumentationScopeInfo = instrumentationScopeInfo;
         this.links = links;
-        this.spanContext = SpanContext.create(tracer.getTraceId(), tracer.getSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
+        this.spanContext = SpanContext.create(tracer.getTraceId(),
+                tracer.getSpanId(),
+                NewRelic.getAgent().getTraceMetadata().isSampled() ? TraceFlags.getSampled() : TraceFlags.getDefault(),
+                TraceState.getDefault());
         this.setAllAttributes(resource.getAttributes());
         this.totalNumberOfLinksAdded = totalNumberOfLinksAdded;
         this.totalNumberOfEventsAdded = 0;
