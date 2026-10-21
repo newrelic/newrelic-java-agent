@@ -696,7 +696,7 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     private Map<String, Object> getLogOtlpResourceAttributes() {
         Map<String, Object> resourceAttributes = new HashMap<>();
         resourceAttributes.put("service.name", appName);
-        resourceAttributes.putAll(serviceMetadata);
+        resourceAttributes.putAll(getCustomLogAttributes(appName));
         return resourceAttributes;
     }
 
