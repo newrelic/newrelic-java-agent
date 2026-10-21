@@ -15,6 +15,7 @@ import com.newrelic.agent.bridge.NoOpTransaction;
 import com.newrelic.agent.bridge.TracedMethod;
 import com.newrelic.agent.bridge.Transaction;
 import com.newrelic.agent.service.ServiceFactory;
+import com.newrelic.agent.trace.TransactionGuidFactory;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.api.agent.AiMonitoring;
 import com.newrelic.api.agent.Cloud;
@@ -228,5 +229,6 @@ public class AgentImpl implements com.newrelic.agent.bridge.Agent, Resource {
         NewRelic.getAgent().getMetricAggregator().incrementCounter(MetricNames.SUPPORTABILITY_AGENT_CRAC_RESTORE);
         ServiceFactory.getServiceManager().refreshDataForCRaCRestore();
         ServiceFactory.getRPMService().reconnect();
+        TransactionGuidFactory.resetSalt();
     }
 }
