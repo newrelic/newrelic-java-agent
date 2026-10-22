@@ -14,11 +14,12 @@ import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Segment;
 import com.newrelic.api.agent.Trace;
 import com.newrelic.api.agent.weaver.MatchType;
+import com.newrelic.api.agent.weaver.NewField;
 import com.newrelic.api.agent.weaver.Weave;
 import com.newrelic.api.agent.weaver.Weaver;
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
-import net.spy.memcached.MemcachedNode;
+import net.spy.memcached.ConnectionFactory;
 import net.spy.memcached.internal.BulkFuture;
 import net.spy.memcached.internal.GetFuture;
 import net.spy.memcached.internal.OperationFuture;
@@ -26,13 +27,31 @@ import net.spy.memcached.ops.StoreType;
 import net.spy.memcached.transcoders.Transcoder;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 @Weave(type = MatchType.ExactClass, originalName = "net.spy.memcached.MemcachedClient")
 public class MemcachedClient_Instrumentation {
+
+    @NewField
+    private Map<InetSocketAddress, String> configuredHosts;
+
+    public MemcachedClient_Instrumentation(ConnectionFactory cf, List<InetSocketAddress> addrs) {
+        configuredHosts = MemcachedUtil.getConfiguredHosts(addrs);
+    }
+
+    // The AWS ElastiCache Cluster Client's List and varargs constructors call its private constructor directly instead
+    // of delegating to the (ConnectionFactory, List) constructor above, so each public constructor is woven. In
+    // spymemcached these delegate to the constructor above, which just sets the same value again.
+    public MemcachedClient_Instrumentation(List<InetSocketAddress> addrs) {
+        configuredHosts = MemcachedUtil.getConfiguredHosts(addrs);
+    }
+
+    public MemcachedClient_Instrumentation(InetSocketAddress... addrs) {
+        configuredHosts = MemcachedUtil.getConfiguredHosts(addrs == null ? null : Arrays.asList(addrs));
+    }
 
     // This instruments both add() overloads, both replace() overloads, and both set() overloads (6 API methods total)
     private <T> OperationFuture<Boolean> asyncStore(StoreType st, String key, int exp, T value, Transcoder<T> tc) {
@@ -323,24 +342,9 @@ public class MemcachedClient_Instrumentation {
      * @param op Operation to report
      */
     private final void reportDatastoreMetrics(String op) {
-        String host = null;
-        Integer port = null;
-
-        try {
-            MemcachedNode memcachedNode = MemcachedUtil.OPERATION_NODE.get();
-            if (memcachedNode != null) {
-                SocketAddress address = memcachedNode.getSocketAddress();
-                if (address instanceof InetSocketAddress) {
-                    InetSocketAddress nodeAddress = (InetSocketAddress) address;
-                    host = nodeAddress.getHostName();
-                    port = nodeAddress.getPort();
-                }
-            }
-        } catch (Throwable t) {
-            AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to capture host/port for memcached operation");
-        } finally {
-            MemcachedUtil.OPERATION_NODE.set(null);
-        }
+        InetSocketAddress nodeAddress = MemcachedUtil.getOperationNodeAddress();
+        String host = MemcachedUtil.getHost(nodeAddress, configuredHosts);
+        Integer port = nodeAddress == null ? null : nodeAddress.getPort();
 
         if (op.equals("get-bulk")) {
             // Reporting the instance metrics would be incorrect, because the bulk operation can send off a whole bunch
@@ -359,24 +363,9 @@ public class MemcachedClient_Instrumentation {
 
     // Async reporting - overload for OperationsFuture
     private void reportDatastoreMetricsAsync(String op, OperationFuture<?> future) {
-        String host = null;
-        Integer port = null;
-
-        try {
-            MemcachedNode memcachedNode = MemcachedUtil.OPERATION_NODE.get();
-            if (memcachedNode != null) {
-                SocketAddress address = memcachedNode.getSocketAddress();
-                if (address instanceof InetSocketAddress) {
-                    InetSocketAddress nodeAddress = (InetSocketAddress) address;
-                    host = nodeAddress.getHostName();
-                    port = nodeAddress.getPort();
-                }
-            }
-        } catch (Throwable t) {
-            AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to capture host/port for memcached operation");
-        } finally {
-            MemcachedUtil.OPERATION_NODE.set(null);
-        }
+        InetSocketAddress nodeAddress = MemcachedUtil.getOperationNodeAddress();
+        String host = MemcachedUtil.getHost(nodeAddress, configuredHosts);
+        Integer port = nodeAddress == null ? null : nodeAddress.getPort();
 
         final Segment segment = AgentBridge.getAgent().getTransaction().createAndStartTracedActivity();
         if (segment != null) {
@@ -407,24 +396,9 @@ public class MemcachedClient_Instrumentation {
      * @param future Future to add listener to.
      */
     private void reportDatastoreMetricsAsync(String op, GetFuture<?> future) {
-        String host = null;
-        Integer port = null;
-
-        try {
-            MemcachedNode memcachedNode = MemcachedUtil.OPERATION_NODE.get();
-            if (memcachedNode != null) {
-                SocketAddress address = memcachedNode.getSocketAddress();
-                if (address instanceof InetSocketAddress) {
-                    InetSocketAddress nodeAddress = (InetSocketAddress) address;
-                    host = nodeAddress.getHostName();
-                    port = nodeAddress.getPort();
-                }
-            }
-        } catch (Throwable t) {
-            AgentBridge.getAgent().getLogger().log(Level.FINER, t, "Unable to capture host/port for memcached operation");
-        } finally {
-            MemcachedUtil.OPERATION_NODE.set(null);
-        }
+        InetSocketAddress nodeAddress = MemcachedUtil.getOperationNodeAddress();
+        String host = MemcachedUtil.getHost(nodeAddress, configuredHosts);
+        Integer port = nodeAddress == null ? null : nodeAddress.getPort();
 
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             final Segment segment = NewRelic.getAgent().getTransaction().startSegment(op);
