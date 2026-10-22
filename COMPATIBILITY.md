@@ -190,7 +190,7 @@ This version of the Java Agent supports Java versions 8 - 27.
   * Jedis 1.4.0 to latest
   * jTDS 1.2 to latest
   * Lettuce 4.2.1.Final to latest
-  * MariaDB Java Client (3.0.2-rc,) to latest
+  * MariaDB Java Client (3.0.2-rc,3.5.11) to latest
   * MariaDB R2DBC 1.0.2 to latest
   * MongoDB 4.2.0 to 5.6.0 (exclusive)
   * MongoDB async clients 3.4.0 to 4.2.0 (exclusive)
