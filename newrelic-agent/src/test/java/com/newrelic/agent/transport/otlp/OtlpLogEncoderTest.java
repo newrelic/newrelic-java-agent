@@ -130,7 +130,8 @@ public class OtlpLogEncoderTest {
     public void emptyCollectionProducesValidRequest() throws Exception {
         ExportLogsServiceRequest request = ExportLogsServiceRequest.parseFrom(
                 OtlpLogEncoder.encode(Collections.<String, Object>emptyMap(), Collections.<LogEvent>emptyList()));
-        assertEquals(0, request.getResourceLogs(0).getScopeLogs(0).getLogRecordsCount());
+        assertEquals(1, request.getResourceLogsCount());
+        assertEquals(0, request.getResourceLogs(0).getScopeLogsCount());
     }
 
     @Test

@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +48,8 @@ final class OtlpLogEncoder {
     private static final String LEVEL = AppLoggingUtils.LEVEL.getKey();
 
     private static final Set<String> NATIVE_FIELD_ATTRIBUTES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID)));
+            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID,
+            OtlpAttributes.OTEL_LIBRARY_NAME, OtlpAttributes.OTEL_LIBRARY_VERSION)));
 
     // Timestamps above this value can't be epoch milliseconds (it's the year 33658), so they are already epoch nanoseconds.
     // The OpenTelemetry SDK bridge instrumentation records log timestamps in nanoseconds.
@@ -56,19 +59,32 @@ final class OtlpLogEncoder {
     }
 
     static byte[] encode(Map<String, ?> resourceAttributes, Collection<? extends LogEvent> events) {
-        ScopeLogs.Builder scopeLogs = ScopeLogs.newBuilder().setScope(OtlpAttributes.buildScope());
+        // Events carrying otel.library.name/version keep that scope; all others get the agent's scope
+        Map<List<String>, ScopeLogs.Builder> scopes = new LinkedHashMap<>();
         for (LogEvent event : events) {
-            scopeLogs.addLogRecords(buildLogRecord(event));
+            Map<String, Object> attributes = event.getUserAttributesCopy();
+            List<String> scopeKey = Arrays.asList(
+                    asString(attributes.get(OtlpAttributes.OTEL_LIBRARY_NAME)),
+                    asString(attributes.get(OtlpAttributes.OTEL_LIBRARY_VERSION)));
+            ScopeLogs.Builder scopeLogs = scopes.get(scopeKey);
+            if (scopeLogs == null) {
+                scopeLogs = ScopeLogs.newBuilder().setScope(OtlpAttributes.buildScope(scopeKey.get(0), scopeKey.get(1)));
+                scopes.put(scopeKey, scopeLogs);
+            }
+            scopeLogs.addLogRecords(buildLogRecord(event, attributes));
         }
-        ResourceLogs resourceLogs = ResourceLogs.newBuilder()
-                .setResource(OtlpAttributes.buildResource(resourceAttributes))
-                .addScopeLogs(scopeLogs)
-                .build();
+        ResourceLogs.Builder resourceLogs = ResourceLogs.newBuilder().setResource(OtlpAttributes.buildResource(resourceAttributes));
+        for (ScopeLogs.Builder scopeLogs : scopes.values()) {
+            resourceLogs.addScopeLogs(scopeLogs);
+        }
         return ExportLogsServiceRequest.newBuilder().addResourceLogs(resourceLogs).build().toByteArray();
     }
 
-    private static LogRecord buildLogRecord(LogEvent event) {
-        Map<String, Object> attributes = event.getUserAttributesCopy();
+    private static String asString(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private static LogRecord buildLogRecord(LogEvent event, Map<String, Object> attributes) {
         long observedTimeNanos = TimeUnit.MILLISECONDS.toNanos(event.getTimestamp());
 
         LogRecord.Builder builder = LogRecord.newBuilder()

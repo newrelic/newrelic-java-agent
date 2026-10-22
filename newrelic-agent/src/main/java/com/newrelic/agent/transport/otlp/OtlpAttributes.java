@@ -30,6 +30,8 @@ final class OtlpAttributes {
 
     static final String SCOPE_NAME = "newrelic-java-agent";
     static final String SERVICE_NAME = "service.name";
+    static final String OTEL_LIBRARY_NAME = "otel.library.name";
+    static final String OTEL_LIBRARY_VERSION = "otel.library.version";
 
     private OtlpAttributes() {
     }
@@ -84,9 +86,14 @@ final class OtlpAttributes {
                 .build();
     }
 
-    static InstrumentationScope buildScope() {
-        InstrumentationScope.Builder builder = InstrumentationScope.newBuilder().setName(SCOPE_NAME);
-        String version = Agent.getVersion();
+    /**
+     * Builds the scope for the given instrumentation library. The agent's own name and version are only used when the
+     * library name is missing, so that a library name is never paired with the agent's version.
+     */
+    static InstrumentationScope buildScope(String libraryName, String libraryVersion) {
+        boolean hasLibraryName = libraryName != null && !libraryName.isEmpty();
+        InstrumentationScope.Builder builder = InstrumentationScope.newBuilder().setName(hasLibraryName ? libraryName : SCOPE_NAME);
+        String version = hasLibraryName ? libraryVersion : Agent.getVersion();
         if (version != null) {
             builder.setVersion(version);
         }
