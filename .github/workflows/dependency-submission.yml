@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   dependency-submission:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout sources
@@ -37,7 +37,9 @@ jobs:
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # pin@v5
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: |
+            8
+            11
 
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # pin@v6
