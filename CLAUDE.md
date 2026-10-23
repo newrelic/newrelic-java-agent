@@ -96,7 +96,7 @@ Additional modules: Scala support (`newrelic-scala-api`, `newrelic-scala3-api`, 
 
 ## Coding Conventions
 
-- Format code using `./gradlew googleJavaFormat` (verify with `./gradlew verifyGoogleJavaFormat`)
+- Format modified code using the code style settings defined in [java-agent-code-style.xml](https://github.com/newrelic/newrelic-java-agent/blob/main/dev-tools/code-style/java-agent-code-style.xml)
 - Use descriptive names; avoid acronyms where possible
 - Comments only when intent is non-obvious
 - No dead code or commented-out blocks in commits
@@ -115,9 +115,8 @@ Additional modules: Scala support (`newrelic-scala-api`, `newrelic-scala3-api`, 
 ## Testing and Quality
 
 Before considering any task complete:
-1. Run `./gradlew :module:verifyGoogleJavaFormat` on modified modules
-2. Run `./gradlew :module:googleJavaFormat` to fix formatting if needed
-3. Run relevant tests for modified logic
+1. Format modified code using the code style settings defined in [java-agent-code-style.xml](https://github.com/newrelic/newrelic-java-agent/blob/main/dev-tools/code-style/java-agent-code-style.xml)
+2. Run relevant tests for modified logic
 
 Testing rules:
 - Unit tests for all reusable logic
