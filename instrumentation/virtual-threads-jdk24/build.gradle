@@ -1,0 +1,17 @@
+dependencies {
+    implementation(project(":agent-bridge"))
+}
+
+jar {
+    manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.virtual-threads-jdk24', 'Enabled': 'false' }
+}
+
+verifyInstrumentation {
+    verifyClasspath = false
+}
+
+site {
+    title 'Java Virtual Threads'
+    type 'Other'
+    versionOverride '[24,)'
+}
