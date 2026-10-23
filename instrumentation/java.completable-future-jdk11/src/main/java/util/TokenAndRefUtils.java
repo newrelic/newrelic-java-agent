@@ -1,6 +1,7 @@
 package util;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.Token;
 import com.newrelic.agent.bridge.Transaction;
 
 import java.text.MessageFormat;
@@ -14,8 +15,11 @@ public class TokenAndRefUtils {
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (tx != null) {
-                tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
-                        AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
+                Token token = tx.getToken();
+                if (token.isActive()) {
+                    tokenAndRefCount = new AgentBridge.TokenAndRefCount(token,
+                            AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
+                }
             }
         } else {
             tokenAndRefCount.refCount.incrementAndGet();
