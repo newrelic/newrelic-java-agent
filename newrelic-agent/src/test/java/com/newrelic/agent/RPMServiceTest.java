@@ -103,6 +103,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -643,43 +644,42 @@ public class RPMServiceTest {
 
     @Test(timeout = 30000)
     public void testSendLogEvents() throws Exception {
-        Map<String, Object> map = createStagingMap(true, false);
-        map.put("app_name", "Test");
-        map.put("host", "localhost.newrelic.com");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
-        createServiceManager(config, map);
-        doSendLogEvent();
+        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
+        RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
+
+        List<LogEvent> logEvents = new ArrayList<>();
+        logEvents.add(new LogEvent(null, 1));
+        logEvents.add(new LogEvent(null, 2));
+        svc.sendLogEvents(logEvents);
+
+        verify(otlpDataSender).sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), eq(logEvents));
     }
 
     @Test(timeout = 30000)
-    public void testSendLogEventsWithPut() throws Exception {
-        Map<String, Object> map = createStagingMap(true, false, true);
-        map.put("app_name", "Test");
-        map.put("host", "localhost.newrelic.com");
-        AgentConfig config = AgentConfigImpl.createAgentConfig(map);
-        createServiceManager(config, map);
-        doSendLogEvent();
+    public void logEventsAreNotSentToCollectorDataSender() throws Exception {
+        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
+        RPMService svc = launchWithOtlp(dataSenderFactory, mock(OtlpDataSender.class));
+
+        svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
+
+        assertNull(dataSenderFactory.getLastDataSender().getLogEvents());
     }
 
-    private void doSendLogEvent() throws Exception {
-        MockDataSenderFactory dataSenderFactory = new MockDataSenderFactory();
-        DataSenderFactory.setDataSenderFactory(dataSenderFactory);
-        List<String> appNames = singletonList("Send Log Events Test App");
-        RPMService svc = new RPMService(appNames, null, null, Collections.<AgentConnectionEstablishedListener>emptyList());
-        svc.setOtlpDataSender(null);
+    @Test(timeout = 30000)
+    public void missingOtlpDataSenderDropsLogEvents() throws Exception {
+        RPMService svc = launchWithOtlp(new MockDataSenderFactory(), null);
 
-        svc.launch();
+        svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
+    }
 
-        LogEvent logEvent1 = new LogEvent(null, 1);
-        LogEvent logEvent2 = new LogEvent(null, 2);
-        List<LogEvent> logEvents = new ArrayList<>();
-        logEvents.add(logEvent1);
-        logEvents.add(logEvent2);
+    @Test(timeout = 30000)
+    public void nonRetryableOtlpLogErrorIsNotThrown() throws Exception {
+        OtlpDataSender otlpDataSender = mock(OtlpDataSender.class);
+        doThrow(new HttpError("gone", HttpResponseCode.GONE, 0)).when(otlpDataSender)
+                .sendLogEvents(ArgumentMatchers.<String, Object>anyMap(), ArgumentMatchers.<LogEvent>anyCollection());
+        RPMService svc = launchWithOtlp(new MockDataSenderFactory(), otlpDataSender);
 
-        svc.sendLogEvents(logEvents);
-        List<LogEvent> seen = dataSenderFactory.getLastDataSender().getLogEvents();
-
-        assertEquals("No log events sent currently", logEvents.size(), seen.size());
+        svc.sendLogEvents(Collections.singletonList(new LogEvent(null, 1)));
     }
 
     @Test(timeout = 30000)

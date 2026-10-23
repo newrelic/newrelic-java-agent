@@ -19,7 +19,6 @@ import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.logging.IAgentLogger;
 import com.newrelic.agent.metric.MetricName;
-import com.newrelic.agent.model.LogEvent;
 import com.newrelic.agent.model.PathHashes;
 import com.newrelic.agent.model.SpanCategory;
 import com.newrelic.agent.model.SpanEvent;
@@ -540,7 +539,6 @@ public class DataSenderImplTest {
         sendAnalyticEventsPayloadTooBig(dataSender);
         sendMetricDataPayloadTooBig(dataSender);
         sendSpanEventsPayloadTooBig(dataSender);
-        sendLogEventsPayloadTooBig(dataSender);
 
         sendMetricDataSmallPayload(dataSender);
 
@@ -606,17 +604,6 @@ public class DataSenderImplTest {
         }
     }
 
-    private void sendLogEventsPayloadTooBig(DataSenderImpl dataSender) {
-        boolean exceptionThrown = false;
-        try {
-            dataSender.sendLogEvents(createLogEvents(10000), new HashMap<>());
-        } catch (Exception e) {
-            assertEquals(MAX_PAYLOAD_EXCEPTION, e.getClass().getSimpleName());
-            exceptionThrown = true;
-        }
-        assertTrue("MaxPayloadException was NOT thrown as expected", exceptionThrown);
-    }
-
     private void sendAnalyticEventsPayloadTooBig(DataSenderImpl dataSender) {
         try {
             // ~ 943 bytes
@@ -670,16 +657,6 @@ public class DataSenderImplTest {
                     .setPort(8080)
                     .setTripId("tripId")
                     .build());
-        }
-        return events;
-    }
-
-    private List<LogEvent> createLogEvents(int size) {
-        List<LogEvent> events = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            Map<String, Object> attrs = new HashMap<>();
-            attrs.put("key", "value");
-            events.add(new LogEvent(attrs, 0));
         }
         return events;
     }

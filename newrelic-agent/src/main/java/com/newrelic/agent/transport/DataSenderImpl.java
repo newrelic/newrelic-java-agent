@@ -349,7 +349,12 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
 
     @Override
     public void sendLogEvents(Collection<? extends LogEvent> events, Map<String, Object> customAttributes) throws Exception {
-        sendLogEventsForReservoir(CollectorMethods.LOG_EVENT_DATA, compressedEncoding, events, customAttributes);
+        // This method should no longer be reachable but is kept to
+        // satisfy the DataSender interface contract. Log events are
+        // now sent via OtlpDataSender.sendLogEvents under normal
+        // operation. When the agent is run in serverless mode it
+        // uses DataSenderServerlessImpl.sendLogEvents.
+        throw new UnsupportedOperationException("Log events are sent with OtlpDataSender, not the collector protocol.");
     }
 
     @Override
@@ -391,37 +396,6 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
         } else {
             params.add(events);
         }
-        invokeRunId(method, encoding, runId, params);
-    }
-
-    // Sends LogEvent data in the MELT format for logs
-    // https://docs.newrelic.com/docs/logs/log-api/introduction-log-api/#log-attribute-example
-    private <T extends AnalyticsEvent & JSONStreamAware> void sendLogEventsForReservoir(String method, String encoding,
-            Collection<T> events, Map<String, Object> customAttributes) throws Exception {
-        Object runId = agentRunId;
-        if (runId == NO_AGENT_RUN_ID || events.isEmpty()) {
-            return;
-        }
-
-        JSONObject commonAttributes = new JSONObject();
-
-        // build attributes object
-        JSONObject commonBlock = new JSONObject();
-
-        for (Map.Entry<String, Object> entry : customAttributes.entrySet()) {
-            commonAttributes.put(entry.getKey(), entry.getValue());
-        }
-
-        commonBlock.put("attributes", commonAttributes);
-
-        // build logs object
-        JSONObject logs = new JSONObject();
-        logs.put("logs", events);
-        logs.put("common", commonBlock); // ensure common attributes are added to logs.
-
-        // params is top level
-        InitialSizedJsonArray params = new InitialSizedJsonArray(3);
-        params.add(logs);
         invokeRunId(method, encoding, runId, params);
     }
 

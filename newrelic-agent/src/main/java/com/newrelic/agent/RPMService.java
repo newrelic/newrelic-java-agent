@@ -646,14 +646,14 @@ public class RPMService extends AbstractService implements IRPMService, Environm
     @Override
     public void sendLogEvents(final Collection<? extends LogEvent> events) throws Exception {
         Agent.LOG.log(Level.FINE, "Sending {0} log event(s)", events.size());
-        OtlpDataSender otlpSender = otlpDataSender;
-        if (otlpSender != null) {
-            sendLogEventsToOtlp(otlpSender, events);
-            return;
-        }
         try {
-            sendLogEventsSyncRestart(events); // TODO rip out old non-OTLP data sender logic or leave as fallback?
+//            if (serverlessMode) {
+//                dataSender.sendLogEvents(events, getCustomLogAttributes(appName));
+//            } else {
+                sendLogEventsToOtlp(events);
+//            }
         } catch (HttpError e) {
+            Agent.LOG.log(Level.WARNING, "Unable to send {0} log event(s): {1}", events.size(), e.getMessage());
             // We don't want to resend the data for certain response codes, retry for all others
             if (e.isRetryableError()) {
                 throw e;
@@ -669,24 +669,19 @@ public class RPMService extends AbstractService implements IRPMService, Environm
         }
     }
 
-    /**
-     * When OTLP export is enabled for logs, logs are sent via OTLP instead of the collector.
-     */
-    private void sendLogEventsToOtlp(OtlpDataSender otlpSender, Collection<? extends LogEvent> events) throws Exception {
-        // Like the collector, wait for a connection so that the entity guid is known
+    private void sendLogEventsToOtlp(Collection<? extends LogEvent> events) throws Exception {
+        OtlpDataSender otlpSender = otlpDataSender;
+        if (otlpSender == null) {
+            Agent.LOG.log(Level.FINE, "Dropping {0} log event(s) because the OTLP data sender could not be created. Check the log for an earlier error creating it.",
+                    events.size());
+            return;
+        }
+        // Wait for a connection so that the entity guid is known
         if (!isConnected()) {
             Agent.LOG.log(Level.FINER, "Not sending {0} log event(s) via OTLP because the agent is not connected", events.size());
             return;
         }
-        try {
-            otlpSender.sendLogEvents(getLogOtlpResourceAttributes(), events);
-        } catch (HttpError e) {
-            Agent.LOG.log(Level.WARNING, "Unable to send {0} log event(s) via OTLP: {1}", events.size(), e.getMessage());
-            // We don't want to resend the data for certain response codes, retry for all others
-            if (e.isRetryableError()) {
-                throw e;
-            }
-        }
+        otlpSender.sendLogEvents(getLogOtlpResourceAttributes(), events);
     }
 
     /**
@@ -739,18 +734,6 @@ public class RPMService extends AbstractService implements IRPMService, Environm
             logForceRestartException(e);
             reconnectSync();
             dataSender.sendCustomAnalyticsEvents(reservoirSize, eventsSeen, events);
-        }
-    }
-
-    private void sendLogEventsSyncRestart(final Collection<? extends LogEvent> events)
-            throws Exception {
-        Map<String, Object> customLoggingAttributes = getCustomLogAttributes(appName);
-        try {
-            dataSender.sendLogEvents(events, customLoggingAttributes);
-        } catch (ForceRestartException e) {
-            logForceRestartException(e);
-            reconnectSync();
-            dataSender.sendLogEvents(events, customLoggingAttributes);
         }
     }
 
