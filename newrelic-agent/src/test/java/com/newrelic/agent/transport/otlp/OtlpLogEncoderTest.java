@@ -7,6 +7,7 @@
 
 package com.newrelic.agent.transport.otlp;
 
+import com.google.protobuf.ByteString;
 import com.newrelic.agent.model.LogEvent;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.logs.v1.LogRecord;
@@ -124,6 +125,44 @@ public class OtlpLogEncoderTest {
         assertTrue(record.getTraceId().isEmpty());
         assertTrue(record.getSpanId().isEmpty());
         assertEquals(0, record.getAttributesCount());
+    }
+
+    @Test
+    public void eventNameIsWrittenAsLogRecordField() throws Exception {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("message", "Order 42 shipped");
+        attributes.put("event.name", "order.shipped");
+        LogEvent event = new LogEvent(attributes, 1.0f);
+
+        LogRecord record = encodeSingle(event);
+
+        assertEquals(Collections.singletonList(ByteString.copyFromUtf8("order.shipped")),
+                record.getUnknownFields().getField(OtlpLogEncoder.EVENT_NAME_FIELD_NUMBER).getLengthDelimitedList());
+        assertEquals(0, record.getAttributesCount());
+    }
+
+    @Test
+    public void eventNameIsOmittedWhenMissingOrEmpty() throws Exception {
+        assertFalse(encodeSingle(new LogEvent(Collections.<String, Object>emptyMap(), 1.0f))
+                .getUnknownFields().hasField(OtlpLogEncoder.EVENT_NAME_FIELD_NUMBER));
+
+        LogRecord emptyName = encodeSingle(new LogEvent(Collections.<String, Object>singletonMap("event.name", ""), 1.0f));
+        assertFalse(emptyName.getUnknownFields().hasField(OtlpLogEncoder.EVENT_NAME_FIELD_NUMBER));
+        assertEquals(0, emptyName.getAttributesCount());
+    }
+
+    @Test
+    public void nonStringEventNameIsConvertedToString() throws Exception {
+        LogRecord record = encodeSingle(new LogEvent(Collections.<String, Object>singletonMap("event.name", 7L), 1.0f));
+
+        assertEquals(Collections.singletonList(ByteString.copyFromUtf8("7")),
+                record.getUnknownFields().getField(OtlpLogEncoder.EVENT_NAME_FIELD_NUMBER).getLengthDelimitedList());
+    }
+
+    private static LogRecord encodeSingle(LogEvent event) throws Exception {
+        return ExportLogsServiceRequest.parseFrom(
+                        OtlpLogEncoder.encode(Collections.<String, Object>emptyMap(), Collections.singletonList(event)))
+                .getResourceLogs(0).getScopeLogs(0).getLogRecords(0);
     }
 
     @Test

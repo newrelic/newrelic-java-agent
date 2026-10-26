@@ -8,6 +8,7 @@
 package com.newrelic.agent.transport.otlp;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.UnknownFieldSet;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.model.LogEvent;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
@@ -47,8 +48,14 @@ final class OtlpLogEncoder {
     private static final String TIMESTAMP = AppLoggingUtils.TIMESTAMP.getKey();
     private static final String LEVEL = AppLoggingUtils.LEVEL.getKey();
 
+    static final String EVENT_NAME = "event.name";
+
+    // LogRecord.event_name (string, field 12) was added in opentelemetry-proto 1.5.0, but newer releases require protobuf-java 4.x.
+    // The pinned 1.0.0-alpha classes don't have it, so it is written as an unknown field, which serializes identically.
+    static final int EVENT_NAME_FIELD_NUMBER = 12;
+
     private static final Set<String> NATIVE_FIELD_ATTRIBUTES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID,
+            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID, EVENT_NAME,
             OtlpAttributes.OTEL_LIBRARY_NAME, OtlpAttributes.OTEL_LIBRARY_VERSION)));
 
     // Timestamps above this value can't be epoch milliseconds (it's the year 33658), so they are already epoch nanoseconds.
@@ -115,6 +122,15 @@ final class OtlpLogEncoder {
         ByteString spanId = toIdBytes(attributes.get(AppLoggingUtils.SPAN_ID), OtlpAttributes.SPAN_ID_BYTES);
         if (spanId != null) {
             builder.setSpanId(spanId);
+        }
+
+        Object eventName = attributes.get(EVENT_NAME);
+        if (eventName != null && !eventName.toString().isEmpty()) {
+            builder.setUnknownFields(UnknownFieldSet.newBuilder()
+                    .addField(EVENT_NAME_FIELD_NUMBER, UnknownFieldSet.Field.newBuilder()
+                            .addLengthDelimited(ByteString.copyFromUtf8(eventName.toString()))
+                            .build())
+                    .build());
         }
 
         return builder.build();
