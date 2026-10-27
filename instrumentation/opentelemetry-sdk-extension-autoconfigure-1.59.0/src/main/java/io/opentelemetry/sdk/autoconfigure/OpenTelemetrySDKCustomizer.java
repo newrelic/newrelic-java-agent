@@ -21,6 +21,7 @@ import io.opentelemetry.sdk.metrics.InstrumentSelector;
 import io.opentelemetry.sdk.metrics.SdkMeterProviderBuilder;
 import io.opentelemetry.sdk.metrics.View;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
@@ -64,19 +65,28 @@ final class OpenTelemetrySDKCustomizer {
                         "No host was configured for the OpenTelemetry metrics exporter endpoint. The exporter will use the default host for the New Relic US Production region: {0}",
                         DEFAULT_COLLECTOR_HOST);
             }
-            final String endpoint = "https://" + host + ":443";
-            final String licenseKey = agent.getConfig().getValue("license_key");
             final Map<String, String> properties = new HashMap<>();
-            properties.put("otel.exporter.otlp.headers", "api-key=" + licenseKey);
-            properties.put("otel.exporter.otlp.endpoint", endpoint);
-            properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
+
+            if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
+                properties.put("otel.metrics.exporter", "otlp");
+                properties.put("otel.metric.export.interval", String.valueOf(999_999_999));
+                properties.put("otel.exporter.otlp.metrics.timeout",
+                        String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
+            } else {
+                final String endpoint = "https://" + host + ":443";
+                final String licenseKey = agent.getConfig().getValue("license_key");
+                properties.put("otel.exporter.otlp.headers", "api-key=" + licenseKey);
+                properties.put("otel.exporter.otlp.endpoint", endpoint);
+                properties.put("otel.metrics.exporter", "otlp"); // enable otlp metrics exporter
+                // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
+                properties.put("otel.metric.export.interval",
+                        String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
+                properties.put("otel.exporter.otlp.metrics.timeout",
+                        String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
+            }
+
             properties.put("otel.traces.exporter", "none"); // disable default traces exporter
             properties.put("otel.logs.exporter", "none"); // disable default logs exporter
-            // otel.metric.export.interval should be set before otel.exporter.otlp.metrics.timeout for validation purposes
-            properties.put("otel.metric.export.interval",
-                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportInterval())); // metric reporting interval in milliseconds
-            properties.put("otel.exporter.otlp.metrics.timeout",
-                    String.valueOf(OpenTelemetryConfig.getOpenTelemetryMetricsExportTimeout())); // metric reporting timeout in milliseconds
             properties.put("otel.exporter.otlp.protocol", "http/protobuf");
             properties.put("otel.span.attribute.value.length.limit", "4095");
             properties.put("otel.exporter.otlp.compression", "gzip");
@@ -192,5 +202,20 @@ final class OpenTelemetrySDKCustomizer {
             );
         }
         return sdkMeterProviderBuilder;
+    }
+
+    static MetricReader applyMetricReaderCustomizer(MetricReader sdkMeterProviderBuilder, ConfigProperties configProperties) {
+        return applyMetricReaderCustomizer(sdkMeterProviderBuilder);
+    }
+
+    static MetricReader applyMetricReaderCustomizer(MetricReader metricReader) {
+        if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
+            AgentBridge.serverlessApi.addMetricReader(metricReader, o -> {
+                if (o instanceof MetricReader) {
+                    ((MetricReader) o).forceFlush();
+                }
+            });
+        }
+        return metricReader;
     }
 }

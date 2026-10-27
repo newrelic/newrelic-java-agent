@@ -442,6 +442,11 @@ public class DataSenderImpl implements DataSender, HealthDataProducer {
     }
 
     @Override
+    public void sendServerlessOTLPMetricData(String payload) {
+
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public List<Long> sendProfileData(List<ProfileData> profiles) throws Exception {
         Object runId = agentRunId;

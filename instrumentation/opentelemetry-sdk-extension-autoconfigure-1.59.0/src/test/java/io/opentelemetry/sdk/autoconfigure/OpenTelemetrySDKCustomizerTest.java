@@ -8,6 +8,7 @@
 package io.opentelemetry.sdk.autoconfigure;
 
 import com.newrelic.agent.bridge.AgentBridge;
+import com.newrelic.agent.bridge.ServerlessApi;
 import com.newrelic.api.agent.Agent;
 import com.newrelic.api.agent.Config;
 import com.newrelic.api.agent.Logger;
@@ -43,6 +44,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.DEFAULT_PROXY_PORT;
 import static com.nr.agent.instrumentation.utils.config.OpenTelemetryConfig.OPENTELEMETRY_METRICS_EXCLUDE;
@@ -57,6 +60,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenTelemetrySDKCustomizerTest extends TestCase {
+
+    private ServerlessApi savedServerlessApi;
+
+    @Override
+    protected void setUp() {
+        savedServerlessApi = AgentBridge.serverlessApi;
+    }
+
+    @Override
+    protected void tearDown() {
+        AgentBridge.serverlessApi = savedServerlessApi;
+    }
 
     public void testApplyProperties() {
         Agent agent = mock(Agent.class);
@@ -79,6 +94,29 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         // autoconfigure modules stay near-identical.
         assertEquals("true", properties.get("otel.experimental.exporter.otlp.retry.enabled"));
         assertEquals("false", properties.get("otel.java.exporter.otlp.retry.disabled"));
+    }
+
+    public void testApplyPropertiesServerlessModeEnabledUsesHarvestBasedExport() {
+        Agent agent = mock(Agent.class);
+        Logger logger = mock(Logger.class);
+        when(agent.getLogger()).thenReturn(logger);
+        Config config = mock(Config.class);
+        when(agent.getConfig()).thenReturn(config);
+        when(config.getValue("app_name")).thenReturn("Test");
+        when(config.getValue("host")).thenReturn("mylaptop");
+
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(true);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        Map<String, String> properties = OpenTelemetrySDKCustomizer.applyProperties(mock(ConfigProperties.class), agent);
+
+        assertEquals("otlp", properties.get("otel.metrics.exporter"));
+        assertEquals(String.valueOf(999_999_999), properties.get("otel.metric.export.interval"));
+        // The endpoint/headers are irrelevant in serverless mode since NRMetricExporterWrapper.export()
+        // routes through AgentBridge.serverlessApi.otelHarvest() instead of the configured OTLP exporter.
+        assertNull(properties.get("otel.exporter.otlp.endpoint"));
+        assertNull(properties.get("otel.exporter.otlp.headers"));
     }
 
     public void testApplyResourcesServiceInstanceIdSet() {
@@ -309,6 +347,116 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
         }
     }
 
+    public void testExportRoutesThroughServerlessHarvestWhenServerlessModeEnabled() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(true);
+        when(serverlessApi.otelHarvest(Mockito.any())).thenReturn(true);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class, Mockito.CALLS_REAL_METHODS);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            CompletableResultCode result = wrapped.export(collectRealMetricData());
+
+            assertTrue(result.isSuccess());
+        }
+
+        // The delegate exporter must never be invoked; the harvest-based path replaces it entirely.
+        assertNull(delegate.getLatestMetricData());
+        verify(serverlessApi).otelHarvest(Mockito.any());
+    }
+
+    public void testExportReturnsFailureWhenServerlessHarvestFails() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(true);
+        when(serverlessApi.otelHarvest(Mockito.any())).thenReturn(false);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class, Mockito.CALLS_REAL_METHODS);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            CompletableResultCode result = wrapped.export(collectRealMetricData());
+
+            assertFalse(result.isSuccess());
+        }
+    }
+
+    public void testExportUsesDelegateWhenServerlessModeDisabled() {
+        DummyExporter delegate = new DummyExporter();
+        com.newrelic.agent.bridge.Agent mockBridgeAgent = mock(com.newrelic.agent.bridge.Agent.class);
+        when(mockBridgeAgent.getServiceMetadata()).thenReturn(Collections.<String, String>emptyMap());
+
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(false);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        MetricData md = mock(MetricData.class);
+        try (MockedStatic<AgentBridge> mockBridge = Mockito.mockStatic(AgentBridge.class, Mockito.CALLS_REAL_METHODS);
+             MockedStatic<OtlpAuditLogger> ignored = Mockito.mockStatic(OtlpAuditLogger.class)) {
+            mockBridge.when(AgentBridge::getAgent).thenReturn(mockBridgeAgent);
+
+            MetricExporter wrapped = OpenTelemetrySDKCustomizer.wrapMetricExporter(delegate, mock(ConfigProperties.class));
+            wrapped.export(Collections.singletonList(md));
+        }
+
+        assertNotNull(delegate.getLatestMetricData());
+        verify(serverlessApi, Mockito.never()).otelHarvest(Mockito.any());
+    }
+
+    public void testApplyMetricReaderCustomizerRegistersCollectorWhenServerlessModeEnabled() {
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(true);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        MetricReader metricReader = mock(MetricReader.class);
+        MetricReader result = OpenTelemetrySDKCustomizer.applyMetricReaderCustomizer(metricReader);
+
+        assertSame(metricReader, result);
+        Mockito.verify(serverlessApi).addMetricReader(Mockito.eq(metricReader), Mockito.any());
+    }
+
+    public void testApplyMetricReaderCustomizerCollectorForceFlushesTheReader() {
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(true);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        MetricReader metricReader = mock(MetricReader.class);
+        AtomicReference<Consumer<Object>> capturedCollector = new AtomicReference<>();
+        Mockito.doAnswer(invocation -> {
+            capturedCollector.set(invocation.getArgument(1));
+            return null;
+        }).when(serverlessApi).addMetricReader(Mockito.eq(metricReader), Mockito.any());
+
+        OpenTelemetrySDKCustomizer.applyMetricReaderCustomizer(metricReader);
+        capturedCollector.get().accept(metricReader);
+
+        verify(metricReader).forceFlush();
+    }
+
+    public void testApplyMetricReaderCustomizerDoesNotRegisterWhenServerlessModeDisabled() {
+        ServerlessApi serverlessApi = mock(ServerlessApi.class);
+        when(serverlessApi.isServerlessModeEnabled()).thenReturn(false);
+        AgentBridge.serverlessApi = serverlessApi;
+
+        MetricReader metricReader = mock(MetricReader.class);
+        MetricReader result = OpenTelemetrySDKCustomizer.applyMetricReaderCustomizer(metricReader);
+
+        assertSame(metricReader, result);
+        Mockito.verify(serverlessApi, Mockito.never()).addMetricReader(Mockito.any(), Mockito.any());
+    }
+
     public void testWrapMetricExporterDelegatesPassThroughMethods() {
         MetricExporter delegate = mock(MetricExporter.class);
         when(delegate.getDefaultAggregation(InstrumentType.COUNTER)).thenReturn(Aggregation.sum());
@@ -383,6 +531,18 @@ public class OpenTelemetrySDKCustomizerTest extends TestCase {
             assertTrue(result instanceof OtlpHttpMetricExporter);
             assertTrue(result.toString().contains("example.test"));
         }
+    }
+
+    // MetricsRequestMarshaler (used by marshallMetrics()) walks real MetricData fields, so a bare
+    // Mockito mock (all-null getters) throws NullPointerException. Produce a genuine MetricData
+    // instance via the real SDK pipeline instead.
+    private Collection<MetricData> collectRealMetricData() {
+        DummyExporter capturingExporter = new DummyExporter();
+        MetricReader reader = PeriodicMetricReader.create(capturingExporter);
+        SdkMeterProvider provider = SdkMeterProvider.builder().registerMetricReader(reader).build();
+        provider.get("test-scope").counterBuilder("my-metric").build().add(1);
+        reader.forceFlush();
+        return capturingExporter.getLatestMetricData();
     }
 
     private List<String> metricNames(Collection<MetricData> collectedMetrics) {

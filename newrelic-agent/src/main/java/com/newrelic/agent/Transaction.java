@@ -1208,8 +1208,14 @@ public class Transaction {
             }
             // In serverless mode, trigger immediate harvest when transaction completes
             if (ServiceFactory.getConfigService().getDefaultAgentConfig().getServerlessConfig().isEnabled()) {
-                Agent.LOG.log(Level.FINEST, "Serverless mode: Beginning harvest cycle for completed transaction");
-                ServiceFactory.getHarvestService().harvestNow();
+                if (ServiceFactory.getServiceManager().getServerlessService().otelMetricsRegistered()) {
+                    Agent.LOG.log(Level.FINEST, "Serverless mode: Start collecting open telemetry dimensional metrics after the transaction completed");
+                    ServiceFactory.getServiceManager().getServerlessService().collectOtelMetrics();
+                } else {
+                    Agent.LOG.log(Level.FINEST, "Serverless mode: Beginning harvest cycle for completed transaction");
+                    ServiceFactory.getHarvestService().harvestNow();
+                }
+
             }
         } catch (Throwable th) {
             Agent.LOG.log(Level.WARNING, th, "Transaction {0} was not reported because of an internal error.", this);
