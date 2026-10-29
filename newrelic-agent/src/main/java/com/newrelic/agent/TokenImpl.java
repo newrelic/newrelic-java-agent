@@ -19,6 +19,7 @@ import java.util.logging.Level;
 public class TokenImpl implements Token {
 
     private volatile Tracer initiatingTracer;
+    private volatile String creator;
     private final AtomicBoolean active;
     /**
      * Whether this token is in the process of being moved from one transaction to another.
@@ -27,6 +28,10 @@ public class TokenImpl implements Token {
     protected final AtomicBoolean isInTransfer;
 
     public TokenImpl(Tracer tracer) {
+        this(tracer, null);
+    }
+
+    public TokenImpl(Tracer tracer, String creator) {
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
         isInTransfer = new AtomicBoolean(false);
@@ -167,12 +172,16 @@ public class TokenImpl implements Token {
     void setTruncated() {
         final Tracer tracer = initiatingTracer;
         if (tracer != null) {
+            String causeBy = tracer.getClassMethodSignature() + (creator == null ? "" : "/"+creator);
             tracer.setMetricNameFormatInfo(tracer.getMetricName(), "Truncated/" + tracer.getMetricName(), tracer.getTransactionSegmentUri());
-            String timeoutCauseMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_TIMEOUT_CAUSE, tracer.getClassMethodSignature());
+            String timeoutCauseMetric = MessageFormat.format(MetricNames.SUPPORTABILITY_ASYNC_TOKEN_TIMEOUT_CAUSE, causeBy);
             ServiceFactory.getStatsService().doStatsWork(StatsWorks.getIncrementCounterWork(timeoutCauseMetric, 1), timeoutCauseMetric );
         } else {
             Agent.LOG.log(Level.FINEST, "Initiating tracer is null. Unable to mark segment as truncated.");
         }
     }
 
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
 }

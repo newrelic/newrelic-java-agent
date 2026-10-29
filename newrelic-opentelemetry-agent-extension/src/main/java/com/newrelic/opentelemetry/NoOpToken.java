@@ -43,4 +43,7 @@ final class NoOpToken implements Token {
         OpenTelemetryNewRelic.logUnsupportedMethod("Token", "isActive");
         return false;
     }
+
+    @Override
+    public void setCreator(String creator) {}
 }

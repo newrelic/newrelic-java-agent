@@ -61,4 +61,11 @@ public interface Token {
      */
     boolean isActive();
 
+    /**
+     * Sets the creator of this token.  THis value will be used in Supportability metrics when a token
+     * timeout occurs.
+     * @param creator
+     */
+    void setCreator(String creator);
+
 }

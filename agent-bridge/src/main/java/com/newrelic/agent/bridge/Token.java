@@ -56,4 +56,10 @@ public interface Token extends com.newrelic.api.agent.Token {
      */
     com.newrelic.api.agent.Transaction getTransaction();
 
+    /**
+     * Sets the creator of this token.  THis value will be used in Supportability metrics when a token
+     * timeout occurs.
+     * @param creator
+     */
+    void setCreator(String creator);
 }

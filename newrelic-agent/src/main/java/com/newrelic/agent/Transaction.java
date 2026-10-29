@@ -2277,6 +2277,10 @@ public class Transaction {
      * This should be the only place that increments the counter.
      */
     public Token getToken() {
+        return getToken(null);
+    }
+
+    public Token getToken(String creator) {
         if (ServiceFactory.getServiceManager().getCircuitBreakerService().isTripped()) {
             Agent.LOG.log(Level.FINER, "Transaction {0}: cannot create token, circuit breaker is tripped.", this);
             return NoOpToken.INSTANCE;
@@ -2306,7 +2310,7 @@ public class Transaction {
         boolean wasAdded = false;
         synchronized (lock) {
             if (!isFinished()) {
-                token = new TokenImpl(parent);
+                token = new TokenImpl(parent, creator);
                 activeCount.incrementAndGet();
                 counts.getToken();
                 TimedSet<TokenImpl> tokenCache = activeTokensCache.get();
