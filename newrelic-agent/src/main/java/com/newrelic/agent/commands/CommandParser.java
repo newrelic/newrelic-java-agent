@@ -162,7 +162,6 @@ public class CommandParser extends AbstractService implements HarvestListener, A
                             Command command = getCommand(name);
                             Object returnValue = command.process(rpmService, args);
                             results.put(((Number) id).longValue(), returnValue);
-                            processedCommandIds.put(((Number) id).longValue(), Boolean.TRUE);
                             getLogger().finer(MessageFormat.format("Agent command \"{0}\" return value: {1}", name, returnValue));
                         }
                     } catch (Exception e) {
@@ -170,6 +169,7 @@ public class CommandParser extends AbstractService implements HarvestListener, A
                         getLogger().fine(MessageFormat.format("Unable to parse command", e));
                         results.put(((Number) id).longValue(), new JSONException(e));
                     }
+                    processedCommandIds.put(((Number) id).longValue(), Boolean.TRUE);
                 }
             }
             count++;

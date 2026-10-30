@@ -123,6 +123,19 @@ public class CommandParserTest {
     }
 
     @Test
+    public void duplicateFailedCommandIdIsNotRetried() {
+        MockRPMService rpmService = new MockRPMService();
+
+        List<List<?>> commands = new ArrayList<>();
+        commands.add(createCommand(1, "not_a_real_command"));
+        Map<Long, Object> firstResult = commandParser.processCommands(rpmService, commands);
+        Assert.assertEquals(1, firstResult.size());
+
+        Map<Long, Object> secondResult = commandParser.processCommands(rpmService, commands);
+        Assert.assertEquals(0, secondResult.size());
+    }
+
+    @Test
     public void restart() throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         MockRPMService rpmService = new MockRPMService();
