@@ -11,6 +11,7 @@ import com.newrelic.agent.Agent;
 import com.newrelic.agent.HarvestListener;
 import com.newrelic.agent.IRPMService;
 import com.newrelic.agent.RPMService;
+import com.newrelic.agent.bridge.AgentBridge;
 import com.newrelic.agent.config.AgentConfig;
 import com.newrelic.agent.config.AgentConfigListener;
 import com.newrelic.agent.config.CommandParserConfig;
@@ -33,7 +34,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 /**
- * The command parser parses commands received from the RPM service before metric harvests.
+ * The command parser parses commands received from the RPM service via the {@code metric_data} harvest response.
  */
 public class CommandParser extends AbstractService implements HarvestListener, AgentConfigListener {
 
@@ -45,6 +46,8 @@ public class CommandParser extends AbstractService implements HarvestListener, A
     private boolean enabled = true;
     private Set<String> disallowedCommands = new HashSet<>();
     private List<Map<Long, Object>> unsentCommandData = new ArrayList<>();
+    // remembers command ids already executed so a command resent across metric_data responses isn't run or reported twice
+    private final Map<Long, Boolean> processedCommandIds = AgentBridge.collectionFactory.createConcurrentTimeBasedEvictionMap(600);
 
     /**
      * Adds a command to this parser. Allows services to register their own commands.
@@ -57,14 +60,19 @@ public class CommandParser extends AbstractService implements HarvestListener, A
         }
     }
 
+    @Override
+    public void beforeHarvest(String appName, StatsEngine statsEngine) {
+    }
+
     /**
-     * Gets the agent commands from the rpm service, processes them, and returns the command results.
+     * Gets the agent commands received via the last {@code metric_data} harvest response, processes them, and
+     * sends back the command results.
      *
      * @see RPMService#getAgentCommands()
      * @see RPMService#sendCommandResults(Map)
      */
     @Override
-    public void beforeHarvest(String appName, StatsEngine statsEngine) {
+    public void afterHarvest(String appName) {
         IRPMService rpmService = ServiceFactory.getRPMServiceManager().getOrCreateRPMService(appName);
 
         for (Iterator<Map<Long, Object>> iterator = unsentCommandData.iterator(); iterator.hasNext(); ) {
@@ -113,10 +121,6 @@ public class CommandParser extends AbstractService implements HarvestListener, A
         }
     }
 
-    @Override
-    public void afterHarvest(String appName) {
-    }
-
     Command getCommand(String name) throws UnknownCommand {
         Agent.LOG.finer(MessageFormat.format("Process command \"{0}\"", name));
         Command c = commands.get(name);
@@ -143,6 +147,9 @@ public class CommandParser extends AbstractService implements HarvestListener, A
                 if (!(id instanceof Number)) {
                     // invalid id
                     invalidCommand(rpmService, count, "Invalid command id " + id, agentCommand);
+                } else if (processedCommandIds.containsKey(((Number) id).longValue())) {
+                    // already executed this command id in a prior harvest; ignore it and send nothing back
+                    getLogger().finer(MessageFormat.format("Ignoring duplicate agent command id {0}", id));
                 } else {
                     try {
                         Map<?, ?> commandMap = (Map<?, ?>) agentCommand.get(1);
@@ -155,6 +162,7 @@ public class CommandParser extends AbstractService implements HarvestListener, A
                             Command command = getCommand(name);
                             Object returnValue = command.process(rpmService, args);
                             results.put(((Number) id).longValue(), returnValue);
+                            processedCommandIds.put(((Number) id).longValue(), Boolean.TRUE);
                             getLogger().finer(MessageFormat.format("Agent command \"{0}\" return value: {1}", name, returnValue));
                         }
                     } catch (Exception e) {
