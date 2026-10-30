@@ -16,7 +16,7 @@ public final class Utils {
     if (tokenAndRefCount == null) {
       Transaction tx = AgentBridge.getAgent().getTransaction(false);
       if (tx != null) {
-        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken("cats-effect-3.3.0:Utils.getThreadTokenAndRefCount"),
                                                             AgentBridge.getAgent().getTracedMethod(),
                                                             new AtomicInteger(0));
         AgentBridge.activeToken.set(tokenAndRefCount);
