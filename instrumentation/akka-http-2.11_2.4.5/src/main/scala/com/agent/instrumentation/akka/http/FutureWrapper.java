@@ -45,7 +45,7 @@ public class FutureWrapper<T> implements Future<T> {
     @Override
     public <U> void onComplete(Function1<Try<T>, U> f, ExecutionContext executor) {
         try {
-            f = new Function1Wrapper<>(f, NewRelic.getAgent().getTransaction().getToken());
+            f = new Function1Wrapper<>(f, NewRelic.getAgent().getTransaction().getToken("akka-http-2.11_2.4.5:FutureWrapper.onComplete"));
         } catch (Throwable t) {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         }
