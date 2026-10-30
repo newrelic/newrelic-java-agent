@@ -61,164 +61,164 @@ public abstract class AmazonDynamoDBAsyncClient_Instrumentation extends AmazonDy
     @Trace
     public Future<BatchGetItemResult> batchGetItemAsync(final BatchGetItemRequest batchGetItemRequest,
             final AsyncHandler_Instrumentation<BatchGetItemRequest, BatchGetItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(batchGetItemRequest);
+        storeToken(asyncHandler, "batchGetItemAsync");
+        storeToken(batchGetItemRequest, "batchGetItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<BatchWriteItemResult> batchWriteItemAsync(final BatchWriteItemRequest batchWriteItemRequest,
             final AsyncHandler_Instrumentation<BatchWriteItemRequest, BatchWriteItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(batchWriteItemRequest);
+        storeToken(asyncHandler, "batchWriteItemAsync");
+        storeToken(batchWriteItemRequest, "batchWriteItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<CreateTableResult> createTableAsync(final CreateTableRequest createTableRequest,
             final AsyncHandler_Instrumentation<CreateTableRequest, CreateTableResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(createTableRequest);
+        storeToken(asyncHandler, "createTableAsync");
+        storeToken(createTableRequest, "createTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteItemResult> deleteItemAsync(final DeleteItemRequest deleteItemRequest,
             final AsyncHandler_Instrumentation<DeleteItemRequest, DeleteItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(deleteItemRequest);
+        storeToken(asyncHandler, "deleteItemAsync");
+        storeToken(deleteItemRequest, "deleteItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteTableResult> deleteTableAsync(final DeleteTableRequest deleteTableRequest,
             final AsyncHandler_Instrumentation<DeleteTableRequest, DeleteTableResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(deleteTableRequest);
+        storeToken(asyncHandler, "deleteTableAsync");
+        storeToken(deleteTableRequest, "deleteTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeTableResult> describeTableAsync(final DescribeTableRequest describeTableRequest,
             final AsyncHandler_Instrumentation<DescribeTableRequest, DescribeTableResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(describeTableRequest);
+        storeToken(asyncHandler, "describeTableAsync");
+        storeToken(describeTableRequest, "describeTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetItemResult> getItemAsync(final GetItemRequest getItemRequest,
             final AsyncHandler_Instrumentation<GetItemRequest, GetItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(getItemRequest);
+        storeToken(asyncHandler, "getItemAsync");
+        storeToken(getItemRequest, "getItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTablesResult> listTablesAsync(final ListTablesRequest listTablesRequest,
             final AsyncHandler_Instrumentation<ListTablesRequest, ListTablesResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(listTablesRequest);
+        storeToken(asyncHandler, "listTablesAsync");
+        storeToken(listTablesRequest, "listTablesAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutItemResult> putItemAsync(final PutItemRequest putItemRequest,
             final AsyncHandler_Instrumentation<PutItemRequest, PutItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(putItemRequest);
+        storeToken(asyncHandler, "putItemAsync");
+        storeToken(putItemRequest, "putItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<QueryResult> queryAsync(final QueryRequest queryRequest,
             final AsyncHandler_Instrumentation<QueryRequest, QueryResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(queryRequest);
+        storeToken(asyncHandler, "queryAsync");
+        storeToken(queryRequest, "queryAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ScanResult> scanAsync(final ScanRequest scanRequest,
             final AsyncHandler_Instrumentation<ScanRequest, ScanResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(scanRequest);
+        storeToken(asyncHandler, "scanAsync");
+        storeToken(scanRequest, "scanAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateItemResult> updateItemAsync(final UpdateItemRequest updateItemRequest,
             final AsyncHandler_Instrumentation<UpdateItemRequest, UpdateItemResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(updateItemRequest);
+        storeToken(asyncHandler, "updateItemAsync");
+        storeToken(updateItemRequest, "updateItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateTableResult> updateTableAsync(final UpdateTableRequest updateTableRequest,
             final AsyncHandler_Instrumentation<UpdateTableRequest, UpdateTableResult> asyncHandler) {
-        storeToken(asyncHandler);
-        storeToken(updateTableRequest);
+        storeToken(asyncHandler, "updateTableAsync");
+        storeToken(updateTableRequest, "updateTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeLimitsResult> describeLimitsAsync(final DescribeLimitsRequest request,
             final AsyncHandler_Instrumentation<DescribeLimitsRequest, DescribeLimitsResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "describeLimitsAsync");
+        storeToken(asyncHandler, "describeLimitsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeTimeToLiveResult> describeTimeToLiveAsync(final DescribeTimeToLiveRequest request,
             final AsyncHandler_Instrumentation<DescribeTimeToLiveRequest, DescribeTimeToLiveResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "describeTimeToLiveAsync");
+        storeToken(asyncHandler, "describeTimeToLiveAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTagsOfResourceResult> listTagsOfResourceAsync(final ListTagsOfResourceRequest request,
             final AsyncHandler_Instrumentation<ListTagsOfResourceRequest, ListTagsOfResourceResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "listTagsOfResourceAsync");
+        storeToken(asyncHandler, "listTagsOfResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<TagResourceResult> tagResourceAsync(final TagResourceRequest request,
             final AsyncHandler_Instrumentation<TagResourceRequest, TagResourceResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "tagResourceAsync");
+        storeToken(asyncHandler, "tagResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UntagResourceResult> untagResourceAsync(final UntagResourceRequest request,
             final AsyncHandler_Instrumentation<UntagResourceRequest, UntagResourceResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "untagResourceAsync");
+        storeToken(asyncHandler, "untagResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateTimeToLiveResult> updateTimeToLiveAsync(final UpdateTimeToLiveRequest request,
             final AsyncHandler_Instrumentation<UpdateTimeToLiveRequest, UpdateTimeToLiveResult> asyncHandler) {
-        storeToken(request);
-        storeToken(asyncHandler);
+        storeToken(request, "updateTimeToLiveAsync");
+        storeToken(asyncHandler, "updateTimeToLiveAsync");
         return Weaver.callOriginal();
     }
 
-    private void storeToken(AmazonWebServiceRequest request) {
+    private void storeToken(AmazonWebServiceRequest request, String creatorMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            request.token = NewRelic.getAgent().getTransaction().getToken();
+            request.token = AgentBridge.getAgent().getTransaction().getToken("aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request."+creatorMethod);
         }
     }
 
-    private void storeToken(AsyncHandler_Instrumentation asyncHandler) {
+    private void storeToken(AsyncHandler_Instrumentation asyncHandler, String creatorMethod) {
         if (asyncHandler != null && AgentBridge.getAgent().getTransaction(false) != null) {
-            asyncHandler.token = NewRelic.getAgent().getTransaction().getToken();
+            asyncHandler.token = AgentBridge.getAgent().getTransaction().getToken("aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler."+creatorMethod);
         }
     }
 }

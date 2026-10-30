@@ -21,11 +21,10 @@ public class KinesisUtil {
             AgentBridge.collectionFactory.createAccessTimeBasedCache(3600, 8, KinesisUtil::createArn);
     private KinesisUtil() {}
 
-    public static void setTokenForRequest(AmazonWebServiceRequest request) {
+    public static void setTokenForRequest(AmazonWebServiceRequest request, String creatorMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (request != null) {
-                Token token = NewRelic.getAgent().getTransaction().getToken();
-                requestTokenMap.put(request, token);
+                requestTokenMap.put(request, NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-kinesis-1.11.272:KinesisUtil."+creatorMethod));
             }
         }
     }

@@ -136,7 +136,6 @@ public class LambdaUtil {
     }
 
     public static void setTokenForRequest(InvokeRequest request) {
-        Token token = NewRelic.getAgent().getTransaction().getToken();
-        TOKEN_MAP.put(request, token);
+        TOKEN_MAP.put(request, NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-lambda-1.11.280:LambdaUtil.setTokenForRequest"));
     }
 }

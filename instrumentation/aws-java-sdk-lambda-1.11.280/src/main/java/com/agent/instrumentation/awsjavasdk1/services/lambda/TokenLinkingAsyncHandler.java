@@ -22,7 +22,7 @@ public class TokenLinkingAsyncHandler implements AsyncHandler<InvokeRequest, Inv
 
     public TokenLinkingAsyncHandler(AsyncHandler<InvokeRequest, InvokeResult> delegate) {
         this.delegate = delegate;
-        token = NewRelic.getAgent().getTransaction().getToken();
+        token = NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-lambda-1.11.280:TokenLinkingAsyncHandler.<init>");
     }
 
     @Override

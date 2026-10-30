@@ -63,14 +63,14 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     @Trace
     public Future<AddTagsToStreamResult> addTagsToStreamAsync(AddTagsToStreamRequest request,
             AsyncHandler_Instrumentation<AddTagsToStreamRequest, AddTagsToStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "addTagsToStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<CreateStreamResult> createStreamAsync(CreateStreamRequest request,
             AsyncHandler_Instrumentation<CreateStreamRequest, CreateStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "createStreamAsync");
         return Weaver.callOriginal();
     }
 
@@ -78,55 +78,55 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     public Future<DecreaseStreamRetentionPeriodResult> decreaseStreamRetentionPeriodAsync(
             DecreaseStreamRetentionPeriodRequest request,
             AsyncHandler_Instrumentation<DecreaseStreamRetentionPeriodRequest, DecreaseStreamRetentionPeriodResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "decreaseStreamRetentionPeriodAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteStreamResult> deleteStreamAsync(DeleteStreamRequest request,
             AsyncHandler_Instrumentation<DeleteStreamRequest, DeleteStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "deleteStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeLimitsResult> describeLimitsAsync(DescribeLimitsRequest request,
             AsyncHandler_Instrumentation<DescribeLimitsRequest, DescribeLimitsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "describeLimitsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeStreamResult> describeStreamAsync(DescribeStreamRequest request,
             AsyncHandler_Instrumentation<DescribeStreamRequest, DescribeStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "describeStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DisableEnhancedMonitoringResult> disableEnhancedMonitoringAsync(DisableEnhancedMonitoringRequest request,
             AsyncHandler_Instrumentation<DisableEnhancedMonitoringRequest, DisableEnhancedMonitoringResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "disableEnhancedMonitoringAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<EnableEnhancedMonitoringResult> enableEnhancedMonitoringAsync(EnableEnhancedMonitoringRequest request,
             AsyncHandler_Instrumentation<EnableEnhancedMonitoringRequest, EnableEnhancedMonitoringResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "enableEnhancedMonitoringAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetRecordsResult> getRecordsAsync(GetRecordsRequest request, AsyncHandler_Instrumentation<GetRecordsRequest, GetRecordsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "getRecordsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetShardIteratorResult> getShardIteratorAsync(GetShardIteratorRequest request,
             AsyncHandler_Instrumentation<GetShardIteratorRequest, GetShardIteratorResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "getShardIteratorAsync");
         return Weaver.callOriginal();
     }
 
@@ -134,87 +134,87 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     public Future<IncreaseStreamRetentionPeriodResult> increaseStreamRetentionPeriodAsync(
             IncreaseStreamRetentionPeriodRequest request,
             AsyncHandler_Instrumentation<IncreaseStreamRetentionPeriodRequest, IncreaseStreamRetentionPeriodResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "increaseStreamRetentionPeriodAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListStreamsResult> listStreamsAsync(ListStreamsRequest request, AsyncHandler_Instrumentation<ListStreamsRequest, ListStreamsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "listStreamsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTagsForStreamResult> listTagsForStreamAsync(ListTagsForStreamRequest request,
             AsyncHandler_Instrumentation<ListTagsForStreamRequest, ListTagsForStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "listTagsForStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<MergeShardsResult> mergeShardsAsync(MergeShardsRequest request, AsyncHandler_Instrumentation<MergeShardsRequest, MergeShardsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "mergeShardsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutRecordResult> putRecordAsync(PutRecordRequest request, AsyncHandler_Instrumentation<PutRecordRequest, PutRecordResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "putRecordAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutRecordsResult> putRecordsAsync(PutRecordsRequest request, AsyncHandler_Instrumentation<PutRecordsRequest, PutRecordsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "putRecordsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<RemoveTagsFromStreamResult> removeTagsFromStreamAsync(RemoveTagsFromStreamRequest request,
             AsyncHandler_Instrumentation<RemoveTagsFromStreamRequest, RemoveTagsFromStreamResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "removeTagsFromStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<SplitShardResult> splitShardAsync(SplitShardRequest request, AsyncHandler_Instrumentation<SplitShardRequest, SplitShardResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "splitShardAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateShardCountResult> updateShardCountAsync(UpdateShardCountRequest request,
             AsyncHandler_Instrumentation<UpdateShardCountRequest, UpdateShardCountResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "updateShardCountAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListShardsResult> listShardsAsync(ListShardsRequest request, AsyncHandler_Instrumentation<ListShardsRequest, ListShardsResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "listShardsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<StartStreamEncryptionResult> startStreamEncryptionAsync(StartStreamEncryptionRequest request,
             AsyncHandler_Instrumentation<StartStreamEncryptionRequest, StartStreamEncryptionResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "startStreamEncryptionAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<StopStreamEncryptionResult> stopStreamEncryptionAsync(StopStreamEncryptionRequest request,
             AsyncHandler_Instrumentation<StopStreamEncryptionRequest, StopStreamEncryptionResult> asyncHandler) {
-        setToken(asyncHandler, request);
+        setToken(asyncHandler, request, "stopStreamEncryptionAsync");
         return Weaver.callOriginal();
     }
 
-    private void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request) {
+    private void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request, String creatorMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (asyncHandler != null) {
                 asyncHandler.token = NewRelic.getAgent().getTransaction().getToken();
             }
-            KinesisUtil.setTokenForRequest(request);
+            KinesisUtil.setTokenForRequest(request, creatorMethod);
         }
     }
 
