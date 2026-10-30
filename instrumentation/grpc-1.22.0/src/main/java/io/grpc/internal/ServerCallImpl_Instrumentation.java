@@ -18,7 +18,7 @@ final class ServerCallImpl_Instrumentation {
     ServerStreamListener newServerStreamListener(ServerCallListener_Instrumentation listener) {
         // This is the point where a request comes into grpc
         // Store a token on the listener so we can bring the transaction into customer code
-        listener.token = AgentBridge.getAgent().getTransaction().getToken();
+        listener.token = AgentBridge.getAgent().getTransaction().getToken("grpc-1.22.0:ServerCallImpl_Instrumentation.newServerStreamListener");
         return Weaver.callOriginal();
     }
 }
