@@ -1481,7 +1481,7 @@
          <br/>
       </p>
       <h2>Metrics</h2>
-      <p>54342 lines of code analyzed,
+      <p>54348 lines of code analyzed,
 	in 1401 classes, 
 	in 96 packages.</p>
       <table width="500" cellpadding="5" cellspacing="2">
@@ -1492,8 +1492,8 @@
          </tr>
          <tr class="tablerow0">
             <td>High Priority Warnings</td>
-            <td align="right"/>
-            <td align="right">0.00</td>
+            <td align="right">2</td>
+            <td align="right">0.04</td>
          </tr>
          <tr class="tablerow1">
             <td>Medium Priority Warnings</td>
@@ -1505,10 +1505,10 @@
                <b>Total Warnings</b>
             </td>
             <td align="right">
-               <b>0</b>
+               <b>2</b>
             </td>
             <td align="right">
-               <b>0.00</b>
+               <b>0.04</b>
             </td>
          </tr>
       </table>
@@ -1522,6 +1522,9 @@
       <h2>Contents</h2>
       <ul>
          <li>
+            <a href="#Warnings_BAD_PRACTICE">Bad practice Warnings</a>
+         </li>
+         <li>
             <a href="#Details">Details</a>
          </li>
       </ul>
@@ -1533,17 +1536,75 @@
          </tr>
          <tr class="tablerow0">
             <td>
+               <a href="#Warnings_BAD_PRACTICE">Bad practice Warnings</a>
+            </td>
+            <td align="right">2</td>
+         </tr>
+         <tr class="tablerow1">
+            <td>
                <b>Total</b>
             </td>
             <td align="right">
-               <b>0</b>
+               <b>2</b>
             </td>
          </tr>
       </table>
       <h1>Warnings</h1>
       <p>Click on a warning row to see full context information.</p>
+      <h2>
+         <a name="Warnings_BAD_PRACTICE">Bad practice Warnings</a>
+      </h2>
+      <table class="warningtable" width="100%" cellspacing="0">
+         <tr class="tableheader">
+            <th align="left">Code</th>
+            <th align="left">Warning</th>
+         </tr>
+         <tr class="tablerow1" onclick="toggleRow('d2e1593');">
+            <td>
+               <span class="priority-1">DMI</span>
+            </td>
+            <td>Random object created and used only once in com.newrelic.agent.trace.TransactionGuidFactory.&lt;static initializer for TransactionGuidFactory&gt;()</td>
+         </tr>
+         <tr class="detailrow1">
+            <td/>
+            <td>
+               <p id="d2e1593" style="display: none;">
+                  <a href="#DMI_RANDOM_USED_ONLY_ONCE">Bug type DMI_RANDOM_USED_ONLY_ONCE (click for details)</a>
+                  <br/>In class com.newrelic.agent.trace.TransactionGuidFactory<br/>In method com.newrelic.agent.trace.TransactionGuidFactory.&lt;static initializer for TransactionGuidFactory&gt;()<br/>Called method java.security.SecureRandom.nextLong()<br/>At TransactionGuidFactory.java:[line 15]</p>
+            </td>
+         </tr>
+         <tr class="tablerow0" onclick="toggleRow('d2e1608');">
+            <td>
+               <span class="priority-1">DMI</span>
+            </td>
+            <td>Random object created and used only once in com.newrelic.agent.trace.TransactionGuidFactory.resetSalt()</td>
+         </tr>
+         <tr class="detailrow0">
+            <td/>
+            <td>
+               <p id="d2e1608" style="display: none;">
+                  <a href="#DMI_RANDOM_USED_ONLY_ONCE">Bug type DMI_RANDOM_USED_ONLY_ONCE (click for details)</a>
+                  <br/>In class com.newrelic.agent.trace.TransactionGuidFactory<br/>In method com.newrelic.agent.trace.TransactionGuidFactory.resetSalt()<br/>Called method java.security.SecureRandom.nextLong()<br/>At TransactionGuidFactory.java:[line 37]</p>
+            </td>
+         </tr>
+      </table>
       <h1>
          <a name="Details">Details</a>
       </h1>
-   </body>
+      <h2>
+         <a name="DMI_RANDOM_USED_ONLY_ONCE">DMI_RANDOM_USED_ONLY_ONCE: Random object created and used only once</a>
+      </h2>
+
+<p> This code creates a java.util.Random object, uses it to generate one random number, and then discards
+the Random object. This produces mediocre quality random numbers and is inefficient.
+If possible, rewrite the code so that the Random object is created once and saved, and each time a new random number
+is required invoke a method on the existing Random object to obtain it.
+</p>
+
+<p>If it is important that the generated Random numbers not be guessable, you <em>must</em> not create a new Random for each random
+number; the values are too easily guessable. You should strongly consider using a java.security.SecureRandom instead
+(and avoid allocating a new SecureRandom for each random number needed).
+</p>
+
+    </body>
 </html>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<BugCollection version="4.7.3" sequence="0" timestamp="1793351540821" analysisTimestamp="1793351540821" release="">
+<BugCollection version="4.7.3" sequence="0" timestamp="1793438438361" analysisTimestamp="1793438438361" release="">
   <Project projectName="newrelic-agent (spotbugsMain)">
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/Harvestable$1.class</Jar>
     <Jar>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/classes/java/main/com/newrelic/agent/RPMService.class</Jar>
@@ -1461,8 +1461,74 @@
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/resources</SrcDir>
     <SrcDir>/home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/src/main/java</SrcDir>
   </Project>
+  <BugInstance type="DMI_RANDOM_USED_ONLY_ONCE" priority="1" rank="14" abbrev="DMI" category="BAD_PRACTICE" instanceHash="efccfea692b06c616a60660fe809dd8" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="440">
+    <ShortMessage>Random object created and used only once</ShortMessage>
+    <LongMessage>Random object created and used only once in com.newrelic.agent.trace.TransactionGuidFactory.&lt;static initializer for TransactionGuidFactory&gt;()</LongMessage>
+    <Class classname="com.newrelic.agent.trace.TransactionGuidFactory" primary="true">
+      <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" start="14" end="38" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java">
+        <Message>At TransactionGuidFactory.java:[lines 14-38]</Message>
+      </SourceLine>
+      <Message>In class com.newrelic.agent.trace.TransactionGuidFactory</Message>
+    </Class>
+    <Method classname="com.newrelic.agent.trace.TransactionGuidFactory" name="&lt;clinit&gt;" signature="()V" isStatic="true" primary="true">
+      <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" start="14" end="15" startBytecode="0" endBytecode="138" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java"/>
+      <Message>In method com.newrelic.agent.trace.TransactionGuidFactory.&lt;static initializer for TransactionGuidFactory&gt;()</Message>
+    </Method>
+    <Method classname="java.security.SecureRandom" name="nextLong" signature="()J" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.security.SecureRandom" sourcefile="SecureRandom.java" sourcepath="java/security/SecureRandom.java"/>
+      <Message>Called method java.security.SecureRandom.nextLong()</Message>
+    </Method>
+    <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" primary="true" start="15" end="15" startBytecode="104" endBytecode="104" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java">
+      <Message>At TransactionGuidFactory.java:[line 15]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugInstance type="DMI_RANDOM_USED_ONLY_ONCE" priority="1" rank="14" abbrev="DMI" category="BAD_PRACTICE" instanceHash="7c426c429ae82b9874da3e167bdd9940" instanceOccurrenceNum="0" instanceOccurrenceMax="0" cweid="440">
+    <ShortMessage>Random object created and used only once</ShortMessage>
+    <LongMessage>Random object created and used only once in com.newrelic.agent.trace.TransactionGuidFactory.resetSalt()</LongMessage>
+    <Class classname="com.newrelic.agent.trace.TransactionGuidFactory" primary="true">
+      <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" start="14" end="38" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java">
+        <Message>At TransactionGuidFactory.java:[lines 14-38]</Message>
+      </SourceLine>
+      <Message>In class com.newrelic.agent.trace.TransactionGuidFactory</Message>
+    </Class>
+    <Method classname="com.newrelic.agent.trace.TransactionGuidFactory" name="resetSalt" signature="()V" isStatic="true" primary="true">
+      <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" start="37" end="38" startBytecode="0" endBytecode="41" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java"/>
+      <Message>In method com.newrelic.agent.trace.TransactionGuidFactory.resetSalt()</Message>
+    </Method>
+    <Method classname="java.security.SecureRandom" name="nextLong" signature="()J" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="java.security.SecureRandom" sourcefile="SecureRandom.java" sourcepath="java/security/SecureRandom.java"/>
+      <Message>Called method java.security.SecureRandom.nextLong()</Message>
+    </Method>
+    <SourceLine classname="com.newrelic.agent.trace.TransactionGuidFactory" primary="true" start="37" end="37" startBytecode="7" endBytecode="7" sourcefile="TransactionGuidFactory.java" sourcepath="com/newrelic/agent/trace/TransactionGuidFactory.java" relSourcepath="java/com/newrelic/agent/trace/TransactionGuidFactory.java">
+      <Message>At TransactionGuidFactory.java:[line 37]</Message>
+    </SourceLine>
+  </BugInstance>
+  <BugCategory category="BAD_PRACTICE">
+    <Description>Bad practice</Description>
+  </BugCategory>
+  <BugPattern type="DMI_RANDOM_USED_ONLY_ONCE" abbrev="DMI" category="BAD_PRACTICE">
+    <ShortDescription>Random object created and used only once</ShortDescription>
+    <Details><![CDATA[
+
+<p> This code creates a java.util.Random object, uses it to generate one random number, and then discards
+the Random object. This produces mediocre quality random numbers and is inefficient.
+If possible, rewrite the code so that the Random object is created once and saved, and each time a new random number
+is required invoke a method on the existing Random object to obtain it.
+</p>
+
+<p>If it is important that the generated Random numbers not be guessable, you <em>must</em> not create a new Random for each random
+number; the values are too easily guessable. You should strongly consider using a java.security.SecureRandom instead
+(and avoid allocating a new SecureRandom for each random number needed).
+</p>
+
+    ]]></Details>
+  </BugPattern>
+  <BugCode abbrev="DMI" cweid="440">
+    <Description>Dubious method invocation</Description>
+  </BugCode>
   <Errors errors="0" missingClasses="0"></Errors>
-  <FindBugsSummary timestamp="Fri, 30 Oct 2026 09:12:20 +0000" total_classes="0" referenced_classes="0" total_bugs="0" total_size="0" num_packages="0" java_version="1.8.0_504" vm_version="25.504-b01" cpu_seconds="82.96" clock_seconds="44.27" peak_mbytes="598.65" alloc_mbytes="910.50" gc_seconds="1.93">
+  <FindBugsSummary timestamp="Sat, 31 Oct 2026 09:20:38 +0000" total_classes="0" referenced_classes="0" total_bugs="2" total_size="0" num_packages="1" java_version="1.8.0_504" vm_version="25.504-b01" cpu_seconds="80.47" clock_seconds="44.22" peak_mbytes="575.82" alloc_mbytes="910.50" gc_seconds="1.97" priority_1="2">
+    <FileStats path="com/newrelic/agent/trace/TransactionGuidFactory.java" bugCount="2" size="0" bugHash="b83a0d77dde328edd1203d2a37a17dd0"/>
     <FindBugsProfile></FindBugsProfile>
   </FindBugsSummary>
   <ClassFeatures></ClassFeatures>
