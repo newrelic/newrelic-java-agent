@@ -19,6 +19,7 @@ jobs:
   copy-to-s3:
     name: Copy ${{ inputs.version_number }} to S3 (Staging)
     runs-on: ubuntu-24.04
+    environment: copy-to-s3-staging-ungated
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Self
