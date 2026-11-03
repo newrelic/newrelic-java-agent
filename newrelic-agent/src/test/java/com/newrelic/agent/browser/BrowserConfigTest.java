@@ -15,6 +15,7 @@ import com.newrelic.agent.Transaction;
 import com.newrelic.agent.TransactionService;
 import com.newrelic.agent.attributes.AttributesService;
 import com.newrelic.agent.bridge.TransactionNamePriority;
+import com.newrelic.agent.config.AgentConfigFactory;
 import com.newrelic.agent.config.AgentConfigImpl;
 import com.newrelic.agent.config.ConfigServiceFactory;
 import com.newrelic.agent.config.DistributedTracingConfig;
@@ -96,6 +97,133 @@ public class BrowserConfigTest {
     @Test(expected = Exception.class)
     public void getBrowserAgentHeaderScript_withRumDisabled_throwsException() throws Exception {
         BrowserConfig.createBrowserConfig("appName", createBrowserConfig(false));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_insertsLoaderUnchanged() throws Exception {
+        setupServiceManager(true, true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", createBrowserConfig(true));
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(BrowserTransactionStateImpl.create(createTransaction()));
+
+        Assert.assertTrue(value.endsWith(";\n" + LOADER + END_SCRIPT));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withLoaderFromConnectResponse_insertsLoaderUnchanged() throws Exception {
+        setupServiceManager(true, true);
+        Map<String, Object> serverData = new HashMap<>(createBrowserConfig(true));
+        serverData.put(AgentConfigImpl.APP_NAME, APP_NAME);
+
+        BrowserConfig beaconConfig = BrowserConfigFactory.createBrowserConfig(APP_NAME, AgentConfigImpl.createAgentConfig(serverData));
+
+        Assert.assertNotNull(beaconConfig);
+        String value = beaconConfig.getBrowserAgentHeaderScript(BrowserTransactionStateImpl.create(createTransaction()));
+        Assert.assertTrue(value.endsWith(";\n" + LOADER + END_SCRIPT));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withLoaderInAgentConfig_usesAgentConfigLoader() throws Exception {
+        setupServiceManager(true, true);
+        String agentConfigLoader = "window.NREUM||(NREUM={});NREUM.fromAgentConfig=true;";
+        Map<String, Object> agentConfig = new HashMap<>();
+        agentConfig.put(BrowserConfig.JS_AGENT_LOADER, agentConfigLoader);
+        Map<String, Object> serverData = new HashMap<>(createBrowserConfig(true));
+        serverData.put(AgentConfigImpl.APP_NAME, APP_NAME);
+        serverData.put(AgentConfigFactory.AGENT_CONFIG, agentConfig);
+
+        BrowserConfig beaconConfig = BrowserConfigFactory.createBrowserConfig(APP_NAME, AgentConfigImpl.createAgentConfig(serverData));
+
+        Assert.assertNotNull(beaconConfig);
+        String value = beaconConfig.getBrowserAgentHeaderScript(BrowserTransactionStateImpl.create(createTransaction()));
+        Assert.assertTrue(value.endsWith(";\n" + agentConfigLoader + END_SCRIPT));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withSurroundingWhitespaceInLoader_trimsLoader() throws Exception {
+        setupServiceManager(true, true);
+        Map<String, Object> beaconSettings = createBrowserConfig(true);
+        beaconSettings.put(BrowserConfig.JS_AGENT_LOADER, " \n" + LOADER + "\n ");
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(BrowserTransactionStateImpl.create(createTransaction()));
+
+        Assert.assertTrue(value.endsWith(";\n" + LOADER + END_SCRIPT));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withEscapedClosingScriptTagInLoader_insertsLoaderUnchanged() throws Exception {
+        setupServiceManager(true, true);
+        String loader = "var a=\"<div>\";var b=\"<\\/script>\";";
+        Map<String, Object> beaconSettings = createBrowserConfig(true);
+        beaconSettings.put(BrowserConfig.JS_AGENT_LOADER, loader);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", beaconSettings);
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(BrowserTransactionStateImpl.create(createTransaction()));
+
+        Assert.assertTrue(value.endsWith(";\n" + loader + END_SCRIPT));
+    }
+
+    @Test
+    public void createBrowserConfig_withClosingScriptTagInLoader_throwsException() {
+        setupServiceManager(true, true);
+        for (String loader : Arrays.asList("var a=1;</script><script>alert(1)", "var a=1;</SCRIPT >", "var a=1;</sCrIpT")) {
+            Map<String, Object> beaconSettings = createBrowserConfig(true);
+            beaconSettings.put(BrowserConfig.JS_AGENT_LOADER, loader);
+            try {
+                BrowserConfig.createBrowserConfig("appName", beaconSettings);
+                Assert.fail("Expected loader to be rejected: " + loader);
+            } catch (Exception expected) {
+                Assert.assertTrue(expected.getMessage().contains("closing script tag"));
+            }
+        }
+    }
+
+    @Test
+    public void createBrowserConfig_withClosingScriptTagInConnectResponseLoader_disablesBrowserMonitoring() {
+        setupServiceManager(true, true);
+        Map<String, Object> serverData = new HashMap<>(createBrowserConfig(true));
+        serverData.put(AgentConfigImpl.APP_NAME, APP_NAME);
+        serverData.put(BrowserConfig.JS_AGENT_LOADER, "var a=1;</script><script>alert(1)");
+
+        Assert.assertNull(BrowserConfigFactory.createBrowserConfig(APP_NAME, AgentConfigImpl.createAgentConfig(serverData)));
+    }
+
+    @Test
+    public void createBrowserConfig_withEmptyLoader_throwsException() {
+        setupServiceManager(true, true);
+        for (String loader : Arrays.asList("", "  \n ")) {
+            Map<String, Object> beaconSettings = createBrowserConfig(true);
+            beaconSettings.put(BrowserConfig.JS_AGENT_LOADER, loader);
+            try {
+                BrowserConfig.createBrowserConfig("appName", beaconSettings);
+                Assert.fail("Expected empty loader to be rejected");
+            } catch (Exception expected) {
+                Assert.assertTrue(expected.getMessage().contains("is empty"));
+            }
+        }
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withMarkupInNonce_escapesNonce() throws Exception {
+        setupServiceManager(true, true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", createBrowserConfig(true));
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(createTransaction());
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts, "abc\"><script>alert('&')</script>");
+
+        Assert.assertTrue(value.startsWith(SCRIPT_START + " nonce=\"abc&quot;&gt;&lt;script&gt;alert(&#39;&amp;&#39;)&lt;/script&gt;\">"));
+    }
+
+    @Test
+    public void getBrowserAgentHeaderScript_withBase64Nonce_insertsNonceUnchanged() throws Exception {
+        setupServiceManager(true, true);
+        BrowserConfig beaconConfig = BrowserConfig.createBrowserConfig("appName", createBrowserConfig(true));
+        BrowserTransactionState bts = BrowserTransactionStateImpl.create(createTransaction());
+
+        String value = beaconConfig.getBrowserAgentHeaderScript(bts, "rAnd0m+/Nonce-_==");
+
+        Assert.assertTrue(value.startsWith(SCRIPT_START + " nonce=\"rAnd0m+/Nonce-_==\">"));
     }
 
     private Transaction createTransaction() {

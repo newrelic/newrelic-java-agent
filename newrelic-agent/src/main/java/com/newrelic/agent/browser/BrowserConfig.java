@@ -12,6 +12,7 @@ import com.newrelic.agent.config.BaseConfig;
 
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -37,6 +38,7 @@ public class BrowserConfig extends BaseConfig {
 
     private static final String SCRIPT_BEGIN = "\n<script type=\"text/javascript\"";
     private static final String SCRIPT_END = "</script>";
+    private static final String CLOSING_SCRIPT_TAG = "</script";
     static final String JS_AGENT_CONFIG_STR_PREFIX = "window.NREUM||(NREUM={});NREUM.info=";
     private final String jsAgentLoader;
     private final JavaScriptAgentConfig javaScriptAgentConfig;
@@ -47,6 +49,7 @@ public class BrowserConfig extends BaseConfig {
         // meaning this will throw an exception
         javaScriptAgentConfig = initJavaScriptAgentConfig(appName);
         jsAgentLoader = getRequiredProperty(JS_AGENT_LOADER);
+        validateJsAgentLoader(appName, jsAgentLoader);
         logVersion(appName);
     }
 
@@ -62,12 +65,56 @@ public class BrowserConfig extends BaseConfig {
     }
 
     public String getBrowserAgentHeaderScript(BrowserTransactionState state, String nonce) {
-        return SCRIPT_BEGIN + (nonce != null ? " nonce=\"" + nonce + "\">" : ">")
+        return SCRIPT_BEGIN + (nonce != null ? " nonce=\"" + escapeAttributeValue(nonce) + "\">" : ">")
                 + JS_AGENT_CONFIG_STR_PREFIX
                 + javaScriptAgentConfig.getConfigString(state)
                 + ";\n"
                 + jsAgentLoader
                 + SCRIPT_END;
+    }
+
+    /**
+     * The loader is inserted into the page as the body of a script element without modification. A closing script tag
+     * would end that element early and turn the rest of the loader into page markup, so such a loader is rejected.
+     */
+    private static void validateJsAgentLoader(String appName, String loader) throws Exception {
+        if (loader.isEmpty()) {
+            throw new Exception(MessageFormat.format("Real User Monitoring value for {0} is empty", JS_AGENT_LOADER));
+        }
+        if (loader.toLowerCase(Locale.ROOT).contains(CLOSING_SCRIPT_TAG)) {
+            String msg = MessageFormat.format("Real User Monitoring value for {0} contains a closing script tag and will not be injected into "
+                    + "pages for application \"{1}\". Browser monitoring stays disabled until the agent reconnects with a valid loader.",
+                    JS_AGENT_LOADER, appName);
+            Agent.LOG.log(Level.WARNING, msg);
+            throw new Exception(msg);
+        }
+    }
+
+    private static String escapeAttributeValue(String value) {
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '&':
+                    escaped.append("&amp;");
+                    break;
+                case '"':
+                    escaped.append("&quot;");
+                    break;
+                case '\'':
+                    escaped.append("&#39;");
+                    break;
+                case '<':
+                    escaped.append("&lt;");
+                    break;
+                case '>':
+                    escaped.append("&gt;");
+                    break;
+                default:
+                    escaped.append(c);
+            }
+        }
+        return escaped.toString();
     }
 
     private  JavaScriptAgentConfig initJavaScriptAgentConfig(String appName) throws Exception {
