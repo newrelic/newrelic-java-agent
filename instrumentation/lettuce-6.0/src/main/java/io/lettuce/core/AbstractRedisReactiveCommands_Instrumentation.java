@@ -38,7 +38,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
                 operation = t.name();
             }
             DatastoreParameters params = RedisDatastoreParameters.from(uri, operation);
-            NRHolder holder = new NRHolder(name, params);
+            NRHolder holder = new NRHolder(name, params, "AbstractRedisReactiveCommands_Instrumentation.createMono");
             NRSubscribeConsumer subscriberConsumer = new NRSubscribeConsumer(holder);
 
             NRErrorConsumer errorConsumer = new NRErrorConsumer(holder);
@@ -73,7 +73,7 @@ public abstract class AbstractRedisReactiveCommands_Instrumentation<K, V> {
             } else {
                 params = DatastoreParameters.product("Redis").collection(collName).operation("").noInstance().noDatabaseName().noSlowQuery().build();
             }
-            NRHolder holder = new NRHolder(name, params);
+            NRHolder holder = new NRHolder(name, params, "AbstractRedisReactiveCommands_Instrumentation.createDissolvingFlux");
             NRSubscribeConsumer subscriberConsumer = new NRSubscribeConsumer(holder);
 
             NRErrorConsumer errorConsumer = new NRErrorConsumer(holder);
