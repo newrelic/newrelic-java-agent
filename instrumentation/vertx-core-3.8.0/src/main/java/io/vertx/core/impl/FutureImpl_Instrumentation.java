@@ -34,7 +34,7 @@ abstract class FutureImpl_Instrumentation {
 
         if (!isComplete()) {
             if (previousHandler != this.handler) {
-                VertxCoreUtil.storeToken(this.handler);
+                VertxCoreUtil.storeToken(this.handler, "FutureImpl_Instrumentation.setHandler");
                 if (previousHandler != null) {
                     VertxCoreUtil.expireToken(previousHandler);
                 }

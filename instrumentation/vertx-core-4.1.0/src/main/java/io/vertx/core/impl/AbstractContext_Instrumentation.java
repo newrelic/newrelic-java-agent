@@ -22,7 +22,7 @@ abstract class AbstractContext_Instrumentation {
         if (resultHandler != null){
             Transaction txn = AgentBridge.getAgent().getTransaction(false);
             if (txn != null) {
-                resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken());
+                resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.1.0:AbstractContext_Instrumentation.setResultHandler"));
             }
         }
         Weaver.callOriginal();

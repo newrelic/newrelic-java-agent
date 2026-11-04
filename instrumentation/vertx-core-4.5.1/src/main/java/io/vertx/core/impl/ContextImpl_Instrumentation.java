@@ -24,7 +24,7 @@ public abstract class ContextImpl_Instrumentation {
     static <T> Future<T> executeBlocking(ContextInternal context, Handler<Promise<T>> blockingCodeHandler, WorkerPool workerPool, TaskQueue queue) {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         if (txn != null) {
-            blockingCodeHandler = new PromiseHandlerWrapper<T>(blockingCodeHandler, NewRelic.getAgent().getTransaction().getToken());
+            blockingCodeHandler = new PromiseHandlerWrapper<T>(blockingCodeHandler, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.5.1:ContextImpl_Instrumentation.executeBlocking"));
         }
         return Weaver.callOriginal();
     }
@@ -33,7 +33,7 @@ public abstract class ContextImpl_Instrumentation {
         if (resultHandler != null){
             Transaction txn = AgentBridge.getAgent().getTransaction(false);
             if (txn != null) {
-                resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken());
+                resultHandler = new AsyncHandlerWrapper<>(resultHandler, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.5.1:ContextImpl_Instrumentation.setResultHandler"));
             }
         }
         Weaver.callOriginal();

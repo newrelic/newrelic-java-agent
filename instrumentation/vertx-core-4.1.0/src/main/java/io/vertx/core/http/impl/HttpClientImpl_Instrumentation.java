@@ -19,7 +19,7 @@ import io.vertx.core.impl.future.PromiseInternal;
 @Weave(type = MatchType.BaseClass, originalName = "io.vertx.core.http.impl.HttpClientImpl")
 public class HttpClientImpl_Instrumentation {
     private void doRequest(RequestOptions request, PromiseInternal<HttpClientRequest> requestPromise) {
-        requestPromise = new HttpClientRequestPromiseWrapper(requestPromise, NewRelic.getAgent().getTransaction().getToken());
+        requestPromise = new HttpClientRequestPromiseWrapper(requestPromise, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.1.0:HttpClientImpl_Instrumentation.doRequest"));
         Weaver.callOriginal();
     }
 }
