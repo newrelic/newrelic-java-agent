@@ -31,10 +31,10 @@ public class KinesisUtil {
         return overrideRegion;
     }
 
-    public static void setTokenForRequest(AmazonWebServiceRequest request, String creatorMethod) {
+    public static void setTokenForRequest(AmazonWebServiceRequest request, String creatorClassAndMethod) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (request != null) {
-                requestTokenMap.put(request, NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-kinesis-1.11.106:KinesisUtil."+creatorMethod));
+                requestTokenMap.put(request, NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-kinesis-1.11.106:"+creatorClassAndMethod));
             }
         }
     }

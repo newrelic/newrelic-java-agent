@@ -214,7 +214,7 @@ public class AmazonKinesisAsyncClient_Instrumentation {
             if (asyncHandler != null) {
                 asyncHandler.token = NewRelic.getAgent().getTransaction().getToken();
             }
-            KinesisUtil.setTokenForRequest(request, creatorMethod);
+            KinesisUtil.setTokenForRequest(request, "AmazonKinesisAsyncClient_Instrumentation."+creatorMethod);
         }
     }
 
