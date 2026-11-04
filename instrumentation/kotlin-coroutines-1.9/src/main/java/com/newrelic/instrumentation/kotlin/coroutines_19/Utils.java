@@ -45,7 +45,7 @@ public class Utils implements CoroutineConfigListener {
 	 * Returns a Runnable wrapper to track Runnable tasks that
 	 * are being passed to another thread
 	 */
-	public static NRRunnable getRunnableWrapper(Runnable r) {
+	public static NRRunnable getRunnableWrapper(Runnable r, String tokenCreatorClassAndMethod) {
 		if(r instanceof NRRunnable) {
 			return null;
 		}
@@ -58,7 +58,7 @@ public class Utils implements CoroutineConfigListener {
 			}
 		}
 
-		Token t = NewRelic.getAgent().getTransaction().getToken();
+		Token t = NewRelic.getAgent().getTransaction().getToken("kotlin-coroutines-1.9:"+tokenCreatorClassAndMethod);
 		if(t != null && t.isActive()) {
 			return new NRRunnable(r, t);
 		} else if(t != null) {
