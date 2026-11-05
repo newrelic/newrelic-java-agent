@@ -14,7 +14,7 @@ public class Utils {
     if (tokenAndRefCount == null) {
       Transaction tx = AgentBridge.getAgent().getTransaction(false);
       if (tx != null) {
-        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(), AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
+        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken("monix-2.13_3.4.0:Utils.getThreadTokenAndRefCount"), AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
       }
     } else {
       tokenAndRefCount.refCount.incrementAndGet();
