@@ -8,6 +8,7 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
 
 jobs:
   publish_release:
@@ -84,12 +85,14 @@ jobs:
             echo "Artifacts were uploaded successfully to Central Sonatype."
             echo "Visit https://central.sonatype.com/publishing/deployments to view your artifacts."
           fi
-  update-agent-metadata:
-    needs: [publish_release]
-    uses: ./.github/workflows/Agent-Metadata.yml
-    with:
-      version: ${{ github.event.release.tag_name }}
-    secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
+  # Temporarily disabled for workflow_dispatch testing - github.event.release
+  # is not populated outside of a release-published event.
+  # update-agent-metadata:
+  #   needs: [publish_release]
+  #   uses: ./.github/workflows/Agent-Metadata.yml
+  #   with:
+  #     version: ${{ github.event.release.tag_name }}
+  #   secrets:
+  #     FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
+  #     FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
+  #     AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
