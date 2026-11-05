@@ -36,7 +36,7 @@ public class ServerRuntime_Instrumentation {
             if (transaction != null) {
                 segment = transaction.startSegment("Java", "JAX-RSAsync@Suspended");
                 segment.setMetricName("Java", "JAX-RSAsync@Suspended");
-                token = transaction.getToken();
+                token = transaction.getToken("jersey-3:AsyncResponder_Instrumentation.<init>");
             }
         }
 
