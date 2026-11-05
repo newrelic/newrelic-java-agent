@@ -39,7 +39,7 @@ public class MapReduceToCollectionOperation_Instrumentation implements AsyncWrit
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, getCollectionName(), operationName, getDatabaseName(),
-                MongoUtil.getHostBasedOnDatabaseName(getDatabaseName()));
+                MongoUtil.getHostBasedOnDatabaseName(getDatabaseName()), "MapReduceToCollectionOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 }

@@ -92,7 +92,7 @@ public class MongoUtil {
     }
 
     public static <T> SingleResultCallback<T> instrumentSingleResultCallback(SingleResultCallback<T> callback, String collectionName,
-            String operationName, String databaseName, String host) {
+            String operationName, String databaseName, String host, String tokenCreatorClassAndMethod) {
         if (callback instanceof NRCallbackWrapper) {
             return callback;
         }
@@ -118,7 +118,7 @@ public class MongoUtil {
                 .databaseName(databaseName)
                 .build();
 
-        wrapper.token = NewRelic.getAgent().getTransaction().getToken();
+        wrapper.token = NewRelic.getAgent().getTransaction().getToken("mongodb-reactive-streams-5.2:"+tokenCreatorClassAndMethod);
         wrapper.segment = NewRelic.getAgent().getTransaction().startSegment(operationName);
         return wrapper;
     }

@@ -66,7 +66,7 @@ public class MongoUtilTest {
             //no op
         };
 
-        SingleResultCallback<Void> wrapped = MongoUtil.instrumentSingleResultCallback(callback, "collection", "insert", "dbname", "localhost:8888");
+        SingleResultCallback<Void> wrapped = MongoUtil.instrumentSingleResultCallback(callback, "collection", "insert", "dbname", "localhost:8888", "test");
         assertTrue(wrapped instanceof NRCallbackWrapper);
         NRCallbackWrapper<Void> nrCallbackWrapper = (NRCallbackWrapper<Void>) wrapped;
         assertEquals("collection", nrCallbackWrapper.params.getCollection());
