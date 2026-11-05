@@ -36,7 +36,8 @@ public class Transformation_Instrumentation<T> {
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (tx != null) {
-                this.tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+                this.tokenAndRefCount = new AgentBridge.TokenAndRefCount(
+                        tx.getToken("scala-2.13.0:Transformation_Instrumentation.submitWithValue"),
                         AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
             }
         } else {
