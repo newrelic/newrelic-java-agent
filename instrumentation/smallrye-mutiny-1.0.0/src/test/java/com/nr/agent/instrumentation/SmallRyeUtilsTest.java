@@ -70,13 +70,13 @@ public class SmallRyeUtilsTest {
 
     @Test
     public void assignTokenToSubscriber_withNullSubscriber_doesNotThrow() {
-        SmallRyeUtils.assignTokenToSubscriber(null);
+        SmallRyeUtils.assignTokenToSubscriber(null, "SmallRyeUtilsTest.assignTokenToSubscriber_withNullSubscriber_doesNotThrow");
     }
 
     @Test
     public void assignTokenToSubscriber_withNoActiveTransaction_doesNotStoreToken() {
         Object subscriber = new Object();
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "SmallRyeUtilsTest.assignTokenToSubscriber_withNoActiveTransaction_doesNotStoreToken");
         assertNull(SmallRyeUtils.getToken(subscriber));
     }
 
@@ -88,7 +88,7 @@ public class SmallRyeUtilsTest {
     @Trace(dispatcher = true)
     private void dispatcherForTest() {
         Object subscriber = new Object();
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "SmallRyeUtilsTest.dispatcherForTest");
         assertNotNull(SmallRyeUtils.getToken(subscriber));
         SmallRyeUtils.removeToken(subscriber);
     }
@@ -103,7 +103,7 @@ public class SmallRyeUtilsTest {
         Object subscriber = new Object();
         Token existing = NewRelic.getAgent().getTransaction().getToken();
         SmallRyeUtils.putToken(subscriber, existing);
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "SmallRyeUtilsTest.dispatcherForTest2");
         assertSame(existing, SmallRyeUtils.getToken(subscriber));
         SmallRyeUtils.removeToken(subscriber);
     }
@@ -116,10 +116,10 @@ public class SmallRyeUtilsTest {
     @Trace(dispatcher = true)
     private void dispatcherForTest3() {
         Object subscriber = new Object();
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "SmallRyeUtilsTest.dispatcherForTest3_1");
         Token first = SmallRyeUtils.getToken(subscriber);
         assertNotNull(first);
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "SmallRyeUtilsTest.dispatcherForTest3_2");
         assertSame(first, SmallRyeUtils.getToken(subscriber));
         SmallRyeUtils.removeToken(subscriber);
     }

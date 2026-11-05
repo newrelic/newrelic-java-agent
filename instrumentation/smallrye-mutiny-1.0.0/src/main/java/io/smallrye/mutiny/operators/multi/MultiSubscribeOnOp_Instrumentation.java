@@ -15,7 +15,7 @@ import io.smallrye.mutiny.subscription.MultiSubscriber_Instrumentation;
 @Weave(originalName = "io.smallrye.mutiny.operators.multi.MultiSubscribeOnOp", type = MatchType.ExactClass)
 public class MultiSubscribeOnOp_Instrumentation<T> {
     public void subscribe(MultiSubscriber_Instrumentation<? super T> subscriber) {
-        SmallRyeUtils.assignTokenToSubscriber(subscriber);
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "MultiSubscribeOnOp_Instrumentation.subscribe");
         Weaver.callOriginal();
     }
 }
