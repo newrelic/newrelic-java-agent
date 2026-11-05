@@ -30,7 +30,7 @@ abstract class LambdaMonoSubscriber_Instrumentation {
         // to be linked by TokenLinkingSubscriber but expired on onComplete here
         if (AgentBridge.getAgent().getTransaction(false) != null
                 && initialContext.getOrDefault("newrelic-token", null) == null) {
-            nrContext = Context.of("newrelic-token", NewRelic.getAgent().getTransaction().getToken());
+            nrContext = Context.of("newrelic-token", NewRelic.getAgent().getTransaction().getToken("netty-reactor-0.9.0:LambdaMonoSubscriber_Instrumentation.<init>"));
         }
     }
 

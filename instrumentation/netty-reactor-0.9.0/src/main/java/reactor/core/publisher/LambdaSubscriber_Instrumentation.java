@@ -28,7 +28,7 @@ abstract class LambdaSubscriber_Instrumentation {
     protected LambdaSubscriber_Instrumentation() {
         if (AgentBridge.getAgent().getTransaction(false) != null
                 && initialContext.getOrDefault("newrelic-token", null) == null) {
-            nrContext = Context.of("newrelic-token", NewRelic.getAgent().getTransaction().getToken());
+            nrContext = Context.of("newrelic-token", NewRelic.getAgent().getTransaction().getToken("netty-reactor-0.9.0:LambdaSubscriber_Instrumentation.<init>"));
         }
     }
 
