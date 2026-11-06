@@ -32,7 +32,7 @@ jobs:
         java-version: [ 8, 11, 17, 21, 25, 27 ]
         group: [flaky, nonForkedTests, forkedTests]
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
@@ -144,7 +144,7 @@ jobs:
     if: ${{ failure() }}
     runs-on: ubuntu-latest
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout GhPages branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
