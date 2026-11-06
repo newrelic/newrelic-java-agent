@@ -361,8 +361,8 @@ public class JdbcHelper {
 
         Boolean isEnabled = isSqlMetadataCommentsEnabled();
         if (isEnabled) {
-            // Check if comment already exists
-            if (sql.startsWith("/*nr_")) {
+            // Check if comment already exists or is in escaped SQL syntax
+            if (sql.startsWith("/*nr_") || sql.startsWith("{")) {
                 return sql;
             }
 

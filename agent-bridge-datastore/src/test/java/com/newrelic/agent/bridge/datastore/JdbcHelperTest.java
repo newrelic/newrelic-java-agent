@@ -199,15 +199,42 @@ public class JdbcHelperTest {
 
     @Test
     public void testAddSqlMetadataCommentIfNeeded_withVariousConfigs() throws Exception {
-        // These tests aren't 100% comprehensive because of the difficulty of
-        // mocking the service manager and transaction objects in the bridge
-        // project. These test what is possible based on these restrictions.
-
         // Null SQL - should return null
         assertNull(JdbcHelper.addSqlMetadataCommentIfNeeded(null));
 
         // Empty SQL - empty String
         assertEquals("", JdbcHelper.addSqlMetadataCommentIfNeeded(""));
+
+        Agent originalAgent = AgentBridge.agent;
+        Agent mockAgent = Mockito.mock(Agent.class, Answers.RETURNS_DEEP_STUBS);
+
+        try (MockedStatic<NewRelic> nRMockedStatic = mockStatic(NewRelic.class, Answers.RETURNS_DEEP_STUBS)) {
+            nRMockedStatic.when(() -> NewRelic.getAgent().getConfig().getValue("transaction_tracer.sql_metadata_comments.enabled"))
+                    .thenReturn(Boolean.TRUE);
+
+            AgentBridge.agent = mockAgent;
+            Mockito.when(mockAgent.getEntityGuid(false)).thenReturn("abc123");
+
+            JdbcHelper.invalidateMetadataCommentConfig();
+            JdbcHelper.resetEntityGuidCache();
+
+            // Escaped JDBC call syntax should not have the comment added
+            String escapedCall = "{ exec proc() }";
+            assertEquals(escapedCall, JdbcHelper.addSqlMetadataCommentIfNeeded(escapedCall));
+
+            String escapedCallNoSpace = "{call proc()}";
+            assertEquals(escapedCallNoSpace, JdbcHelper.addSqlMetadataCommentIfNeeded(escapedCallNoSpace));
+
+            // A normal SQL statement should still get the metadata comment prepended
+            String sql = "select * from foo";
+            String result = JdbcHelper.addSqlMetadataCommentIfNeeded(sql);
+            assertTrue(result.startsWith("/*" + JdbcHelper.SQL_METADATA_COMMENTS_SVC_GUID + "=\"abc123\"*/"));
+            assertTrue(result.endsWith(sql));
+        } finally {
+            AgentBridge.agent = originalAgent;
+            JdbcHelper.invalidateMetadataCommentConfig();
+            JdbcHelper.resetEntityGuidCache();
+        }
     }
 
     @Test
