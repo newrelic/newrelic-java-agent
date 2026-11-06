@@ -16,7 +16,7 @@ import kotlin.coroutines.CoroutineContext;
 public abstract class CoroutineDispatcher_Instrumentation {
 
 	public void dispatch(CoroutineContext ctx, Runnable r) {
-		NRRunnable wrapper = Utils.getRunnableWrapper(r, "CoroutineDispatcher_Instrumentation.dispatch");
+		NRRunnable wrapper = Utils.getRunnableWrapper(r, "kotlin-coroutines-1.9:CoroutineDispatcher_Instrumentation.dispatch");
 		if(wrapper != null) {
 			r = wrapper;
 		}

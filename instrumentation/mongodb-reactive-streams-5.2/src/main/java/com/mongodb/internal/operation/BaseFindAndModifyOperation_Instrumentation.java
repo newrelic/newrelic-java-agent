@@ -29,7 +29,7 @@ public class BaseFindAndModifyOperation_Instrumentation <T> implements AsyncWrit
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName), "BaseFindAndModifyOperation_Instrumentation.executeAsync");
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-5.2:BaseFindAndModifyOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 }

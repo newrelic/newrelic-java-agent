@@ -27,7 +27,7 @@ abstract class FutureImpl_Instrumentation {
         if (isComplete()) {
             VertxCoreUtil.linkAndExpireToken(handler);
         } else {
-            VertxCoreUtil.storeToken(handler, "FutureImpl_Instrumentation.setHandler");
+            VertxCoreUtil.storeToken(handler, "vertx-core-3.6.0:FutureImpl_Instrumentation.setHandler");
         }
         return Weaver.callOriginal();
     }

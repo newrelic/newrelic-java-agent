@@ -63,14 +63,14 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     @Trace
     public Future<AddTagsToStreamResult> addTagsToStreamAsync(AddTagsToStreamRequest request,
             AsyncHandler_Instrumentation<AddTagsToStreamRequest, AddTagsToStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "addTagsToStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.addTagsToStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<CreateStreamResult> createStreamAsync(CreateStreamRequest request,
             AsyncHandler_Instrumentation<CreateStreamRequest, CreateStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "createStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.createStreamAsync");
         return Weaver.callOriginal();
     }
 
@@ -78,55 +78,55 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     public Future<DecreaseStreamRetentionPeriodResult> decreaseStreamRetentionPeriodAsync(
             DecreaseStreamRetentionPeriodRequest request,
             AsyncHandler_Instrumentation<DecreaseStreamRetentionPeriodRequest, DecreaseStreamRetentionPeriodResult> asyncHandler) {
-        setToken(asyncHandler, request, "decreaseStreamRetentionPeriodAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.decreaseStreamRetentionPeriodAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteStreamResult> deleteStreamAsync(DeleteStreamRequest request,
             AsyncHandler_Instrumentation<DeleteStreamRequest, DeleteStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "deleteStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.deleteStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeLimitsResult> describeLimitsAsync(DescribeLimitsRequest request,
             AsyncHandler_Instrumentation<DescribeLimitsRequest, DescribeLimitsResult> asyncHandler) {
-        setToken(asyncHandler, request, "describeLimitsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.describeLimitsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeStreamResult> describeStreamAsync(DescribeStreamRequest request,
             AsyncHandler_Instrumentation<DescribeStreamRequest, DescribeStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "describeStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.describeStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DisableEnhancedMonitoringResult> disableEnhancedMonitoringAsync(DisableEnhancedMonitoringRequest request,
             AsyncHandler_Instrumentation<DisableEnhancedMonitoringRequest, DisableEnhancedMonitoringResult> asyncHandler) {
-        setToken(asyncHandler, request, "disableEnhancedMonitoringAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.disableEnhancedMonitoringAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<EnableEnhancedMonitoringResult> enableEnhancedMonitoringAsync(EnableEnhancedMonitoringRequest request,
             AsyncHandler_Instrumentation<EnableEnhancedMonitoringRequest, EnableEnhancedMonitoringResult> asyncHandler) {
-        setToken(asyncHandler, request, "enableEnhancedMonitoringAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.enableEnhancedMonitoringAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetRecordsResult> getRecordsAsync(GetRecordsRequest request, AsyncHandler_Instrumentation<GetRecordsRequest, GetRecordsResult> asyncHandler) {
-        setToken(asyncHandler, request, "getRecordsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.getRecordsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetShardIteratorResult> getShardIteratorAsync(GetShardIteratorRequest request,
             AsyncHandler_Instrumentation<GetShardIteratorRequest, GetShardIteratorResult> asyncHandler) {
-        setToken(asyncHandler, request, "getShardIteratorAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.getShardIteratorAsync");
         return Weaver.callOriginal();
     }
 
@@ -134,87 +134,87 @@ public class AmazonKinesisAsyncClient_Instrumentation {
     public Future<IncreaseStreamRetentionPeriodResult> increaseStreamRetentionPeriodAsync(
             IncreaseStreamRetentionPeriodRequest request,
             AsyncHandler_Instrumentation<IncreaseStreamRetentionPeriodRequest, IncreaseStreamRetentionPeriodResult> asyncHandler) {
-        setToken(asyncHandler, request, "increaseStreamRetentionPeriodAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.increaseStreamRetentionPeriodAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListStreamsResult> listStreamsAsync(ListStreamsRequest request, AsyncHandler_Instrumentation<ListStreamsRequest, ListStreamsResult> asyncHandler) {
-        setToken(asyncHandler, request, "listStreamsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.listStreamsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTagsForStreamResult> listTagsForStreamAsync(ListTagsForStreamRequest request,
             AsyncHandler_Instrumentation<ListTagsForStreamRequest, ListTagsForStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "listTagsForStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.listTagsForStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<MergeShardsResult> mergeShardsAsync(MergeShardsRequest request, AsyncHandler_Instrumentation<MergeShardsRequest, MergeShardsResult> asyncHandler) {
-        setToken(asyncHandler, request, "mergeShardsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.mergeShardsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutRecordResult> putRecordAsync(PutRecordRequest request, AsyncHandler_Instrumentation<PutRecordRequest, PutRecordResult> asyncHandler) {
-        setToken(asyncHandler, request, "putRecordAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.putRecordAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutRecordsResult> putRecordsAsync(PutRecordsRequest request, AsyncHandler_Instrumentation<PutRecordsRequest, PutRecordsResult> asyncHandler) {
-        setToken(asyncHandler, request, "putRecordsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.putRecordsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<RemoveTagsFromStreamResult> removeTagsFromStreamAsync(RemoveTagsFromStreamRequest request,
             AsyncHandler_Instrumentation<RemoveTagsFromStreamRequest, RemoveTagsFromStreamResult> asyncHandler) {
-        setToken(asyncHandler, request, "removeTagsFromStreamAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.removeTagsFromStreamAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<SplitShardResult> splitShardAsync(SplitShardRequest request, AsyncHandler_Instrumentation<SplitShardRequest, SplitShardResult> asyncHandler) {
-        setToken(asyncHandler, request, "splitShardAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.splitShardAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateShardCountResult> updateShardCountAsync(UpdateShardCountRequest request,
             AsyncHandler_Instrumentation<UpdateShardCountRequest, UpdateShardCountResult> asyncHandler) {
-        setToken(asyncHandler, request, "updateShardCountAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.updateShardCountAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListShardsResult> listShardsAsync(ListShardsRequest request, AsyncHandler_Instrumentation<ListShardsRequest, ListShardsResult> asyncHandler) {
-        setToken(asyncHandler, request, "listShardsAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.listShardsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<StartStreamEncryptionResult> startStreamEncryptionAsync(StartStreamEncryptionRequest request,
             AsyncHandler_Instrumentation<StartStreamEncryptionRequest, StartStreamEncryptionResult> asyncHandler) {
-        setToken(asyncHandler, request, "startStreamEncryptionAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.startStreamEncryptionAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<StopStreamEncryptionResult> stopStreamEncryptionAsync(StopStreamEncryptionRequest request,
             AsyncHandler_Instrumentation<StopStreamEncryptionRequest, StopStreamEncryptionResult> asyncHandler) {
-        setToken(asyncHandler, request, "stopStreamEncryptionAsync");
+        setToken(asyncHandler, request, "aws-java-sdk-kinesis-1.11.272:AmazonKinesisAsyncClient_Instrumentation.stopStreamEncryptionAsync");
         return Weaver.callOriginal();
     }
 
-    private void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request, String creatorMethod) {
+    private void setToken(AsyncHandler_Instrumentation asyncHandler, AmazonWebServiceRequest request, String creator) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (asyncHandler != null) {
                 asyncHandler.token = NewRelic.getAgent().getTransaction().getToken();
             }
-            KinesisUtil.setTokenForRequest(request, "AmazonKinesisAsyncClient_Instrumentation."+creatorMethod);
+            KinesisUtil.setTokenForRequest(request, creator);
         }
     }
 

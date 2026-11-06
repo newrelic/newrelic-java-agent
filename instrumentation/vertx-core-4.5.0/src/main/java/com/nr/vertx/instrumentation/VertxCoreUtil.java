@@ -34,9 +34,9 @@ public class VertxCoreUtil {
 
     private static final URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
 
-    public static void storeToken(Listener listener, String creatorClassAndMethod) {
+    public static void storeToken(Listener listener, String creator) {
         if (listener != null && AgentBridge.getAgent().getTransaction(false) != null) {
-            tokenMap.put(listener, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.5.0:"+creatorClassAndMethod));
+            tokenMap.put(listener, NewRelic.getAgent().getTransaction().getToken(creator));
         }
     }
 

@@ -61,164 +61,164 @@ public abstract class AmazonDynamoDBAsyncClient_Instrumentation extends AmazonDy
     @Trace
     public Future<BatchGetItemResult> batchGetItemAsync(final BatchGetItemRequest batchGetItemRequest,
             final AsyncHandler_Instrumentation<BatchGetItemRequest, BatchGetItemResult> asyncHandler) {
-        storeToken(asyncHandler, "batchGetItemAsync");
-        storeToken(batchGetItemRequest, "batchGetItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.batchGetItemAsync");
+        storeToken(batchGetItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.batchGetItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<BatchWriteItemResult> batchWriteItemAsync(final BatchWriteItemRequest batchWriteItemRequest,
             final AsyncHandler_Instrumentation<BatchWriteItemRequest, BatchWriteItemResult> asyncHandler) {
-        storeToken(asyncHandler, "batchWriteItemAsync");
-        storeToken(batchWriteItemRequest, "batchWriteItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.batchWriteItemAsync");
+        storeToken(batchWriteItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.batchWriteItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<CreateTableResult> createTableAsync(final CreateTableRequest createTableRequest,
             final AsyncHandler_Instrumentation<CreateTableRequest, CreateTableResult> asyncHandler) {
-        storeToken(asyncHandler, "createTableAsync");
-        storeToken(createTableRequest, "createTableAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.createTableAsync");
+        storeToken(createTableRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.createTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteItemResult> deleteItemAsync(final DeleteItemRequest deleteItemRequest,
             final AsyncHandler_Instrumentation<DeleteItemRequest, DeleteItemResult> asyncHandler) {
-        storeToken(asyncHandler, "deleteItemAsync");
-        storeToken(deleteItemRequest, "deleteItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.deleteItemAsync");
+        storeToken(deleteItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.deleteItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DeleteTableResult> deleteTableAsync(final DeleteTableRequest deleteTableRequest,
             final AsyncHandler_Instrumentation<DeleteTableRequest, DeleteTableResult> asyncHandler) {
-        storeToken(asyncHandler, "deleteTableAsync");
-        storeToken(deleteTableRequest, "deleteTableAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.deleteTableAsync");
+        storeToken(deleteTableRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.deleteTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeTableResult> describeTableAsync(final DescribeTableRequest describeTableRequest,
             final AsyncHandler_Instrumentation<DescribeTableRequest, DescribeTableResult> asyncHandler) {
-        storeToken(asyncHandler, "describeTableAsync");
-        storeToken(describeTableRequest, "describeTableAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.describeTableAsync");
+        storeToken(describeTableRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.describeTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<GetItemResult> getItemAsync(final GetItemRequest getItemRequest,
             final AsyncHandler_Instrumentation<GetItemRequest, GetItemResult> asyncHandler) {
-        storeToken(asyncHandler, "getItemAsync");
-        storeToken(getItemRequest, "getItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.getItemAsync");
+        storeToken(getItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.getItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTablesResult> listTablesAsync(final ListTablesRequest listTablesRequest,
             final AsyncHandler_Instrumentation<ListTablesRequest, ListTablesResult> asyncHandler) {
-        storeToken(asyncHandler, "listTablesAsync");
-        storeToken(listTablesRequest, "listTablesAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.listTablesAsync");
+        storeToken(listTablesRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.listTablesAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<PutItemResult> putItemAsync(final PutItemRequest putItemRequest,
             final AsyncHandler_Instrumentation<PutItemRequest, PutItemResult> asyncHandler) {
-        storeToken(asyncHandler, "putItemAsync");
-        storeToken(putItemRequest, "putItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.putItemAsync");
+        storeToken(putItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.putItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<QueryResult> queryAsync(final QueryRequest queryRequest,
             final AsyncHandler_Instrumentation<QueryRequest, QueryResult> asyncHandler) {
-        storeToken(asyncHandler, "queryAsync");
-        storeToken(queryRequest, "queryAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.queryAsync");
+        storeToken(queryRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.queryAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ScanResult> scanAsync(final ScanRequest scanRequest,
             final AsyncHandler_Instrumentation<ScanRequest, ScanResult> asyncHandler) {
-        storeToken(asyncHandler, "scanAsync");
-        storeToken(scanRequest, "scanAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.scanAsync");
+        storeToken(scanRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.scanAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateItemResult> updateItemAsync(final UpdateItemRequest updateItemRequest,
             final AsyncHandler_Instrumentation<UpdateItemRequest, UpdateItemResult> asyncHandler) {
-        storeToken(asyncHandler, "updateItemAsync");
-        storeToken(updateItemRequest, "updateItemAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.updateItemAsync");
+        storeToken(updateItemRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.updateItemAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateTableResult> updateTableAsync(final UpdateTableRequest updateTableRequest,
             final AsyncHandler_Instrumentation<UpdateTableRequest, UpdateTableResult> asyncHandler) {
-        storeToken(asyncHandler, "updateTableAsync");
-        storeToken(updateTableRequest, "updateTableAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.updateTableAsync");
+        storeToken(updateTableRequest, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.updateTableAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeLimitsResult> describeLimitsAsync(final DescribeLimitsRequest request,
             final AsyncHandler_Instrumentation<DescribeLimitsRequest, DescribeLimitsResult> asyncHandler) {
-        storeToken(request, "describeLimitsAsync");
-        storeToken(asyncHandler, "describeLimitsAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.describeLimitsAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.describeLimitsAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<DescribeTimeToLiveResult> describeTimeToLiveAsync(final DescribeTimeToLiveRequest request,
             final AsyncHandler_Instrumentation<DescribeTimeToLiveRequest, DescribeTimeToLiveResult> asyncHandler) {
-        storeToken(request, "describeTimeToLiveAsync");
-        storeToken(asyncHandler, "describeTimeToLiveAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.describeTimeToLiveAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.describeTimeToLiveAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<ListTagsOfResourceResult> listTagsOfResourceAsync(final ListTagsOfResourceRequest request,
             final AsyncHandler_Instrumentation<ListTagsOfResourceRequest, ListTagsOfResourceResult> asyncHandler) {
-        storeToken(request, "listTagsOfResourceAsync");
-        storeToken(asyncHandler, "listTagsOfResourceAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.listTagsOfResourceAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.listTagsOfResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<TagResourceResult> tagResourceAsync(final TagResourceRequest request,
             final AsyncHandler_Instrumentation<TagResourceRequest, TagResourceResult> asyncHandler) {
-        storeToken(request, "tagResourceAsync");
-        storeToken(asyncHandler, "tagResourceAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.tagResourceAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.tagResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UntagResourceResult> untagResourceAsync(final UntagResourceRequest request,
             final AsyncHandler_Instrumentation<UntagResourceRequest, UntagResourceResult> asyncHandler) {
-        storeToken(request, "untagResourceAsync");
-        storeToken(asyncHandler, "untagResourceAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.untagResourceAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.untagResourceAsync");
         return Weaver.callOriginal();
     }
 
     @Trace
     public Future<UpdateTimeToLiveResult> updateTimeToLiveAsync(final UpdateTimeToLiveRequest request,
             final AsyncHandler_Instrumentation<UpdateTimeToLiveRequest, UpdateTimeToLiveResult> asyncHandler) {
-        storeToken(request, "updateTimeToLiveAsync");
-        storeToken(asyncHandler, "updateTimeToLiveAsync");
+        storeToken(request, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request.updateTimeToLiveAsync");
+        storeToken(asyncHandler, "aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler.updateTimeToLiveAsync");
         return Weaver.callOriginal();
     }
 
-    private void storeToken(AmazonWebServiceRequest request, String creatorMethod) {
+    private void storeToken(AmazonWebServiceRequest request, String creator) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
-            request.token = AgentBridge.getAgent().getTransaction().getToken("aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.request."+creatorMethod);
+            request.token = AgentBridge.getAgent().getTransaction().getToken(creator);
         }
     }
 
-    private void storeToken(AsyncHandler_Instrumentation asyncHandler, String creatorMethod) {
+    private void storeToken(AsyncHandler_Instrumentation asyncHandler, String creator) {
         if (asyncHandler != null && AgentBridge.getAgent().getTransaction(false) != null) {
-            asyncHandler.token = AgentBridge.getAgent().getTransaction().getToken("aws-java-sdk-dynamodb-1.11.106:AmazonDynamoDBAsyncClient_Instrumentation.asyncHandler."+creatorMethod);
+            asyncHandler.token = AgentBridge.getAgent().getTransaction().getToken(creator);
         }
     }
 }

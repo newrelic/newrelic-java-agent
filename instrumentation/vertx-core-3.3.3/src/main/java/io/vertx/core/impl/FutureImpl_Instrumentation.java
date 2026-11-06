@@ -32,7 +32,7 @@ abstract class FutureImpl_Instrumentation {
 
     public Future setHandler(Handler<AsyncResult> handler) {
         if (!isComplete()) {
-            VertxCoreUtil.storeToken(handler, "FutureImpl_Instrumentation.setHandler");
+            VertxCoreUtil.storeToken(handler, "vertx-core-3.3.3:FutureImpl_Instrumentation.setHandler");
         }
         return Weaver.callOriginal();
     }

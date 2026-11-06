@@ -41,7 +41,7 @@ public class CreateIndexesOperation_Instrumentation<T> implements AsyncWriteOper
         @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName), "CreateIndexesOperation_Instrumentation.executeAsync");
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-4.8:CreateIndexesOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 }

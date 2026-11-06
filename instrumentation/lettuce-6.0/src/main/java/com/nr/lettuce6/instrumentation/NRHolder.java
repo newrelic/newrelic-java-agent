@@ -27,10 +27,10 @@ public class NRHolder {
         hasEnded = false;
     }
 
-    public NRHolder(String s, DatastoreParameters p, String creatorClassAndMethod) {
+    public NRHolder(String s, DatastoreParameters p, String creator) {
         segmentName = s;
         params = p;
-        token = NewRelic.getAgent().getTransaction().getToken("lettuce-6.0:"+creatorClassAndMethod);
+        token = NewRelic.getAgent().getTransaction().getToken(creator);
         hasEnded = false;
     }
 

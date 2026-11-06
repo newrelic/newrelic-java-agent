@@ -17,10 +17,10 @@ public class SmallRyeUtils {
     // This replaces the usage of @NewField in the Subscriber weave classes
     private static final Map<Object, Token> tokenMap = AgentBridge.collectionFactory.createConcurrentWeakKeyedMap();
 
-    public static void assignTokenToSubscriber(Object subscriber, String creatorClassAndMethod) {
+    public static void assignTokenToSubscriber(Object subscriber, String creator) {
         if (subscriber != null) {
             if (getToken(subscriber) == null) {
-                Token token = NewRelic.getAgent().getTransaction().getToken("smallrye-mutiny-1.0.0:"+creatorClassAndMethod);
+                Token token = NewRelic.getAgent().getTransaction().getToken(creator);
                 if (token.isActive()) {
                     putToken(subscriber, token);
                 } else {

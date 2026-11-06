@@ -24,7 +24,7 @@ public abstract class AWSLambdaAsyncClient_Instrumentation {
 
     @Trace
     public Future<InvokeResult> invokeAsync(final InvokeRequest request, AsyncHandler<InvokeRequest, InvokeResult> asyncHandler) {
-        LambdaUtil.setTokenForRequest(request, "AWSLambdaAsyncClient_Instrumentation.invokeAsync");
+        LambdaUtil.setTokenForRequest(request, "aws-java-sdk-lambda-1.11.280:AWSLambdaAsyncClient_Instrumentation.invokeAsync");
         if (asyncHandler != null) {
             asyncHandler = new TokenLinkingAsyncHandler(asyncHandler);
         }

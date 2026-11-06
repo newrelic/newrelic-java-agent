@@ -39,7 +39,7 @@ public class DistinctOperation_Instrumentation<T> implements AsyncReadOperation<
     @Override
     public void executeAsync(AsyncReadBinding binding, SingleResultCallback<AsyncBatchCursor<T>> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName), "DistinctOperation_Instrumentation.executeAsync");
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-4.2:DistinctOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 

@@ -37,7 +37,7 @@ public class FindOperation_Instrumentation<T> implements AsyncReadOperation<T> {
     @Override
     public void executeAsync(AsyncReadBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName), "FindOperation_Instrumentation.executeAsync");
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-4.2:FindOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 }

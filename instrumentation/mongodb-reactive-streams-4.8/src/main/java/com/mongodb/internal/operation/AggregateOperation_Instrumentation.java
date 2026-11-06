@@ -44,7 +44,7 @@ public class AggregateOperation_Instrumentation<T> implements AsyncReadOperation
     @Override
     public void executeAsync(AsyncReadBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName), "AggregateOperation_Instrumentation.executeAsync");
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-4.8:AggregateOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 

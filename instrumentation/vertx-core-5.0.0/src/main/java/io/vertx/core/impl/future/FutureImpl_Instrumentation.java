@@ -38,7 +38,7 @@ public abstract class FutureImpl_Instrumentation {
 
         if (!isComplete()) {
             if (previousHandler != this.listener) {
-                VertxCoreUtil.storeToken(this.listener, "FutureImpl_Instrumentation.addListener");
+                VertxCoreUtil.storeToken(this.listener, "vertx-core-5.0.0:FutureImpl_Instrumentation.addListener");
                 if (previousHandler != null) {
                     VertxCoreUtil.expireToken(previousHandler);
                 }

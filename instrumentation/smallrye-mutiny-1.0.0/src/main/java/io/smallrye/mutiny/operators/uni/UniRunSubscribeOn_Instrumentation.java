@@ -15,7 +15,7 @@ import io.smallrye.mutiny.subscription.UniSubscriber_Instrumentation;
 @Weave(originalName = "io.smallrye.mutiny.operators.uni.UniRunSubscribeOn", type = MatchType.ExactClass)
 public class UniRunSubscribeOn_Instrumentation<I> {
     public void subscribe(UniSubscriber_Instrumentation<? super I> subscriber) {
-        SmallRyeUtils.assignTokenToSubscriber(subscriber, "UniRunSubscribeOn_Instrumentation.subscribe");
+        SmallRyeUtils.assignTokenToSubscriber(subscriber, "smallrye-mutiny-1.0.0:UniRunSubscribeOn_Instrumentation.subscribe");
         Weaver.callOriginal();
     }
 }

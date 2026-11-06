@@ -135,7 +135,7 @@ public class LambdaUtil {
         return TOKEN_MAP.remove(request);
     }
 
-    public static void setTokenForRequest(InvokeRequest request, String creatorClassAndMethod) {
-        TOKEN_MAP.put(request, NewRelic.getAgent().getTransaction().getToken("aws-java-sdk-lambda-1.11.280:"+creatorClassAndMethod));
+    public static void setTokenForRequest(InvokeRequest request, String creator) {
+        TOKEN_MAP.put(request, NewRelic.getAgent().getTransaction().getToken(creator));
     }
 }

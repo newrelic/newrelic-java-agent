@@ -13,6 +13,7 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
 
 import java.text.MessageFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -35,6 +36,7 @@ public class TokenImpl implements Token {
         initiatingTracer = tracer;
         active = new AtomicBoolean(Boolean.TRUE);
         isInTransfer = new AtomicBoolean(false);
+        this.creator = creator;
 
         WeakRefTransaction weakRefTransaction = getTransaction();
         Transaction tx = weakRefTransaction == null ? null : weakRefTransaction.getTransactionIfExists();
