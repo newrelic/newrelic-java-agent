@@ -23,6 +23,10 @@ jobs:
   spotbugs:
     timeout-minutes: 30
     runs-on: ubuntu-24.04
+    environment: agent-build-s3-access-ungated
+    env:
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
