@@ -29,9 +29,10 @@ jobs:
     timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-22.04
+    environment: agent-build-s3-access-ungated
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
       GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m'"
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use

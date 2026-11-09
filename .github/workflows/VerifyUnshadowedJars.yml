@@ -24,8 +24,10 @@ jobs:
   verify-shadowed-jars:
     name: Verify Shadowed Jars
     runs-on: ubuntu-24.04
+    environment: agent-build-s3-access-ungated
     env:
-      AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      # we use this in env var for conditionals (secrets can't be used in conditionals)
+      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
     steps:
 #       - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
@@ -36,8 +38,8 @@ jobs:
         if: ${{ env.AWS_KEY != '' }}
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
       - name: Setup environment
