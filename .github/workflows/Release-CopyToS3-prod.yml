@@ -2,6 +2,7 @@ name: Release - Copy to S3 (Prod)
 
 permissions:
   contents: write
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -25,8 +26,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEFAULT }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEFAULT }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEFAULT }}   # your existing role ARN
           aws-region: us-east-2
 
       - name: Run script
