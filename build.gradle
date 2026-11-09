@@ -37,6 +37,12 @@ allprojects {
     tasks.withType(Copy) {
         includeEmptyDirs = false
     }
+
+    // Produce byte-identical archives for identical inputs.
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
 }
 
 // This fixes an issue with intellij where the test output build path is incorrect for the top-level java_agent module

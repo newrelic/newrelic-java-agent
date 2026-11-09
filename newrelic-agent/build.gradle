@@ -411,7 +411,7 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Implementation-Version': project.version,
                 'Created-By': 'New Relic, Inc',
                 'Built-By': System.getProperty('user.name'),
-                'Built-Date': project.version.toString().contains("DEV") ? "DEV" : new Date(),
+                'Built-Date': project.version.toString().contains("DEV") ? "DEV" : GitUtil.commitDate(project),
                 'Can-Redefine-Classes': true,
                 'Can-Retransform-Classes': true,
                 'Specification-Version': project.version,
