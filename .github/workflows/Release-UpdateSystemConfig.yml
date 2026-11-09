@@ -18,22 +18,25 @@ jobs:
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Update system configuration page
+        env:
+          VERSION_NUMBER: ${{ inputs.version_number }}
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}
         run: |
           PAYLOAD="{
                \"system_configuration\": {
                  \"key\":   \"java_agent_version\",
-                 \"value\": \"${{ inputs.version_number }}\"
+                 \"value\": \"${VERSION_NUMBER}\"
               }
             }"
           CONTENT_TYPE='Content-Type: application/json'
           
           # PRODUCTION
           curl -X POST 'https://api.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "X-Api-Key:${NEW_RELIC_API_KEY}" -i \
             -H "$CONTENT_TYPE" \
             -d "$PAYLOAD"
 
           echo "*Prod Java agent version set to:*" >> $GITHUB_STEP_SUMMARY
           curl -X GET 'https://api.newrelic.com/v2/system_configuration.json' \
-            -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+            -H "X-Api-Key:${NEW_RELIC_API_KEY}" -i \
             -H "$CONTENT_TYPE" | grep -o "\"key\":\"java_agent_version\",\"value\":\"[0-9.]*\"" | cut -d'"' -f8 >> $GITHUB_STEP_SUMMARY

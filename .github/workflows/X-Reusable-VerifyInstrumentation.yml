@@ -57,10 +57,13 @@ jobs:
 
       - id: set-modules
         name: get instrumentation modules as json
+        env:
+          EXPLICIT_MODULES_LIST: ${{ inputs.explicit-modules-list }}
+          PAGE: ${{ inputs.page }}
         run: |
           # parses the explicit modules list if one was provided
-          if [ -n '${{ inputs.explicit-modules-list }}' ]; then
-            modules=$(jq -c -n --argjson modules '${{ inputs.explicit-modules-list }}' '{ "modules": $modules }')
+          if [ -n "$EXPLICIT_MODULES_LIST" ]; then
+            modules=$(jq -c -n --argjson modules "$EXPLICIT_MODULES_LIST" '{ "modules": $modules }')
             echo "modules=$modules" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -73,7 +76,7 @@ jobs:
           # creates an envar with the requested page of the instrumentation modules in a JSON format
           modules=$((
             echo '{ "modules" : '
-            split -n l/${{ inputs.page }} $tmpfile | jq -R -s -c 'split("\n")[:-1]'
+            split -n l/"$PAGE" $tmpfile | jq -R -s -c 'split("\n")[:-1]'
             echo " }"
           ) | jq -c .)
           # save the output of the job
@@ -119,4 +122,5 @@ jobs:
         if: ${{ inputs.grouping != ''}}
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }}
-        run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation  -PversionGrouping=${{ inputs.grouping }}
+          GROUPING: ${{ inputs.grouping }}
+        run: ./gradlew $GRADLE_OPTIONS --info :instrumentation:${{ matrix.modules }}:verifyInstrumentation  -PversionGrouping="$GROUPING"

@@ -36,4 +36,8 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3.sh ${{ inputs.deployment_id }} ${{ inputs.version_number }} staging ${{ secrets.SONATYPE_USERNAME }} ${{ secrets.SONATYPE_PASSWORD }}
+          DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+          VERSION_NUMBER: ${{ inputs.version_number }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: ./automation/release/copy-to-s3.sh "$DEPLOYMENT_ID" "$VERSION_NUMBER" staging "$SONATYPE_USERNAME" "$SONATYPE_PASSWORD"
