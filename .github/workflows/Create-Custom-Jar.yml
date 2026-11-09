@@ -22,7 +22,7 @@ jobs:
     environment: agent-build-s3-access-gated
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_ARN: ${{ secrets.AWS_ROLE_ARN }}
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent
@@ -31,7 +31,7 @@ jobs:
           ref: ${{ inputs.agent-ref }}
 
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_ROLE_ARN != '' }}
+        if: ${{ env.AWS_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}   # your existing role ARN
