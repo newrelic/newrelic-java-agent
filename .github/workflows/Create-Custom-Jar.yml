@@ -45,9 +45,12 @@ jobs:
         run: ./gradlew $GRADLE_OPTIONS jar
 
       - name: Set summary
+        env:
+          DESCRIPTION: ${{ inputs.description }}
+          AGENT_REF: ${{ inputs.agent-ref }}
         run: |
-          echo "${{ inputs.description }}" >> $GITHUB_STEP_SUMMARY
-          echo "This jar was built from the ref (branch/tag/hash): ${{ inputs.agent-ref }}." >> $GITHUB_STEP_SUMMARY
+          echo "$DESCRIPTION" >> $GITHUB_STEP_SUMMARY
+          echo "This jar was built from the ref (branch/tag/hash): ${AGENT_REF}." >> $GITHUB_STEP_SUMMARY
 
       - name: Capture custom jar
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7

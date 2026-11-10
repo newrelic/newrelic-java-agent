@@ -129,9 +129,11 @@ jobs:
       #For details, view the utils/README.md on the gh-pages branch.
       - name: Generate Test Reports page
         if: ${{ failure() }}
+        env:
+          AGENT_REF: ${{ inputs.agent-ref }}
         run: |
           pip install beautifulsoup4
-          python gh-pages/utils/writeTestsFailuresPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}-${{ matrix.group }}
+          python gh-pages/utils/writeTestsFailuresPage.py "gh-pages/reports/${AGENT_REF}/${{ github.run_id }}/unit-tests-results-java-${{ matrix.java-version }}-${{ matrix.group }}"
 
       - name: Commit and push test reports to gh-pages
         if: ${{ failure() }}
@@ -164,15 +166,19 @@ jobs:
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # pin@v6
 
       - name: Generate Index Pages
+        env:
+          AGENT_REF: ${{ inputs.agent-ref }}
         run: |
-          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}
-          python gh-pages/utils/writeIndexPage.py gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}
+          python gh-pages/utils/writeIndexPage.py "gh-pages/reports/${AGENT_REF}"
+          python gh-pages/utils/writeIndexPage.py "gh-pages/reports/${AGENT_REF}/${{ github.run_id }}"
 
       #For cleanup purposes
       - name: Add date file
+        env:
+          AGENT_REF: ${{ inputs.agent-ref }}
         run: |
-          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/date.txt
-          date -u +%s > gh-pages/reports/${{ inputs.agent-ref }}/${{ github.run_id }}/date.txt
+          date -u +%s > "gh-pages/reports/${AGENT_REF}/date.txt"
+          date -u +%s > "gh-pages/reports/${AGENT_REF}/${{ github.run_id }}/date.txt"
 
       - name: Commit and push test reports to gh-pages
         run: |
@@ -182,5 +188,7 @@ jobs:
           git push
 
       - name: Gh Pages Summary
+        env:
+          AGENT_REF: ${{ inputs.agent-ref }}
         run: |
-          echo "[View test reports](https://newrelic.github.io/newrelic-java-agent/reports/${{ inputs.agent-ref }}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "[View test reports](https://newrelic.github.io/newrelic-java-agent/reports/${AGENT_REF}/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY

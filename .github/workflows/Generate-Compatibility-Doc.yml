@@ -99,9 +99,12 @@ jobs:
             This PR updates the internal compatibility documentation. It was triggered manually or by a detected instrumentation build file change. 
 
       - name: Summary
+        env:
+          PR_NUMBER: ${{ steps.create-pr-internal.outputs.pull-request-number }}
+          PR_URL: ${{ steps.create-pr-internal.outputs.pull-request-url }}
         run: |
-          echo "Submitted PR #${{ steps.create-pr-internal.outputs.pull-request-number}} to the New Relic Agent repo." 
-          echo "Your review is required. See ${{ steps.create-pr-internal.outputs.pull-request-url}}"
+          echo "Submitted PR #${PR_NUMBER} to the New Relic Agent repo."
+          echo "Your review is required. See ${PR_URL}"
 
   update-site-compatibility-doc:
     name: Update Public Site Documentation
@@ -148,7 +151,10 @@ jobs:
             This PR updates the Java agent compatibility documentation.
 
       - name: Summary
+        env:
+          PR_NUMBER: ${{ steps.create-pr-docs-site.outputs.pull-request-number }}
+          PR_URL: ${{ steps.create-pr-docs-site.outputs.pull-request-url }}
         run: |
-          echo "Submitted PR #${{ steps.create-pr-docs-site.outputs.pull-request-number}} to the docs site repo." 
-          echo "Your review is required. See ${{ steps.create-pr-docs-site.outputs.pull-request-url}}"
+          echo "Submitted PR #${PR_NUMBER} to the docs site repo."
+          echo "Your review is required. See ${PR_URL}"
           echo "Once you have reviewed the PR, update its title and description to show it is ready for merge."

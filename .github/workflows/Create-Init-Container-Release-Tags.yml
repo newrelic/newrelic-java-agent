@@ -19,11 +19,12 @@ jobs:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Create release tags for K8s Init Container
         run: |
-          RELEASE_TITLE="New Relic Java Agent ${{ inputs.agent-version }}.0"
-          RELEASE_TAG="${{ inputs.agent-version }}.0_java"
-          RELEASE_NOTES="Automated release for [Java Agent ${{ inputs.agent-version }}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${{ inputs.agent-version }})"
+          RELEASE_TITLE="New Relic Java Agent ${AGENT_VERSION}.0"
+          RELEASE_TAG="${AGENT_VERSION}.0_java"
+          RELEASE_NOTES="Automated release for [Java Agent ${AGENT_VERSION}](https://github.com/newrelic/newrelic-java-agent/releases/tag/${AGENT_VERSION})"
           gh auth login --with-token <<< $GH_RELEASE_TOKEN
           echo "newrelic/newrelic-agent-init-container - Releasing \"${RELEASE_TITLE}\" with tag ${RELEASE_TAG}"
           gh release create "${RELEASE_TAG}" --title="${RELEASE_TITLE}" --repo=newrelic/newrelic-agent-init-container --notes="${RELEASE_NOTES}"
         env:
+          AGENT_VERSION: ${{ inputs.agent-version }}
           GH_RELEASE_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}

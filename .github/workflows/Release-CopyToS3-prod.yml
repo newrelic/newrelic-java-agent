@@ -32,4 +32,5 @@ jobs:
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3-prod.sh ${{ inputs.version_number }} default
+          VERSION_NUMBER: ${{ inputs.version_number }}
+        run: ./automation/release/copy-to-s3-prod.sh "$VERSION_NUMBER" default
