@@ -1,0 +1,34 @@
+name: Release - Verify Maven Central artifacts
+
+permissions:
+  contents: read
+  attestations: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        required: true
+        type: string
+        description: 'The published version to verify.'
+
+jobs:
+  verify-central-release:
+    name: Verify ${{ inputs.version_number }} on Maven Central
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Self
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+
+      - name: Install Sigstore CLI
+        run: pipx install sigstore==4.5.0
+
+      - name: Verify artifacts downloaded from Maven Central
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ inputs.version_number }}
+        run: |
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'SHA256SUMS*' --dir release-sums
+          ./automation/release/download-central-release.sh "$RELEASE_TAG" release-sums central-artifacts
+          ./automation/release/verify-release-artifacts.sh --complete "$RELEASE_TAG" release-sums central-artifacts
+          echo "All Maven Central artifacts for $RELEASE_TAG match the signed SHA256SUMS on the GitHub release." >> $GITHUB_STEP_SUMMARY

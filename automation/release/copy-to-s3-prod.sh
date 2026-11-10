@@ -62,7 +62,34 @@ if test $? -ne 0
     exit 10
   fi
 
+#Download the PGP signatures of the zip and pom files
+for URL in ${AGENT_ZIP_URL} ${AGENT_POM_URL} ${API_POM_URL}
+  do
+    wget -O ${MVNDIR}/`basename ${URL}`.asc ${URL}.asc
+    if test $? -ne 0
+      then
+        echo "Error fetching `basename ${URL}`.asc from Public Site, aborting"
+        exit 10
+      fi
+  done
+
  echo "Successfully downloaded artifacts from Public Facing Site"
+
+#Verify the downloads against the signed SHA256SUMS on the GitHub release before anything is copied to S3
+gh release download "v${VERSION}" --repo "${GITHUB_REPOSITORY:-newrelic/newrelic-java-agent}" --pattern 'SHA256SUMS*' --dir ${MVNDIR}
+if test $? -ne 0
+  then
+    echo "Error fetching SHA256SUMS from the v${VERSION} GitHub release, aborting. Releases published before artifact signing was added don't have one."
+    exit 11
+  fi
+
+/bin/bash "${INSTALLDIR}/verify-release-artifacts.sh" "v${VERSION}" ${MVNDIR} ${MVNDIR}
+if test $? -ne 0
+  then
+    echo "Artifacts downloaded for ${VERSION} failed verification, aborting. Nothing was copied to S3."
+    /bin/rm -rf ${MYDIR}
+    exit 12
+  fi
 
  /bin/sh "${INSTALLDIR}/send-zip-to-s3.sh" ${VERSION} ${ZIP} ${AGENT_POM} ${API_POM} ${SERVERAGENTDIR} ${SERVERAPIDIR} ${BASE_S3_URL} ${S3_PROFILE}
 

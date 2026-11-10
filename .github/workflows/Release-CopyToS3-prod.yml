@@ -2,6 +2,7 @@ name: Release - Copy to S3 (Prod)
 
 permissions:
   contents: write
+  attestations: read
 
 on:
   workflow_dispatch:
@@ -29,8 +30,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEFAULT }}
           aws-region: us-east-2
 
+      # Used by copy-to-s3-prod.sh to verify the artifacts before copying them
+      - name: Install Sigstore CLI
+        run: pipx install sigstore==4.5.0
+
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
           VERSION_NUMBER: ${{ inputs.version_number }}
+          GH_TOKEN: ${{ github.token }}
         run: ./automation/release/copy-to-s3-prod.sh "$VERSION_NUMBER" default
