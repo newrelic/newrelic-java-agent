@@ -81,6 +81,7 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest`:
 | `severity_number` | Mapped from `level`: TRACE/FINEST/FINER→1, DEBUG/FINE/CONFIG→5, INFO→9, WARN/WARNING→13, ERROR/SEVERE→17, FATAL→21, otherwise unset |
 | `body` | `message` |
 | `trace_id` / `span_id` | `trace.id` / `span.id` (hex → bytes) |
+| `event_name` | `event.name`, as a string. Omitted when empty. Not repeated under `attributes`. |
 | `attributes` | Every other attribute under its New Relic name, e.g. `level`, `entity.guid`, `entity.name`, `hostname`, `thread.*`, `logger.*`, `error.*`, `context.*`, `tags.*`, `k8s.*` |
 
 **Attribute values**
