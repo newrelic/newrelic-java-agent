@@ -86,11 +86,8 @@ jobs:
           fi
   update-agent-metadata:
     needs: [publish_release]
-    environment: maven-prod-publishing-gated
     uses: ./.github/workflows/Agent-Metadata.yml
     with:
       version: ${{ github.event.release.tag_name }}
     secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
       AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
