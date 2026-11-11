@@ -28,6 +28,9 @@ jobs:
     timeout-minutes: 150
     runs-on: ubuntu-24.04
     environment: agent-build-s3-access-ungated
+    permissions:
+      contents: write
+      id-token: write
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
       AWS_ARN: ${{ secrets.AWS_ROLE_ARN }}
@@ -148,6 +151,8 @@ jobs:
     needs: unit-test
     if: ${{ failure() }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout GhPages branch
