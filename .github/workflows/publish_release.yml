@@ -181,13 +181,3 @@ jobs:
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'SHA256SUMS*' --dir release-sums
           ./automation/release/verify-release-artifacts.sh --complete "$RELEASE_TAG" release-sums central-staging
           echo "Staged artifacts for $RELEASE_TAG verified. The Central Portal deployment can be published." >> $GITHUB_STEP_SUMMARY
-
-  update-agent-metadata:
-    needs: [publish_release]
-    uses: ./.github/workflows/Agent-Metadata.yml
-    with:
-      version: ${{ github.event.release.tag_name }}
-    secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
