@@ -124,11 +124,46 @@ Not covered:
 - **Different commit:** a new commit changes `X-Git-SHA` and `Built-Date`, even if no code changed. To compare across commits, pin `GITHUB_SHA` and `SOURCE_DATE_EPOCH`.
 - **Different `BUILD_ID`:** this goes into the `Build-Id` attribute.
 - **Uncommitted changes:** these change the jar content but not `Built-Date`, because the date comes from HEAD.
-- **Different JDK running Gradle:** see section 4a. Jars are identical within a major version family but differ between families.
+- **Different JDKs:** see section 4a. The JVM running Gradle must be the same major version family, and every toolchain compiler must be the same exact patch release. A different patch release can change class files.
 - **Different OS:** only macOS was tried.
 - **No git and no `SOURCE_DATE_EPOCH`:** `Built-Date` falls back to the current time with an error message, and the build is not reproducible.
 - **Release builds:** `Built-Date` is now the commit time, not the actual build time. This applies to every build, not only local ones.
 - **Not tested:** the unit tests, the functional tests, running an agent from the new jar, a build from a source tarball with no `.git`, and a build on a different machine. A fresh checkout skips instrumentation modules whose git-ignored `lib/` jars (WebLogic, WebSphere, Oracle, Resin) are missing, so it produces a different jar unless those files are present.
+
+## 4a. JDK requirements
+
+Two JDK inputs affect the jar. For jars to match, both must be the same on every build machine.
+
+**1. The JVM running Gradle: same major version family.** Measured with otherwise identical builds on macOS: JDK 8 gave one hash, JDK 11 and 17 (several vendors each) gave a second, and JDK 19, 20 and 21 gave a third. The vendor and patch version did not matter. Everything other than ordering was identical:
+- Manifest attribute order (443 manifests, including those in nested jars). `java.util.jar.Attributes` is a `HashMap` on JDK 8 and a `LinkedHashMap` on JDK 9 and later.
+- Entry order in `PointcutClasses.properties` (`Hashtable` on JDK 8, `ConcurrentHashMap` on 9 to 17, sorted on 18 and later).
+
+`CLAUDE.md` requires JDK 8 for the build, so builds on JDK 8 are comparable with each other.
+
+**2. The compilers behind the Java toolchains: same exact JDK patch release, not just the same vendor and major version.** The build compiles most modules with a fixed JDK 8 toolchain, but 49 instrumentation modules (33 on Java 17, 15 on Java 11, 1 on Java 21) and the `java11` source set of `newrelic-agent` use a toolchain for another version. Gradle toolchains can select only the language version and the vendor, so which patch release gets used depends on what is installed on the machine.
+
+Different patch releases of javac can generate different bytecode for the same source. Found with `instrumentation/spring-webflux-6.1.0`: building it with `vendor = JvmVendorSpec.AMAZON` (Corretto 17.0.13) and without (the default Temurin 17) gave different jars (`470fc0a6…` vs `1df816bf…`). One of 31 classes, `AbstractServerResponse_Instrumentation.class`, differed. The bytecode differs, not only the constant pool order. String concatenation compiled to one `invokedynamic makeConcatWithConstants(HttpMethod)` with Corretto 17.0.13, and to `String.valueOf(Object)` followed by `makeConcatWithConstants(String)` with the other compiler.
+
+Compiling one small snippet with each JDK 17 on the machine showed that the vendor does not matter and the javac version does:
+
+| javac | String concatenation of an `Object` |
+|-------|-----------------------------------|
+| 17.0.4.1 Temurin, 17.0.9 GraalVM, 17.0.12 GraalVM, 17.0.13 Temurin, 17.0.13 Corretto | `invokedynamic` directly on the `Object` |
+| 17.0.14 Zulu, 17.0.15 Temurin, 21.0.5 Temurin | `String.valueOf` first, then `invokedynamic` on the `String` |
+
+The behavior changed between 17.0.13 and 17.0.14. I did not look up the corresponding JDK bug. Java 11 did not show a difference in the earlier test (Temurin 11.0.25 against Zulu 11.0.26), but only because the code compiled there did not hit a codegen change. That does not mean 11 is safe in general.
+
+**Requirement.** To compare jars, build them on machines with the same JDK 8, the same JDK for each other toolchain version in use (11, 17, 21), and the same patch release of each. A different patch release of any of them can change class files in the affected modules.
+
+Ways to enforce it:
+- **GitHub Actions (the production build) already does the pinning.** `.github/actions/setup-environment/action.yml` installs Temurin 8, 11, 17, 21, 25 and 27-ea with `actions/setup-java`, then passes `-Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,...` to Gradle through `GRADLE_OPTIONS`. Gradle can therefore see only one JDK per major version, so the vendor can't vary. Workflows that build the agent (`X-Reusable-BuildAgent.yml`, `publish_release.yml`, `publish_main_snapshot.yml` and others) all use this shared action and `$GRADLE_OPTIONS`.
+- **Still not pinned in CI: the patch release.** The action asks `setup-java` for `17`, `21` and so on, not an exact version such as `17.0.15+6`. As I understand `setup-java`, that resolves to whatever Temurin 17 patch release is available on the runner when the job runs, so two builds run at different times can use different patch releases (the case that produced different jars for `spring-webflux-6.1.0`). `27-ea` is an early-access build and moves even more. I have not checked how `setup-java` resolves versions on `ubuntu-24.04` runners. To pin it fully, give `setup-java` exact versions.
+- **A module-level `vendor = JvmVendorSpec.AMAZON` can't be satisfied in CI.** With auto-detect off and only Temurin installed, there is no Amazon JDK for Gradle to select. I have not run this in CI, so I can't say whether it fails the build or something else happens. Don't commit that line.
+- **The Gradle JVM in CI.** As I understand `setup-java`, when several versions are listed the last one becomes the default `JAVA_HOME`. Here that is `8`, which matches the JDK 8 requirement above. I did not confirm that in a workflow run.
+- **Local builds.** Outside CI, pin the installed JDKs the same way: `org.gradle.java.installations.auto-detect=false` and `org.gradle.java.installations.paths=...` in `gradle.properties`.
+- Optionally, `-XDstringConcat=inline` (a hidden javac option) makes concatenation codegen the same for 17.0.13 Corretto, 17.0.15 Temurin and 21.0.5 Temurin in a snippet test (identical class, no `invokedynamic`). It would only cover this one kind of difference, would change the bytecode of every module that got it, and was not applied to the build or checked against the weaver. It is not part of the current changes.
+
+If two jars differ and everything in section 4 matches, compare the class files with `javap -c -p` and check the JDK patch releases first.
 
 ## 5. Reverting or limiting the effect
 
