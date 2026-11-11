@@ -19,7 +19,7 @@ jobs:
       pull-requests: write
 
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # pin@v4
         with:
           fetch-depth: 0
@@ -49,10 +49,12 @@ jobs:
 
       - name: Compute and apply bump
         id: bump
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
           set +e
           groovy .fleetControl/schemaGeneration/BumpSchemaVersion.groovy \
-            --since=${{ steps.tag.outputs.tag }} --ci
+            --since="$TAG" --ci
           code=$?
           set -e
           case "$code" in
@@ -86,6 +88,9 @@ jobs:
 
       - name: Summary
         if: steps.create-pr.outputs.pull-request-number
+        env:
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+          PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
         run: |
-          echo "Submitted PR #${{ steps.create-pr.outputs.pull-request-number }} to bump the agent config schema version."
-          echo "Your review is required. See ${{ steps.create-pr.outputs.pull-request-url }}"
+          echo "Submitted PR #${PR_NUMBER} to bump the agent config schema version."
+          echo "Your review is required. See ${PR_URL}"

@@ -89,7 +89,7 @@ jobs:
     outputs:
       tests: ${{ steps.read-single-test.outputs.tests || steps.read-tests.outputs.tests }}
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout AIT repo test
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
@@ -149,11 +149,13 @@ jobs:
       - id: read-single-test
         name: Read single test
         if: ${{inputs.single-test != ''}}
+        env:
+          SINGLE_TEST: ${{ inputs.single-test }}
         run: |
           # creates an envar with a single test in the same JSON format as the read-tests step above
           TESTS=$((
             echo '{ "tests" : '
-            echo ' ["${{ inputs.single-test }}"] ' 
+            echo " [\"${SINGLE_TEST}\"] "
             echo " }"
           ) | jq -c .)
           # save the output of the job
@@ -169,7 +171,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.list-tests.outputs.tests) }}
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Retrieve agent from cache
         id: retrieve-agent
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # pin@v5.0.5 # pin@v5
@@ -469,7 +471,7 @@ jobs:
       contents: write
 
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Download all raw ingest files
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         with:
@@ -518,9 +520,11 @@ jobs:
 
       - name: Create markdown file
         if: ${{ inputs.wiki-report-desc != '' }}
+        env:
+          WIKI_REPORT_DESC: ${{ inputs.wiki-report-desc }}
         run: |
           # Start with the sum as the first line
-          echo "# Ingest Metrics Summary - ${{ inputs.wiki-report-desc }}" > ingest-report.md
+          echo "# Ingest Metrics Summary - ${WIKI_REPORT_DESC}" > ingest-report.md
           echo "" >> ingest-report.md
           echo "## **Total Bytes Sent:** $(cat ingest-sum.txt)" >> ingest-report.md
           echo "" >> ingest-report.md
@@ -541,19 +545,21 @@ jobs:
 
       - name: Commit and push to wiki
         if: ${{ inputs.wiki-report-desc != '' }}
+        env:
+          WIKI_REPORT_DESC: ${{ inputs.wiki-report-desc }}
         run: |
           # Create ingest-metrics directory if it doesn't exist
           mkdir -p wiki/ingest-metrics
 
           # Copy the report using ingest-metrics-desc as filename
-          FILENAME="ingest-metrics-${{ inputs.wiki-report-desc }}.md"
+          FILENAME="ingest-metrics-${WIKI_REPORT_DESC}.md"
           cp ingest-report.md "wiki/ingest-metrics/${FILENAME}"
 
           cd wiki
 
           # Append link to Ingest-Metrics.md if it doesn't already exist
-          LINK_TEXT="- [Ingest Metrics ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/ingest-metrics-${{ inputs.wiki-report-desc }})"
-          if ! grep -q "ingest-metrics-${{ inputs.wiki-report-desc }})" Ingest-Metrics.md 2>/dev/null; then
+          LINK_TEXT="- [Ingest Metrics ${WIKI_REPORT_DESC}](https://github.com/${{ github.repository }}/wiki/ingest-metrics-${WIKI_REPORT_DESC})"
+          if ! grep -q "ingest-metrics-${WIKI_REPORT_DESC})" Ingest-Metrics.md 2>/dev/null; then
             echo "" >> Ingest-Metrics.md
             echo "${LINK_TEXT}" >> Ingest-Metrics.md
           fi
@@ -561,7 +567,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "ingest-metrics/${FILENAME}" Ingest-Metrics.md
-          git commit -m "Update ingest metrics report for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
+          git commit -m "Update ingest metrics report for ${WIKI_REPORT_DESC} from workflow run ${{ github.run_id }}"
           git push
 
   process-performance-metrics:
@@ -573,7 +579,7 @@ jobs:
       contents: write
 
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout repository for scripts
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
@@ -585,12 +591,14 @@ jobs:
           path: all-performance-metrics
 
       - name: Process performance metrics and generate report
+        env:
+          WIKI_REPORT_DESC: ${{ inputs.wiki-report-desc }}
         run: |
           chmod +x .github/scripts/process-performance-metrics.sh
           .github/scripts/process-performance-metrics.sh \
             all-performance-metrics \
             performance-metrics-report.md \
-            "${{ inputs.wiki-report-desc }}"
+            "$WIKI_REPORT_DESC"
 
       - name: Checkout wiki repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
@@ -599,17 +607,19 @@ jobs:
           path: wiki
 
       - name: Commit and push to wiki
+        env:
+          WIKI_REPORT_DESC: ${{ inputs.wiki-report-desc }}
         run: |
           mkdir -p wiki/performance-metrics
 
-          FILENAME="performance-metrics-${{ inputs.wiki-report-desc }}.md"
+          FILENAME="performance-metrics-${WIKI_REPORT_DESC}.md"
           cp performance-metrics-report.md "wiki/performance-metrics/${FILENAME}"
 
           cd wiki
 
           # Add link to index page
-          LINK_TEXT="- [Performance Metrics ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})"
-          if ! grep -q "performance-metrics-${{ inputs.wiki-report-desc }})" Performance-Metrics.md 2>/dev/null; then
+          LINK_TEXT="- [Performance Metrics ${WIKI_REPORT_DESC}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${WIKI_REPORT_DESC})"
+          if ! grep -q "performance-metrics-${WIKI_REPORT_DESC})" Performance-Metrics.md 2>/dev/null; then
             echo "" >> Performance-Metrics.md
             echo "${LINK_TEXT}" >> Performance-Metrics.md
           fi
@@ -617,10 +627,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "performance-metrics/${FILENAME}" Performance-Metrics.md
-          git commit -m "Add AIT performance metrics for ${{ inputs.wiki-report-desc }} from workflow run ${{ github.run_id }}"
+          git commit -m "Add AIT performance metrics for ${WIKI_REPORT_DESC} from workflow run ${{ github.run_id }}"
           git push
 
       - name: Add summary link to workflow
+        env:
+          WIKI_REPORT_DESC: ${{ inputs.wiki-report-desc }}
         run: |
           if [ ! -d "all-performance-metrics" ] || [ -z "$(ls -A all-performance-metrics 2>/dev/null)" ]; then
             echo "## Performance Metrics" >> $GITHUB_STEP_SUMMARY
@@ -640,14 +652,14 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**${TEST_COUNT} test(s)** with metrics reported" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "View detailed metrics in [Wiki - Performance Metrics ${{ inputs.wiki-report-desc }}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${{ inputs.wiki-report-desc }})" >> $GITHUB_STEP_SUMMARY
+            echo "View detailed metrics in [Wiki - Performance Metrics ${WIKI_REPORT_DESC}](https://github.com/${{ github.repository }}/wiki/performance-metrics-${WIKI_REPORT_DESC})" >> $GITHUB_STEP_SUMMARY
           fi
 
   notify-if-negative-values:
     needs: [ tests ]
     runs-on: ubuntu-22.04
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Download artifact(s) # surely there is a way to only download the negative_value_*.txt artifacts?
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
         env:
