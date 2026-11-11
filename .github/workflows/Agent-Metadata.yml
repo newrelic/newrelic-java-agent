@@ -49,6 +49,7 @@ on:
 
 jobs:
   send-agent-metadata:
+    environment: maven-prod-publishing-gated
     uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@main
     with:
       agent-type: ${{ inputs.agent-type }}

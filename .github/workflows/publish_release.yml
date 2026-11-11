@@ -86,6 +86,7 @@ jobs:
           fi
   update-agent-metadata:
     needs: [publish_release]
+    environment: maven-prod-publishing-gated
     uses: ./.github/workflows/Agent-Metadata.yml
     with:
       version: ${{ github.event.release.tag_name }}
