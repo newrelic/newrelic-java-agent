@@ -18,8 +18,10 @@
 #   SIGNER_IDENTITY  expected Sigstore certificate identity (defaults to publish_release.yml at the release tag)
 #   GITHUB_REPOSITORY  repository the release and attestations belong to (defaults to newrelic/newrelic-java-agent)
 
-# Fingerprint of the "New Relic Build Server" key that signs the .asc files published to Maven Central
-PGP_SIGNING_FINGERPRINT=8C2A4092C45DCCA3FB7C64CE61AB23A88CC1C2D5
+# Fingerprints of the keys that sign the .asc files published to Maven Central. A signature from any of them is accepted.
+#   19D7C6FD...: "newrelic-java-agent-dev", signs releases built from 2026-11-05 (.github/scripts/generate-signing-key.sh)
+#   8C2A4092...: "New Relic Build Server", signed releases up to 9.5.0
+PGP_SIGNING_FINGERPRINTS="19D7C6FD9132F57FF0016F137FE67A36134ADF21 8C2A4092C45DCCA3FB7C64CE61AB23A88CC1C2D5"
 PGP_KEYSERVER=hkps://keyserver.ubuntu.com
 SIGNER_OIDC_ISSUER=https://token.actions.githubusercontent.com
 
@@ -87,12 +89,23 @@ for FILE in "${ARTIFACTS[@]}"; do
 
   if [ -f "${FILE}.asc" ]; then
     if [ "${PGP_KEY_IMPORTED}" = "false" ]; then
-      gpg --batch --quiet --keyserver "${PGP_KEYSERVER}" --recv-keys "${PGP_SIGNING_FINGERPRINT}" \
-        || fail "couldn't fetch PGP key ${PGP_SIGNING_FINGERPRINT} from ${PGP_KEYSERVER}. Check network access to the keyserver."
-      PGP_KEY_IMPORTED=true
+      for FINGERPRINT in ${PGP_SIGNING_FINGERPRINTS}; do
+        gpg --batch --quiet --keyserver "${PGP_KEYSERVER}" --recv-keys "${FINGERPRINT}" \
+          && PGP_KEY_IMPORTED=true \
+          || echo "Warning: couldn't fetch PGP key ${FINGERPRINT} from ${PGP_KEYSERVER}."
+      done
+      test "${PGP_KEY_IMPORTED}" = "true" \
+        || fail "couldn't fetch any PGP signing key (${PGP_SIGNING_FINGERPRINTS}) from ${PGP_KEYSERVER}. Check network access to the keyserver."
     fi
-    gpg --batch --status-fd 1 --verify "${FILE}.asc" "${FILE}" 2> /dev/null | grep -q "^\[GNUPG:\] VALIDSIG .* ${PGP_SIGNING_FINGERPRINT}$" \
-      || fail "${NAME}.asc isn't a valid signature from PGP key ${PGP_SIGNING_FINGERPRINT}."
+    PGP_STATUS=$(gpg --batch --status-fd 1 --verify "${FILE}.asc" "${FILE}" 2> /dev/null)
+    PGP_VALID=false
+    for FINGERPRINT in ${PGP_SIGNING_FINGERPRINTS}; do
+      if echo "${PGP_STATUS}" | grep -q "^\[GNUPG:\] VALIDSIG .* ${FINGERPRINT}$"; then
+        PGP_VALID=true
+      fi
+    done
+    test "${PGP_VALID}" = "true" \
+      || fail "${NAME}.asc isn't a valid signature from any expected PGP key (${PGP_SIGNING_FINGERPRINTS})."
   elif [ "${COMPLETE}" = "true" ]; then
     fail "${NAME}.asc is missing."
   fi
