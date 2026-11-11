@@ -46,7 +46,7 @@ on:
 jobs:
   send-agent-metadata:
     #uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@main
-    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@add-env-agent-metadata
+    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@cb1347b8a87960391039fe13bd181fa1ad5998a6 # add-env-agent-metadata
     with:
       agent-type: ${{ inputs.agent-type }}
       version: ${{ inputs.version }}
