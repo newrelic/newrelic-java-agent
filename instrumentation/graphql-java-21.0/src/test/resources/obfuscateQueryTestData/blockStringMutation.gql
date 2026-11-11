@@ -1,0 +1,19 @@
+mutation {
+    createBook(book: {
+        title: """
+        A Tale of
+        Two Cities
+        """
+        description: """
+        A story about the French Revolution,
+        spanning London and Paris.
+        """
+    }) {
+        id
+    }
+    createAuthor(author: {
+        bio: """Charles Dickens (1812-1870) was an English writer."""
+    }) {
+        id
+    }
+}

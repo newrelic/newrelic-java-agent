@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class GraphQLObfuscator {
     private static final String SINGLE_QUOTE = "'(?:[^']|'')*?(?:\\\\'.*|'(?!'))";
     private static final String DOUBLE_QUOTE = "\"(?:[^\"]|\"\")*?(?:\\\\\".*|\"(?!\"))";
+    private static final String BLOCK_STRING = "\"\"\"(?:\\\\\"\"\"|.)*?\"\"\"";
     private static final String COMMENT = "(?:#|--).*?(?=\\r|\\n|$)";
     private static final String MULTILINE_COMMENT = "/\\*(?:[^/]|/[^*])*?(?:\\*/|/\\*.*)";
     private static final String UUID = "\\{?(?:[0-9a-f]\\-*){32}\\}?";
@@ -25,7 +26,7 @@ public class GraphQLObfuscator {
     private static final Pattern ALL_UNMATCHED_PATTERN;
 
     static {
-        String allDialectsPattern = Joiner.on("|").join(SINGLE_QUOTE, DOUBLE_QUOTE, UUID, HEX,
+        String allDialectsPattern = Joiner.on("|").join(BLOCK_STRING, SINGLE_QUOTE, DOUBLE_QUOTE, UUID, HEX,
                 MULTILINE_COMMENT, COMMENT, NUMBER, BOOLEAN);
 
         ALL_DIALECTS_PATTERN = Pattern.compile(allDialectsPattern, Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
