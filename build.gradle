@@ -42,6 +42,12 @@ allprojects {
     tasks.withType(AbstractArchiveTask).configureEach {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
+        // Fixed permissions so the build machine's umask can't change the archive contents. Without these, files the
+        // build creates take their mode from the umask (e.g. 0600 under umask 077), which is recorded in each zip
+        // entry and gives a different jar hash. Every file in the agent jar is 0644 and every directory 0755.
+        // See https://reproducible-builds.org/docs/jvm/
+        filePermissions { unix("644") }
+        dirPermissions { unix("755") }
     }
 }
 
