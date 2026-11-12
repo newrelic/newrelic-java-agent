@@ -66,6 +66,15 @@ public interface DataSender {
     void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception;
 
     /**
+     * Send Open Telemetry dimensional metric data to New Relic.
+     * This will only apply in the serverless implementation and otherwise is a No-Op in all other implementations.
+     *
+     * @param payload Open Telemetry dimensional metrics.
+     * @throws Exception if there is a problem sending the metric data
+     */
+    void sendServerlessOTLPMetricData(String payload) throws Exception;
+
+    /**
      * Send thread profiles to New Relic.
      *
      * @param profiles the profiles to send

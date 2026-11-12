@@ -22,10 +22,12 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.resources.ResourceBuilder;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
 import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
@@ -43,6 +45,7 @@ import static com.newrelic.agent.util.LicenseKeyUtil.obfuscateLicenseKey;
  * when the export completes.
  */
 final class NRMetricExporterWrapper implements MetricExporter {
+
 
     private static final String EXPORT_SUCCESS_METRIC = "Supportability/Metrics/Java/OpenTelemetryBridge/export/success";
     private static final String EXPORT_FAILURE_METRIC = "Supportability/Metrics/Java/OpenTelemetryBridge/export/failure";
@@ -62,7 +65,15 @@ final class NRMetricExporterWrapper implements MetricExporter {
         boolean auditMode = OtlpAuditLogger.isAuditModeEnabled();
         Collection<MetricData> toExport = prepareMetrics(metrics);
         final int bytesSent = logAuditRequest(toExport, auditMode);
-        final CompletableResultCode result = delegate.export(toExport);
+
+        final CompletableResultCode result;
+        if (AgentBridge.serverlessApi.isServerlessModeEnabled()) {
+            boolean harvestSuccessful = AgentBridge.serverlessApi.otelHarvest(marshallMetrics(toExport));
+            result = harvestSuccessful ? CompletableResultCode.ofSuccess() : CompletableResultCode.ofFailure();
+        } else {
+            result = delegate.export(toExport);
+        }
+        
         result.whenComplete(new Runnable() {
             @Override
             public void run() {
@@ -132,6 +143,20 @@ final class NRMetricExporterWrapper implements MetricExporter {
             }
             return 0;
         }
+    }
+
+    private String marshallMetrics(Collection<MetricData> metrics) {
+        try {
+            MetricsRequestMarshaler marshaler = MetricsRequestMarshaler.create(metrics);
+            int bytes = marshaler.getBinarySerializedSize();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(bytes);
+            marshaler.writeBinaryTo(outputStream);
+            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
+        } catch (IOException e) {
+            AgentBridge.getAgent().getLogger().log(Level.FINEST, "Failed to serialize open telemetry metrics", e);
+            return null;
+        }
+
     }
 
     @Override

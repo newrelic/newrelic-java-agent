@@ -42,6 +42,7 @@ public class AutoConfiguredOpenTelemetrySdk {
             builder.addResourceCustomizer(OpenTelemetrySDKCustomizer::applyResources);
             builder.addMeterProviderCustomizer(OpenTelemetrySDKCustomizer::applyMeterExcludes);
             builder.addMetricExporterCustomizer(OpenTelemetrySDKCustomizer::wrapMetricExporter);
+            builder.addMetricReaderCustomizer(OpenTelemetrySDKCustomizer::applyMetricReaderCustomizer);
         } else {
             // Generate the instrumentation module disabled supportability metric
             NewRelic.incrementCounter("Supportability/Metrics/Java/OpenTelemetryBridge/disabled");

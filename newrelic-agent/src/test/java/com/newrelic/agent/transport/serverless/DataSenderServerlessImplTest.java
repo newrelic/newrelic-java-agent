@@ -498,6 +498,56 @@ public class DataSenderServerlessImplTest {
     }
 
     @Test
+    public void testOtlpMetrics() throws Exception {
+        dataSender.sendServerlessOTLPMetricData("otlpPayloadA");
+
+        Mockito.verify(serverlessWriter, Mockito.times(0)).write(Mockito.any(), Mockito.any());
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(FILE_PAYLOAD_MATCHER),
+                Mockito.eq("[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{\"otlp_payload\":[\"otlpPayloadA\"]}]")
+        );
+    }
+
+    @Test
+    public void testOtlpMetrics_clearedAfterHarvest() throws Exception {
+        dataSender.sendServerlessOTLPMetricData("otlpPayloadA");
+        dataSender.commitAndFlush();
+        Mockito.clearInvocations(serverlessWriter);
+
+        // No new OTLP payload sent for this harvest; the previous one must not be resent.
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(FILE_PAYLOAD_MATCHER),
+                Mockito.eq("[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{}]")
+        );
+    }
+
+    @Test
+    public void testOtlpMetrics_nullPayload_doesNotThrowOrAppearInPayload() throws Exception {
+        dataSender.sendServerlessOTLPMetricData(null);
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(FILE_PAYLOAD_MATCHER),
+                Mockito.eq("[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{}]")
+        );
+    }
+
+    @Test
+    public void testOtlpMetrics_emptyPayload_doesNotAppearInPayload() throws Exception {
+        dataSender.sendServerlessOTLPMetricData("");
+        dataSender.commitAndFlush();
+
+        Mockito.verify(serverlessWriter, Mockito.times(1)).write(
+                Mockito.argThat(FILE_PAYLOAD_MATCHER),
+                Mockito.eq("[2,\"NR_LAMBDA_MONITORING\",{\"agent_version\":\"9.0.0\",\"protocol_version\":16,\"agent_language\":\"java\",\"execution_environment\":null,\"arn\":\"TMP_ARN\",\"metadata_version\":2,\"function_version\":\"15\"},{}]")
+        );
+    }
+
+    @Test
     public void testNoOps() throws Exception {
         Assert.assertEquals(0, dataSender.getAgentCommands().size());
         dataSender.sendModules(null);
