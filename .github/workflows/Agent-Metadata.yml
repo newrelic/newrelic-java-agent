@@ -42,8 +42,7 @@ on:
 
 jobs:
   send-agent-metadata:
-    #uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@main
-    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@cb1347b8a87960391039fe13bd181fa1ad5998a6 # add-env-agent-metadata
+    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@eb28b448d98885b0d3293c3646b69f3c50c6859f # main
     with:
       agent-type: ${{ inputs.agent-type }}
       version: ${{ inputs.version }}
