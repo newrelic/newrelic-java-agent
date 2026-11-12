@@ -89,5 +89,4 @@ jobs:
     uses: ./.github/workflows/Agent-Metadata.yml
     with:
       version: ${{ github.event.release.tag_name }}
-    secrets:
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
+    secrets: inherit
