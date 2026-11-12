@@ -52,5 +52,4 @@ jobs:
       version: ${{ inputs.version }}
       use-cache: ${{ inputs.use-cache }}
       environment-name: maven-staging-publish-ungated
-    secrets:
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }} # action owning team license key
+    secrets: inherit
