@@ -17,11 +17,9 @@
 # Environment overrides:
 #   SIGNER_IDENTITY  expected Sigstore certificate identity (defaults to publish_release.yml at the release tag)
 #   GITHUB_REPOSITORY  repository the release and attestations belong to (defaults to newrelic/newrelic-java-agent)
+#   SIGNING_FINGERPRINTS_FILE  PGP keys accepted on .asc files (defaults to signing-fingerprints.txt next to this script)
 
-# Fingerprints of the keys that sign the .asc files published to Maven Central. A signature from any of them is accepted.
-#   19D7C6FD...: "newrelic-java-agent-dev", signs releases built from 2026-11-05 (.github/scripts/generate-signing-key.sh)
-#   8C2A4092...: "New Relic Build Server", signed releases up to 9.5.0
-PGP_SIGNING_FINGERPRINTS="19D7C6FD9132F57FF0016F137FE67A36134ADF21 8C2A4092C45DCCA3FB7C64CE61AB23A88CC1C2D5"
+SIGNING_FINGERPRINTS_FILE=${SIGNING_FINGERPRINTS_FILE:-$(dirname "$0")/signing-fingerprints.txt}
 PGP_KEYSERVER=hkps://keyserver.ubuntu.com
 SIGNER_OIDC_ISSUER=https://token.actions.githubusercontent.com
 
@@ -52,6 +50,12 @@ fail() {
 for TOOL in sha256sum sigstore gh gpg; do
   command -v ${TOOL} > /dev/null || fail "${TOOL} is not installed. Install it and re-run this script."
 done
+
+test -s "${SIGNING_FINGERPRINTS_FILE}" || fail "${SIGNING_FINGERPRINTS_FILE} is missing or empty. It lists the PGP keys that sign releases."
+BAD_LINES=$(awk '$1 !~ /^#/ && NF && (length($1) != 40 || $1 ~ /[^0-9A-F]/)' "${SIGNING_FINGERPRINTS_FILE}")
+test -z "${BAD_LINES}" || fail "${SIGNING_FINGERPRINTS_FILE} has a line that doesn't start with a 40-character upper-case fingerprint: ${BAD_LINES}"
+PGP_SIGNING_FINGERPRINTS=$(awk '$1 !~ /^#/ && NF { printf "%s%s", sep, $1; sep = " " }' "${SIGNING_FINGERPRINTS_FILE}")
+test -n "${PGP_SIGNING_FINGERPRINTS}" || fail "${SIGNING_FINGERPRINTS_FILE} lists no PGP keys."
 
 test -s "${SUMS}" || fail "${SUMS} is missing or empty. Download it from the ${RELEASE_TAG} GitHub release."
 test -s "${SUMS}.sigstore.json" || fail "${SUMS}.sigstore.json is missing. Download it from the ${RELEASE_TAG} GitHub release."

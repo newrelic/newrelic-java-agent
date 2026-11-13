@@ -1,0 +1,10 @@
+# PGP keys that sign the .asc files published to Maven Central, one per line: <40-character fingerprint> <description>.
+# A signature from any listed key is accepted, and releases must be signed with a listed key.
+# Read by verify-release-artifacts.sh and check-signing-key.sh.
+#
+# Keep retired keys: old releases stay on Central and must keep verifying. Remove a key only if it's compromised.
+# To rotate, add the line that .github/scripts/generate-signing-key.sh prints at the top of the key lines, so the
+# current key is listed first, in a PR. Confirm the fingerprint with the key custodian before merging, then update
+# the SIGNING_* secrets.
+19D7C6FD9132F57FF0016F137FE67A36134ADF21 newrelic-java-agent-dev <java-agent-dev@newrelic.com>, signs releases built from 2026-11-05
+8C2A4092C45DCCA3FB7C64CE61AB23A88CC1C2D5 New Relic Build Server, signed releases up to 9.5.0
