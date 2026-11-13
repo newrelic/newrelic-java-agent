@@ -410,7 +410,7 @@ task newrelicVersionedAgentJar(type: Jar) {
         attributes 'Implementation-Title': 'New Relic Java Agent',
                 'Implementation-Version': project.version,
                 'Created-By': 'New Relic, Inc',
-                'Built-Date': project.version.toString().contains("DEV") ? "DEV" : GitUtil.commitDate(project),
+                'Built-Date': providers.provider { project.version.toString().contains("DEV") ? "DEV" : GitUtil.commitDate(project) },
                 'Can-Redefine-Classes': true,
                 'Can-Retransform-Classes': true,
                 'Specification-Version': project.version,
@@ -419,7 +419,9 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Agent-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
-                'X-Git-SHA': System.getenv("GITHUB_SHA") ?: GitUtil.sha(project) ?: "UNKNOWN"
+                // HEAD, not GITHUB_SHA: workflow_dispatch and workflow_call can check out a different ref than the one in
+                // GITHUB_SHA, and Built-Date comes from the checked-out HEAD, so both attributes must describe the same commit.
+                'X-Git-SHA': providers.provider { GitUtil.sha(project) ?: System.getenv("GITHUB_SHA") ?: "UNKNOWN" }
     }
 }
 

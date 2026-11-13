@@ -50,6 +50,9 @@ mkdir -p ${TEMPDIR}/newrelic-api/${VERSION}
 
 cp ${ZIP} ${TEMPDIR}/newrelic-agent/${VERSION}
 unzip -j ${ZIP} newrelic/newrelic.yml -d ${TEMPDIR}/newrelic-agent/${VERSION}
+# The zip entries have a fixed 1980 timestamp for reproducible builds. "aws s3 sync" skips a same-size file whose
+# local time is not newer than the copy in S3, so a changed newrelic.yml of equal size would never be uploaded.
+touch ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic.yml
 unzip -j ${ZIP} newrelic/newrelic.jar -d ${TEMPDIR}/newrelic-agent/${VERSION}
 mv ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic.jar ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.jar
 cp ${AGENT_POM} ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.pom

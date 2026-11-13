@@ -21,6 +21,12 @@ dependencies {
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
 }
 
+// Scala 3 records absolute source paths in .tasty and .class files, which makes the jar depend on the checkout
+// directory. -sourceroot makes them relative to the module.
+tasks.withType<ScalaCompile>().configureEach {
+    scalaCompileOptions.additionalParameters = listOf("-sourceroot", projectDir.absolutePath)
+}
+
 PublishConfig.config(
         project,
         "New Relic Java agent Scala 3 API",

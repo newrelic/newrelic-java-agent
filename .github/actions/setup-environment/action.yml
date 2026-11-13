@@ -49,7 +49,15 @@ runs:
     # produces the same jar. See https://reproducible-builds.org/specs/source-date-epoch/
     - name: Set SOURCE_DATE_EPOCH to the HEAD commit time
       shell: bash
-      run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> $GITHUB_ENV
+      run: |
+        epoch=$(git log -1 --no-show-signature --format=%ct)
+        case "$epoch" in
+          ''|*[!0-9]*)
+            echo "::error::Could not read the HEAD commit time (got '$epoch'). Check that the repository is checked out before this action runs."
+            exit 1
+            ;;
+        esac
+        echo "SOURCE_DATE_EPOCH=$epoch" >> "$GITHUB_ENV"
 
     - name: Download S3 instrumentation jar zip
       shell: bash

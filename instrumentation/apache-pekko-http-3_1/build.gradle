@@ -5,6 +5,12 @@ isScalaProjectEnabled(project, "scala-3")
 sourceSets.test.scala.srcDir "src/test/java"
 sourceSets.test.java.srcDirs = []
 
+// Scala 3 records absolute source paths in .tasty and .class files, which makes the jar depend on the checkout
+// directory. -sourceroot makes them relative to the module.
+tasks.withType(ScalaCompile).configureEach {
+    scalaCompileOptions.additionalParameters = ['-sourceroot', projectDir.absolutePath]
+}
+
 jar {
     manifest { attributes 'Implementation-Title': 'com.newrelic.instrumentation.apache-pekko-http-3_1' }
 }

@@ -14,6 +14,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 public class GitUtil {
+    // 9999-12-31T23:59:59Z. Rejects values that are clearly not seconds, such as milliseconds.
+    private static final long MAX_EPOCH_SECONDS = 253402300799L;
+
     public static String sha(final Project project) {
         try {
             return firstLineOfGitOutput(project, "rev-parse", "HEAD");
@@ -31,16 +34,23 @@ public class GitUtil {
     public static String commitDate(final Project project) {
         String sourceDateEpoch = System.getenv("SOURCE_DATE_EPOCH");
         if (sourceDateEpoch != null && !sourceDateEpoch.trim().isEmpty()) {
+            long epochSeconds;
             try {
-                return format(new Date(Long.parseLong(sourceDateEpoch.trim()) * 1000L));
+                epochSeconds = Long.parseLong(sourceDateEpoch.trim());
             } catch (NumberFormatException e) {
                 throw new GradleException("SOURCE_DATE_EPOCH must be an integer number of seconds since the Unix epoch but was '"
                         + sourceDateEpoch + "'. Fix or unset the variable.", e);
             }
+            if (epochSeconds < 0 || epochSeconds > MAX_EPOCH_SECONDS) {
+                throw new GradleException("SOURCE_DATE_EPOCH must be between 0 and " + MAX_EPOCH_SECONDS + " (the year 9999) but was '"
+                        + sourceDateEpoch + "'. It is in seconds, not milliseconds. Fix or unset the variable.");
+            }
+            return format(new Date(epochSeconds * 1000L));
         }
 
         try {
-            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, "log", "-1", "--format=%ct"));
+            // --no-show-signature: with log.showSignature=true git prints signature text before the format output
+            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, "log", "-1", "--no-show-signature", "--format=%ct"));
             return format(new Date(epochSeconds * 1000L));
         } catch (Exception e) {
             project.getLogger().error("Failed to determine commit date; using the current time, so this build will not be reproducible. "
