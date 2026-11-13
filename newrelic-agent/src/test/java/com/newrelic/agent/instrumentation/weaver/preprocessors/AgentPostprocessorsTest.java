@@ -146,6 +146,15 @@ public class AgentPostprocessorsTest {
         testClass.getTokenSeparateLinkExpireNoReturnException();
         assertAfterApi(3, counts, weavePackageType);
 
+        assertBeforeApi(counts);
+        Token tokenWithCreator = testClass.getTokenWithCreator();
+        assertNotNull(tokenWithCreator);
+        assertAfterApi(1, counts, weavePackageType);
+
+        assertBeforeApi(counts);
+        testClass.getTokenWithCreatorAndSetCreator();
+        assertAfterApi(2, counts, weavePackageType);
+
         // Token API (Bridge)
         assertBeforeApi(counts);
         com.newrelic.agent.bridge.Token tokenBridge = testClass.getTokenBridge();
@@ -172,6 +181,15 @@ public class AgentPostprocessorsTest {
         assertBeforeApi(counts);
         testClass.getTokenSeparateLinkExpireNoReturnExceptionBridge();
         assertAfterApi(3, counts, weavePackageType);
+
+        assertBeforeApi(counts);
+        com.newrelic.agent.bridge.Token tokenWithCreatorBridge = testClass.getTokenWithCreatorBridge();
+        assertNotNull(tokenWithCreatorBridge);
+        assertAfterApi(1, counts, weavePackageType);
+
+        assertBeforeApi(counts);
+        testClass.getTokenWithCreatorAndSetCreatorBridge();
+        assertAfterApi(2, counts, weavePackageType);
 
         // Segment API
         assertBeforeApi(counts);
@@ -507,6 +525,15 @@ public class AgentPostprocessorsTest {
             token.expire();
         }
 
+        public Token getTokenWithCreator() {
+            return NewRelic.getAgent().getTransaction().getToken("creator");
+        }
+
+        public void getTokenWithCreatorAndSetCreator() {
+            Token token = NewRelic.getAgent().getTransaction().getToken("creator");
+            token.setCreator("other creator");
+        }
+
         // Token API (Bridge)
         public Transaction getTransactionBridge() {
             return AgentBridge.getAgent().getTransaction();
@@ -536,6 +563,15 @@ public class AgentPostprocessorsTest {
             Token token = AgentBridge.getAgent().getTransaction().getToken();
             token.link();
             token.expire();
+        }
+
+        public com.newrelic.agent.bridge.Token getTokenWithCreatorBridge() {
+            return AgentBridge.getAgent().getTransaction().getToken("creator");
+        }
+
+        public void getTokenWithCreatorAndSetCreatorBridge() {
+            com.newrelic.agent.bridge.Token token = AgentBridge.getAgent().getTransaction().getToken("creator");
+            token.setCreator("other creator");
         }
 
         // Segment API
