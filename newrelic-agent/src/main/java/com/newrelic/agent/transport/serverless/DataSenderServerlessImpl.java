@@ -64,12 +64,6 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
-    public List<List<?>> getAgentCommands() throws Exception {
-        // The serverless data sender is not involved in agent commands
-        return Collections.emptyList();
-    }
-
-    @Override
     public void sendCommandResults(Map<Long, Object> commandResults) throws Exception {
         // The serverless data sender is not involved in agent commands
     }
@@ -115,10 +109,12 @@ public class DataSenderServerlessImpl implements DataSender {
     }
 
     @Override
-    public void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
+    public List<List<?>> sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception {
         buffer.updateMetricData(metricData);
         buffer.updateMetricBeginTimeMillis(beginTimeMillis);
         buffer.updateMetricEndTimeMillis(endTimeMillis);
+        // The serverless data sender is not involved in agent commands
+        return Collections.emptyList();
     }
 
     @Override

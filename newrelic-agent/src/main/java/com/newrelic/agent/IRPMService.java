@@ -41,6 +41,12 @@ public interface IRPMService extends Service {
 
     void harvestNow();
 
+    /**
+     * Drains and returns any agent commands received in the most recent {@code metric_data} harvest response.
+     * Does not make a network call; commands arrive piggybacked on the metric harvest.
+     *
+     * @return the pending commands, or an empty list if there are none
+     */
     List<List<?>> getAgentCommands() throws Exception;
 
     void sendCommandResults(Map<Long, Object> commandResults) throws Exception;

@@ -387,7 +387,7 @@ public class DataSenderServerlessImplTest {
 
     @Test
     public void testMetrics() throws Exception {
-        dataSender.sendMetricData(2L, 3L, Collections.emptyList());
+        Assert.assertEquals(0, dataSender.sendMetricData(2L, 3L, Collections.emptyList()).size());
         MetricData metricData1 = MetricData.create(
                 MetricName.create("Other/myMetric", "myScope"),
                 null,
@@ -499,7 +499,6 @@ public class DataSenderServerlessImplTest {
 
     @Test
     public void testNoOps() throws Exception {
-        Assert.assertEquals(0, dataSender.getAgentCommands().size());
         dataSender.sendModules(null);
         dataSender.sendCommandResults(null);
         dataSender.shutdown(1000);
