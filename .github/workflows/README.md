@@ -215,7 +215,7 @@ Retrieves the release artifacts from the Sonatype staging repo and sends to the 
 ### Release - Copy to S3 (Prod)
 [Release-CopyToS3-prod.yml](Release-CopyToS3-prod.yml)
 
-Retrieves the release artifacts from Maven central and uploads to the downloads website.
+Retrieves the release artifacts from Maven central and uploads to the downloads website. Before uploading, the zip and pom files are verified against the Sigstore-signed `SHA256SUMS` on the GitHub release, their PGP signatures and their build provenance attestations (`automation/release/verify-release-artifacts.sh`). If verification fails, nothing is copied to S3. Releases published before artifact signing was added don't have a `SHA256SUMS` and can't be copied with this workflow.
 
 #### Parameters
 
@@ -237,7 +237,24 @@ This workflow sends a snapshot to Maven Central every time a commit is pushed to
 ### Publish release version explicitly
 [publish_release.yml](publish_release.yml)
 
-This workflow sends release artifacts to Maven Central's staging repo. With this artifact the release process starts.
+This workflow stages PGP-signed release artifacts in a local directory (`-PcentralStagingDir`), bundles them, and uploads the bundle to the Central Publisher Portal as a `USER_MANAGED` deployment. The deployment ID is written to the job summary, and the deployment must be published manually in the Central Portal. With this artifact the release process starts.
+
+Before uploading, every staged `.jar`, `.pom` and `.zip` is signed with [Sigstore](https://www.sigstore.dev/) (keyless, using the workflow's GitHub OIDC identity), and the resulting `<file>.sigstore.json` bundles are uploaded to Maven Central alongside the `.asc` signatures. After the upload succeeds, the workflow:
+- creates a SLSA build provenance attestation for every artifact (`gh attestation verify <file> --repo newrelic/newrelic-java-agent`)
+- attaches `SHA256SUMS` and its Sigstore bundle `SHA256SUMS.sigstore.json` to the GitHub release
+
+The Sigstore signing certificate identity is `https://github.com/newrelic/newrelic-java-agent/.github/workflows/publish_release.yml@refs/tags/<tag>`.
+
+The `verify-staged-release` job then runs without `id-token` and checks the staged artifacts against the `SHA256SUMS` on the GitHub release, their Sigstore bundles, PGP signatures and attestations. **Don't publish the deployment in the Central Portal until this job passes.**
+
+### Release - Verify Maven Central artifacts
+[Verify-Central-Release.yml](Verify-Central-Release.yml)
+
+Downloads every artifact listed in a release's `SHA256SUMS` from Maven Central, with its Sigstore bundle and PGP signature, and verifies them against the signed `SHA256SUMS` on the GitHub release and the build provenance attestations. Run it after a release has been published and synced to Maven Central.
+
+#### Parameters
+
+- **version_number** - The published version to verify.
 
 #### Triggers
 

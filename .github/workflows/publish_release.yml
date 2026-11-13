@@ -13,9 +13,26 @@ jobs:
   publish_release:
     runs-on: ubuntu-24.04
     environment: maven-prod-publishing-gated
+    permissions:
+      contents: write       # attach SHA256SUMS to the GitHub release
+      id-token: write       # OIDC token for keyless Sigstore signing
+      attestations: write   # persist build provenance attestations
+    env:
+      # Release artifacts are staged locally, laid out as a Central Publisher Portal bundle, before being uploaded
+      CENTRAL_STAGING_DIR: ${{ github.workspace }}/build/central-staging
+      STAGE: publishAllPublicationsToCentralStagingRepository
+      # Identity in the Sigstore signing certificate, e.g. https://github.com/newrelic/newrelic-java-agent/.github/workflows/publish_release.yml@refs/tags/vX.X.X
+      SIGNER_IDENTITY: https://github.com/${{ github.workflow_ref }}
+      SIGNER_OIDC_ISSUER: https://token.actions.githubusercontent.com
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+
+      # Fails before anything is staged or uploaded if the signing key hasn't been added to signing-fingerprints.txt
+      - name: Check signing key is expected
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: ./automation/release/check-signing-key.sh
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
@@ -27,63 +44,150 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Publish release
+      - name: Stage release
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala3-api:publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -x :newrelic-scala-zio2-api:publish -x :newrelic-scala-monix-api:publish -x :agent-bridge:publish -x :agent-bridge-datastore:publish -x :newrelic-weaver:publish -x :newrelic-weaver-api:publish -x :newrelic-weaver-scala:publish -x :newrelic-weaver-scala-api:publish -x :newrelic-opentelemetry-agent-extension:publish -Prelease=true
-      - name: Publish release scala apis
+        run: ./gradlew $GRADLE_OPTIONS $STAGE -x :newrelic-scala3-api:$STAGE -x :newrelic-scala-api:$STAGE -x :newrelic-scala-cats-api:$STAGE -x :newrelic-cats-effect3-api:$STAGE -x :newrelic-scala-zio-api:$STAGE -x :newrelic-scala-zio2-api:$STAGE -x :newrelic-scala-monix-api:$STAGE -x :agent-bridge:$STAGE -x :agent-bridge-datastore:$STAGE -x :newrelic-weaver:$STAGE -x :newrelic-weaver-api:$STAGE -x :newrelic-weaver-scala:$STAGE -x :newrelic-weaver-scala-api:$STAGE -x :newrelic-opentelemetry-agent-extension:$STAGE -Prelease=true -PcentralStagingDir=$CENTRAL_STAGING_DIR
+      - name: Stage release scala apis
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:publish :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish :newrelic-scala-zio2-api:publish :newrelic-scala-monix-api:publish -Prelease=true
-      - name: Publish apis for Security agent
+        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:$STAGE :newrelic-scala-api:$STAGE :newrelic-scala-cats-api:$STAGE :newrelic-cats-effect3-api:$STAGE :newrelic-scala-zio-api:$STAGE :newrelic-scala-zio2-api:$STAGE :newrelic-scala-monix-api:$STAGE -Prelease=true -PcentralStagingDir=$CENTRAL_STAGING_DIR
+      - name: Stage apis for Security agent
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS :agent-bridge:publish :agent-bridge-datastore:publish :newrelic-weaver:publish :newrelic-weaver-api:publish :newrelic-weaver-scala:publish :newrelic-weaver-scala-api:publish -Prelease=true
-      - name: Publish New Relic OpenTelemetry API Extension
+        run: ./gradlew $GRADLE_OPTIONS :agent-bridge:$STAGE :agent-bridge-datastore:$STAGE :newrelic-weaver:$STAGE :newrelic-weaver-api:$STAGE :newrelic-weaver-scala:$STAGE :newrelic-weaver-scala-api:$STAGE -Prelease=true -PcentralStagingDir=$CENTRAL_STAGING_DIR
+      - name: Stage New Relic OpenTelemetry API Extension
         env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:publish -Prelease=true
+        run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:$STAGE -Prelease=true -PcentralStagingDir=$CENTRAL_STAGING_DIR
+
+      # Writes <file>.sigstore.json next to each primary artifact so the bundles are uploaded to Maven Central with it.
+      # Signatures, checksums and maven-metadata files aren't signed.
+      - name: Sign staged artifacts with Sigstore
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # pin@v3.5.0
+        with:
+          inputs: |
+            ${{ env.CENTRAL_STAGING_DIR }}/**/*.jar
+            ${{ env.CENTRAL_STAGING_DIR }}/**/*.pom
+            ${{ env.CENTRAL_STAGING_DIR }}/**/*.zip
+          rekor-version: 1
+          release-signing-artifacts: false
+          verify: true
+          verify-cert-identity: ${{ env.SIGNER_IDENTITY }}
+          verify-oidc-issuer: ${{ env.SIGNER_OIDC_ISSUER }}
+
+      # Hashes of every primary artifact sent to Maven Central, published separately on the GitHub release
+      - name: Generate SHA256SUMS
+        run: |
+          (cd "$CENTRAL_STAGING_DIR" && find . -type f \( -name '*.jar' -o -name '*.pom' -o -name '*.zip' \) -print0 \
+            | sort -z | xargs -0 sha256sum | sed 's#  \./.*/#  #') > SHA256SUMS
+          if [ ! -s SHA256SUMS ]; then
+            echo "SHA256SUMS is empty. Check that the stage steps above produced artifacts in $CENTRAL_STAGING_DIR."
+            exit 1
+          fi
+          cat SHA256SUMS
+
+      - name: Sign SHA256SUMS with Sigstore
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # pin@v3.5.0
+        with:
+          inputs: SHA256SUMS
+          rekor-version: 1
+          release-signing-artifacts: false
+          verify: true
+          verify-cert-identity: ${{ env.SIGNER_IDENTITY }}
+          verify-oidc-issuer: ${{ env.SIGNER_OIDC_ISSUER }}
 
       - name: Upload staged artifacts to Central Sonatype
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          if [ -z "$(find "$CENTRAL_STAGING_DIR" -name '*.pom' 2>/dev/null)" ]; then
+            echo "No staged artifacts found in $CENTRAL_STAGING_DIR. Check the output of the stage steps above."
+            exit 1
+          fi
+          # the bundle follows the Maven repository layout; Gradle's maven-metadata files aren't part of a Central deployment
+          BUNDLE="$RUNNER_TEMP/central-bundle.zip"
+          (cd "$CENTRAL_STAGING_DIR" && zip -qr "$BUNDLE" . -x '*maven-metadata*')
           # token is a b64-encoded string of username:password, used in auth header of API call
-          SONATYPE_TOKEN=$(printf "$SONATYPE_USERNAME:$SONATYPE_PASSWORD" | base64)
-          PUBLISH_NAMESPACE="com.newrelic"
-          # makes a curl request to ossrh-staging-api to upload everything to Central Sonatype
-          echo "Uploading artifacts from OSSRH-Staging to Central Sonatype..."
-          # captures response code and body of curl request
+          SONATYPE_TOKEN=$(printf '%s:%s' "$SONATYPE_USERNAME" "$SONATYPE_PASSWORD" | base64 -w0)
+          # USER_MANAGED deployments are validated, then wait for a manual publish in the Central Portal
+          echo "Uploading staged artifacts to Central Sonatype..."
           RESPONSE=$(curl -s -w "%{http_code}" -o response_body.txt -X POST \
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
-            "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/$PUBLISH_NAMESPACE?publishing_type=user_managed")
-          # job fails if we got anything back but a 200
-          if [ "$RESPONSE" -ne 200 ]; then
+            -F "bundle=@$BUNDLE" \
+            "https://central.sonatype.com/api/v1/publisher/upload?name=newrelic-java-agent-$RELEASE_TAG&publishingType=USER_MANAGED")
+          # job fails if we got anything back but a 201
+          if [ "$RESPONSE" -ne 201 ]; then
             echo "Failed to upload artifacts to Central Sonatype. Response code: $RESPONSE. Response body: "
             cat response_body.txt
             echo "Visit https://central.sonatype.com/publishing/deployments for more information."
             exit 1
           else
-            echo "Artifacts were uploaded successfully to Central Sonatype."
-            echo "Visit https://central.sonatype.com/publishing/deployments to view your artifacts."
+            DEPLOYMENT_ID=$(cat response_body.txt)
+            echo "Artifacts were uploaded successfully to Central Sonatype. Deployment ID: $DEPLOYMENT_ID"
+            echo "Central Sonatype deployment ID: \`$DEPLOYMENT_ID\`" >> $GITHUB_STEP_SUMMARY
+            echo "Visit https://central.sonatype.com/publishing/deployments to review and publish your artifacts."
           fi
+
+      # Attest and publish hashes only after the upload succeeds, so they always describe what was sent to Maven Central
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # pin@v4.2.2
+        with:
+          subject-checksums: SHA256SUMS
+
+      - name: Attach SHA256SUMS to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" SHA256SUMS SHA256SUMS.sigstore.json --repo "$GITHUB_REPOSITORY"
+
+      - name: Save staged artifacts for verification
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
+        with:
+          name: central-staging
+          path: ${{ env.CENTRAL_STAGING_DIR }}
+          retention-days: 14
+
+  # Runs without id-token so it can only check signatures, not create them. The Central Portal deployment
+  # shouldn't be published until this job passes.
+  verify-staged-release:
+    needs: [publish_release]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      attestations: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+
+      - name: Download staged artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # pin@v8
+        with:
+          name: central-staging
+          path: central-staging
+
+      - name: Install Sigstore CLI
+        run: pipx install sigstore==4.5.0
+
+      - name: Verify staged artifacts against the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          SIGNER_IDENTITY: https://github.com/${{ github.workflow_ref }}
+        run: |
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'SHA256SUMS*' --dir release-sums
+          ./automation/release/verify-release-artifacts.sh --complete "$RELEASE_TAG" release-sums central-staging
+          echo "Staged artifacts for $RELEASE_TAG verified. The Central Portal deployment can be published." >> $GITHUB_STEP_SUMMARY
+
   update-agent-metadata:
     needs: [publish_release]
     uses: ./.github/workflows/Agent-Metadata.yml
