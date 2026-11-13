@@ -2,7 +2,9 @@ name: Generate Compatibility Doc
 
 # Permissions granted to all jobs in the workflow.
 # Permissions that aren't explicitly defined here will default to a value of none.
-permissions: {}
+permissions:
+  contents: read
+  id-token: write
 
 on:
   push:

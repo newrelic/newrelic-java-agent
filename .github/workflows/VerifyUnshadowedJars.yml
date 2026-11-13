@@ -2,7 +2,9 @@ name: Verify Unshadowed Jars
 
 # Permissions granted to all jobs in the workflow.
 # Permissions that aren't explicitly defined here will default to a value of none.
-permissions: {}
+permissions:
+  contents: read
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -27,7 +29,7 @@ jobs:
     environment: agent-build-s3-access-ungated
     env:
       # we use this in env var for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_ARN: ${{ secrets.AWS_ROLE_ARN }}
     steps:
 #       - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
@@ -35,11 +37,10 @@ jobs:
           ref: ${{ inputs.agent-ref }}
 
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_KEY != '' }}
+        if: ${{ env.AWS_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}   # your existing role ARN
           aws-region: us-east-2
 
       - name: Setup environment
