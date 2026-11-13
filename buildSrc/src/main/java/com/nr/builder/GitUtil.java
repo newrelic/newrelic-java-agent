@@ -32,6 +32,12 @@ public class GitUtil {
      * The build date for the manifest, formatted like {@link Date#toString()} but always in UTC so the result
      * depends only on the source. Uses SOURCE_DATE_EPOCH if set (see https://reproducible-builds.org/specs/source-date-epoch/),
      * otherwise the HEAD commit time, otherwise the current time if git is unavailable.
+     *
+     * <p>KEEP IN SYNC with the "Set SOURCE_DATE_EPOCH to the HEAD commit time" step in
+     * .github/actions/setup-environment/action.yml: CI sets SOURCE_DATE_EPOCH with the same git command used below
+     * (committer time of HEAD, {@code git log -1 --no-show-signature --format=%ct}), and that value takes priority
+     * over this method's own lookup. If the two ever get the timestamp differently, CI and local builds of the same
+     * commit will have different Built-Date values.
      */
     public static String commitDate(final Project project) {
         String sourceDateEpoch = System.getenv("SOURCE_DATE_EPOCH");

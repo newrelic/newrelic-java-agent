@@ -48,6 +48,9 @@ runs:
     # Reproducible builds: the build reads SOURCE_DATE_EPOCH for the manifest Built-Date, so Built-Date is the commit
     # time and not the time the job ran. This is the value GitUtil.commitDate() would use anyway; it is set here so the
     # build does not depend on running git. See https://reproducible-builds.org/specs/source-date-epoch/
+    # KEEP IN SYNC with GitUtil.commitDate() (buildSrc/src/main/java/com/nr/builder/GitUtil.java): both must get the
+    # timestamp the same way (committer time of HEAD, `git log -1 --no-show-signature --format=%ct`). This value
+    # overrides GitUtil's, so if they differ, CI and local builds of the same commit get different Built-Date values.
     - name: Set SOURCE_DATE_EPOCH to the HEAD commit time
       shell: bash
       run: |
