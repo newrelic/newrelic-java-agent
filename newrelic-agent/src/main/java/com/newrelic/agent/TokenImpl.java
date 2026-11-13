@@ -13,7 +13,6 @@ import com.newrelic.agent.stats.StatsWorks;
 import com.newrelic.agent.tracers.Tracer;
 
 import java.text.MessageFormat;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
@@ -183,6 +182,7 @@ public class TokenImpl implements Token {
         }
     }
 
+    @Override
     public void setCreator(String creator) {
         this.creator = creator;
     }
