@@ -227,6 +227,7 @@ task buildManifest(type: BuildManifestTask, dependsOn: 'classes') {
  */
 task generateVersionProperties() {
     def buildProps = new File(sourceSets.main.output.resourcesDir, "com/newrelic/agent/Agent.properties")
+    inputs.property("version", version)
     outputs.file(buildProps)
 
     doLast {

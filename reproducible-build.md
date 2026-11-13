@@ -15,6 +15,12 @@ All measurements below compare a jar built from the code **before** these change
 | 5 | `instrumentation/apache-pekko-http-3_1/build.gradle`, `newrelic-scala3-api/build.gradle.kts` | The Scala 3 compiler gets `-sourceroot <module directory>`. Without it `.tasty` and `.class` files embed the absolute path of the checkout, so the jar depended on where it was built. |
 | 6 | `.github/actions/setup-environment/action.yml` | A step sets `SOURCE_DATE_EPOCH` to the HEAD commit time for every workflow that uses the action. It fails the job if git returns anything other than digits, instead of exporting an empty value. |
 | 7 | `automation/release/send-zip-to-s3.sh` | After extracting `newrelic.yml` from the dist zip it runs `touch` on it. The zip entry time is now 1980, and `aws s3 sync` skips a same-size file that is not newer than the copy in S3, so an edited `newrelic.yml` of equal size would not have been uploaded. |
+| 8 | `build.gradle` (root, `Javadoc` tasks) | After each javadoc task, the `member-`, `package-` and `type-search-index.zip` files that the JDK 11 javadoc tool writes (`newrelic-api`, `agent-bridge`, `agent-bridge-datastore`, `newrelic-weaver-api`) are rewritten with the fixed 1980-02-01 entry time. Without this the javadoc jars, and the dist zip that bundles `newrelic-api-javadoc.jar`, changed on every build. |
+| 9 | `.gitattributes` | LF is forced for the files copied byte for byte into the jar and zip, so a `core.autocrlf=true` checkout builds the same bytes. |
+| 10 | `newrelic-agent/build.gradle` (`generateVersionProperties`) | Declares `version` as an input. Before, a version change without `clean` left the old version in `Agent.properties` (and so in `RPMService`'s `agent_version`). |
+| 11 | `buildSrc` (`DependencyPatcher`, `Log4j2PluginFileMover`, `JarUtil`) | The two shadow transformers set the fixed 1980-02-01 entry time on the entries they write, instead of the build time. This only affects the intermediate `transformedShadowJar`; the final jar was already normalized when it was repacked. |
+| 12 | `buildSrc/.../GitUtil.java` | `firstLineOfGitOutput()` now reads stdout to the end before waiting, sends git's stderr to the build output, gives git 30 seconds, restores the interrupt flag, and fails with a clear message if git prints nothing. |
+| 13 | `instrumentation/build.gradle` | Removed the `preserveFileTimestamps`/`reproducibleFileOrder` block, which the root `allprojects` block already applies to every archive task. |
 
 ## 2. Every difference in the produced jar (measured)
 
@@ -131,6 +137,8 @@ Verified (JDK 8, macOS):
 | 2 clean builds, one in the original checkout and one in a fresh `git worktree` in a different directory (git-ignored `lib/` jars copied over), `SOURCE_DATE_EPOCH` unset | identical, SHA-256 `15cf8c81…1beb5` |
 | After the review fixes (sorted `PointcutClasses.properties`, `-sourceroot`, no `Built-By`): cold builds with `--no-build-cache`, one in the original checkout and one in a copy at `/tmp/repro/wt2` built under `umask 077`, `TZ=Asia/Tokyo`, `LC_ALL=tr_TR.UTF-8`, `SOURCE_DATE_EPOCH` unset, HEAD `5651e0fc` | identical, SHA-256 `48ab7e17…713138` |
 | Same two builds, `newrelic-scala3-api` jar | identical, SHA-256 `b4a62361…0680a9` |
+| Cold builds of the agent jar and the dist zip (`newrelic.zip`, which includes the javadoc jar) with `--no-build-cache`, in the original checkout and in the `/tmp/repro/wt2` copy (`umask 077`, `TZ=Asia/Tokyo`, `LC_ALL=tr_TR.UTF-8`), HEAD `d7816d7ae` | `newrelic.jar` identical (`f3651512…93d05d7`) and `newrelic.zip` identical (`ef16d9b5…09f52b`) |
+| `:newrelic-weaver-api:javadocJar` built twice with a 2 second gap | identical (`b8656bc5…c2c83`); the nested `*-search-index.zip` entries are all `1980-02-01` |
 | `SOURCE_DATE_EPOCH=abc` with `:newrelic-api:tasks` | does not fail (the value is only read when the agent jar is built) |
 | `SOURCE_DATE_EPOCH=1700000000000` or `-1` with the agent jar task | build fails with a message naming the variable and saying it is in seconds |
 
@@ -143,8 +151,7 @@ Not covered:
 
 - **Different commit:** a new commit changes `X-Git-SHA` and `Built-Date`, even if no code changed. To compare across commits, pin `GITHUB_SHA` and `SOURCE_DATE_EPOCH`.
 - **Different `BUILD_ID`:** this goes into the `Build-Id` attribute.
-- **Checkouts that change file contents:** a Windows or `core.autocrlf=true` checkout converts text files to CRLF. `newrelic.yml`, `LICENSE`, `THIRD_PARTY_NOTICES.md` and the extension files are copied into the jar and zip byte for byte, so the hash differs from a Linux build of the same commit. The repo has no `.gitattributes` text rules to prevent it.
-- **Javadoc jars:** for `newrelic-api`, `agent-bridge`, `agent-bridge-datastore` and `newrelic-weaver-api`, the JDK 11 javadoc tool writes `member-search-index.zip`, `package-search-index.zip` and `type-search-index.zip` with run-time entry times, so those javadoc jars, and the dist zip that bundles `newrelic-api-javadoc.jar`, are not byte-identical between builds. `newrelic.jar` is not affected. This makes the `allprojects` comment about byte-identical archives too broad.
+- **Text files outside the packaged resources:** `.gitattributes` now forces LF for `LICENSE`, `THIRD_PARTY_NOTICES.md` and `newrelic-agent/src/main/resources/**`, which are copied into the jar and zip byte for byte. Other sources are not covered, so a `core.autocrlf=true` checkout still changes `sourcesJar` contents.
 - **Uncommitted changes:** these change the jar content but not `Built-Date`, because the date comes from HEAD.
 - **Different JDKs:** see section 4a. The JVM running Gradle must be the same major version family, and every toolchain compiler must be the same exact patch release. A different patch release can change class files.
 - **Different OS:** only macOS was tried.

@@ -12,10 +12,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class GitUtil {
     // 9999-12-31T23:59:59Z. Rejects values that are clearly not seconds, such as milliseconds.
     private static final long MAX_EPOCH_SECONDS = 253402300799L;
+    private static final long GIT_TIMEOUT_SECONDS = 30;
 
     public static String sha(final Project project) {
         try {
@@ -63,18 +65,42 @@ public class GitUtil {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.addAll(Arrays.asList(gitArguments));
+        String description = "git " + String.join(" ", gitArguments);
         Process gitProcess = new ProcessBuilder(command)
                 .directory(project.getProjectDir())
+                // git's own error text (for example "dubious ownership") goes to the build output, and an unread stderr pipe can't block it
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
                 .start();
 
-        if (gitProcess.waitFor() != 0) {
-            throw new GradleException("git " + String.join(" ", gitArguments) + " exited with status " + gitProcess.exitValue());
-        }
-
+        // Read stdout to the end before waiting, so a full pipe can't block git.
+        String firstLine = null;
         try (InputStreamReader reader = new InputStreamReader(gitProcess.getInputStream());
              BufferedReader bufferedReader = new BufferedReader(reader)) {
-            return bufferedReader.readLine().trim();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                if (firstLine == null) {
+                    firstLine = line.trim();
+                }
+            }
         }
+
+        try {
+            if (!gitProcess.waitFor(GIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                gitProcess.destroyForcibly();
+                throw new GradleException(description + " did not finish within " + GIT_TIMEOUT_SECONDS + " seconds");
+            }
+        } catch (InterruptedException e) {
+            gitProcess.destroyForcibly();
+            Thread.currentThread().interrupt();
+            throw new GradleException(description + " was interrupted", e);
+        }
+        if (gitProcess.exitValue() != 0) {
+            throw new GradleException(description + " exited with status " + gitProcess.exitValue());
+        }
+        if (firstLine == null || firstLine.isEmpty()) {
+            throw new GradleException(description + " printed no output");
+        }
+        return firstLine;
     }
 
     private static String format(Date date) {

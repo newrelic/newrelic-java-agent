@@ -12,11 +12,6 @@ subprojects {
         task.enabled = !project.hasProperty('noInstrumentation')
     }
 
-    tasks.withType(AbstractArchiveTask) {
-        preserveFileTimestamps = false
-        reproducibleFileOrder = true
-    }
-
     // prevents caching of verify instrumentation tasks
     tasks.withType(VerifyTask) { task ->
         task.outputs.upToDateWhen { return false }

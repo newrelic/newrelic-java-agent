@@ -22,6 +22,13 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public class JarUtil {
+    /**
+     * The fixed entry time Gradle uses for archives with preserveFileTimestamps = false (1980-02-01 00:00 local time,
+     * which ZipEntry stores as the DOS time 1980-02-01 00:00 in any time zone). Used by transformers that write their
+     * own zip entries, which would otherwise get the time of the build.
+     */
+    public static final long CONSTANT_ENTRY_TIME = new java.util.GregorianCalendar(1980, java.util.Calendar.FEBRUARY, 1, 0, 0, 0).getTimeInMillis();
+
     public static File getNewRelicJar(Project newrelicAgentProject) {
         Optional<Task> jarTaskSet = newrelicAgentProject.getTasksByName("newrelicVersionedAgentJar", false).stream().findAny();
         if (!jarTaskSet.isPresent()) {
