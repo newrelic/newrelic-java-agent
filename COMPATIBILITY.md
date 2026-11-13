@@ -69,10 +69,10 @@ This version of the Java Agent supports Java versions 8 - 27.
     * Scala 3: 3.4.0 to latest
   * OpenTelemetry 1.26.0-alpha to latest
   * Pekko 1.0.0 to latest
-  * Pekko Http 1.0.0 to latest
+  * Pekko Http 1.0.0 to 2.0.0 (exclusive)
     * Scala 2.13: 1.0.0 to latest
     * Scala 3: 1.0.0 to latest
-  * Pekko Http Core 1.0.0 to latest
+  * Pekko Http Core 1.0.0 to 2.0.0 (exclusive)
     * Scala 2.13: 1.0.0 to latest
     * Scala 3: 1.0.0 to latest
   * Play 2.4.0-M3 to latest
