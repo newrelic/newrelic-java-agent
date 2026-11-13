@@ -14,7 +14,7 @@ public abstract class EventLoopImplBase_Instrumentation {
 
 	public void schedule(long nanos, DelayedTask_Instrumentation task) {
 		if(task.token == null) {
-			Token t = NewRelic.getAgent().getTransaction().getToken();
+			Token t = NewRelic.getAgent().getTransaction().getToken("kotlin-coroutines-1.4:EventLoopImplBase_Instrumentation.schedule");
 			if(t != null) {
 				if(!t.isActive()) {
 					t.expire();
@@ -32,7 +32,7 @@ public abstract class EventLoopImplBase_Instrumentation {
 
 		public DelayedTask_Instrumentation(long nanos) {
 			if(Utils.DELAYED_ENABLED) {
-				token = NewRelic.getAgent().getTransaction().getToken();
+				token = NewRelic.getAgent().getTransaction().getToken("kotlin-coroutines-1.4:DelayedTask_Instrumentation.<init>");
 			}
 		}
 
@@ -43,7 +43,7 @@ public abstract class EventLoopImplBase_Instrumentation {
 
 		public int scheduleTask(long delay, DelayedTaskQueue_Instrumentation queue, EventLoopImplBase_Instrumentation eventLoop) {
 			if(token == null) {
-				token = NewRelic.getAgent().getTransaction().getToken();
+				token = NewRelic.getAgent().getTransaction().getToken("kotlin-coroutines-1.4:DelayedTask_Instrumentation.scheduleTask");
 			}
 
 			return Weaver.callOriginal();

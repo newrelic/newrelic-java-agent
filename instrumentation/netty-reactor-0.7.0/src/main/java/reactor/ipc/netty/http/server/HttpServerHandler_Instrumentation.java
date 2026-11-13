@@ -29,7 +29,7 @@ class HttpServerHandler_Instrumentation {
         Weaver.callOriginal();
         if (msg instanceof HttpRequest) {
             if (ctx.pipeline().reactiveLayerToken == null) {
-                ctx.pipeline().reactiveLayerToken = AgentBridge.getAgent().getTransaction().getToken();
+                ctx.pipeline().reactiveLayerToken = AgentBridge.getAgent().getTransaction().getToken("netty-reactor-0.7.0:HttpServerHandler_Instrumentation.channelRead");
             }
         }
     }

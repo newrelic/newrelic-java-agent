@@ -27,7 +27,7 @@ public class GetToken implements Action0 {
     @Override
     public void call() {
         try {
-            tokenHolder.token = AgentBridge.getAgent().getTransaction().getToken();
+            tokenHolder.token = AgentBridge.getAgent().getTransaction().getToken("hystrix-1.4:GetToken.call");
         } catch (Throwable t) {
             AgentBridge.getAgent().getLogger().log(Level.FINE, t, "An unexpected error occurred while attempting to get a Hystrix token");
         }

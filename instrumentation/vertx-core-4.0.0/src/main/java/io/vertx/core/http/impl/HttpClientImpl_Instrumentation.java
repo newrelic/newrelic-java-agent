@@ -32,7 +32,7 @@ public class HttpClientImpl_Instrumentation {
             long timeout,
             Boolean followRedirects,
             PromiseInternal<HttpClientRequest> requestPromise) {
-        requestPromise = new HttpClientRequestPromiseWrapper(requestPromise, NewRelic.getAgent().getTransaction().getToken());
+        requestPromise = new HttpClientRequestPromiseWrapper(requestPromise, NewRelic.getAgent().getTransaction().getToken("vertx-core-4.0.0:HttpClientImpl_Instrumentation.request"));
         Weaver.callOriginal();
     }
 }

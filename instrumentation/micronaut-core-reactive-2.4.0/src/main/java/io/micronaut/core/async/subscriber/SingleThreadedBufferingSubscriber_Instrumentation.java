@@ -22,7 +22,7 @@ public abstract class SingleThreadedBufferingSubscriber_Instrumentation<T> {
 
     public void onSubscribe(Subscription subscription) {
         if (token != null) {
-            Token t = NewRelic.getAgent().getTransaction().getToken();
+            Token t = NewRelic.getAgent().getTransaction().getToken("micronaut-core-reactive-2.4.0:SingleThreadedBufferingSubscriber_Instrumentation.onSubscribe");
             if (t != null && t.isActive()) {
                 token = t;
             } else if (t != null) {

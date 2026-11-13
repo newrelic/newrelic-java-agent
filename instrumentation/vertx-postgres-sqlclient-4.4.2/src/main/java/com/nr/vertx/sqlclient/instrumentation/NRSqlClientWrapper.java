@@ -22,7 +22,7 @@ public class NRSqlClientWrapper<E> implements Handler<E> {
 
     public NRSqlClientWrapper(Handler<E> delegate, Segment segment) {
         this.delegate = delegate;
-        token = NewRelic.getAgent().getTransaction().getToken();
+        token = NewRelic.getAgent().getTransaction().getToken("vertx-postgres-sqlclient-4.4.2:NRSqlClientWrapper.<init>");
         this.segment = segment;
     }
 

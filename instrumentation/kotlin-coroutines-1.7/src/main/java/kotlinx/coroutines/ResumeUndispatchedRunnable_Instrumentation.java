@@ -14,7 +14,7 @@ abstract class ResumeUndispatchedRunnable_Instrumentation {
 	private Token token = null;
 
 	public ResumeUndispatchedRunnable_Instrumentation(CoroutineDispatcher_Instrumentation dispatcher, CancellableContinuation<? super kotlin.Unit> cont) {
-		Token t = NewRelic.getAgent().getTransaction().getToken();
+		Token t = NewRelic.getAgent().getTransaction().getToken("kotlin-coroutines-1.7:ResumeUndispatchedRunnable_Instrumentation.<init>");
 		if(t != null && t.isActive()) {
 			token = t;
 		} else if(t != null) {

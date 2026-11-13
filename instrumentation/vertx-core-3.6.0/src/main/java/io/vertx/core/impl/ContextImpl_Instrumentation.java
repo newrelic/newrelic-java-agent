@@ -23,8 +23,8 @@ abstract class ContextImpl_Instrumentation {
 
     <T> void executeBlocking(Handler<Future<T>> blockingCodeHandler, Handler<AsyncResult> resultHandler,
             Executor exec, TaskQueue queue, PoolMetrics metrics) {
-        VertxCoreUtil.storeToken(blockingCodeHandler);
-        VertxCoreUtil.storeToken(resultHandler);
+        VertxCoreUtil.storeToken(blockingCodeHandler, "vertx-core-3.6.0:ContextImpl_Instrumentation.executeBlocking");
+        VertxCoreUtil.storeToken(resultHandler, "vertx-core-3.6.0:ContextImpl_Instrumentation.executeBlocking");
         Weaver.callOriginal();
     }
 

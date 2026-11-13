@@ -62,7 +62,7 @@ abstract class RealCall_Instrumentation {
         private Token token;
 
         AsyncCall_Instrumentation(Callback responseCallback) {
-            token = NewRelic.getAgent().getTransaction().getToken();
+            token = NewRelic.getAgent().getTransaction().getToken("okhttp-3.6.0:AsyncCall_Instrumentation.<init>");
         }
 
         @Trace(async = true, leaf = true)

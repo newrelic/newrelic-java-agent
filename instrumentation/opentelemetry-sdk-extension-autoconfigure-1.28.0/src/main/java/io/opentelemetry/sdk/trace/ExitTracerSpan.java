@@ -492,6 +492,7 @@ public class ExitTracerSpan implements ReadWriteSpan {
 
     public Scope createScope(Scope scope) {
         final Token token = tracer.getToken();
+        token.setCreator("opentelemetry-sdk-extension-autoconfigure-1.28.0:ExitTracerSpan.createScope");
         // we can't link a known transaction from one thread to another unless there is
         // a transaction with at least one tracer on the new thread.
         AgentBridge.getAgent().getTransaction(true);

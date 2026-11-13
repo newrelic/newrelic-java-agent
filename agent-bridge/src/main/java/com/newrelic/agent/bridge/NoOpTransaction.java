@@ -290,6 +290,11 @@ public class NoOpTransaction implements Transaction {
     }
 
     @Override
+    public Token getToken(String creator) {
+        return NoOpToken.INSTANCE;
+    }
+
+    @Override
     public Segment startSegment(String segmentName) {
         return NoOpSegment.INSTANCE;
     }

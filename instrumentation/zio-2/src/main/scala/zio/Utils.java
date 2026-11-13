@@ -22,7 +22,7 @@ public class Utils {
     if (tokenAndRefCount == null) {
       Transaction tx = AgentBridge.getAgent().getTransaction(false);
       if (tx != null) {
-        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+        tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken("zio-2:Utils.getThreadTokenAndRefCount"),
                 AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
       }
     } else {

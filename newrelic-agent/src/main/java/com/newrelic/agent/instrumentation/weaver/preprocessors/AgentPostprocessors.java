@@ -187,6 +187,12 @@ public class AgentPostprocessors implements WeavePostprocessor {
             // Transaction Bridge API - Token - Token getToken()
             .put(Type.getType(com.newrelic.agent.bridge.Transaction.class).getInternalName(),
                     new Method("getToken", Type.getType(com.newrelic.agent.bridge.Token.class), new Type[] {}))
+            // Transaction API - Token - Token getToken(String creator)
+            .put(Type.getType(Transaction.class).getInternalName(), new Method("getToken", Type.getType(Token.class),
+                    new Type[] { Type.getType(String.class) }))
+            // Transaction Bridge API - Token - Token getToken(String creator)
+            .put(Type.getType(com.newrelic.agent.bridge.Transaction.class).getInternalName(),
+                    new Method("getToken", Type.getType(com.newrelic.agent.bridge.Token.class), new Type[] { Type.getType(String.class) }))
 
             // Transaction API - Segment - Segment startSegment(String segmentName)
             .put(Type.getType(Transaction.class).getInternalName(), new Method("startSegment",
@@ -271,6 +277,13 @@ public class AgentPostprocessors implements WeavePostprocessor {
             // Token API - Token/Link, Token/Expire - boolean linkAndExpire()
             .put(Type.getType(Token.class).getInternalName(), new Method("linkAndExpire", Type.BOOLEAN_TYPE,
                     new Type[] {}))
+
+            // Token API - void setCreator(String creator)
+            .put(Type.getType(Token.class).getInternalName(), new Method("setCreator", Type.VOID_TYPE,
+                    new Type[] { Type.getType(String.class) }))
+            // Token Bridge API - void setCreator(String creator)
+            .put(Type.getType(com.newrelic.agent.bridge.Token.class).getInternalName(), new Method("setCreator", Type.VOID_TYPE,
+                    new Type[] { Type.getType(String.class) }))
 
             // NewRelic API - AddCustomParameter - public static void addCustomParameter(String key, Number value)
             .put(Type.getType(NewRelic.class).getInternalName(), new Method("addCustomParameter", Type.VOID_TYPE,

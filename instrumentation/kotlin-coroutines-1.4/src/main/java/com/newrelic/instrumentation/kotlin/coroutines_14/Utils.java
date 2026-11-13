@@ -45,7 +45,7 @@ public class Utils implements CoroutineConfigListener {
 	 * Returns a Runnable wrapper to track Runnable tasks that
 	 * are being passed to another thread
 	 */
-	public static NRRunnable getRunnableWrapper(Runnable r) {
+	public static NRRunnable getRunnableWrapper(Runnable r, String tokenCreator) {
 		if(r instanceof NRRunnable) {
 			return null;
 		}
@@ -58,7 +58,7 @@ public class Utils implements CoroutineConfigListener {
             }
         }
 		
-		Token t = NewRelic.getAgent().getTransaction().getToken();
+		Token t = NewRelic.getAgent().getTransaction().getToken(tokenCreator);
 		if(t != null && t.isActive()) {
 			return new NRRunnable(r, t);
 		} else if(t != null) {
@@ -124,24 +124,6 @@ public class Utils implements CoroutineConfigListener {
 	}
 
 	public static String sub = "createCoroutineFromSuspendFunction";
-
-	/*
-	* Set the async token in the CoroutineContext
-	* Used to track the transaction across multiple threads
-	*/
-	public static void setToken(CoroutineContext context) {
-		TokenContext tokenContext = NRTokenContextKt.getTokenContextOrNull(context);
-		if (tokenContext == null) {
-			Token t = NewRelic.getAgent().getTransaction().getToken();
-			if(t != null && t.isActive()) {
-				NRTokenContextKt.addTokenContext(context, t);
-			} else if(t != null) {
-				t.expire();
-				t = null;
-			}
-		}
-
-	}
 
 	/*
 	 * Gets the async token in the CoroutineContext if it is set

@@ -14,7 +14,7 @@ public class Utils {
     // Used to be that if the tokenAndRefCount is not null, we increment the counter and then return the tokenAndRefCount
     Transaction tx = AgentBridge.getAgent().getTransaction(false);
     if (tx != null) {
-      tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken(),
+      tokenAndRefCount = new AgentBridge.TokenAndRefCount(tx.getToken("zio:Utils.getThreadTokenAndRefCount"),
                                                           AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
     }
     return tokenAndRefCount;

@@ -22,7 +22,7 @@ public abstract class CompletionAwareSubscriber_Instrumentation<T> {
 
     public void onSubscribe(Subscription s) {
         if (token == null) {
-            Token t = NewRelic.getAgent().getTransaction().getToken();
+            Token t = NewRelic.getAgent().getTransaction().getToken("micronaut-core-reactive-2.4.0:CompletionAwareSubscriber_Instrumentation.onSubscribe");
             if (t != null && t.isActive()) {
                 token = t;
             } else if (t != null) {

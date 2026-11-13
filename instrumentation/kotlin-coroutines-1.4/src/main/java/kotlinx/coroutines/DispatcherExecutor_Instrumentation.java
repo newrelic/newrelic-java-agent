@@ -14,7 +14,7 @@ abstract class DispatcherExecutor_Instrumentation {
 	@Trace
 	public void execute(Runnable r) {
 		NewRelic.getAgent().getTracedMethod().setMetricName("Custom","Kotlin","Coroutines","DispatcherExecutor","execute");
-		NRRunnable wrapper = Utils.getRunnableWrapper(r);
+		NRRunnable wrapper = Utils.getRunnableWrapper(r, "kotlin-coroutines-1.4:DispatcherExecutor_Instrumentation.execute");
 		if(wrapper != null) {
 			r = wrapper;
 		}

@@ -152,6 +152,11 @@ class NoOpAgent implements Agent {
         }
 
         @Override
+        public Token getToken(String creator) {
+            return TOKEN;
+        }
+
+        @Override
         public Segment startSegment(String tracedActivityName) {
             return SEGMENT;
         }
@@ -208,6 +213,9 @@ class NoOpAgent implements Agent {
         public boolean isActive() {
             return false;
         }
+
+        @Override
+        public void setCreator(String creator) {}
     };
 
     private static final ErrorApi ERROR_API = new ErrorApi() {

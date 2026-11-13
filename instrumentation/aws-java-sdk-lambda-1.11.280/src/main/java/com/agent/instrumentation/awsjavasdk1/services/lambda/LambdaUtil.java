@@ -135,8 +135,7 @@ public class LambdaUtil {
         return TOKEN_MAP.remove(request);
     }
 
-    public static void setTokenForRequest(InvokeRequest request) {
-        Token token = NewRelic.getAgent().getTransaction().getToken();
-        TOKEN_MAP.put(request, token);
+    public static void setTokenForRequest(InvokeRequest request, String creator) {
+        TOKEN_MAP.put(request, NewRelic.getAgent().getTransaction().getToken(creator));
     }
 }

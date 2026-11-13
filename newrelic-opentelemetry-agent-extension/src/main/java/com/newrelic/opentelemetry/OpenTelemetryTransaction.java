@@ -140,6 +140,12 @@ final class OpenTelemetryTransaction implements Transaction {
     }
 
     @Override
+    public Token getToken(String creator) {
+        OpenTelemetryNewRelic.logUnsupportedMethod("Transaction", "getToken");
+        return NoOpToken.getInstance();
+    }
+
+    @Override
     public Segment startSegment(String segmentName) {
         OpenTelemetryNewRelic.logUnsupportedMethod("Transaction", "startSegment");
         return NoOpSegment.getInstance();
