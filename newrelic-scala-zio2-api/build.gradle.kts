@@ -35,6 +35,8 @@ dependencies {
 
 val javadocJar by tasks.getting
 val sourcesJar by tasks.getting
+// Snapshots skip sources and javadoc to reduce the number of uploads and avoid Central rate limiting
+val isSnapshot = version.toString().endsWith("SNAPSHOT")
 
 listOf("2.12", "2.13").forEach { scalaVersion ->
     val componentName = "crossBuildScala_${scalaVersion.replace(".", "")}"
@@ -45,8 +47,10 @@ listOf("2.12", "2.13").forEach { scalaVersion ->
         "The public Scala $scalaVersion API of the Java agent, and no-op implementations for safe usage without the agent."
     ) {
         from(components[componentName])
-        artifact(sourcesJar)
-        artifact(javadocJar)
+        if (!isSnapshot) {
+            artifact(sourcesJar)
+            artifact(javadocJar)
+        }
     }
 }
 

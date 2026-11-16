@@ -8,6 +8,7 @@ permissions:
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: # TEMPORARY: manual testing of snapshot publishing, remove before merge
 
 jobs:
   publish_snapshot:
@@ -41,7 +42,17 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS :newrelic-scala3-api:publish :newrelic-scala-api:publish :newrelic-scala-cats-api:publish :newrelic-cats-effect3-api:publish :newrelic-scala-zio-api:publish :newrelic-scala-zio2-api:publish :newrelic-scala-monix-api:publish
+        run: |
+          # Publish one module at a time with a pause in between to try to mitigate Maven 429s
+          failed=""
+          for module in newrelic-scala3-api newrelic-scala-api newrelic-scala-cats-api newrelic-cats-effect3-api newrelic-scala-zio-api newrelic-scala-zio2-api newrelic-scala-monix-api; do
+            ./gradlew $GRADLE_OPTIONS --no-parallel --max-workers=1 ":${module}:publish" || failed="${failed} ${module}"
+            sleep 30
+          done
+          if [ -n "${failed}" ]; then
+            echo "::error::Snapshot publish failed for:${failed}"
+            exit 1
+          fi
       - name: Publish snapshot apis for Security agent
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

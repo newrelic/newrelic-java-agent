@@ -48,6 +48,12 @@ public class PublishConfig {
     }
     @SuppressWarnings("UnstableApiUsage") // useInMemoryPgpKeys
     private static void configureSigning(Project project, MavenPublication publication) {
+        // Central performs no validation of snapshots, and every signature adds more uploads (the .asc plus its checksums)
+        // which contributes to HTTP 429 rate limiting.
+        // Ignore signing on snapshots (reduce number of uploaded artifacts)
+        if (project.getVersion().toString().endsWith("SNAPSHOT")) {
+            return;
+        }
         project.getExtensions().configure(SigningExtension.class, ext -> {
             String signingKeyId = (String) project.findProperty("signingKeyId");
             String signingKey = (String) project.findProperty("signingKey");

@@ -9,8 +9,11 @@ evaluationDependsOn(":newrelic-api")
 
 
 java {
-    withSourcesJar()
-    withJavadocJar()
+    // Snapshots skip sources and javadoc to reduce the number of uploads and avoid Central rate limiting
+    if (!version.toString().endsWith("SNAPSHOT")) {
+        withSourcesJar()
+        withJavadocJar()
+    }
 }
 
 dependencies {
