@@ -4,6 +4,7 @@ permissions:
   contents: write
   pull-requests: write
   deployments: write
+  id-token: write
 
 on:
   workflow_dispatch: # Allow manual trigger
@@ -14,6 +15,7 @@ on:
         type: string
 jobs:
   create_release_tags:
+    environment: init-container-publish-gated
     runs-on: ubuntu-24.04
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
