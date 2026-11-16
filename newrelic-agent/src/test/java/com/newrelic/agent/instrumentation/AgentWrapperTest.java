@@ -11,10 +11,13 @@ import com.newrelic.agent.tracers.EntryInvocationHandler;
 import com.newrelic.agent.tracers.PointCutInvocationHandler;
 import com.newrelic.agent.tracers.Tracer;
 import com.newrelic.agent.tracers.TracerFactory;
+import com.newrelic.test.marker.RequiresFork;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
+@Category(RequiresFork.class)
 public class AgentWrapperTest {
 
     private static AgentWrapper target;

@@ -566,8 +566,8 @@ public class TransactionApiImplTest {
 
         try (MockedStatic<com.newrelic.agent.Transaction> mockStaticTxn = mockStatic(com.newrelic.agent.Transaction.class)) {
             mockStaticTxn.when(() -> com.newrelic.agent.Transaction.getTransaction(false)).thenReturn(mockTxn);
-            transactionApi.getToken();
-            verify(mockTxn).getToken();
+            transactionApi.getToken("creator");
+            verify(mockTxn).getToken("creator");
         }
     }
 
