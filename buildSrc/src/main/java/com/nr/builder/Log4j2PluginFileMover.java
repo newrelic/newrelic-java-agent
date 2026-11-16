@@ -77,7 +77,7 @@ public class Log4j2PluginFileMover implements Transformer {
     public void modifyOutputStream(ZipOutputStream jos, boolean preserveFileTimestamps) {
         ZipEntry entry = new ZipEntry(LOG4J2PLUGINS_NEW_LOCATION);
         entry.setSize(size);
-        entry.setTime(preserveFileTimestamps ? lastModified : JarUtil.CONSTANT_ENTRY_TIME);
+        entry.setTime(TransformerContext.getEntryTimestamp(preserveFileTimestamps, lastModified));
         try {
             jos.putNextEntry(entry);
         } catch (IOException e) {
