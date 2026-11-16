@@ -78,35 +78,41 @@ public class GitUtil {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.addAll(Arrays.asList(gitArguments));
-        String description = "git " + String.join(" ", gitArguments);
+        return firstLineOfOutput(project.getProjectDir(), GIT_TIMEOUT_SECONDS, command);
+    }
 
-        // Output goes to temp files instead of pipes, so git can never block on a full pipe and the wait below can
-        // time out whether or not git is still holding its output open. (Process.inheritIO() would not show stderr:
+    // The command and timeout are parameters so tests can use stand-ins for git.
+    static String firstLineOfOutput(File directory, long timeoutSeconds, List<String> command) throws Exception {
+        String description = String.join(" ", command);
+
+        // Output goes to temp files instead of pipes, so the command can never block on a full pipe and the wait below can
+        // time out whether or not it is still holding its output open. (Process.inheritIO() would not show stderr:
         // under the Gradle daemon the inherited stderr is /dev/null.)
         File stdout = File.createTempFile("git-stdout", ".txt");
-        File stderr = File.createTempFile("git-stderr", ".txt");
+        File stderr = null;
         try {
-            Process gitProcess = new ProcessBuilder(command)
-                    .directory(project.getProjectDir())
+            stderr = File.createTempFile("git-stderr", ".txt");
+            Process process = new ProcessBuilder(command)
+                    .directory(directory)
                     .redirectOutput(stdout)
                     .redirectError(stderr)
                     .start();
-            gitProcess.getOutputStream().close();
+            process.getOutputStream().close();
 
             try {
-                if (!gitProcess.waitFor(GIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    gitProcess.destroyForcibly();
-                    throw new GradleException(description + " did not finish within " + GIT_TIMEOUT_SECONDS + " seconds");
+                if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+                    process.destroyForcibly();
+                    throw new GradleException(description + " did not finish within " + timeoutSeconds + " seconds");
                 }
             } catch (InterruptedException e) {
-                gitProcess.destroyForcibly();
+                process.destroyForcibly();
                 Thread.currentThread().interrupt();
                 throw new GradleException(description + " was interrupted", e);
             }
 
-            if (gitProcess.exitValue() != 0) {
+            if (process.exitValue() != 0) {
                 String errorText = firstLine(stderr);
-                throw new GradleException(description + " exited with status " + gitProcess.exitValue()
+                throw new GradleException(description + " exited with status " + process.exitValue()
                         + (errorText.isEmpty() ? "" : ": " + errorText));
             }
             String output = firstLine(stdout);
@@ -116,7 +122,9 @@ public class GitUtil {
             return output;
         } finally {
             stdout.delete();
-            stderr.delete();
+            if (stderr != null) {
+                stderr.delete();
+            }
         }
     }
 

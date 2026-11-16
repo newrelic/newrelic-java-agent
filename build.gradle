@@ -53,23 +53,13 @@ allprojects {
     // The JDK 11 javadoc tool writes member/package/type-search-index.zip with the time of the run. Rewrite them with
     // the fixed archive time so the javadoc jar (and the dist zip that bundles it) is byte-identical between builds.
     tasks.withType(Javadoc).configureEach { javadocTask ->
+        // The javadoc tool localizes its pages (html lang, headings, collation) using the default locale of its JVM, which
+        // comes from the machine (LANG/LC_ALL on Linux). Pin it so the javadoc jars don't depend on where they are built.
+        // options.locale alone is not enough: some translated text still follows the JVM's user.language.
+        options.jFlags('-Duser.language=en', '-Duser.country=US')
         doLast {
             fileTree(javadocTask.destinationDir).matching { include '**/*-search-index.zip' }.each { File indexZip ->
-                def entries = []
-                new java.util.zip.ZipFile(indexZip).withCloseable { zip ->
-                    zip.entries().each { entry -> entries << [name: entry.name, bytes: zip.getInputStream(entry).bytes] }
-                }
-                indexZip.withOutputStream { out ->
-                    new java.util.zip.ZipOutputStream(out).withCloseable { zip ->
-                        entries.each { entry ->
-                            def zipEntry = new java.util.zip.ZipEntry(entry.name)
-                            zipEntry.time = com.nr.builder.JarUtil.CONSTANT_ENTRY_TIME
-                            zip.putNextEntry(zipEntry)
-                            zip.write(entry.bytes)
-                            zip.closeEntry()
-                        }
-                    }
-                }
+                com.nr.builder.JarUtil.setConstantEntryTimes(indexZip)
             }
         }
     }

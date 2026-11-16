@@ -17,9 +17,12 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +73,7 @@ public class GitUtilTest {
 
     @Test
     public void commitDate_rejectsValuesThatAreNotSecondsSinceTheEpoch() {
-        for (String bad : new String[] {"abc", "1700000000.5", "-1", "1700000000000", "9223372036854775807"}) {
+        for (String bad : new String[] { "abc", "1700000000.5", "-1", "1700000000000", "9223372036854775807" }) {
             try {
                 GitUtil.commitDate(repositoryProject, bad);
                 fail("Expected a GradleException for SOURCE_DATE_EPOCH=" + bad);
@@ -108,12 +111,94 @@ public class GitUtilTest {
     }
 
     @Test
-    public void commitDate_fallsBackToTheCurrentTimeWhenGitCannotReadTheRepository() {
+    public void commitDate_fallsBackToTheCurrentTimeWhenGitCannotReadTheRepository() throws Exception {
         long before = System.currentTimeMillis();
         String date = GitUtil.commitDate(plainDirectoryProject, null);
-        assertNotNull(date);
-        assertTrue(date, date.endsWith(" UTC " + java.time.Year.now(java.time.ZoneOffset.UTC)));
-        assertTrue(System.currentTimeMillis() >= before);
+        long after = System.currentTimeMillis();
+
+        SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+        long reported = format.parse(date).getTime();
+        assertTrue(date, date.contains(" UTC "));
+        // The date has one second resolution.
+        assertTrue(date, reported >= before - 1000 && reported <= after);
+    }
+
+    @Test
+    public void firstLineOfOutput_returnsTheFirstLineTrimmed() throws Exception {
+        assumeUnixShell();
+        assertEquals("first", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("printf '  first  \\nsecond\\n'")));
+    }
+
+    @Test
+    public void firstLineOfOutput_failsWithTheErrorTextWhenTheCommandFails() throws Exception {
+        assumeUnixShell();
+        try {
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("echo 'fatal: not a repo' >&2; exit 3"));
+            fail("Expected a GradleException");
+        } catch (GradleException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("exited with status 3: fatal: not a repo"));
+        }
+    }
+
+    @Test
+    public void firstLineOfOutput_failsWhenTheCommandPrintsNothing() throws Exception {
+        assumeUnixShell();
+        try {
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("exit 0"));
+            fail("Expected a GradleException");
+        } catch (GradleException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("printed no output"));
+        }
+    }
+
+    @Test
+    public void firstLineOfOutput_failsWhenTheCommandDoesNotFinishInTime() throws Exception {
+        assumeUnixShell();
+        long start = System.nanoTime();
+        try {
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 1, shell("sleep 60"));
+            fail("Expected a GradleException");
+        } catch (GradleException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("did not finish within 1 seconds"));
+        }
+        assertTrue("should have stopped waiting after about a second", TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start) < 30);
+    }
+
+    @Test
+    public void firstLineOfOutput_failsWhenTheCommandCannotBeStarted() throws Exception {
+        try {
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, Collections.singletonList("no-such-command-for-gitutil-test"));
+            fail("Expected an IOException");
+        } catch (java.io.IOException expected) {
+            // The caller (commitDate or sha) logs this and falls back.
+        }
+    }
+
+    @Test
+    public void firstLineOfOutput_removesItsTemporaryFiles() throws Exception {
+        assumeUnixShell();
+        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+        int before = countGitTempFiles(tmpDir);
+        GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("echo ok"));
+        try {
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("exit 1"));
+        } catch (GradleException expected) {
+            // expected
+        }
+        assertEquals(before, countGitTempFiles(tmpDir));
+    }
+
+    private static int countGitTempFiles(File directory) {
+        String[] names = directory.list((dir, name) -> name.startsWith("git-stdout") || name.startsWith("git-stderr"));
+        return names == null ? 0 : names.length;
+    }
+
+    private static List<String> shell(String script) {
+        return Arrays.asList("sh", "-c", script);
+    }
+
+    private static void assumeUnixShell() {
+        Assume.assumeTrue("needs a Unix sh", new File("/bin/sh").canExecute());
     }
 
     @Test
