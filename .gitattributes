@@ -1,7 +1,8 @@
-gradlew.bat eol=crlf
+# Normalize every text file to LF in the working tree, on every platform (including core.autocrlf=true checkouts).
+# Many text files are copied byte for byte into newrelic.jar and newrelic.zip (resources, the weaver violation
+# descriptions, LICENSE, sources jars), so the same commit must have the same bytes everywhere to build the same jar.
+# "auto" lets git detect binary files and leave them alone. This line must stay before the overrides below
+# because the last matching pattern wins.
+* text=auto eol=lf
 
-# Files copied byte for byte into newrelic.jar and newrelic.zip. Keep LF on every platform (including
-# core.autocrlf=true checkouts) so the same commit builds to the same bytes.
-LICENSE text eol=lf
-THIRD_PARTY_NOTICES.md text eol=lf
-newrelic-agent/src/main/resources/** text eol=lf
+gradlew.bat eol=crlf
