@@ -138,6 +138,32 @@ jobs:
           git pull --rebase
           git push
 
+  # The build logic in buildSrc (GitUtil, PropertySerializer, ...) has its own tests. The root "test" task does not run
+  # them, and they do not depend on the Java version or test group, so they run once here instead of in the matrix.
+  buildsrc-test:
+    name: buildSrc tests
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Java agent
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
+        with:
+          ref: ${{ inputs.agent-ref || github.ref || 'main' }}
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run buildSrc tests
+        run: ./gradlew --stacktrace $GRADLE_OPTIONS :buildSrc:test
+
+      - name: Capture buildSrc test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
+        with:
+          name: buildsrc-tests-results
+          path: |
+            buildSrc/build/reports/tests/*
+
   index:
     name: Write Index Pages
     needs: unit-test

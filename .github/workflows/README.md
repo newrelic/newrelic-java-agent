@@ -60,7 +60,7 @@ Runs the Scala instrumentation tests.
 ### Unit Tests
 [GHA-Unit-Tests.yaml](GHA-Unit-Tests.yaml)
 
-Description
+Runs the unit tests for every supported Java version, in the `flaky`, `nonForkedTests` and `forkedTests` groups. A separate `buildsrc-test` job runs the build logic tests in `buildSrc` (`./gradlew :buildSrc:test`) once.
 
 #### Triggers
 
