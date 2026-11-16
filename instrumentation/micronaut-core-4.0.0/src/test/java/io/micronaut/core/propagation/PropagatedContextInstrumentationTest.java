@@ -103,7 +103,7 @@ public class PropagatedContextInstrumentationTest {
             Token token = mock(Token.class);
             newRelic.when(NewRelic::getAgent).thenReturn(agent);
             when(agent.getTransaction()).thenReturn(transaction);
-            when(transaction.getToken()).thenReturn(token);
+            when(transaction.getToken(any(String.class))).thenReturn(token);
 
             Callable<String> result = new PropagatedContext_Instrumentation().wrap(original);
 
