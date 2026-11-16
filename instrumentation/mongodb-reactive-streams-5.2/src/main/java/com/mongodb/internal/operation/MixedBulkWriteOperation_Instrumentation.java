@@ -41,7 +41,7 @@ public class MixedBulkWriteOperation_Instrumentation implements AsyncWriteOperat
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<BulkWriteResult> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName));
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-5.2:MixedBulkWriteOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 }

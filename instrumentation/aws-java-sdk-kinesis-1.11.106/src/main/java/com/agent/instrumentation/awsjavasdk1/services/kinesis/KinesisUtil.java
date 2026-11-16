@@ -31,11 +31,10 @@ public class KinesisUtil {
         return overrideRegion;
     }
 
-    public static void setTokenForRequest(AmazonWebServiceRequest request) {
+    public static void setTokenForRequest(AmazonWebServiceRequest request, String creator) {
         if (AgentBridge.getAgent().getTransaction(false) != null) {
             if (request != null) {
-                Token token = NewRelic.getAgent().getTransaction().getToken();
-                requestTokenMap.put(request, token);
+                requestTokenMap.put(request, NewRelic.getAgent().getTransaction().getToken(creator));
             }
         }
     }

@@ -31,7 +31,7 @@ public class AsyncHttpClient_Instrumentation {
             if ("http".equals(scheme) || "https".equals(scheme)) {
                 Transaction txn = AgentBridge.getAgent().getTransaction(false);
                 if (txn != null) {
-                    handler.token = txn.getToken();
+                    handler.token = txn.getToken("play-shaded-async-http-client-1.0.0:AsyncHttpClient_Instrumentation.executeRequest");
                 }
             }
         } catch (URISyntaxException uriSyntaxException) {

@@ -25,7 +25,8 @@ public class FutureInnerClass_Instrumentation {
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (tx != null && (!body.getClass().getName().startsWith("akka."))) {
-                AgentBridge.TokenAndRefCount tokenAndRef = new AgentBridge.TokenAndRefCount(tx.getToken(),
+                AgentBridge.TokenAndRefCount tokenAndRef = new AgentBridge.TokenAndRefCount(
+                        tx.getToken("scala-2.9.3:FutureInnerClass_Instrumentation.apply"),
                         AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
                 body = new WrappedFunction0(body, tokenAndRef);
             }

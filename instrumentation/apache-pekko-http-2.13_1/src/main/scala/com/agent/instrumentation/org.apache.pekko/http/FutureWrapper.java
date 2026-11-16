@@ -37,7 +37,7 @@ public class FutureWrapper<T> implements Future<T> {
     @Override
     public <U> void onComplete(Function1<Try<T>, U> f, ExecutionContext executor) {
         try {
-            f = new Function1Wrapper<>(f, NewRelic.getAgent().getTransaction().getToken());
+            f = new Function1Wrapper<>(f, NewRelic.getAgent().getTransaction().getToken("apache-pekko-http-2.13_1:FutureWrapper.onComplete"));
         } catch (Throwable t) {
             AgentBridge.instrumentation.noticeInstrumentationError(t, Weaver.getImplementationTitle());
         }
