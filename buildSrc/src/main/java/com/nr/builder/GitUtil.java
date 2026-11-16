@@ -3,8 +3,10 @@ package com.nr.builder;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,41 +74,52 @@ public class GitUtil {
         command.add("git");
         command.addAll(Arrays.asList(gitArguments));
         String description = "git " + String.join(" ", gitArguments);
-        Process gitProcess = new ProcessBuilder(command)
-                .directory(project.getProjectDir())
-                // git's own error text (for example "dubious ownership") goes to the build output, and an unread stderr pipe can't block it
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
-                .start();
 
-        // Read stdout to the end before waiting, so a full pipe can't block git.
-        String firstLine = null;
-        try (InputStreamReader reader = new InputStreamReader(gitProcess.getInputStream());
-             BufferedReader bufferedReader = new BufferedReader(reader)) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                if (firstLine == null) {
-                    firstLine = line.trim();
-                }
-            }
-        }
-
+        // Output goes to temp files instead of pipes, so git can never block on a full pipe and the wait below can
+        // time out whether or not git is still holding its output open. (Process.inheritIO() would not show stderr:
+        // under the Gradle daemon the inherited stderr is /dev/null.)
+        File stdout = File.createTempFile("git-stdout", ".txt");
+        File stderr = File.createTempFile("git-stderr", ".txt");
         try {
-            if (!gitProcess.waitFor(GIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+            Process gitProcess = new ProcessBuilder(command)
+                    .directory(project.getProjectDir())
+                    .redirectOutput(stdout)
+                    .redirectError(stderr)
+                    .start();
+            gitProcess.getOutputStream().close();
+
+            try {
+                if (!gitProcess.waitFor(GIT_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                    gitProcess.destroyForcibly();
+                    throw new GradleException(description + " did not finish within " + GIT_TIMEOUT_SECONDS + " seconds");
+                }
+            } catch (InterruptedException e) {
                 gitProcess.destroyForcibly();
-                throw new GradleException(description + " did not finish within " + GIT_TIMEOUT_SECONDS + " seconds");
+                Thread.currentThread().interrupt();
+                throw new GradleException(description + " was interrupted", e);
             }
-        } catch (InterruptedException e) {
-            gitProcess.destroyForcibly();
-            Thread.currentThread().interrupt();
-            throw new GradleException(description + " was interrupted", e);
+
+            if (gitProcess.exitValue() != 0) {
+                String errorText = firstLine(stderr);
+                throw new GradleException(description + " exited with status " + gitProcess.exitValue()
+                        + (errorText.isEmpty() ? "" : ": " + errorText));
+            }
+            String output = firstLine(stdout);
+            if (output.isEmpty()) {
+                throw new GradleException(description + " printed no output");
+            }
+            return output;
+        } finally {
+            stdout.delete();
+            stderr.delete();
         }
-        if (gitProcess.exitValue() != 0) {
-            throw new GradleException(description + " exited with status " + gitProcess.exitValue());
-        }
-        if (firstLine == null || firstLine.isEmpty()) {
-            throw new GradleException(description + " printed no output");
-        }
-        return firstLine;
+    }
+
+    /** The first line of the file, trimmed, or an empty string if the file is empty. */
+    private static String firstLine(File file) throws IOException {
+        String text = new String(Files.readAllBytes(file.toPath()), Charset.defaultCharset());
+        int lineEnd = text.indexOf('\n');
+        return (lineEnd < 0 ? text : text.substring(0, lineEnd)).trim();
     }
 
     private static String format(Date date) {
