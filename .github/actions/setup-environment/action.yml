@@ -46,16 +46,17 @@ runs:
       run: echo "GRADLE_OPTIONS=--console=plain --parallel -Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64,JAVA_HOME_27_X64" >> $GITHUB_ENV
 
     # Reproducible builds: the build reads SOURCE_DATE_EPOCH for the manifest Built-Date, so Built-Date is the commit
-    # time and not the time the job ran. This is the value GitUtil.commitDate() would use anyway; setting it here makes the
-    # lookup explicit and fails the job if git cannot read HEAD, instead of silently using the current time. See https://reproducible-builds.org/specs/source-date-epoch/
+    # time and not the time the job ran. This is the value GitUtil.commitDate() would use anyway; setting it here makes
+    # the lookup explicit and fails the job if git cannot read HEAD, instead of silently using the current time.
+    # (Gradle still runs git for X-Git-SHA.) See https://reproducible-builds.org/specs/source-date-epoch/
     # KEEP IN SYNC with GitUtil.commitDate() (buildSrc/src/main/java/com/nr/builder/GitUtil.java): both must get the
-    # timestamp the same way (committer time of HEAD, `git log -1 --no-show-signature --format=%ct`). This value
+    # timestamp the same way (committer time of HEAD, `git -c log.showSignature=false log -1 --format=%ct`). This value
     # overrides GitUtil's, so if they differ, CI and local builds of the same commit get different Built-Date values.
     - name: Set SOURCE_DATE_EPOCH to the HEAD commit time
       shell: bash
       run: |
         # "|| epoch=" keeps a failing git from ending the step under bash -e, so the error below is reached.
-        epoch=$(git log -1 --no-show-signature --format=%ct) || epoch=
+        epoch=$(git -c log.showSignature=false log -1 --format=%ct) || epoch=
         case "$epoch" in
           ''|*[!0-9]*)
             echo "::error::Could not read the HEAD commit time from git (got '$epoch'), so SOURCE_DATE_EPOCH was not set. Check that the repository is checked out and that git can read it before this action runs."

@@ -37,12 +37,16 @@ public class GitUtil {
      *
      * <p>KEEP IN SYNC with the "Set SOURCE_DATE_EPOCH to the HEAD commit time" step in
      * .github/actions/setup-environment/action.yml: CI sets SOURCE_DATE_EPOCH with the same git command used below
-     * (committer time of HEAD, {@code git log -1 --no-show-signature --format=%ct}), and that value takes priority
+     * (committer time of HEAD, {@code git -c log.showSignature=false log -1 --format=%ct}), and that value takes priority
      * over this method's own lookup. If the two ever get the timestamp differently, CI and local builds of the same
      * commit will have different Built-Date values.
      */
     public static String commitDate(final Project project) {
-        String sourceDateEpoch = System.getenv("SOURCE_DATE_EPOCH");
+        return commitDate(project, System.getenv("SOURCE_DATE_EPOCH"));
+    }
+
+    // The environment variable is a parameter so tests can set it.
+    static String commitDate(final Project project, String sourceDateEpoch) {
         if (sourceDateEpoch != null && !sourceDateEpoch.trim().isEmpty()) {
             long epochSeconds;
             try {
@@ -59,8 +63,9 @@ public class GitUtil {
         }
 
         try {
-            // --no-show-signature: with log.showSignature=true git prints signature text before the format output
-            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, "log", "-1", "--no-show-signature", "--format=%ct"));
+            // -c log.showSignature=false: with that setting true, git prints signature text before the format output. Unlike
+            // the --no-show-signature option (git 2.10 and later), a -c setting is accepted by every git version.
+            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, "-c", "log.showSignature=false", "log", "-1", "--format=%ct"));
             return format(new Date(epochSeconds * 1000L));
         } catch (Exception e) {
             project.getLogger().error("Failed to determine commit date; using the current time, so this build will not be reproducible. "
