@@ -95,6 +95,40 @@ if test $? -ne 0
 
 EXITSTATUS=$?
 
+# Download what landed in S3 and verify it against the signed SHA256SUMS, to catch partial or corrupted uploads
+if test ${EXITSTATUS} -eq 0
+  then
+    if [ -z "${RUNNING_ON_GHA}" ]
+      then
+        PROFILE="--profile ${S3_PROFILE}"
+      fi
+    S3CHECKDIR=${MYDIR}/s3-check
+    mkdir -p ${S3CHECKDIR}/newrelic-agent ${S3CHECKDIR}/newrelic-api
+    S3_DOWNLOAD_OK=true
+    for FILE in SHA256SUMS SHA256SUMS.sigstore.json newrelic-java-${VERSION}.zip newrelic-agent-${VERSION}.jar newrelic-agent-${VERSION}.pom
+      do
+        DEST=${S3CHECKDIR}/newrelic-agent
+        test ${FILE} = SHA256SUMS -o ${FILE} = SHA256SUMS.sigstore.json && DEST=${S3CHECKDIR}
+        aws s3 ${PROFILE} cp s3://${SERVERAGENTDIR}/${FILE} ${DEST}/${FILE} || S3_DOWNLOAD_OK=false
+      done
+    for FILE in newrelic-java-${VERSION}.zip newrelic-api-${VERSION}.jar newrelic-api-${VERSION}.pom
+      do
+        aws s3 ${PROFILE} cp s3://${SERVERAPIDIR}/${FILE} ${S3CHECKDIR}/newrelic-api/${FILE} || S3_DOWNLOAD_OK=false
+      done
+    if test ${S3_DOWNLOAD_OK} = false
+      then
+        echo "Could not download the uploaded artifacts for ${VERSION} from S3 to verify them. Check the S3 listing and re-run the copy."
+        EXITSTATUS=13
+      else
+        /bin/bash "${INSTALLDIR}/verify-release-artifacts.sh" "v${VERSION}" ${S3CHECKDIR} ${S3CHECKDIR}
+        if test $? -ne 0
+          then
+            echo "Artifacts uploaded to S3 for ${VERSION} failed verification. Investigate and re-run the copy before announcing the release."
+            EXITSTATUS=14
+          fi
+      fi
+  fi
+
 /bin/rm -rf ${MYDIR}
 
 exit ${EXITSTATUS}
