@@ -86,7 +86,7 @@ public class GitUtil {
         String description = String.join(" ", command);
 
         // Output goes to temp files instead of pipes, so the command can never block on a full pipe and the wait below can
-        // time out whether or not it is still holding its output open. (Process.inheritIO() would not show stderr:
+        // time out whether or not it is still holding its output open. (ProcessBuilder.inheritIO() would not show stderr:
         // under the Gradle daemon the inherited stderr is /dev/null.)
         File stdout = File.createTempFile("git-stdout", ".txt");
         File stderr = null;

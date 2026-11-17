@@ -430,7 +430,7 @@ task newrelicVersionedAgentJar(type: Jar) {
                 'Premain-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 'Main-Class': 'com.newrelic.bootstrap.BootstrapAgent',
                 // HEAD, not GITHUB_SHA: workflow_dispatch and workflow_call can check out a different ref than the one in
-                // GITHUB_SHA, and Built-Date comes from the checked-out HEAD, so both attributes must describe the same commit.
+                // GITHUB_SHA, and Built-Date comes from the checked-out HEAD, so by default both attributes describe the same commit.
                 'X-Git-SHA': providers.provider { gitSha() }
     }
 }
