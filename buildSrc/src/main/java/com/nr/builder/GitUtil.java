@@ -25,15 +25,23 @@ public class GitUtil {
 
     /**
      * The variables git itself calls repository-local (the list printed by {@code git rev-parse --local-env-vars}, which
-     * differs between git versions, so it is written out here). If one is set, git works on that repository or index
-     * instead of the one in the project directory. A Gradle daemon keeps the environment of the build that started it, so
-     * a build run from a git hook, or one that left {@code GIT_DIR=} behind, would otherwise make this class stamp the
-     * wrong commit or fail to read any.
+     * differs between git versions, so it is written out here), except the two in {@link #KEPT_LOCAL_ENVIRONMENT_VARIABLES}.
+     * If one is set, git works on that repository or index instead of the one in the project directory. Gradle gives each
+     * build the environment of the client that started it, so a build run from a git hook, from {@code git rebase --exec},
+     * or from a shell that exported {@code GIT_DIR} would otherwise make this class stamp the wrong commit or fail to read any.
      */
     static final List<String> REPOSITORY_ENVIRONMENT_VARIABLES = Collections.unmodifiableList(Arrays.asList(
-            "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG",
             "GIT_DIR", "GIT_GRAFT_FILE", "GIT_IMPLICIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_INTERNAL_SUPER_PREFIX", "GIT_NO_REPLACE_OBJECTS",
             "GIT_OBJECT_DIRECTORY", "GIT_PREFIX", "GIT_REPLACE_REF_BASE", "GIT_SHALLOW_FILE", "GIT_WORK_TREE"));
+
+    /**
+     * Listed by {@code git rev-parse --local-env-vars} but not removed: they carry configuration, not a choice of repository
+     * (for example {@code safe.directory} for a checkout owned by another user in a container), and git itself keeps them when
+     * it starts git for another repository. Removing them would make git refuse the checkout, giving {@code X-Git-SHA: UNKNOWN}.
+     */
+    static final List<String> KEPT_LOCAL_ENVIRONMENT_VARIABLES = Collections.unmodifiableList(Arrays.asList(
+            "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"));
 
     public static String sha(final Project project) {
         try {

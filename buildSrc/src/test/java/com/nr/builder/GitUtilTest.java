@@ -284,12 +284,15 @@ public class GitUtilTest {
         for (String name : GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES) {
             environment.put(name, "set");
         }
+        for (String name : GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES) {
+            environment.put(name, "kept");
+        }
         environment.put("GIT_CONFIG_GLOBAL", "kept");
         environment.put("UNRELATED_VARIABLE_FOR_GITUTIL_TEST", "kept");
 
         String script = "echo \"$(env | grep -c -E '^(" + String.join("|", GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES)
-                + ")=') $GIT_CONFIG_GLOBAL $UNRELATED_VARIABLE_FOR_GITUTIL_TEST\"";
-        assertEquals("0 kept kept", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell(script), environment));
+                + ")=') $GIT_CONFIG_GLOBAL $GIT_CONFIG_COUNT $GIT_CONFIG_PARAMETERS $UNRELATED_VARIABLE_FOR_GITUTIL_TEST\"";
+        assertEquals("0 kept kept kept kept", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell(script), environment));
     }
 
     @Test
@@ -301,8 +304,10 @@ public class GitUtilTest {
 
         for (String name : Files.readAllLines(output.toPath())) {
             if (!name.trim().isEmpty()) {
-                assertTrue(name + " is local to a repository for this git, so add it to GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES",
-                        GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name.trim()));
+                assertTrue(name + " is local to a repository for this git, so add it to GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES "
+                                + "(or to KEPT_LOCAL_ENVIRONMENT_VARIABLES if it only carries configuration)",
+                        GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name.trim())
+                                || GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES.contains(name.trim()));
             }
         }
     }
