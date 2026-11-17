@@ -63,8 +63,8 @@ public class ZipEntryTimestampTest {
     @Test
     public void constantEntryTime_isTheFixedTimeShadowAndGradleUse() {
         assertEquals(TransformerContext.getEntryTimestamp(false, 12345L), JarUtil.CONSTANT_ENTRY_TIME);
-        // 1980-02-01 is after the start of the zip time range, so the time is representable.
-        assertTrue(JarUtil.CONSTANT_ENTRY_TIME < A_FIXED_PAST_TIME);
+        // 1980-02-01, whatever the time zone: inside the range zip entry times can represent (it starts on 1980-01-01).
+        assertTrue(JarUtil.CONSTANT_ENTRY_TIME >= 315532800000L && JarUtil.CONSTANT_ENTRY_TIME < 320630400000L);
     }
 
     @Test

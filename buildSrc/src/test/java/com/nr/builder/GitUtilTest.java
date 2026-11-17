@@ -77,7 +77,7 @@ public class GitUtilTest {
 
     @Test
     public void commitDate_rejectsValuesThatAreNotSecondsSinceTheEpoch() {
-        for (String bad : new String[] { "abc", "1700000000.5", "-1", "1700000000000", "9223372036854775807" }) {
+        for (String bad : new String[] { "abc", "1700000000.5", "-1", "1700000000000", "9223372036854775807", "253402300800" }) {
             try {
                 GitUtil.commitDate(repositoryProject, bad);
                 fail("Expected a GradleException for SOURCE_DATE_EPOCH=" + bad);
@@ -86,6 +86,19 @@ public class GitUtilTest {
                 assertTrue(e.getMessage(), e.getMessage().contains(bad));
             }
         }
+    }
+
+    @Test
+    public void commitDate_acceptsTheFirstAndLastSecondOfTheAllowedRange() {
+        assertEquals("Thu Jan 01 00:00:00 UTC 1970", GitUtil.commitDate(repositoryProject, "0"));
+        assertEquals("Fri Dec 31 23:59:59 UTC 9999", GitUtil.commitDate(repositoryProject, "253402300799"));
+    }
+
+    @Test
+    public void commitDate_readsTheSourceDateEpochEnvironmentVariable() {
+        // buildSrc/build.gradle sets the variable for the test JVM. When the tests run some other way (an IDE), skip.
+        Assume.assumeTrue(EPOCH_2023.equals(System.getenv("SOURCE_DATE_EPOCH")));
+        assertEquals(DATE_2023, GitUtil.commitDate(repositoryProject));
     }
 
     @Test
@@ -161,16 +174,32 @@ public class GitUtilTest {
     }
 
     @Test
-    public void firstLineOfOutput_failsWhenTheCommandDoesNotFinishInTime() throws Exception {
+    public void firstLineOfOutput_failsAndKillsTheCommandWhenItDoesNotFinishInTime() throws Exception {
         assumeUnixShell();
+        File pidFile = new File(temporaryFolder.getRoot(), "pid");
         long start = System.nanoTime();
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 1, shell("sleep 60"));
+            // exec, so the recorded process id is the one that has to be killed.
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 1, shell("echo $$ > '" + pidFile.getPath() + "'; exec sleep 60"));
             fail("Expected a GradleException");
         } catch (GradleException e) {
             assertTrue(e.getMessage(), e.getMessage().contains("did not finish within 1 seconds"));
         }
-        assertTrue("should have stopped waiting after about a second", TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start) < 30);
+        long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+        // Rules out a timeout in the wrong unit (1 millisecond) and a wait for the whole 60 seconds.
+        assertTrue("waited " + elapsedMillis + " ms", elapsedMillis >= 900 && elapsedMillis < 30000);
+
+        String pid = new String(Files.readAllBytes(pidFile.toPath()), StandardCharsets.UTF_8).trim();
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+        while (isRunning(pid) && System.nanoTime() < deadline) {
+            Thread.sleep(50);
+        }
+        assertFalse("the command (process " + pid + ") was left running", isRunning(pid));
+    }
+
+    private static boolean isRunning(String pid) throws Exception {
+        return new ProcessBuilder("kill", "-0", pid).redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.to(new File("/dev/null")))
+                .start().waitFor() == 0;
     }
 
     @Test

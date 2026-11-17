@@ -32,4 +32,6 @@ test {
     // tests run from a git hook) would make it read some other repository than the one under test.
     environment.remove('GIT_DIR')
     environment.remove('GIT_WORK_TREE')
+    // Lets a test check that GitUtil.commitDate(Project) reads this variable. The other tests pass the value explicitly.
+    environment 'SOURCE_DATE_EPOCH', '1700000000'
 }
