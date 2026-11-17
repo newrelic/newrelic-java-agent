@@ -10,8 +10,10 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -20,6 +22,18 @@ public class GitUtil {
     // 9999-12-31T23:59:59Z. Rejects values that are clearly not seconds, such as milliseconds.
     private static final long MAX_EPOCH_SECONDS = 253402300799L;
     private static final long GIT_TIMEOUT_SECONDS = 30;
+
+    /**
+     * The variables git itself calls repository-local (the list printed by {@code git rev-parse --local-env-vars}, which
+     * differs between git versions, so it is written out here). If one is set, git works on that repository or index
+     * instead of the one in the project directory. A Gradle daemon keeps the environment of the build that started it, so
+     * a build run from a git hook, or one that left {@code GIT_DIR=} behind, would otherwise make this class stamp the
+     * wrong commit or fail to read any.
+     */
+    static final List<String> REPOSITORY_ENVIRONMENT_VARIABLES = Collections.unmodifiableList(Arrays.asList(
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS",
+            "GIT_DIR", "GIT_GRAFT_FILE", "GIT_IMPLICIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_INTERNAL_SUPER_PREFIX", "GIT_NO_REPLACE_OBJECTS",
+            "GIT_OBJECT_DIRECTORY", "GIT_PREFIX", "GIT_REPLACE_REF_BASE", "GIT_SHALLOW_FILE", "GIT_WORK_TREE"));
 
     public static String sha(final Project project) {
         try {
@@ -81,9 +95,15 @@ public class GitUtil {
         return firstLineOfOutput(project.getProjectDir(), null, GIT_TIMEOUT_SECONDS, command);
     }
 
-    // The command, timeout and temp directory are parameters so tests can use stand-ins for git and see what is left behind.
-    // A null tempDirectory means the default temp directory.
     static String firstLineOfOutput(File directory, File tempDirectory, long timeoutSeconds, List<String> command) throws Exception {
+        return firstLineOfOutput(directory, tempDirectory, timeoutSeconds, command, Collections.<String, String>emptyMap());
+    }
+
+    // The command, timeout and temp directory are parameters so tests can use stand-ins for git and see what is left behind.
+    // A null tempDirectory means the default temp directory. additionalEnvironment is added to the inherited environment
+    // before the repository variables are removed, so tests can simulate a daemon that inherited them.
+    static String firstLineOfOutput(File directory, File tempDirectory, long timeoutSeconds, List<String> command,
+            Map<String, String> additionalEnvironment) throws Exception {
         String description = String.join(" ", command);
 
         // Output goes to temp files instead of pipes, so the command can never block on a full pipe and the wait below can
@@ -93,11 +113,13 @@ public class GitUtil {
         File stderr = null;
         try {
             stderr = File.createTempFile("git-stderr", ".txt", tempDirectory);
-            Process process = new ProcessBuilder(command)
+            ProcessBuilder processBuilder = new ProcessBuilder(command)
                     .directory(directory)
                     .redirectOutput(stdout)
-                    .redirectError(stderr)
-                    .start();
+                    .redirectError(stderr);
+            processBuilder.environment().putAll(additionalEnvironment);
+            processBuilder.environment().keySet().removeAll(REPOSITORY_ENVIRONMENT_VARIABLES);
+            Process process = processBuilder.start();
             process.getOutputStream().close();
 
             try {

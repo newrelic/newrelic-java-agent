@@ -6,7 +6,7 @@
 # This only applies when files are checked out. A clone made earlier with core.autocrlf=true keeps its CRLF files
 # (git status stays clean). Refresh it: commit or stash local changes, then run
 #   git rm --cached -r . && git reset --hard
-# or re-clone.
+# from the repository root (it discards uncommitted edits and aborts a merge or rebase in progress), or re-clone.
 * text=auto eol=lf
 
 gradlew.bat eol=crlf

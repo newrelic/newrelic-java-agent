@@ -32,7 +32,8 @@ jobs:
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
       AWS_KEY: ${{ secrets.aws-secret-access-key }}
-      GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m'"
+      # This replaces org.gradle.jvmargs from gradle.properties, so the locale pin that file has is repeated here.
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m -Duser.language=en -Duser.country=US'"
     steps:
 #      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent

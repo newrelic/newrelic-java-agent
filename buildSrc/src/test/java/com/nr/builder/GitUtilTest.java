@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -263,10 +265,56 @@ public class GitUtilTest {
     }
 
     @Test
-    public void sha_returnsTheHeadCommit() {
+    public void sha_ignoresRepositoryVariablesInheritedFromTheEnvironment() throws Exception {
+        String expected = GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30, Arrays.asList("git", "rev-parse", "HEAD"));
+        Map<String, String> polluted = new HashMap<>();
+        polluted.put("GIT_DIR", "");
+        polluted.put("GIT_WORK_TREE", "/nonexistent/work-tree");
+        polluted.put("GIT_INDEX_FILE", "/nonexistent/index");
+        polluted.put("GIT_COMMON_DIR", "/nonexistent/common");
+
+        assertEquals(expected, GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30,
+                Arrays.asList("git", "rev-parse", "HEAD"), polluted));
+    }
+
+    @Test
+    public void firstLineOfOutput_removesOnlyTheRepositoryVariables() throws Exception {
+        assumeUnixShell();
+        Map<String, String> environment = new HashMap<>();
+        for (String name : GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES) {
+            environment.put(name, "set");
+        }
+        environment.put("GIT_CONFIG_GLOBAL", "kept");
+        environment.put("UNRELATED_VARIABLE_FOR_GITUTIL_TEST", "kept");
+
+        String script = "echo \"$(env | grep -c -E '^(" + String.join("|", GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES)
+                + ")=') $GIT_CONFIG_GLOBAL $UNRELATED_VARIABLE_FOR_GITUTIL_TEST\"";
+        assertEquals("0 kept kept", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell(script), environment));
+    }
+
+    @Test
+    public void repositoryEnvironmentVariables_includeEveryVariableTheInstalledGitCallsLocal() throws Exception {
+        File output = temporaryFolder.newFile("local-env-vars.txt");
+        Process process = new ProcessBuilder("git", "rev-parse", "--local-env-vars").redirectErrorStream(true).redirectOutput(output).start();
+        assertTrue(process.waitFor(30, TimeUnit.SECONDS));
+        Assume.assumeTrue("this git does not know --local-env-vars", process.exitValue() == 0);
+
+        for (String name : Files.readAllLines(output.toPath())) {
+            if (!name.trim().isEmpty()) {
+                assertTrue(name + " is local to a repository for this git, so add it to GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES",
+                        GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name.trim()));
+            }
+        }
+    }
+
+    @Test
+    public void sha_returnsTheHeadCommit() throws Exception {
         String sha = GitUtil.sha(repositoryProject);
         assertNotNull(sha);
         assertTrue(sha, sha.matches("[0-9a-f]{40}"));
+        // The test JVM runs inside the agent's own work tree, so the commit of the project directory has to be the one read.
+        assertEquals(GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30, Arrays.asList("git", "rev-parse", "HEAD")), sha);
+        assertNotEquals(GitUtil.firstLineOfOutput(new File("."), null, 30, Arrays.asList("git", "rev-parse", "HEAD")), sha);
     }
 
     @Test
@@ -313,8 +361,7 @@ public class GitUtilTest {
         System.arraycopy(arguments, 0, command, 3, arguments.length);
         ProcessBuilder builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
         Map<String, String> environment = builder.environment();
-        environment.remove("GIT_DIR");
-        environment.remove("GIT_WORK_TREE");
+        environment.keySet().removeAll(GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES);
         if (variable != null) {
             environment.put(variable, value);
         }
