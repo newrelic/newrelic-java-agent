@@ -101,7 +101,12 @@ public class GitUtilTest {
     public void commitDate_ignoresLogShowSignatureForASignedHeadCommit() throws Exception {
         File repository = repositoryProject.getProjectDir();
         Assume.assumeTrue("ssh-keygen is needed to sign a commit", sshKeygenWorks(repository));
-        commitWithCommitterDate(repository, EPOCH_2023, true);
+        try {
+            commitWithCommitterDate(repository, EPOCH_2023, true);
+        } catch (AssertionError e) {
+            // git older than 2.34 has no gpg.format=ssh, and ssh-keygen older than 8.1 cannot sign.
+            Assume.assumeNoException("this git or ssh-keygen cannot make SSH-signed commits", e);
+        }
         git(repository, "config", "log.showSignature", "true");
 
         // Proves the setup reproduces the problem: without the fix the first line is not the time.
@@ -126,14 +131,14 @@ public class GitUtilTest {
     @Test
     public void firstLineOfOutput_returnsTheFirstLineTrimmed() throws Exception {
         assumeUnixShell();
-        assertEquals("first", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("printf '  first  \\nsecond\\n'")));
+        assertEquals("first", GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell("printf '  first  \\nsecond\\n'")));
     }
 
     @Test
     public void firstLineOfOutput_failsWithTheErrorTextWhenTheCommandFails() throws Exception {
         assumeUnixShell();
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("echo 'fatal: not a repo' >&2; exit 3"));
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell("echo 'fatal: not a repo' >&2; exit 3"));
             fail("Expected a GradleException");
         } catch (GradleException e) {
             assertTrue(e.getMessage(), e.getMessage().contains("exited with status 3: fatal: not a repo"));
@@ -144,7 +149,7 @@ public class GitUtilTest {
     public void firstLineOfOutput_failsWhenTheCommandPrintsNothing() throws Exception {
         assumeUnixShell();
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("exit 0"));
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, shell("exit 0"));
             fail("Expected a GradleException");
         } catch (GradleException e) {
             assertTrue(e.getMessage(), e.getMessage().contains("printed no output"));
@@ -156,7 +161,7 @@ public class GitUtilTest {
         assumeUnixShell();
         long start = System.nanoTime();
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 1, shell("sleep 60"));
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 1, shell("sleep 60"));
             fail("Expected a GradleException");
         } catch (GradleException e) {
             assertTrue(e.getMessage(), e.getMessage().contains("did not finish within 1 seconds"));
@@ -167,7 +172,7 @@ public class GitUtilTest {
     @Test
     public void firstLineOfOutput_failsWhenTheCommandCannotBeStarted() throws Exception {
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, Collections.singletonList("no-such-command-for-gitutil-test"));
+            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, Collections.singletonList("no-such-command-for-gitutil-test"));
             fail("Expected an IOException");
         } catch (java.io.IOException expected) {
             // The caller (commitDate or sha) logs this and falls back.
@@ -175,22 +180,45 @@ public class GitUtilTest {
     }
 
     @Test
-    public void firstLineOfOutput_removesItsTemporaryFiles() throws Exception {
+    public void firstLineOfOutput_removesItsTemporaryFilesOnEveryPath() throws Exception {
         assumeUnixShell();
-        File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-        int before = countGitTempFiles(tmpDir);
-        GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("echo ok"));
+        // A private temp directory, so files from other tests or other processes cannot be mistaken for leaks.
+        File tempDirectory = temporaryFolder.newFolder("own-temp");
+        File workingDirectory = temporaryFolder.getRoot();
+
+        GitUtil.firstLineOfOutput(workingDirectory, tempDirectory, 30, shell("echo ok"));
+        assertNoFilesIn(tempDirectory, "success");
+
+        for (String failingScript : new String[] { "exit 1", "exit 0", "echo oops >&2; exit 2" }) {
+            try {
+                GitUtil.firstLineOfOutput(workingDirectory, tempDirectory, 30, shell(failingScript));
+                fail("Expected a GradleException for: " + failingScript);
+            } catch (GradleException expected) {
+                // expected
+            }
+            assertNoFilesIn(tempDirectory, failingScript);
+        }
+
         try {
-            GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), 30, shell("exit 1"));
+            GitUtil.firstLineOfOutput(workingDirectory, tempDirectory, 1, shell("sleep 60"));
+            fail("Expected a timeout");
         } catch (GradleException expected) {
             // expected
         }
-        assertEquals(before, countGitTempFiles(tmpDir));
+        assertNoFilesIn(tempDirectory, "timeout");
+
+        try {
+            GitUtil.firstLineOfOutput(workingDirectory, tempDirectory, 30, Collections.singletonList("no-such-command-for-gitutil-test"));
+            fail("Expected an IOException");
+        } catch (java.io.IOException expected) {
+            // expected
+        }
+        assertNoFilesIn(tempDirectory, "cannot start");
     }
 
-    private static int countGitTempFiles(File directory) {
-        String[] names = directory.list((dir, name) -> name.startsWith("git-stdout") || name.startsWith("git-stderr"));
-        return names == null ? 0 : names.length;
+    private static void assertNoFilesIn(File directory, String situation) {
+        String[] leftOver = directory.list();
+        assertTrue("files left behind after " + situation + ": " + Arrays.toString(leftOver), leftOver == null || leftOver.length == 0);
     }
 
     private static List<String> shell(String script) {
@@ -224,7 +252,11 @@ public class GitUtilTest {
         try {
             Process process = new ProcessBuilder("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", new File(repository, "signing-key").getPath())
                     .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.to(new File(repository.getParentFile(), "ssh-keygen.log"))).start();
-            if (!process.waitFor(30, TimeUnit.SECONDS) || process.exitValue() != 0) {
+            if (!process.waitFor(30, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return false;
+            }
+            if (process.exitValue() != 0) {
                 return false;
             }
         } catch (java.io.IOException e) {
@@ -256,9 +288,12 @@ public class GitUtilTest {
     }
 
     private static void gitWithEnvironment(File directory, String variable, String value, String... arguments) throws Exception {
-        String[] command = new String[arguments.length + 1];
+        // No hooks: a developer's global commit hooks must not decide whether the test repository can be set up.
+        String[] command = new String[arguments.length + 3];
         command[0] = "git";
-        System.arraycopy(arguments, 0, command, 1, arguments.length);
+        command[1] = "-c";
+        command[2] = "core.hooksPath=/dev/null";
+        System.arraycopy(arguments, 0, command, 3, arguments.length);
         ProcessBuilder builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
         Map<String, String> environment = builder.environment();
         environment.remove("GIT_DIR");
@@ -269,9 +304,13 @@ public class GitUtilTest {
         File output = File.createTempFile("git-test", ".txt");
         try {
             Process process = builder.redirectOutput(output).start();
-            if (!process.waitFor(30, TimeUnit.SECONDS) || process.exitValue() != 0) {
+            if (!process.waitFor(30, TimeUnit.SECONDS)) {
                 process.destroyForcibly();
-                fail("git " + String.join(" ", arguments) + " failed");
+                fail("git " + String.join(" ", arguments) + " did not finish within 30 seconds");
+            }
+            if (process.exitValue() != 0) {
+                fail("git " + String.join(" ", arguments) + " exited with status " + process.exitValue() + ": "
+                        + new String(java.nio.file.Files.readAllBytes(output.toPath()), java.nio.charset.StandardCharsets.UTF_8).trim());
             }
         } finally {
             output.delete();

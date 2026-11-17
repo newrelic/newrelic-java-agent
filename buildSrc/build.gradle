@@ -26,3 +26,10 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
 }
+
+test {
+    // GitUtil inherits the environment of the test JVM, so an exported GIT_DIR or GIT_WORK_TREE (for example when the
+    // tests run from a git hook) would make it read some other repository than the one under test.
+    environment.remove('GIT_DIR')
+    environment.remove('GIT_WORK_TREE')
+}

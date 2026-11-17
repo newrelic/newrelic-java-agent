@@ -78,20 +78,21 @@ public class GitUtil {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.addAll(Arrays.asList(gitArguments));
-        return firstLineOfOutput(project.getProjectDir(), GIT_TIMEOUT_SECONDS, command);
+        return firstLineOfOutput(project.getProjectDir(), null, GIT_TIMEOUT_SECONDS, command);
     }
 
-    // The command and timeout are parameters so tests can use stand-ins for git.
-    static String firstLineOfOutput(File directory, long timeoutSeconds, List<String> command) throws Exception {
+    // The command, timeout and temp directory are parameters so tests can use stand-ins for git and see what is left behind.
+    // A null tempDirectory means the default temp directory.
+    static String firstLineOfOutput(File directory, File tempDirectory, long timeoutSeconds, List<String> command) throws Exception {
         String description = String.join(" ", command);
 
         // Output goes to temp files instead of pipes, so the command can never block on a full pipe and the wait below can
         // time out whether or not it is still holding its output open. (ProcessBuilder.inheritIO() would not show stderr:
         // under the Gradle daemon the inherited stderr is /dev/null.)
-        File stdout = File.createTempFile("git-stdout", ".txt");
+        File stdout = File.createTempFile("git-stdout", ".txt", tempDirectory);
         File stderr = null;
         try {
-            stderr = File.createTempFile("git-stderr", ".txt");
+            stderr = File.createTempFile("git-stderr", ".txt", tempDirectory);
             Process process = new ProcessBuilder(command)
                     .directory(directory)
                     .redirectOutput(stdout)

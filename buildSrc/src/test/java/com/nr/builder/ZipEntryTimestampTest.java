@@ -10,6 +10,8 @@ package com.nr.builder;
 import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.file.FileTreeElement;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.TimeZone;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -35,16 +38,32 @@ import static org.junit.Assert.assertTrue;
  * The build must not put the time it ran into any jar entry. These cover the places the build writes entry times itself.
  */
 public class ZipEntryTimestampTest {
-    private static final long ONE_YEAR_AGO = System.currentTimeMillis() - 365L * 24 * 60 * 60 * 1000;
+    // 2024-06-15T12:00:00Z, long after the 1980 start of the zip time range.
+    private static final long A_FIXED_PAST_TIME = 1718452800000L;
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    private TimeZone originalTimeZone;
+
+    // Zip entry times are stored as local date and time fields. In a zone with daylight saving time, the repeated hour
+    // when the clocks go back makes a time read back an hour off, so the tests use a zone without it.
+    @Before
+    public void useUtc() {
+        originalTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
+    @After
+    public void restoreTimeZone() {
+        TimeZone.setDefault(originalTimeZone);
+    }
 
     @Test
     public void constantEntryTime_isTheFixedTimeShadowAndGradleUse() {
         assertEquals(TransformerContext.getEntryTimestamp(false, 12345L), JarUtil.CONSTANT_ENTRY_TIME);
         // 1980-02-01 is after the start of the zip time range, so the time is representable.
-        assertTrue(JarUtil.CONSTANT_ENTRY_TIME < ONE_YEAR_AGO);
+        assertTrue(JarUtil.CONSTANT_ENTRY_TIME < A_FIXED_PAST_TIME);
     }
 
     @Test
@@ -81,7 +100,7 @@ public class ZipEntryTimestampTest {
 
     @Test
     public void setConstantEntryTimes_givesIdenticalBytesWhateverTheOriginalTimes() throws Exception {
-        File first = zipWithEntryTime("first.zip", ONE_YEAR_AGO);
+        File first = zipWithEntryTime("first.zip", A_FIXED_PAST_TIME);
         File second = zipWithEntryTime("second.zip", System.currentTimeMillis());
 
         JarUtil.setConstantEntryTimes(first);
@@ -117,7 +136,7 @@ public class ZipEntryTimestampTest {
                         return Log4j2PluginFileMover.LOG4J2PLUGINS_ORIGINAL_LOCATION;
                     }
                     if (method.getName().equals("getLastModified")) {
-                        return ONE_YEAR_AGO;
+                        return A_FIXED_PAST_TIME;
                     }
                     throw new UnsupportedOperationException(method.getName());
                 });
@@ -127,7 +146,7 @@ public class ZipEntryTimestampTest {
 
         assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(mover::modifyOutputStream, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, false));
         // Within the zip's two second resolution (and the local time zone conversion), the original modification time is kept.
-        assertTrue(Math.abs(ONE_YEAR_AGO - entryTime(mover::modifyOutputStream, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, true)) <= 4000);
+        assertTrue(Math.abs(A_FIXED_PAST_TIME - entryTime(mover::modifyOutputStream, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, true)) <= 4000);
     }
 
     private interface OutputStreamModifier {
