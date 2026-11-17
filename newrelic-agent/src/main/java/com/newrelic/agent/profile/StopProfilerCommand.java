@@ -32,11 +32,11 @@ public class StopProfilerCommand extends AbstractCommand {
         Object report = arguments.get("report_data"), profileId = arguments.get("profile_id");
 
         if (!(profileId instanceof Number)) {
-            throw new CommandException("The start_profiler command encountered an invalid profile id: " + profileId);
+            throw new CommandException("The stop_profiler command encountered an invalid profile id: " + profileId);
         }
 
         if (!(report instanceof Boolean)) {
-            throw new CommandException("The start_profiler command encountered an invalid report_data parameter: "
+            throw new CommandException("The stop_profiler command encountered an invalid report_data parameter: "
                     + report);
         }
 

@@ -23,8 +23,7 @@ public abstract class ContextImpl_Instrumentation {
     public <T> Future<T> executeBlocking(Callable<T> blockingCodeHandler, boolean ordered) {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         if (txn != null) {
-            blockingCodeHandler =
-                    new CallableWrapper<T>(blockingCodeHandler, NewRelic.getAgent().getTransaction().getToken());
+            blockingCodeHandler = new CallableWrapper<T>(blockingCodeHandler, NewRelic.getAgent().getTransaction().getToken("vertx-core-5.0.0:ContextImpl_Instrumentation.executeBlocking"));
         }
         return Weaver.callOriginal();
     }

@@ -41,4 +41,6 @@ public class NoOpToken implements Token {
         return NoOpTransaction.INSTANCE;
     }
 
+    @Override
+    public void setCreator(String creator) {}
 }

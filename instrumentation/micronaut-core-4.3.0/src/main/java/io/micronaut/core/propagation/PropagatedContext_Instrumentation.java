@@ -27,7 +27,7 @@ public class PropagatedContext_Instrumentation {
         if (transaction == null) {
             return original;
         }
-        Token token = transaction.getToken();
+        Token token = transaction.getToken("micronaut-core-4.3.0:PropagatedContext_Instrumentation.wrapRunnable");
         if (token == null) {
             return original;
         }
@@ -40,7 +40,7 @@ public class PropagatedContext_Instrumentation {
         if (transaction == null) {
             return original;
         }
-        Token token = transaction.getToken();
+        Token token = transaction.getToken("micronaut-core-4.3.0:PropagatedContext_Instrumentation.wrapCallable");
         if (token == null) {
             return original;
         }

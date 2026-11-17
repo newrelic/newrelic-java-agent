@@ -27,8 +27,6 @@ public interface DataSender {
 
     Map<String, Object> connect(Map<String, Object> startupOptions) throws Exception;
 
-    List<List<?>> getAgentCommands() throws Exception;
-
     void sendCommandResults(Map<Long, Object> commandResults) throws Exception;
 
     void sendErrorData(List<TracedError> errors) throws Exception;
@@ -61,9 +59,10 @@ public interface DataSender {
      * @param beginTimeMillis the last time metric data was sent to New Relic
      * @param endTimeMillis the time now
      * @param metricData the metric data to send
+     * @return any pending agent commands returned in the response, or an empty list if there are none
      * @throws Exception if there is a problem sending the metric data
      */
-    void sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception;
+    List<List<?>> sendMetricData(long beginTimeMillis, long endTimeMillis, List<MetricData> metricData) throws Exception;
 
     /**
      * Send thread profiles to New Relic.

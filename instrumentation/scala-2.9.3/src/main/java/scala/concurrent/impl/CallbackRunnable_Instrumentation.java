@@ -38,7 +38,8 @@ public class CallbackRunnable_Instrumentation<T> {
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (tx != null) {
-                AgentBridge.TokenAndRefCount tokenAndRef = new AgentBridge.TokenAndRefCount(tx.getToken(),
+                AgentBridge.TokenAndRefCount tokenAndRef = new AgentBridge.TokenAndRefCount(
+                        tx.getToken("scala-2.9.3:CallbackRunnable_Instrumentation.value_$eq"),
                         AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
                 value = new WrappedTry<>(value, tokenAndRef);
             }

@@ -25,7 +25,7 @@ public abstract class HttpServerExchange_Instrumentation {
 
     public HttpServerExchange_Instrumentation(final ServerConnection connection, final HeaderMap requestHeaders,
             final HeaderMap responseHeaders,  long maxEntitySize) {
-        this.token = NewRelic.getAgent().getTransaction().getToken();
+        this.token = NewRelic.getAgent().getTransaction().getToken("undertow-server-1.1.0:HttpServerExchange_Instrumentation.<init>");
     }
 
     private void invokeExchangeCompleteListeners() {

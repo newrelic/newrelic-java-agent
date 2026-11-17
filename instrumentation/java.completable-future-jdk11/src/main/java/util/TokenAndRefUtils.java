@@ -15,7 +15,7 @@ public class TokenAndRefUtils {
         if (tokenAndRefCount == null) {
             Transaction tx = AgentBridge.getAgent().getTransaction(false);
             if (tx != null) {
-                Token token = tx.getToken();
+                Token token = tx.getToken("java.completable-future-jdk11:TokenAndRefUtils.getThreadTokenAndRefCount");
                 if (token.isActive()) {
                     tokenAndRefCount = new AgentBridge.TokenAndRefCount(token,
                             AgentBridge.getAgent().getTracedMethod(), new AtomicInteger(1));
@@ -40,7 +40,7 @@ public class TokenAndRefUtils {
             AgentBridge.activeToken.set(tokenAndRefCount);
             tokenAndRefCount.token.link();
         } else if(tokenAndRefCount != null && transaction != null) {
-          tokenAndRefCount.token = transaction.getToken();
+          tokenAndRefCount.token = transaction.getToken("java.completable-future-jdk11:TokenAndRefUtils.setThreadTokenAndRefCount");
           tokenAndRefCount.token.link();
           tokenAndRefCount.refCount = new AtomicInteger(1);
         }

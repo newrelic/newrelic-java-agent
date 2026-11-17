@@ -21,6 +21,7 @@ import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -56,7 +57,7 @@ public class PropagatedContextInstrumentationTest {
             Transaction transaction = mock(Transaction.class);
             newRelic.when(NewRelic::getAgent).thenReturn(agent);
             when(agent.getTransaction()).thenReturn(transaction);
-            when(transaction.getToken()).thenReturn(null);
+            when(transaction.getToken(any(String.class))).thenReturn(null);
 
             Runnable result = new PropagatedContext_Instrumentation().wrap(original);
 
@@ -76,7 +77,7 @@ public class PropagatedContextInstrumentationTest {
             Token token = mock(Token.class);
             newRelic.when(NewRelic::getAgent).thenReturn(agent);
             when(agent.getTransaction()).thenReturn(transaction);
-            when(transaction.getToken()).thenReturn(token);
+            when(transaction.getToken(any(String.class))).thenReturn(token);
 
             Runnable result = new PropagatedContext_Instrumentation().wrap(original);
 
@@ -102,7 +103,7 @@ public class PropagatedContextInstrumentationTest {
             Token token = mock(Token.class);
             newRelic.when(NewRelic::getAgent).thenReturn(agent);
             when(agent.getTransaction()).thenReturn(transaction);
-            when(transaction.getToken()).thenReturn(token);
+            when(transaction.getToken(any(String.class))).thenReturn(token);
 
             Callable<String> result = new PropagatedContext_Instrumentation().wrap(original);
 

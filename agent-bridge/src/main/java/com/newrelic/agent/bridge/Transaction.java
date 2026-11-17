@@ -269,6 +269,17 @@ public interface Transaction extends com.newrelic.api.agent.Transaction {
     Token getToken();
 
     /**
+     * Used when asynchronous work needs to be added to the current transaction. The token must be passed to the other
+     * thread of work which should be linked. Additionally, the transaction will remain open until the token is expired.
+     *
+     * @param creator identifies the module, class, and method that created this token
+     *
+     * @return A token to pass to another thread with work for the current transaction.
+     */
+    @Override
+    Token getToken(String creator);
+
+    /**
      * Expires all tokens associated with the current transaction. The transaction will then end when all currently
      * running work then finishes.
      */
