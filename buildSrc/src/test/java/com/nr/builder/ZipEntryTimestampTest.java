@@ -7,6 +7,7 @@
 
 package com.nr.builder;
 
+import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
 import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext;
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.file.FileTreeElement;
@@ -17,13 +18,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.TimeZone;
 import java.util.List;
@@ -88,14 +89,12 @@ public class ZipEntryTimestampTest {
                 ZipEntry entry = entries.nextElement();
                 names.add(entry.getName());
                 assertEquals(entry.getName(), JarUtil.CONSTANT_ENTRY_TIME, entry.getTime());
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 try (InputStream in = result.getInputStream(entry)) {
-                    Streams.copy(in, bytes);
+                    assertEquals("contents of " + entry.getName(), new String(Streams.readAll(in), StandardCharsets.UTF_8));
                 }
-                assertEquals("contents of " + entry.getName(), new String(bytes.toByteArray(), StandardCharsets.UTF_8));
             }
         }
-        assertEquals(java.util.Arrays.asList("b.json", "a.json", "dir/c.json"), names);
+        assertEquals(Arrays.asList("b.json", "a.json", "dir/c.json"), names);
     }
 
     @Test
@@ -113,17 +112,15 @@ public class ZipEntryTimestampTest {
     public void dependencyPatcher_writesEntriesWithTheFixedTimeUnlessTimestampsArePreserved() throws Exception {
         byte[] classBytes;
         try (InputStream in = getClass().getResourceAsStream("ZipEntryTimestampTest.class")) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            Streams.copy(in, bytes);
-            classBytes = bytes.toByteArray();
+            classBytes = Streams.readAll(in);
         }
         DependencyPatcher patcher = new DependencyPatcher();
         patcher.transform(new TransformerContext("com/newrelic/agent/deps/Example.class", new ByteArrayInputStream(classBytes)));
 
-        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(patcher::modifyOutputStream, "com/newrelic/agent/deps/Example.class", false));
+        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(patcher, "com/newrelic/agent/deps/Example.class", false));
 
         long before = System.currentTimeMillis();
-        long preserved = entryTime(patcher::modifyOutputStream, "com/newrelic/agent/deps/Example.class", true);
+        long preserved = entryTime(patcher, "com/newrelic/agent/deps/Example.class", true);
         assertTrue("with preserveFileTimestamps the time of the build is used", preserved >= before - 4000);
     }
 
@@ -144,19 +141,15 @@ public class ZipEntryTimestampTest {
         mover.transform(new TransformerContext(Log4j2PluginFileMover.LOG4J2PLUGINS_ORIGINAL_LOCATION,
                 new ByteArrayInputStream("plugins".getBytes(StandardCharsets.UTF_8))));
 
-        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(mover::modifyOutputStream, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, false));
+        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(mover, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, false));
         // Within the zip's two second resolution (and the local time zone conversion), the original modification time is kept.
-        assertTrue(Math.abs(A_FIXED_PAST_TIME - entryTime(mover::modifyOutputStream, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, true)) <= 4000);
+        assertTrue(Math.abs(A_FIXED_PAST_TIME - entryTime(mover, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, true)) <= 4000);
     }
 
-    private interface OutputStreamModifier {
-        void modify(ZipOutputStream jos, boolean preserveFileTimestamps);
-    }
-
-    private long entryTime(OutputStreamModifier modifier, String entryName, boolean preserveFileTimestamps) throws Exception {
+    private long entryTime(Transformer transformer, String entryName, boolean preserveFileTimestamps) throws Exception {
         File zip = temporaryFolder.newFile();
         try (ZipOutputStream out = new ZipOutputStream(zip)) {
-            modifier.modify(out, preserveFileTimestamps);
+            transformer.modifyOutputStream(out, preserveFileTimestamps);
         }
         try (ZipFile result = new ZipFile(zip)) {
             return result.getEntry(entryName).getTime();

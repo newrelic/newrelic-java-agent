@@ -18,7 +18,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.Jar;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,11 +26,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 
 public class JarUtil {
     /**
@@ -55,11 +54,9 @@ public class JarUtil {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 names.add(entry.getName());
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
                 try (InputStream in = zip.getInputStream(entry)) {
-                    Streams.copy(in, bytes);
+                    contents.add(Streams.readAll(in));
                 }
-                contents.add(bytes.toByteArray());
             }
         }
 

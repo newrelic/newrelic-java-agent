@@ -17,6 +17,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -62,12 +66,12 @@ public class GitUtilTest {
 
     @Test
     public void commitDate_isInUtcWhateverTheDefaultTimeZone() {
-        java.util.TimeZone original = java.util.TimeZone.getDefault();
+        TimeZone original = TimeZone.getDefault();
         try {
-            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
+            TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"));
             assertEquals(DATE_2023, GitUtil.commitDate(repositoryProject, EPOCH_2023));
         } finally {
-            java.util.TimeZone.setDefault(original);
+            TimeZone.setDefault(original);
         }
     }
 
@@ -110,7 +114,7 @@ public class GitUtilTest {
         git(repository, "config", "log.showSignature", "true");
 
         // Proves the setup reproduces the problem: without the fix the first line is not the time.
-        assertFalse(firstLineOfGitLog(repository, "log", "-1", "--format=%ct").equals(EPOCH_2023));
+        assertFalse(GitUtil.firstLineOfOutput(repository, null, 30, Arrays.asList("git", "log", "-1", "--format=%ct")).equals(EPOCH_2023));
 
         assertEquals(DATE_2023, GitUtil.commitDate(repositoryProject, null));
     }
@@ -174,7 +178,7 @@ public class GitUtilTest {
         try {
             GitUtil.firstLineOfOutput(temporaryFolder.getRoot(), null, 30, Collections.singletonList("no-such-command-for-gitutil-test"));
             fail("Expected an IOException");
-        } catch (java.io.IOException expected) {
+        } catch (IOException expected) {
             // The caller (commitDate or sha) logs this and falls back.
         }
     }
@@ -210,7 +214,7 @@ public class GitUtilTest {
         try {
             GitUtil.firstLineOfOutput(workingDirectory, tempDirectory, 30, Collections.singletonList("no-such-command-for-gitutil-test"));
             fail("Expected an IOException");
-        } catch (java.io.IOException expected) {
+        } catch (IOException expected) {
             // expected
         }
         assertNoFilesIn(tempDirectory, "cannot start");
@@ -259,28 +263,12 @@ public class GitUtilTest {
             if (process.exitValue() != 0) {
                 return false;
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             return false;
         }
         git(repository, "config", "gpg.format", "ssh");
         git(repository, "config", "user.signingkey", new File(repository, "signing-key.pub").getPath());
         return true;
-    }
-
-    private static String firstLineOfGitLog(File repository, String... arguments) throws Exception {
-        String[] command = new String[arguments.length + 1];
-        command[0] = "git";
-        System.arraycopy(arguments, 0, command, 1, arguments.length);
-        File output = File.createTempFile("git-log", ".txt");
-        try {
-            Process process = new ProcessBuilder(command).directory(repository).redirectErrorStream(true)
-                    .redirectOutput(output).start();
-            assertTrue(process.waitFor(30, TimeUnit.SECONDS));
-            List<String> lines = java.nio.file.Files.readAllLines(output.toPath());
-            return lines.isEmpty() ? "" : lines.get(0).trim();
-        } finally {
-            output.delete();
-        }
     }
 
     private static void git(File directory, String... arguments) throws Exception {
@@ -310,7 +298,7 @@ public class GitUtilTest {
             }
             if (process.exitValue() != 0) {
                 fail("git " + String.join(" ", arguments) + " exited with status " + process.exitValue() + ": "
-                        + new String(java.nio.file.Files.readAllBytes(output.toPath()), java.nio.charset.StandardCharsets.UTF_8).trim());
+                        + new String(Files.readAllBytes(output.toPath()), StandardCharsets.UTF_8).trim());
             }
         } finally {
             output.delete();
