@@ -57,6 +57,10 @@ allprojects {
         // comes from the machine (LANG/LC_ALL on Linux). Pin it so the javadoc jars don't depend on where they are built.
         // options.locale alone is not enough: some translated text still follows the JVM's user.language.
         options.jFlags('-Duser.language=en', '-Duser.country=US')
+        // Likewise the encoding: the sources are read, and the pages written, as UTF-8 and not as the platform default.
+        options.encoding = 'UTF-8'
+        options.docEncoding = 'UTF-8'
+        options.charSet = 'UTF-8'
         doLast {
             fileTree(javadocTask.destinationDir).matching { include '**/*-search-index.zip' }.each { File indexZip ->
                 com.nr.builder.JarUtil.setConstantEntryTimes(indexZip)
