@@ -31,7 +31,7 @@ jobs:
           S3_BUCKET: nr-downloads-main
         run: |
           mkdir -p "$RUNNER_TEMP/s3-download"
-          aws s3 cp "s3://${S3_BUCKET}/newrelic/java-agent/newrelic-agent/newrelic-java.zip" "$RUNNER_TEMP/s3-download/"
+          aws s3 cp "s3://${S3_BUCKET}/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" "$RUNNER_TEMP/s3-download/"
 
       - name: Upload agent as workflow artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
