@@ -150,8 +150,11 @@ jobs:
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
+      # Only JDK 8 is needed: these tests do not run instrumentation modules or any -PtestN JVM.
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          java-versions: '8'
 
       - name: Run buildSrc tests
         run: ./gradlew --stacktrace $GRADLE_OPTIONS :buildSrc:test

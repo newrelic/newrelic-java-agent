@@ -298,12 +298,14 @@ public class GitUtilTest {
     @Test
     public void repositoryEnvironmentVariables_includeEveryVariableTheInstalledGitCallsLocal() throws Exception {
         File output = temporaryFolder.newFile("local-env-vars.txt");
-        Process process = new ProcessBuilder("git", "rev-parse", "--local-env-vars").redirectErrorStream(true).redirectOutput(output).start();
+        Process process = new ProcessBuilder("git", "rev-parse", "--local-env-vars")
+                .redirectError(ProcessBuilder.Redirect.to(temporaryFolder.newFile("local-env-vars-stderr.txt"))).redirectOutput(output).start();
         assertTrue(process.waitFor(30, TimeUnit.SECONDS));
         Assume.assumeTrue("this git does not know --local-env-vars", process.exitValue() == 0);
 
         for (String name : Files.readAllLines(output.toPath())) {
-            if (!name.trim().isEmpty()) {
+            // Only variable names count: trace or advice text on stdout must not fail the build.
+            if (name.trim().matches("GIT_[A-Z0-9_]+")) {
                 assertTrue(name + " is local to a repository for this git, so add it to GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES "
                                 + "(or to KEPT_LOCAL_ENVIRONMENT_VARIABLES if it only carries configuration)",
                         GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name.trim())
