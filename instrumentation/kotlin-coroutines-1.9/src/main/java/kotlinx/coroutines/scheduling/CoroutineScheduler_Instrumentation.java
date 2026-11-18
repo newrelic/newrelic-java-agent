@@ -9,7 +9,7 @@ import com.newrelic.instrumentation.kotlin.coroutines_19.Utils;
 public class CoroutineScheduler_Instrumentation {
 
     public void dispatch(Runnable block, boolean taskContext, boolean tailDispatch) {
-        NRRunnable wrapper = Utils.getRunnableWrapper(block);
+        NRRunnable wrapper = Utils.getRunnableWrapper(block, "kotlin-coroutines-1.9:CoroutineScheduler_Instrumentation.dispatch");
         if (wrapper != null) {
             block =  wrapper;
         }

@@ -27,7 +27,7 @@ abstract class FluxMapFuseable_Instrumentation {
         @WeaveAllConstructors
         MapFuseableSubscriber_Instrumentation() {
             if (AgentBridge.getAgent().getTransaction(false) != null && token == null) {
-                token = NewRelic.getAgent().getTransaction().getToken();
+                token = NewRelic.getAgent().getTransaction().getToken("netty-reactor-0.9.0:MapFuseableSubscriber_Instrumentation.<init>");
             }
         }
 

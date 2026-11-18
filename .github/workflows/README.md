@@ -272,7 +272,7 @@ jobs:
     steps:
       - name: Retrieve agent from cache
         id: retrieve-agent
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # pin@v5.0.5 # pin@v5
         with:
           path: /home/runner/work/newrelic-java-agent/newrelic-java-agent/newrelic-agent/build/newrelicJar/newrelic.jar
           key: ${{ github.run_id }}

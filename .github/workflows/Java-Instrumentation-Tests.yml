@@ -2,7 +2,9 @@ name: Java Instrumentation Tests
 
 # Permissions granted to all jobs in the workflow.
 # Permissions that aren't explicitly defined here will default to a value of none.
-permissions: {}
+permissions:
+  contents: read
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -29,24 +31,24 @@ jobs:
     timeout-minutes: 120
     # needs: install-all-java
     runs-on: ubuntu-22.04
+    environment: agent-build-s3-access-ungated
     env:
       # we use these in env vars for conditionals (secrets can't be used in conditionals)
-      AWS_KEY: ${{ secrets.aws-secret-access-key }}
+      AWS_ARN: ${{ secrets.AWS_ROLE_ARN }}
       # This replaces org.gradle.jvmargs from gradle.properties, so the locale pin that file has is repeated here.
       GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx2048m -Duser.language=en -Duser.country=US'"
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Java agent
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
         with:
           ref: ${{ inputs.agent-ref || github.ref || 'main' }}
 
       - name: Configure AWS Credentials
-        if: ${{ env.AWS_KEY != '' }}
+        if: ${{ env.AWS_ARN != '' }}
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}   # your existing role ARN
           aws-region: us-east-2
 
       - name: Setup environment

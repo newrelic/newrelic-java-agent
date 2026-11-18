@@ -25,7 +25,7 @@ public class AsyncExecutor_Instrumentation {
         Transaction txn = AgentBridge.getAgent().getTransaction(false);
         Token token = null;
         if ( txn != null) {
-            token = txn.getToken();
+            token = txn.getToken("slick-2.12_3.5.0:AsyncExecutor_Instrumentation.prioritizedRunnable");
             run = AsyncExecutorUtil.wrapRunMethod(run, token);
         }
         return Weaver.callOriginal();

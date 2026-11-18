@@ -24,7 +24,7 @@ public class JBossThreadsUtils {
             return null;
         }
 
-        Token token = NewRelic.getAgent().getTransaction().getToken();
+        Token token = NewRelic.getAgent().getTransaction().getToken("jboss-threads-2.3.0:JBossThreadsUtils.getWrapper");
         if (!token.isActive()) {
             token.expire();
             return null;

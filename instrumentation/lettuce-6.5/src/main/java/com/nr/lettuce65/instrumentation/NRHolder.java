@@ -23,14 +23,14 @@ public class NRHolder {
     public NRHolder(Segment s, DatastoreParameters p) {
         segment = s;
         params = p;
-        token = NewRelic.getAgent().getTransaction().getToken();
+        token = NewRelic.getAgent().getTransaction().getToken("lettuce-6.5:NRHolder.<init>");
         hasEnded = false;
     }
 
-    public NRHolder(String s, DatastoreParameters p) {
+    public NRHolder(String s, DatastoreParameters p, String creator) {
         segmentName = s;
         params = p;
-        token = NewRelic.getAgent().getTransaction().getToken();
+        token = NewRelic.getAgent().getTransaction().getToken(creator);
         hasEnded = false;
     }
 

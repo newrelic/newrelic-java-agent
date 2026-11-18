@@ -22,7 +22,7 @@ public abstract class RoutingContext_Instrumentation {
     @WeaveAllConstructors
     RoutingContext_Instrumentation() {
         if (get(NEWRELIC_TOKEN) == null) {
-            put(NEWRELIC_TOKEN, NewRelic.getAgent().getTransaction().getToken());
+            put(NEWRELIC_TOKEN, NewRelic.getAgent().getTransaction().getToken("vertx-web-3.8.3:RoutingContext_Instrumentation.<init>"));
             addHeadersEndHandler(VertxUtil.expireAndNameTxnHandler((RoutingContext) this));
         }
     }

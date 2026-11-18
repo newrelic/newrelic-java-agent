@@ -3,6 +3,7 @@ name: Publish snapshot on main merge
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 on:
   push:
@@ -11,15 +12,15 @@ on:
 jobs:
   publish_snapshot:
     runs-on: ubuntu-24.04
+    environment: maven-staging-publish-ungated
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}   # your existing role ARN
           aws-region: us-east-2
 
       - name: Setup environment
@@ -32,7 +33,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala3-api:publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -x :newrelic-scala-zio2-api:publish -x :newrelic-scala-monix-api:publish -x :agent-bridge:publish -x :agent-bridge-datastore:publish -x :newrelic-weaver:publish -x :newrelic-weaver-api:publish -x :newrelic-weaver-scala:publish -x :newrelic-weaver-scala-api:publish -x :newrelic-opentelemetry-agent-extension:publish
+        run: ./gradlew $GRADLE_OPTIONS publish -x :newrelic-scala3-api:publish -x :newrelic-scala-api:publish -x :newrelic-scala-cats-api:publish -x :newrelic-cats-effect3-api:publish -x :newrelic-scala-zio-api:publish -x :newrelic-scala-zio2-api:publish -x :newrelic-scala-monix-api:publish -x :agent-bridge:publish -x :agent-bridge-datastore:publish -x :newrelic-weaver:publish -x :newrelic-weaver-api:publish -x :newrelic-weaver-scala:publish -x :newrelic-weaver-scala-api:publish -x :newrelic-opentelemetry-agent-extension:publish --stacktrace
       - name: Publish snapshot scala apis
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

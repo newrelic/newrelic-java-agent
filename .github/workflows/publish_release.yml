@@ -3,6 +3,7 @@ name: Publish release version explicitly
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 on:
   release:
@@ -12,15 +13,15 @@ on:
 jobs:
   publish_release:
     runs-on: ubuntu-24.04
+    environment: maven-prod-publishing-gated
     steps:
-#      - uses: GitHubSecurityLab/actions-permissions/monitor@v1 # detects minimum permissions required to run the workflow, uncomment to use
+#      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # pin@v6
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}   # your existing role ARN
           aws-region: us-east-2
 
       - name: Setup environment
@@ -88,7 +89,4 @@ jobs:
     uses: ./.github/workflows/Agent-Metadata.yml
     with:
       version: ${{ github.event.release.tag_name }}
-    secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }}
+    secrets: inherit

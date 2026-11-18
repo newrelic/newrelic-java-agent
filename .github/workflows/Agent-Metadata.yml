@@ -39,22 +39,13 @@ on:
         required: false
         default: true
         type: boolean
-    secrets:
-      FC_SYS_ID_CLIENT_ID:
-        required: true
-      FC_SYS_ID_PR_KEY:
-        required: true
-      AGENT_METADATA_ACTION_LICENSE_KEY:
-        required: false
 
 jobs:
   send-agent-metadata:
-    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@main
+    uses: newrelic/newrelic-agent-init-container/.github/workflows/agent-metadata.yml@eb28b448d98885b0d3293c3646b69f3c50c6859f # main
     with:
       agent-type: ${{ inputs.agent-type }}
       version: ${{ inputs.version }}
       use-cache: ${{ inputs.use-cache }}
-    secrets:
-      FC_SYS_ID_CLIENT_ID: ${{ secrets.FC_SYS_ID_CLIENT_ID }}
-      FC_SYS_ID_PR_KEY: ${{ secrets.FC_SYS_ID_PR_KEY }}
-      AGENT_METADATA_ACTION_LICENSE_KEY: ${{ secrets.AGENT_METADATA_ACTION_LICENSE_KEY }} # action owning team license key
+      environment-name: maven-staging-publish-ungated
+    secrets: inherit
