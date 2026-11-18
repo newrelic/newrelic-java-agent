@@ -129,7 +129,8 @@ public class GitUtilTest {
         git(repository, "config", "log.showSignature", "true");
 
         // Proves the setup reproduces the problem: without the fix the first line is not the time.
-        assertFalse(GitUtil.firstLineOfOutput(repository, null, 30, Arrays.asList("git", "log", "-1", "--format=%ct")).equals(EPOCH_2023));
+        assertFalse(GitUtil.firstLineOfOutput(repository, null, 30,
+                Arrays.asList("git", "-c", "log.showSignature=true", "log", "-1", "--format=%ct")).equals(EPOCH_2023));
 
         assertEquals(DATE_2023, GitUtil.commitDate(repositoryProject, null));
     }
@@ -137,7 +138,7 @@ public class GitUtilTest {
     @Test
     public void commitDate_fallsBackToTheCurrentTimeWhenGitCannotReadTheRepository() throws Exception {
         long before = System.currentTimeMillis();
-        String date = GitUtil.commitDate(plainDirectoryProject, null);
+        String date = GitUtil.commitDate(plainDirectoryProject, null, outsideEveryRepository());
         long after = System.currentTimeMillis();
 
         SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
@@ -265,16 +266,11 @@ public class GitUtilTest {
     }
 
     @Test
-    public void sha_ignoresRepositoryVariablesInheritedFromTheEnvironment() throws Exception {
+    public void firstLineOfOutput_ignoresRepositoryVariablesInheritedFromTheEnvironment() throws Exception {
         String expected = GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30, Arrays.asList("git", "rev-parse", "HEAD"));
-        Map<String, String> polluted = new HashMap<>();
-        polluted.put("GIT_DIR", "");
-        polluted.put("GIT_WORK_TREE", "/nonexistent/work-tree");
-        polluted.put("GIT_INDEX_FILE", "/nonexistent/index");
-        polluted.put("GIT_COMMON_DIR", "/nonexistent/common");
 
         assertEquals(expected, GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30,
-                Arrays.asList("git", "rev-parse", "HEAD"), polluted));
+                Arrays.asList("git", "rev-parse", "HEAD"), pollutedRepositoryEnvironment()));
     }
 
     @Test
@@ -303,15 +299,91 @@ public class GitUtilTest {
         assertTrue(process.waitFor(30, TimeUnit.SECONDS));
         Assume.assumeTrue("this git does not know --local-env-vars", process.exitValue() == 0);
 
+        List<String> names = new ArrayList<>();
         for (String name : Files.readAllLines(output.toPath())) {
             // Only variable names count: trace or advice text on stdout must not fail the build.
             if (name.trim().matches("GIT_[A-Z0-9_]+")) {
+                names.add(name.trim());
                 assertTrue(name + " is local to a repository for this git, so add it to GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES "
                                 + "(or to KEPT_LOCAL_ENVIRONMENT_VARIABLES if it only carries configuration)",
                         GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name.trim())
                                 || GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES.contains(name.trim()));
             }
         }
+        // Guards against the check passing because git printed nothing recognizable.
+        assertTrue("git rev-parse --local-env-vars did not list GIT_DIR: " + names, names.contains("GIT_DIR"));
+    }
+
+    @Test
+    public void keptLocalEnvironmentVariables_areExactlyTheTwoConfigurationVariables() {
+        assertEquals(Arrays.asList("GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"), GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES);
+        for (String name : GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES) {
+            assertFalse(name, GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES.contains(name));
+        }
+    }
+
+    @Test
+    public void firstLineOfOutput_passesConfigurationVariablesToGit() throws Exception {
+        Map<String, String> environment = new HashMap<>();
+        environment.put("GIT_CONFIG_COUNT", "1");
+        environment.put("GIT_CONFIG_KEY_0", "gitutiltest.kept");
+        environment.put("GIT_CONFIG_VALUE_0", "yes");
+        assertEquals("yes", GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30,
+                Arrays.asList("git", "config", "--get", "gitutiltest.kept"), environment));
+    }
+
+    @Test
+    public void sha_ignoresRepositoryVariablesInheritedFromTheEnvironment() throws Exception {
+        String expected = GitUtil.sha(repositoryProject);
+        assertNotNull(expected);
+        assertEquals(expected, GitUtil.sha(repositoryProject, pollutedRepositoryEnvironment()));
+    }
+
+    @Test
+    public void commitDate_ignoresRepositoryVariablesInheritedFromTheEnvironment() throws Exception {
+        commitWithCommitterDate(repositoryProject.getProjectDir(), EPOCH_2023, false);
+        assertEquals(DATE_2023, GitUtil.commitDate(repositoryProject, null, pollutedRepositoryEnvironment()));
+    }
+
+    @Test
+    public void sha_ignoresGitTraceOutputOnStdout() {
+        Map<String, String> environment = new HashMap<>();
+        environment.put("GIT_TRACE", "/dev/stdout");
+        environment.put("GIT_TRACE2", "/dev/stdout");
+        environment.put("GIT_TRACE_SETUP", "/dev/stdout");
+        String sha = GitUtil.sha(repositoryProject, environment);
+        assertNotNull(sha);
+        assertTrue(sha, sha.matches("[0-9a-f]{40}"));
+    }
+
+    @Test
+    public void validatedSha_acceptsOnlyCommitIds() {
+        String sha1 = "0123456789abcdef0123456789abcdef01234567";
+        String sha256 = sha1 + "89abcdef0123456789abcdef";
+        assertEquals(sha1, GitUtil.validatedSha(sha1));
+        assertEquals(sha256, GitUtil.validatedSha(sha256));
+        for (String bad : new String[] { "", "HEAD", "12:00:00.1 trace: built-in: git rev-parse HEAD", sha1.toUpperCase(), sha1 + "0", sha1.substring(1) }) {
+            try {
+                GitUtil.validatedSha(bad);
+                fail("Expected a GradleException for '" + bad + "'");
+            } catch (GradleException e) {
+                assertTrue(e.getMessage(), e.getMessage().contains("not a commit id"));
+            }
+        }
+    }
+
+    private Map<String, String> pollutedRepositoryEnvironment() {
+        Map<String, String> polluted = new HashMap<>();
+        polluted.put("GIT_DIR", "");
+        polluted.put("GIT_WORK_TREE", "/nonexistent/work-tree");
+        polluted.put("GIT_INDEX_FILE", "/nonexistent/index");
+        polluted.put("GIT_COMMON_DIR", "/nonexistent/common");
+        return polluted;
+    }
+
+    /** Stops git from looking above the test's temporary folder, so a temp directory inside a repository is not found. */
+    private Map<String, String> outsideEveryRepository() {
+        return Collections.singletonMap("GIT_CEILING_DIRECTORIES", temporaryFolder.getRoot().getPath());
     }
 
     @Test
@@ -321,12 +393,19 @@ public class GitUtilTest {
         assertTrue(sha, sha.matches("[0-9a-f]{40}"));
         // The test JVM runs inside the agent's own work tree, so the commit of the project directory has to be the one read.
         assertEquals(GitUtil.firstLineOfOutput(repositoryProject.getProjectDir(), null, 30, Arrays.asList("git", "rev-parse", "HEAD")), sha);
-        assertNotEquals(GitUtil.firstLineOfOutput(new File("."), null, 30, Arrays.asList("git", "rev-parse", "HEAD")), sha);
+        String surrounding = null;
+        try {
+            surrounding = GitUtil.firstLineOfOutput(new File("."), null, 30, Arrays.asList("git", "rev-parse", "HEAD"));
+        } catch (GradleException e) {
+            // Run from an export with no .git, there is no surrounding work tree to be confused with.
+            Assume.assumeNoException("the working directory is not inside a git work tree", e);
+        }
+        assertNotEquals(surrounding, sha);
     }
 
     @Test
     public void sha_isNullWhenGitCannotReadTheRepository() {
-        assertNull(GitUtil.sha(plainDirectoryProject));
+        assertNull(GitUtil.sha(plainDirectoryProject, outsideEveryRepository()));
     }
 
     private static void commitWithCommitterDate(File repository, String epochSeconds, boolean signed) throws Exception {
@@ -369,6 +448,9 @@ public class GitUtilTest {
         ProcessBuilder builder = new ProcessBuilder(command).directory(directory).redirectErrorStream(true);
         Map<String, String> environment = builder.environment();
         environment.keySet().removeAll(GitUtil.REPOSITORY_ENVIRONMENT_VARIABLES);
+        // Also the configuration variables GitUtil keeps: an ambient GIT_CONFIG_PARAMETERS (for example from git -c) must not
+        // change how the test repository is set up.
+        environment.keySet().removeAll(GitUtil.KEPT_LOCAL_ENVIRONMENT_VARIABLES);
         if (variable != null) {
             environment.put(variable, value);
         }

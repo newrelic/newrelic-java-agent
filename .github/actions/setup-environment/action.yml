@@ -6,7 +6,7 @@ inputs:
     required: false
     default: 'true'
   java-versions:
-    description: 'Newline-separated list of JDKs to install. JDK 8 must be included. Jobs that only run build logic can ask for just 8.'
+    description: 'Newline-separated list of JDKs to install. The LAST entry must be 8: setup-java makes the last JDK listed JAVA_HOME, and Gradle must run on JDK 8. Jobs that only run build logic can ask for just 8.'
     required: false
     default: |
       27-ea
@@ -28,6 +28,15 @@ runs:
       with:
         distribution: 'temurin'
         java-version: ${{ inputs.java-versions }}
+
+    # The last JDK installed becomes JAVA_HOME, and the agent jar is only reproducible when Gradle runs on JDK 8
+    - name: Check that Gradle will run on JDK 8
+      shell: bash
+      run: |
+        if [ -z "${JAVA_HOME_8_X64}" ] || ! [ "${JAVA_HOME}" -ef "${JAVA_HOME_8_X64}" ]; then
+          echo "::error::JAVA_HOME is '${JAVA_HOME}' but Gradle must run on JDK 8 ('${JAVA_HOME_8_X64}'). Make 8 the last entry of the java-versions input."
+          exit 1
+        fi
 
     - name: set gradle.properties
       shell: bash

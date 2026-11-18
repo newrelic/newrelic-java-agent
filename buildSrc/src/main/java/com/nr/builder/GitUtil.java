@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Locale;
@@ -27,8 +28,12 @@ public class GitUtil {
      * The variables git itself calls repository-local (the list printed by {@code git rev-parse --local-env-vars}, which
      * differs between git versions, so it is written out here), except the two in {@link #KEPT_LOCAL_ENVIRONMENT_VARIABLES}.
      * If one is set, git works on that repository or index instead of the one in the project directory. Gradle gives each
-     * build the environment of the client that started it, so a build run from a git hook, from {@code git rebase --exec},
-     * or from a shell that exported {@code GIT_DIR} would otherwise make this class stamp the wrong commit or fail to read any.
+     * build the environment of the client that started it, so a build started from a receive hook ({@code GIT_DIR=.}),
+     * {@code git submodule foreach}, {@code git filter-branch}, {@code git --git-dir=...}, or a shell that exported
+     * {@code GIT_DIR} would otherwise make this class stamp the wrong commit or fail to read any. (Client hooks and
+     * {@code git rebase --exec} export only variables that do not change which commit {@code HEAD} is.) Variables whose
+     * names start with {@code GIT_TRACE} are removed as well: they can make git write diagnostics to stdout, which this
+     * class reads.
      */
     static final List<String> REPOSITORY_ENVIRONMENT_VARIABLES = Collections.unmodifiableList(Arrays.asList(
             "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_CONFIG",
@@ -44,12 +49,26 @@ public class GitUtil {
             "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"));
 
     public static String sha(final Project project) {
+        return sha(project, Collections.<String, String>emptyMap());
+    }
+
+    // The additional environment is a parameter so tests can simulate an inherited environment.
+    static String sha(final Project project, Map<String, String> additionalEnvironment) {
         try {
-            return firstLineOfGitOutput(project, "rev-parse", "HEAD");
+            return validatedSha(firstLineOfGitOutput(project, additionalEnvironment, "rev-parse", "HEAD"));
         } catch (Exception e) {
             project.getLogger().error("Failed to determine SHA; assuming a null value", e);
         }
         return null;
+    }
+
+    /** A SHA-1 or SHA-256 object name; anything else on git's first output line is not a commit id. */
+    static String validatedSha(String output) {
+        if (!output.matches("[0-9a-f]{40}|[0-9a-f]{64}")) {
+            throw new GradleException("git rev-parse HEAD printed '" + output + "', which is not a commit id. "
+                    + "Check that git is not writing diagnostics or other text to stdout.");
+        }
+        return output;
     }
 
     /**
@@ -69,6 +88,11 @@ public class GitUtil {
 
     // The environment variable is a parameter so tests can set it.
     static String commitDate(final Project project, String sourceDateEpoch) {
+        return commitDate(project, sourceDateEpoch, Collections.<String, String>emptyMap());
+    }
+
+    // The additional environment is a parameter so tests can simulate an inherited environment.
+    static String commitDate(final Project project, String sourceDateEpoch, Map<String, String> additionalEnvironment) {
         if (sourceDateEpoch != null && !sourceDateEpoch.trim().isEmpty()) {
             long epochSeconds;
             try {
@@ -87,7 +111,7 @@ public class GitUtil {
         try {
             // -c log.showSignature=false: with that setting true, git prints signature text before the format output. Unlike
             // the --no-show-signature option (git 2.10 and later), a -c setting is accepted by every git version.
-            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, "-c", "log.showSignature=false", "log", "-1", "--format=%ct"));
+            long epochSeconds = Long.parseLong(firstLineOfGitOutput(project, additionalEnvironment, "-c", "log.showSignature=false", "log", "-1", "--format=%ct"));
             return format(new Date(epochSeconds * 1000L));
         } catch (Exception e) {
             project.getLogger().error("Failed to determine commit date; using the current time, so this build will not be reproducible. "
@@ -96,11 +120,11 @@ public class GitUtil {
         return format(new Date());
     }
 
-    private static String firstLineOfGitOutput(Project project, String... gitArguments) throws Exception {
+    private static String firstLineOfGitOutput(Project project, Map<String, String> additionalEnvironment, String... gitArguments) throws Exception {
         List<String> command = new ArrayList<>();
         command.add("git");
         command.addAll(Arrays.asList(gitArguments));
-        return firstLineOfOutput(project.getProjectDir(), null, GIT_TIMEOUT_SECONDS, command);
+        return firstLineOfOutput(project.getProjectDir(), null, GIT_TIMEOUT_SECONDS, command, additionalEnvironment);
     }
 
     static String firstLineOfOutput(File directory, File tempDirectory, long timeoutSeconds, List<String> command) throws Exception {
@@ -109,7 +133,7 @@ public class GitUtil {
 
     // The command, timeout and temp directory are parameters so tests can use stand-ins for git and see what is left behind.
     // A null tempDirectory means the default temp directory. additionalEnvironment is added to the inherited environment
-    // before the repository variables are removed, so tests can simulate a daemon that inherited them.
+    // before the repository variables are removed, so tests can simulate an environment that contains them.
     static String firstLineOfOutput(File directory, File tempDirectory, long timeoutSeconds, List<String> command,
             Map<String, String> additionalEnvironment) throws Exception {
         String description = String.join(" ", command);
@@ -127,6 +151,11 @@ public class GitUtil {
                     .redirectError(stderr);
             processBuilder.environment().putAll(additionalEnvironment);
             processBuilder.environment().keySet().removeAll(REPOSITORY_ENVIRONMENT_VARIABLES);
+            for (Iterator<String> names = processBuilder.environment().keySet().iterator(); names.hasNext(); ) {
+                if (names.next().startsWith("GIT_TRACE")) {
+                    names.remove();
+                }
+            }
             Process process = processBuilder.start();
             process.getOutputStream().close();
 
