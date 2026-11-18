@@ -13,7 +13,7 @@ jobs:
   ping-to-s3:
     name: Ping agent from S3 (Prod)
     runs-on: ubuntu-24.04
-    environment: ping-to-s3-gated
+    environment: copy-to-s3-prod-gated
     steps:
       #      - uses: GitHubSecurityLab/actions-permissions/monitor@bf82d13b9b10051d224345ab9184f5ede0a94289 # pin@v1 - detects minimum permissions required to run the workflow, uncomment to use
       - name: Checkout Self
