@@ -84,6 +84,32 @@ jobs:
             echo "Artifacts were uploaded successfully to Central Sonatype."
             echo "Visit https://central.sonatype.com/publishing/deployments to view your artifacts."
           fi
+
+      # Records the JDKs and tools used and the SHA-256 of the published artifacts (see gradle/script/build-info.gradle).
+      # It runs after everything is published and must not fail the job: update-agent-metadata and other follow-up jobs
+      # wait on this one. Look for a warning on these steps.
+      - name: Record build info
+        continue-on-error: true
+        run: ./gradlew $GRADLE_OPTIONS writeBuildInfo
+
+      - name: Capture build info
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
+        with:
+          name: release-build-info
+          path: build/build-info/newrelic-build-info.json
+
+      # Keeps the record with the release itself, after the 90-day artifact retention has passed. --clobber replaces the
+      # file if the release is published again for the same tag.
+      - name: Attach build info to the GitHub release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cp build/build-info/newrelic-build-info.json "newrelic-build-info-${RELEASE_TAG}.json"
+          gh release upload "${RELEASE_TAG}" "newrelic-build-info-${RELEASE_TAG}.json" --clobber --repo "${GITHUB_REPOSITORY}"
+
   update-agent-metadata:
     needs: [publish_release]
     uses: ./.github/workflows/Agent-Metadata.yml
