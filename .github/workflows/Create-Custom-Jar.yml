@@ -59,3 +59,12 @@ jobs:
           name: custom-newrelic-jar
           path: |
             newrelic-agent/build/newrelicJar/newrelic.jar
+
+      - name: Record build info
+        run: ./gradlew $GRADLE_OPTIONS writeBuildInfo
+
+      - name: Capture build info
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
+        with:
+          name: custom-newrelic-jar-build-info
+          path: build/build-info/newrelic-build-info.json

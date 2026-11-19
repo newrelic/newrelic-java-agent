@@ -58,3 +58,17 @@ jobs:
           ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
         run: ./gradlew $GRADLE_OPTIONS :newrelic-opentelemetry-agent-extension:publish
+
+      # Records the JDKs and tools used and the SHA-256 of the published artifacts (see gradle/script/build-info.gradle).
+      # It runs after everything is published and must not fail the job: update-agent-metadata and other follow-up jobs
+      # wait on this one. Look for a warning on these steps.
+      - name: Record build info
+        continue-on-error: true
+        run: ./gradlew $GRADLE_OPTIONS writeBuildInfo
+
+      - name: Capture build info
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # pin@v7
+        with:
+          name: snapshot-build-info
+          path: build/build-info/newrelic-build-info.json

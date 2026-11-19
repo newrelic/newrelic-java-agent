@@ -50,13 +50,16 @@ mkdir -p ${TEMPDIR}/newrelic-agent/${VERSION}
 mkdir -p ${TEMPDIR}/newrelic-api/${VERSION}
 
 cp ${ZIP} ${TEMPDIR}/newrelic-agent/${VERSION}
-unzip -j ${ZIP} newrelic/newrelic.yml -d ${TEMPDIR}/newrelic-agent/${VERSION}
-unzip -j ${ZIP} newrelic/newrelic.jar -d ${TEMPDIR}/newrelic-agent/${VERSION}
+# The zip entries have a fixed 1980 timestamp for reproducible builds. "aws s3 sync" skips a same-size file whose
+# local time is not newer than the copy in S3, so extract with -DD (do not restore timestamps) so every extracted
+# file gets the current time.
+unzip -DD -j ${ZIP} newrelic/newrelic.yml -d ${TEMPDIR}/newrelic-agent/${VERSION}
+unzip -DD -j ${ZIP} newrelic/newrelic.jar -d ${TEMPDIR}/newrelic-agent/${VERSION}
 mv ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic.jar ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.jar
 cp ${AGENT_POM} ${TEMPDIR}/newrelic-agent/${VERSION}/newrelic-agent-${VERSION}.pom
 
 cp ${ZIP} ${TEMPDIR}/newrelic-api/${VERSION}
-unzip -j ${ZIP} newrelic/newrelic-api.jar -d ${TEMPDIR}/newrelic-api/${VERSION}
+unzip -DD -j ${ZIP} newrelic/newrelic-api.jar -d ${TEMPDIR}/newrelic-api/${VERSION}
 mv ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api.jar ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.jar
 cp ${API_POM} ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.pom
 

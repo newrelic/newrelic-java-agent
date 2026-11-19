@@ -21,6 +21,9 @@ dependencies {
     testImplementation(project(path = ":newrelic-agent", configuration = "tests"))
 }
 
+// Makes the jar independent of the checkout directory.
+apply(from = "${rootProject.projectDir}/gradle/script/scala3-sourceroot.gradle")
+
 PublishConfig.config(
         project,
         "New Relic Java agent Scala 3 API",

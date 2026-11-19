@@ -5,6 +5,16 @@ inputs:
     description: 'Whether the Gradle cache should be read only'
     required: false
     default: 'true'
+  java-versions:
+    description: 'Newline-separated list of JDKs to install. The LAST entry must be 8: setup-java makes the last JDK listed JAVA_HOME, and Gradle must run on JDK 8. Jobs that only run build logic can ask for just 8.'
+    required: false
+    default: |
+      27-ea
+      25
+      21
+      17
+      11
+      8
 # This action expects the agent to be checked out at $GITHUB_WORKSPACE.
 # It will also set up the instrumentation jar zip if AWS credentials are set.
 # This action requires these because composite actions cannot use secrets.
@@ -17,13 +27,16 @@ runs:
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # pin@v5
       with:
         distribution: 'temurin'
-        java-version: |
-          27-ea
-          25
-          21
-          17
-          11
-          8
+        java-version: ${{ inputs.java-versions }}
+
+    # The last JDK installed becomes JAVA_HOME, and the agent jar is only reproducible when Gradle runs on JDK 8
+    - name: Check that Gradle will run on JDK 8
+      shell: bash
+      run: |
+        if [ -z "${JAVA_HOME_8_X64}" ] || ! [ "${JAVA_HOME}" -ef "${JAVA_HOME_8_X64}" ]; then
+          echo "::error::JAVA_HOME is '${JAVA_HOME}' but Gradle must run on JDK 8 ('${JAVA_HOME_8_X64}'). Make 8 the last entry of the java-versions input."
+          exit 1
+        fi
 
     - name: set gradle.properties
       shell: bash
@@ -44,6 +57,26 @@ runs:
     - name: Setup Gradle options
       shell: bash
       run: echo "GRADLE_OPTIONS=--console=plain --parallel -Porg.gradle.java.installations.auto-detect=false -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64,JAVA_HOME_11_X64,JAVA_HOME_17_X64,JAVA_HOME_21_X64,JAVA_HOME_25_X64,JAVA_HOME_27_X64" >> $GITHUB_ENV
+
+    # Reproducible builds: the build reads SOURCE_DATE_EPOCH for the manifest Built-Date, so Built-Date is the commit
+    # time and not the time the job ran. This is the value GitUtil.commitDate() would use anyway; setting it here makes
+    # the lookup explicit and fails the job if git cannot read HEAD, instead of silently using the current time.
+    # (Gradle still runs git for X-Git-SHA.) See https://reproducible-builds.org/specs/source-date-epoch/
+    # KEEP IN SYNC with GitUtil.commitDate() (buildSrc/src/main/java/com/nr/builder/GitUtil.java): both must get the
+    # timestamp the same way (committer time of HEAD, `git -c log.showSignature=false log -1 --format=%ct`). This value
+    # overrides GitUtil's, so if they differ, CI and local builds of the same commit get different Built-Date values.
+    - name: Set SOURCE_DATE_EPOCH to the HEAD commit time
+      shell: bash
+      run: |
+        # "|| epoch=" keeps a failing git from ending the step under bash -e, so the error below is reached.
+        epoch=$(git -c log.showSignature=false log -1 --format=%ct) || epoch=
+        case "$epoch" in
+          ''|*[!0-9]*)
+            echo "::error::Could not read the HEAD commit time from git (got '$epoch'), so SOURCE_DATE_EPOCH was not set. Check that the repository is checked out and that git can read it before this action runs."
+            exit 1
+            ;;
+        esac
+        echo "SOURCE_DATE_EPOCH=$epoch" >> "$GITHUB_ENV"
 
     - name: Download S3 instrumentation jar zip
       shell: bash
