@@ -2,6 +2,7 @@ package com.nr.builder.publish;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPom;
@@ -12,6 +13,9 @@ import java.net.URI;
 import java.util.concurrent.Callable;
 
 public class PublishConfig {
+    private static final String CENTRAL_STAGING_DIR_PROPERTY = "centralStagingDir";
+    private static final String CENTRAL_STAGING_REPO_NAME = "centralStaging";
+
     /**
      * Configures the {@link PublishingExtension} and {@link SigningExtension} on the given project.
      * @param project The gradle project to configure for publishing.
@@ -38,14 +42,32 @@ public class PublishConfig {
                         configureSigning(project, publication);
                     })
             );
-            ext.repositories(handler ->
-                    handler.maven(repo -> {
-                        String projectVersion = project.getVersion().toString();
-                        configureRepo(repo, projectVersion);
-                    })
-            );
+            ext.repositories(handler -> {
+                handler.maven(repo -> {
+                    String projectVersion = project.getVersion().toString();
+                    configureRepo(repo, projectVersion);
+                });
+                configureCentralStagingRepo(project, handler);
+            });
         });
     }
+
+    /**
+     * Adds a local file repository, laid out as a Central Publisher Portal bundle, when the {@code centralStagingDir}
+     * project property is set. Release artifacts are staged there with {@code publishAllPublicationsToCentralStagingRepository}
+     * so they can be inspected and signed before being uploaded to Maven Central.
+     */
+    private static void configureCentralStagingRepo(Project project, RepositoryHandler handler) {
+        Object stagingDir = project.findProperty(CENTRAL_STAGING_DIR_PROPERTY);
+        if (stagingDir == null || handler.findByName(CENTRAL_STAGING_REPO_NAME) != null) {
+            return;
+        }
+        handler.maven(repo -> {
+            repo.setName(CENTRAL_STAGING_REPO_NAME);
+            repo.setUrl(project.getRootProject().file(stagingDir.toString()).toURI());
+        });
+    }
+
     @SuppressWarnings("UnstableApiUsage") // useInMemoryPgpKeys
     private static void configureSigning(Project project, MavenPublication publication) {
         project.getExtensions().configure(SigningExtension.class, ext -> {

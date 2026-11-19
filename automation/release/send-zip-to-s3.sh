@@ -1,8 +1,8 @@
 #!/bin/sh
 
-if test $# -ne 8
+if test $# -ne 8 -a $# -ne 9
 	then
-		echo "Usage: $0 version path-to-zip path-to-agent-pom path-to-api-pom target-agent-dir target-api-dir base-s3-url s3-profile-name"
+		echo "Usage: $0 version path-to-zip path-to-agent-pom path-to-api-pom target-agent-dir target-api-dir base-s3-url s3-profile-name [checksums-dir]"
 		exit 1
 	fi
 
@@ -14,6 +14,7 @@ TARGET_AGENT_DIR=$5
 TARGET_API_DIR=$6
 BASE_S3_URL=$7
 S3_PROFILE=$8
+CHECKSUMS_DIR=$9
 
 CURRENT_AGENT_DIR=${BASE_S3_URL}/newrelic-agent/current
 CURRENT_API_DIR=${BASE_S3_URL}/newrelic-api/current
@@ -61,6 +62,20 @@ cp ${ZIP} ${TEMPDIR}/newrelic-api/${VERSION}
 unzip -DD -j ${ZIP} newrelic/newrelic-api.jar -d ${TEMPDIR}/newrelic-api/${VERSION}
 mv ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api.jar ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.jar
 cp ${API_POM} ${TEMPDIR}/newrelic-api/${VERSION}/newrelic-api-${VERSION}.pom
+
+# Publish the signed checksums next to the artifacts so S3 downloads can be verified
+if test -n "${CHECKSUMS_DIR}"
+    then
+        for DEST in newrelic-agent newrelic-api
+            do
+                cp ${CHECKSUMS_DIR}/SHA256SUMS* ${TEMPDIR}/${DEST}/${VERSION}/
+                if test $? -ne 0
+                    then
+                        echo "Could not copy SHA256SUMS files from ${CHECKSUMS_DIR}"
+                        exit 5
+                    fi
+            done
+    fi
 
 
 EXITSTATUS=0
