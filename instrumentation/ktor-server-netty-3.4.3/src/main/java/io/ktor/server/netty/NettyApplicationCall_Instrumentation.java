@@ -33,7 +33,7 @@ public class NettyApplicationCall_Instrumentation {
 		if (requestMessage instanceof HttpRequest) {
 			nrHttpHeaders = ((HttpRequest) requestMessage).headers();
 		}
-		Token t = NewRelic.getAgent().getTransaction().getToken();
+		Token t = NewRelic.getAgent().getTransaction().getToken("ktor-server-netty-3.4.3:NettyApplicationCall_Instrumentation.<init>");
 		if (t != null && t.isActive()) {
 			routingToken = t;
 		} else if (t != null) {

@@ -449,11 +449,16 @@ public class TransactionApiImpl implements com.newrelic.agent.bridge.Transaction
 
     @Override
     public Token getToken() {
+        return getToken(null);
+    }
+
+    @Override
+    public Token getToken(String creator) {
         Transaction tx = getTransactionIfExists();
         if (null == tx) {
             return NoOpToken.INSTANCE;
         }
-        return tx.getToken();
+        return tx.getToken(creator);
     }
 
     @Override

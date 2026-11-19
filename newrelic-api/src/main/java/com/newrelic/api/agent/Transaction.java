@@ -273,6 +273,24 @@ public interface Transaction {
     Token getToken();
 
     /**
+     * Creates a {@link Token} for linking asynchronous work to the current {@link Transaction}. Subsequent calls to
+     * getToken() will return a new Token.
+     *
+     * A single {@link Token} can be passed between multiple threads of work that should be linked to the transaction.
+     * A transaction will remain open until all tokens are expired or timed out.
+     *
+     * If getToken() is called outside of a {@link Transaction} a NoOpToken will be returned which will always return
+     * false when calling a method on the {@link Token} object.
+     *
+     * @param creator The name of the creator of this token.  This value will be included in the Supportability metric
+     *                for token timeouts to help identify root cause.
+     *
+     * @return A token to pass to another thread with work for the current transaction.
+     * @since 9.6.0
+     */
+    Token getToken(String creator);
+
+    /**
      * Starts and returns a {@link Segment}. This {@link Segment} will show up in the Transaction Breakdown
      * table, as well as the Transaction Trace page. This {@link Segment} will be reported in the "Custom/" metric
      * category by default. If you want to specify a custom category use {@link #startSegment(String, String)} instead.

@@ -35,7 +35,7 @@ public class DropCollectionOperation_Instrumentation<T> implements AsyncWriteOpe
     @Override
     public void executeAsync(AsyncWriteBinding binding, SingleResultCallback<T> callback) {
         callback = MongoUtil.instrumentSingleResultCallback(callback, collectionName, operationName, databaseName,
-                MongoUtil.getHostBasedOnDatabaseName(databaseName));
+                MongoUtil.getHostBasedOnDatabaseName(databaseName), "mongodb-reactive-streams-5.2:DropCollectionOperation_Instrumentation.executeAsync");
         Weaver.callOriginal();
     }
 

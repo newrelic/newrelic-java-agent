@@ -49,10 +49,12 @@ jobs:
 
       - name: Compute and apply bump
         id: bump
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
         run: |
           set +e
           groovy .fleetControl/schemaGeneration/BumpSchemaVersion.groovy \
-            --since=${{ steps.tag.outputs.tag }} --ci
+            --since="$TAG" --ci
           code=$?
           set -e
           case "$code" in
@@ -86,6 +88,9 @@ jobs:
 
       - name: Summary
         if: steps.create-pr.outputs.pull-request-number
+        env:
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+          PR_URL: ${{ steps.create-pr.outputs.pull-request-url }}
         run: |
-          echo "Submitted PR #${{ steps.create-pr.outputs.pull-request-number }} to bump the agent config schema version."
-          echo "Your review is required. See ${{ steps.create-pr.outputs.pull-request-url }}"
+          echo "Submitted PR #${PR_NUMBER} to bump the agent config schema version."
+          echo "Your review is required. See ${PR_URL}"

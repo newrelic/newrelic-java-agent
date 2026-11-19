@@ -22,7 +22,7 @@ public class HttpWebHandlerAdapter_Instrumentation {
 
     protected ServerWebExchange createExchange(ServerHttpRequest request, ServerHttpResponse response) {
         final com.newrelic.agent.bridge.Transaction transaction = AgentBridge.getAgent().getTransaction(false);
-        final Token token = transaction == null ? null : transaction.getToken();
+        final Token token = transaction == null ? null : transaction.getToken("spring-webflux-5.0.0:HttpWebHandlerAdapter_Instrumentation.createExchange");
         response = new ServerHttpResponseWrapper(token, response);
 
         ServerWebExchange exchange = Weaver.callOriginal();

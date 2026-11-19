@@ -1,4 +1,9 @@
 name: Test Suite - Release
+
+permissions:
+  contents: read
+  id-token: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -31,6 +36,9 @@ on:
 jobs:
 
   aits:
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/Test-AITs.yml
     with:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}
@@ -66,6 +74,9 @@ jobs:
     secrets: inherit
 
   unit-tests:
+    permissions:
+      contents: write
+      id-token: write
     uses: ./.github/workflows/GHA-Unit-Tests.yaml
     with:
       agent-ref: ${{ inputs.agent-ref || github.sha || 'main' }}

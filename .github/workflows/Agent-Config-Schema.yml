@@ -44,9 +44,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check newrelic.yml / reference-newrelic.yml drift
+        env:
+          EVENT_BEFORE: ${{ github.event.before }}
+          EVENT_AFTER: ${{ github.event.after }}
         run: |
-          before='${{ github.event.before }}'
-          after='${{ github.event.after }}'
+          before="$EVENT_BEFORE"
+          after="$EVENT_AFTER"
           if git cat-file -e "$before" 2>/dev/null; then
             base="$before"
           else

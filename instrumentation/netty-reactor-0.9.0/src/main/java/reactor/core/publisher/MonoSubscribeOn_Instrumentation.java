@@ -26,7 +26,7 @@ abstract class MonoSubscribeOn_Instrumentation {
         @WeaveAllConstructors
         SubscribeOnSubscriber_Instrumentation() {
             if (NewRelic.getAgent().getTransaction() != null && token == null) {
-                token = NewRelic.getAgent().getTransaction().getToken();
+                token = NewRelic.getAgent().getTransaction().getToken("netty-reactor-0.9.0:SubscribeOnSubscriber_Instrumentation.<init>");
             }
         }
 

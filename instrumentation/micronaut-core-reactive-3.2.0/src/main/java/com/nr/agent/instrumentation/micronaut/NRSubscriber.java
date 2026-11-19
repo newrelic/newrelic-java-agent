@@ -30,7 +30,7 @@ public class NRSubscriber<T> implements Subscriber<T> {
     @Override
     public void onSubscribe(Subscription s) {
         delegate.onSubscribe(s);
-        Token t = NewRelic.getAgent().getTransaction().getToken();
+        Token t = NewRelic.getAgent().getTransaction().getToken("micronaut-core-reactive-3.2.0:NRSubscriber.onSubscribe");
         if (t != null) {
             token = t;
         }

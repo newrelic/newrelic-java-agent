@@ -180,11 +180,11 @@ public abstract class DefaultHttpClient_Instrumentation {
         private Token token = null;
 
         SimpleChannelInboundHandlerInstrumented_Instrumentation() {
-            token = NewRelic.getAgent().getTransaction().getToken();
+            token = NewRelic.getAgent().getTransaction().getToken("micronaut-http-client-3.0.4:SimpleChannelInboundHandlerInstrumented_Instrumentation.<init>");
         }
 
         SimpleChannelInboundHandlerInstrumented_Instrumentation(boolean autoRelease) {
-            token = NewRelic.getAgent().getTransaction().getToken();
+            token = NewRelic.getAgent().getTransaction().getToken("micronaut-http-client-3.0.4:SimpleChannelInboundHandlerInstrumented_Instrumentation.<init>");
         }
 
         @Trace(async = true)

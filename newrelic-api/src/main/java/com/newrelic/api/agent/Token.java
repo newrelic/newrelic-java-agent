@@ -61,4 +61,12 @@ public interface Token {
      */
     boolean isActive();
 
+    /**
+     * Sets the creator of this token.  This value will be used in Supportability metrics when a token
+     * timeout occurs.  Care should be taken to use un-concatenated String values here so that tokens
+     * referencing the same creator can point to the same String instance and prevent excess memory use.
+     * @param creator
+     */
+    void setCreator(String creator);
+
 }

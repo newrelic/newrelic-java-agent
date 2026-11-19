@@ -2,6 +2,8 @@ name: Release - Copy to S3 (Prod)
 
 permissions:
   contents: write
+  attestations: read
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -25,11 +27,16 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # pin@v6
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEFAULT }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEFAULT }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_DEFAULT }}   # your existing role ARN
           aws-region: us-east-2
+
+      # Used by copy-to-s3-prod.sh to verify the artifacts before copying them
+      - name: Install Sigstore CLI
+        run: pipx install sigstore==4.5.0
 
       - name: Run script
         env:
           RUNNING_ON_GHA: 'true'
-        run: ./automation/release/copy-to-s3-prod.sh ${{ inputs.version_number }} default
+          VERSION_NUMBER: ${{ inputs.version_number }}
+          GH_TOKEN: ${{ github.token }}
+        run: ./automation/release/copy-to-s3-prod.sh "$VERSION_NUMBER" default
