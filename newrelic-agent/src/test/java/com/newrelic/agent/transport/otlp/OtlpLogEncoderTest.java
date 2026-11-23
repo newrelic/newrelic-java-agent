@@ -81,6 +81,46 @@ public class OtlpLogEncoderTest {
     }
 
     @Test
+    public void groupsByOtelScopeAndFallsBackToLibraryAttributes() throws Exception {
+        Map<String, Object> scoped = new HashMap<>();
+        scoped.put("message", "scoped");
+        scoped.put("otel.scope.name", "scope-lib");
+        scoped.put("otel.scope.version", "1.2.3");
+        scoped.put("otel.library.name", "scope-lib");
+        scoped.put("otel.library.version", "1.2.3");
+        Map<String, Object> legacy = new HashMap<>();
+        legacy.put("message", "legacy");
+        legacy.put("otel.library.name", "legacy-lib");
+        legacy.put("otel.library.version", "0.9");
+        Map<String, Object> plain = new HashMap<>();
+        plain.put("message", "plain");
+
+        ExportLogsServiceRequest request = ExportLogsServiceRequest.parseFrom(OtlpLogEncoder.encode(
+                Collections.<String, Object>emptyMap(),
+                Arrays.asList(new LogEvent(scoped, 1.0f), new LogEvent(legacy, 1.0f), new LogEvent(plain, 1.0f))));
+
+        ResourceLogs resourceLogs = request.getResourceLogs(0);
+        assertEquals(3, resourceLogs.getScopeLogsCount());
+        assertEquals("scope-lib", resourceLogs.getScopeLogs(0).getScope().getName());
+        assertEquals("1.2.3", resourceLogs.getScopeLogs(0).getScope().getVersion());
+        assertEquals("legacy-lib", resourceLogs.getScopeLogs(1).getScope().getName());
+        assertEquals("0.9", resourceLogs.getScopeLogs(1).getScope().getVersion());
+        assertEquals(OtlpAttributes.SCOPE_NAME, resourceLogs.getScopeLogs(2).getScope().getName());
+        // The scope attributes also stay on the log record, so logs keep the attributes they had when sent to the collector
+        Map<String, Object> scopedAttributes = OtlpTestUtil.toMap(resourceLogs.getScopeLogs(0).getLogRecords(0).getAttributesList());
+        assertEquals(4, scopedAttributes.size());
+        assertEquals("scope-lib", scopedAttributes.get("otel.scope.name"));
+        assertEquals("1.2.3", scopedAttributes.get("otel.scope.version"));
+        assertEquals("scope-lib", scopedAttributes.get("otel.library.name"));
+        assertEquals("1.2.3", scopedAttributes.get("otel.library.version"));
+        Map<String, Object> legacyAttributes = OtlpTestUtil.toMap(resourceLogs.getScopeLogs(1).getLogRecords(0).getAttributesList());
+        assertEquals(2, legacyAttributes.size());
+        assertEquals("legacy-lib", legacyAttributes.get("otel.library.name"));
+        assertEquals("0.9", legacyAttributes.get("otel.library.version"));
+        assertTrue(resourceLogs.getScopeLogs(2).getLogRecords(0).getAttributesList().isEmpty());
+    }
+
+    @Test
     public void encodesMultipleLogsInOneScope() throws Exception {
         LogEvent first = new LogEvent(Collections.<String, Object>singletonMap("message", "first"), 1.0f);
         LogEvent second = new LogEvent(Collections.<String, Object>singletonMap("message", "second"), 1.0f);

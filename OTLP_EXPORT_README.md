@@ -69,7 +69,7 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest`:
 
 **Resource and scope**
 - Resource: `service.name` = app name, plus any other resource attributes that should be included.
-- Instrumentation scope: `newrelic-java-agent` and the agent version.
+- Instrumentation scope: events carrying `otel.scope.name`/`otel.scope.version` (or the deprecated `otel.library.*` aliases, which the OTel bridge also sets) are grouped by that scope. All of these attributes are also kept in `attributes`, so logs keep the attributes they had when sent to the collector. All other events use `newrelic-java-agent` and the agent version.
 
 ### LogEvent → LogRecord
 
@@ -82,7 +82,7 @@ Each harvest sends one gzip-compressed `ExportLogsServiceRequest`:
 | `body` | `message` |
 | `trace_id` / `span_id` | `trace.id` / `span.id` (hex → bytes) |
 | `event_name` | `event.name`, as a string. Omitted when empty. Not repeated under `attributes`. |
-| `attributes` | Every other attribute under its New Relic name, e.g. `level`, `entity.guid`, `entity.name`, `hostname`, `thread.*`, `logger.*`, `error.*`, `context.*`, `tags.*`, `k8s.*` |
+| `attributes` | Every other attribute under its New Relic name, e.g. `level` (kept in addition to `severity_text`, because New Relic's OTLP ingest doesn't derive `level` from the severity fields), `entity.guid`, `entity.name`, `hostname`, `thread.*`, `logger.*`, `error.*`, `context.*`, `tags.*`, `k8s.*` |
 
 **Attribute values**
 - String, Boolean, Integer/Long/Short/Byte and Float/Double map to the matching `AnyValue` type.

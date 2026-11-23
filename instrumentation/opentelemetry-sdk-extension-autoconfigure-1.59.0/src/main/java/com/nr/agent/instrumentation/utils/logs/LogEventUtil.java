@@ -81,7 +81,7 @@ public class LogEventUtil {
 
                     // Use Timestamp if it is present, otherwise use ObservedTimestamp.
                     long timestampEpochNanos = logRecordData.getTimestampEpochNanos();
-                    if (timestampEpochNanos >= 0) {
+                    if (timestampEpochNanos > 0) {
                         logEventMap.put(TIMESTAMP, timestampEpochNanos);
                     } else {
                         logEventMap.put(TIMESTAMP, logRecordData.getObservedTimestampEpochNanos());

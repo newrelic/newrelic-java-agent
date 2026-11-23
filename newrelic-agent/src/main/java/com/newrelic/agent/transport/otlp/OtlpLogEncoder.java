@@ -12,6 +12,7 @@ import com.google.protobuf.UnknownFieldSet;
 import com.newrelic.agent.bridge.logging.AppLoggingUtils;
 import com.newrelic.agent.model.LogEvent;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
+import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import io.opentelemetry.proto.logs.v1.ScopeLogs;
@@ -31,7 +32,9 @@ import java.util.concurrent.TimeUnit;
  * Encodes {@link LogEvent}s as an OTLP {@code ExportLogsServiceRequest} (see opentelemetry/proto/logs/v1/logs.proto).
  * <p>
  * Attributes keep their New Relic names so that logs look the same in New Relic as when they are sent to the collector.
- * Only the attributes that map onto native {@code LogRecord} fields are removed from the attribute list.
+ * Only the attributes that map onto native {@code LogRecord} fields are removed from the attribute list. The exceptions are {@code level}
+ * and the {@code otel.scope.*}/{@code otel.library.*} attributes, which are also kept as attributes so that logs keep the attributes they had
+ * when sent to the collector.
  */
 final class OtlpLogEncoder {
 
@@ -55,8 +58,7 @@ final class OtlpLogEncoder {
     static final int EVENT_NAME_FIELD_NUMBER = 12;
 
     private static final Set<String> NATIVE_FIELD_ATTRIBUTES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID, EVENT_NAME,
-            OtlpAttributes.OTEL_LIBRARY_NAME, OtlpAttributes.OTEL_LIBRARY_VERSION)));
+            MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID, EVENT_NAME)));
 
     // Timestamps above this value can't be epoch milliseconds (it's the year 33658), so they are already epoch nanoseconds.
     // The OpenTelemetry SDK bridge instrumentation records log timestamps in nanoseconds.
@@ -66,13 +68,13 @@ final class OtlpLogEncoder {
     }
 
     static byte[] encode(Map<String, ?> resourceAttributes, Collection<? extends LogEvent> events) {
-        // Events carrying otel.library.name/version keep that scope; all others get the agent's scope
+        // Events carrying otel.scope.name/version (or the deprecated otel.library.* aliases) keep that scope; all others get the agent's scope
         Map<List<String>, ScopeLogs.Builder> scopes = new LinkedHashMap<>();
         for (LogEvent event : events) {
             Map<String, Object> attributes = event.getUserAttributesCopy();
             List<String> scopeKey = Arrays.asList(
-                    asString(attributes.get(OtlpAttributes.OTEL_LIBRARY_NAME)),
-                    asString(attributes.get(OtlpAttributes.OTEL_LIBRARY_VERSION)));
+                    firstString(attributes, OtlpAttributes.OTEL_SCOPE_NAME, OtlpAttributes.OTEL_LIBRARY_NAME),
+                    firstString(attributes, OtlpAttributes.OTEL_SCOPE_VERSION, OtlpAttributes.OTEL_LIBRARY_VERSION));
             ScopeLogs.Builder scopeLogs = scopes.get(scopeKey);
             if (scopeLogs == null) {
                 scopeLogs = ScopeLogs.newBuilder().setScope(OtlpAttributes.buildScope(scopeKey.get(0), scopeKey.get(1)));
@@ -87,7 +89,12 @@ final class OtlpLogEncoder {
         return ExportLogsServiceRequest.newBuilder().addResourceLogs(resourceLogs).build().toByteArray();
     }
 
-    private static String asString(Object value) {
+    // Returns the first non-null value among the keys, so that otel.scope.* wins over its otel.library.* alias
+    private static String firstString(Map<String, Object> attributes, String key, String fallbackKey) {
+        Object value = attributes.get(key);
+        if (value == null) {
+            value = attributes.get(fallbackKey);
+        }
         return value == null ? null : value.toString();
     }
 
@@ -109,8 +116,9 @@ final class OtlpLogEncoder {
         }
 
         Object message = attributes.get(MESSAGE);
-        if (message != null) {
-            builder.setBody(OtlpAttributes.buildAnyValue(message));
+        AnyValue body = message == null ? null : OtlpAttributes.buildAnyValue(message);
+        if (body != null) {
+            builder.setBody(body);
         }
 
         builder.addAllAttributes(OtlpAttributes.buildAttributes(attributes, NATIVE_FIELD_ATTRIBUTES));

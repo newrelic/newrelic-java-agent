@@ -13,11 +13,14 @@ import io.opentelemetry.proto.common.v1.InstrumentationScope;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.resource.v1.Resource;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Builds OTLP messages shared by every signal: {@code KeyValue}, {@code AnyValue}, {@code Resource} and
@@ -30,6 +33,9 @@ final class OtlpAttributes {
 
     static final String SCOPE_NAME = "newrelic-java-agent";
     static final String SERVICE_NAME = "service.name";
+    static final String OTEL_SCOPE_NAME = "otel.scope.name";
+    static final String OTEL_SCOPE_VERSION = "otel.scope.version";
+    // Deprecated aliases of otel.scope.*; the OTel bridge records both
     static final String OTEL_LIBRARY_NAME = "otel.library.name";
     static final String OTEL_LIBRARY_VERSION = "otel.library.version";
 
@@ -59,22 +65,37 @@ final class OtlpAttributes {
         if (key == null || value == null) {
             return null;
         }
-        return KeyValue.newBuilder().setKey(key).setValue(buildAnyValue(value)).build();
+        AnyValue anyValue = buildAnyValue(value);
+        return anyValue == null ? null : KeyValue.newBuilder().setKey(key).setValue(anyValue).build();
     }
 
     /**
-     * Builds the fields of an {@code AnyValue}. Values that aren't strings, booleans or numbers are written as strings,
+     * Builds the fields of an {@code AnyValue}. Integers outside the signed 64-bit range, and values that aren't strings, booleans or numbers, are written as strings,
      * which matches how they are serialized to JSON for the collector.
+     *
+     * @return the value, or null for NaN and infinite numbers, which are omitted
      */
     static AnyValue buildAnyValue(Object value) {
         if (value instanceof String) {
             return AnyValue.newBuilder().setStringValue((String) value).build();
         } else if (value instanceof Boolean) {
             return AnyValue.newBuilder().setBoolValue((Boolean) value).build();
-        } else if (value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte) {
+        } else if (value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte
+                || value instanceof AtomicInteger || value instanceof AtomicLong) {
             return AnyValue.newBuilder().setIntValue(((Number) value).longValue()).build();
+        } else if (value instanceof BigInteger) {
+            // int_value is a signed 64-bit integer, so larger values are sent as strings to avoid overflow or loss of precision
+            BigInteger bigInteger = (BigInteger) value;
+            return bigInteger.bitLength() < Long.SIZE
+                    ? AnyValue.newBuilder().setIntValue(bigInteger.longValue()).build()
+                    : AnyValue.newBuilder().setStringValue(bigInteger.toString()).build();
         } else if (value instanceof Number) {
-            return AnyValue.newBuilder().setDoubleValue(((Number) value).doubleValue()).build();
+            double doubleValue = ((Number) value).doubleValue();
+            // NaN and infinities carry no useful meaning, so they are omitted
+            if (Double.isNaN(doubleValue) || Double.isInfinite(doubleValue)) {
+                return null;
+            }
+            return AnyValue.newBuilder().setDoubleValue(doubleValue).build();
         } else {
             return AnyValue.newBuilder().setStringValue(String.valueOf(value)).build();
         }
