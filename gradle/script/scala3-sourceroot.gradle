@@ -1,0 +1,13 @@
+// Scala 3 records absolute source paths in .tasty and .class files, so a jar built in one checkout directory differs
+// from the same jar built in another. -sourceroot makes the recorded paths relative to the module.
+//
+// Apply this from every project that compiles Scala 3 sources (currently instrumentation/apache-pekko-http-3_1 and
+// newrelic-scala3-api). A Scala 3 project that does not apply it will produce jars that depend on where they were built.
+tasks.withType(ScalaCompile).configureEach {
+    // Added when the task runs, not while configuring it, so the checkout path is not one of the task's inputs.
+    // As an input it would be part of the build cache key, and the same commit in a second checkout (a clone or a
+    // worktree) would miss the cache and recompile even though the output is identical.
+    doFirst {
+        scalaCompileOptions.additionalParameters = (scalaCompileOptions.additionalParameters ?: []) + ['-sourceroot', project.projectDir.absolutePath]
+    }
+}

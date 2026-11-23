@@ -23,4 +23,11 @@ dependencies {
     // Reflections and GSON are used for building the manifest of annotated classes.
     implementation("org.reflections:reflections:0.9.11")
     implementation("com.google.code.gson:gson:2.8.9")
+
+    testImplementation("junit:junit:4.13.2")
+}
+
+test {
+    // Lets a test check that GitUtil.commitDate(Project) reads this variable. The other tests pass the value explicitly.
+    environment 'SOURCE_DATE_EPOCH', '1700000000'
 }

@@ -1,0 +1,101 @@
+// Writes build/build-info/newrelic-build-info.json: the exact JDKs and tools used by this build, and the SHA-256 of the
+// artifacts it produced. It is a separate file, not a manifest entry, so recording the JDK patch release cannot make two
+// otherwise identical jars differ. Publish it next to the artifacts.
+//
+//   ./gradlew writeBuildInfo
+//
+// Run it in the same environment as the build, after the artifacts exist. It reports what is configured, not what each
+// task executed: a Gradle build cache hit can restore classes that an earlier JDK compiled, so build with
+// --no-build-cache when the record has to be exact (the file says whether the build cache was enabled).
+
+import groovy.json.JsonOutput
+
+import java.security.MessageDigest
+
+tasks.register('writeBuildInfo') {
+    group = 'build'
+    description = 'Writes newrelic-build-info.json: the JDKs, Gradle and OS used, and the SHA-256 of the built artifacts.'
+
+    def outputFile = layout.buildDirectory.file('build-info/newrelic-build-info.json')
+    outputs.file(outputFile)
+    // Describes the machine, not the inputs, so it must run every time.
+    outputs.upToDateWhen { false }
+
+    // Gradle 8 forbids reading other projects' state from the task action when the configuration cache is on; it is off here.
+    doLast {
+        def sha256 = { File file ->
+            MessageDigest digest = MessageDigest.getInstance('SHA-256')
+            file.withInputStream { stream ->
+                byte[] buffer = new byte[65536]
+                int read
+                while ((read = stream.read(buffer)) > 0) {
+                    digest.update(buffer, 0, read)
+                }
+            }
+            digest.digest().collect { String.format('%02x', it) }.join()
+        }
+
+        def artifacts = new TreeMap<String, Object>()
+        [
+                'newrelic-agent/build/newrelicJar/newrelic.jar',
+                'newrelic-java/build/zips/newrelic.zip',
+        ].each { String path ->
+            File file = rootProject.file(path)
+            if (file.isFile()) {
+                artifacts[path] = [sha256: sha256(file), bytes: file.length()]
+            }
+        }
+
+        // One entry per distinct compiler installation used by the Java compile tasks, with the projects that use it.
+        def compilers = new TreeMap<String, Map>()
+        rootProject.allprojects.each { Project candidate ->
+            candidate.tasks.withType(JavaCompile).each { JavaCompile compile ->
+                if (!compile.javaCompiler.isPresent()) {
+                    return
+                }
+                def metadata = compile.javaCompiler.get().metadata
+                String key = metadata.installationPath.asFile.absolutePath
+                def entry = compilers.get(key)
+                if (entry == null) {
+                    entry = [
+                            vendor           : String.valueOf(metadata.vendor),
+                            languageVersion  : metadata.languageVersion.toString(),
+                            javaRuntimeVersion: metadata.javaRuntimeVersion,
+                            jvmVersion       : metadata.jvmVersion,
+                            projects         : new TreeSet<String>(),
+                    ]
+                    compilers.put(key, entry)
+                }
+                entry.projects.add(candidate.path)
+            }
+        }
+        // The installation path is only the map key: it would put the builder's directory names into a shared file.
+        def compilerList = compilers.values().collect {
+            [vendor: it.vendor, languageVersion: it.languageVersion, javaRuntimeVersion: it.javaRuntimeVersion,
+             jvmVersion: it.jvmVersion, projectCount: it.projects.size()]
+        }
+
+        def info = new LinkedHashMap<String, Object>()
+        info.gitSha = com.nr.builder.GitUtil.sha(rootProject)
+        info.commitDate = com.nr.builder.GitUtil.commitDate(rootProject)
+        info.agentVersion = rootProject.version.toString()
+        info.artifacts = artifacts
+        info.gradleVersion = gradle.gradleVersion
+        info.gradleJvm = [
+                vendor            : System.getProperty('java.vendor'),
+                version           : System.getProperty('java.version'),
+                runtimeVersion    : System.getProperty('java.runtime.version'),
+                vmName            : System.getProperty('java.vm.name'),
+        ]
+        info.javaCompilers = compilerList
+        info.os = [name: System.getProperty('os.name'), version: System.getProperty('os.version'), arch: System.getProperty('os.arch')]
+        info.buildCacheEnabled = gradle.startParameter.buildCacheEnabled
+        info.sourceDateEpoch = System.getenv('SOURCE_DATE_EPOCH')
+        info.githubRunId = System.getenv('GITHUB_RUN_ID')
+
+        File target = outputFile.get().asFile
+        target.parentFile.mkdirs()
+        target.setText(JsonOutput.prettyPrint(JsonOutput.toJson(info)) + '\n', 'UTF-8')
+        logger.lifecycle("Wrote ${target}")
+    }
+}

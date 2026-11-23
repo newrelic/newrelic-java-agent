@@ -167,6 +167,7 @@ public class DependencyPatcher implements Transformer {
         for (TransformedFile transformedFile : transformedFiles) {
             ZipEntry entry = new ZipEntry(transformedFile.destinationPath);
             entry.setSize(transformedFile.size);
+            entry.setTime(TransformerContext.getEntryTimestamp(preserveFileTimestamps, System.currentTimeMillis()));
             try {
                 jos.putNextEntry(entry);
             } catch (IOException e) {

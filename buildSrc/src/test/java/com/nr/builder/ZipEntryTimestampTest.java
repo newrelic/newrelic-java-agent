@@ -1,0 +1,170 @@
+/*
+ *
+ *  * Copyright 2026 New Relic Corporation. All rights reserved.
+ *  * SPDX-License-Identifier: Apache-2.0
+ *
+ */
+
+package com.nr.builder;
+
+import com.github.jengelman.gradle.plugins.shadow.transformers.Transformer;
+import com.github.jengelman.gradle.plugins.shadow.transformers.TransformerContext;
+import org.apache.tools.zip.ZipOutputStream;
+import org.gradle.api.file.FileTreeElement;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.lang.reflect.Proxy;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.TimeZone;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * The build must not put the time it ran into any jar entry. These cover the places the build writes entry times itself.
+ */
+public class ZipEntryTimestampTest {
+    // 2024-06-15T12:00:00Z, long after the 1980 start of the zip time range.
+    private static final long A_FIXED_PAST_TIME = 1718452800000L;
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    private TimeZone originalTimeZone;
+
+    // Zip entry times are stored as local date and time fields. In a zone with daylight saving time, the repeated hour
+    // when the clocks go back makes a time read back an hour off, so the tests use a zone without it.
+    @Before
+    public void useUtc() {
+        originalTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
+    @After
+    public void restoreTimeZone() {
+        TimeZone.setDefault(originalTimeZone);
+    }
+
+    @Test
+    public void constantEntryTime_isTheFixedTimeShadowAndGradleUse() {
+        assertEquals(TransformerContext.getEntryTimestamp(false, 12345L), JarUtil.CONSTANT_ENTRY_TIME);
+        // 1980-02-01, whatever the time zone: inside the range zip entry times can represent (it starts on 1980-01-01).
+        assertTrue(JarUtil.CONSTANT_ENTRY_TIME >= 315532800000L && JarUtil.CONSTANT_ENTRY_TIME < 320630400000L);
+    }
+
+    @Test
+    public void setConstantEntryTimes_keepsNamesOrderAndContentsAndFixesTheTimes() throws Exception {
+        File zip = temporaryFolder.newFile("search-index.zip");
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip.toPath()))) {
+            for (String name : new String[] { "b.json", "a.json", "dir/c.json" }) {
+                ZipEntry entry = new ZipEntry(name);
+                entry.setTime(System.currentTimeMillis());
+                out.putNextEntry(entry);
+                out.write(("contents of " + name).getBytes(StandardCharsets.UTF_8));
+                out.closeEntry();
+            }
+        }
+
+        JarUtil.setConstantEntryTimes(zip);
+
+        List<String> names = new ArrayList<>();
+        try (ZipFile result = new ZipFile(zip)) {
+            Enumeration<? extends ZipEntry> entries = result.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                names.add(entry.getName());
+                assertEquals(entry.getName(), JarUtil.CONSTANT_ENTRY_TIME, entry.getTime());
+                try (InputStream in = result.getInputStream(entry)) {
+                    assertEquals("contents of " + entry.getName(), new String(Streams.readAll(in), StandardCharsets.UTF_8));
+                }
+            }
+        }
+        assertEquals(Arrays.asList("b.json", "a.json", "dir/c.json"), names);
+    }
+
+    @Test
+    public void setConstantEntryTimes_givesIdenticalBytesWhateverTheOriginalTimes() throws Exception {
+        File first = zipWithEntryTime("first.zip", A_FIXED_PAST_TIME);
+        File second = zipWithEntryTime("second.zip", System.currentTimeMillis());
+
+        JarUtil.setConstantEntryTimes(first);
+        JarUtil.setConstantEntryTimes(second);
+
+        assertArrayEquals(Files.readAllBytes(first.toPath()), Files.readAllBytes(second.toPath()));
+    }
+
+    @Test
+    public void dependencyPatcher_writesEntriesWithTheFixedTimeUnlessTimestampsArePreserved() throws Exception {
+        byte[] classBytes;
+        try (InputStream in = getClass().getResourceAsStream("ZipEntryTimestampTest.class")) {
+            classBytes = Streams.readAll(in);
+        }
+        DependencyPatcher patcher = new DependencyPatcher();
+        patcher.transform(new TransformerContext("com/newrelic/agent/deps/Example.class", new ByteArrayInputStream(classBytes)));
+
+        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(patcher, "com/newrelic/agent/deps/Example.class", false));
+
+        long before = System.currentTimeMillis();
+        long preserved = entryTime(patcher, "com/newrelic/agent/deps/Example.class", true);
+        assertTrue("with preserveFileTimestamps the time of the build is used", preserved >= before - 4000);
+    }
+
+    @Test
+    public void log4j2PluginFileMover_writesTheEntryWithTheFixedTimeUnlessTimestampsArePreserved() throws Exception {
+        Log4j2PluginFileMover mover = new Log4j2PluginFileMover();
+        FileTreeElement element = (FileTreeElement) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { FileTreeElement.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("getPath")) {
+                        return Log4j2PluginFileMover.LOG4J2PLUGINS_ORIGINAL_LOCATION;
+                    }
+                    if (method.getName().equals("getLastModified")) {
+                        return A_FIXED_PAST_TIME;
+                    }
+                    throw new UnsupportedOperationException(method.getName());
+                });
+        assertTrue(mover.canTransformResource(element));
+        mover.transform(new TransformerContext(Log4j2PluginFileMover.LOG4J2PLUGINS_ORIGINAL_LOCATION,
+                new ByteArrayInputStream("plugins".getBytes(StandardCharsets.UTF_8))));
+
+        assertEquals(JarUtil.CONSTANT_ENTRY_TIME, entryTime(mover, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, false));
+        // Within the zip's two second resolution (and the local time zone conversion), the original modification time is kept.
+        assertTrue(Math.abs(A_FIXED_PAST_TIME - entryTime(mover, Log4j2PluginFileMover.LOG4J2PLUGINS_NEW_LOCATION, true)) <= 4000);
+    }
+
+    private long entryTime(Transformer transformer, String entryName, boolean preserveFileTimestamps) throws Exception {
+        File zip = temporaryFolder.newFile();
+        try (ZipOutputStream out = new ZipOutputStream(zip)) {
+            transformer.modifyOutputStream(out, preserveFileTimestamps);
+        }
+        try (ZipFile result = new ZipFile(zip)) {
+            return result.getEntry(entryName).getTime();
+        }
+    }
+
+    private File zipWithEntryTime(String name, long time) throws Exception {
+        File zip = temporaryFolder.newFile(name);
+        try (java.util.zip.ZipOutputStream out = new java.util.zip.ZipOutputStream(Files.newOutputStream(zip.toPath()))) {
+            ZipEntry entry = new ZipEntry("index.json");
+            entry.setTime(time);
+            out.putNextEntry(entry);
+            out.write("same".getBytes(StandardCharsets.UTF_8));
+            out.closeEntry();
+        }
+        return zip;
+    }
+}
