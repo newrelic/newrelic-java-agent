@@ -33,9 +33,12 @@ public class VertxCoreUtil {
     public static final String END = "handleResponse";
 
     private static final URI UNKNOWN_HOST_URI = URI.create("http://UnknownHost/");
+    // Set while VertxHandler.handlerAdded builds a connection, which with h2c happens inside a request's transaction.
+    // Listeners added then, such as the one on the connection's close future, must not hold that transaction open.
+    public static final ThreadLocal<Boolean> BUILDING_CONNECTION = new ThreadLocal<>();
 
     public static void storeToken(Listener listener, String creator) {
-        if (listener != null && AgentBridge.getAgent().getTransaction(false) != null) {
+        if (listener != null && BUILDING_CONNECTION.get() == null && AgentBridge.getAgent().getTransaction(false) != null) {
             tokenMap.put(listener, NewRelic.getAgent().getTransaction().getToken(creator));
         }
     }
