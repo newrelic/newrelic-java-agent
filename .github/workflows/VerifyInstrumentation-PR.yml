@@ -43,8 +43,9 @@ jobs:
         env:
           CHANGED_FILES: ${{ steps.filter.outputs.instrumentation_files }}
         run: |
-          # the module name is the 2nd segment (instrumentation/<module-name>/..)
-          modules=$(jq -c '[.[] | split("/")[1]] | unique' <<< "$CHANGED_FILES")
+          # The module name is the 2nd segment (instrumentation/<module-name>/..).
+          # The relative path must have length at least 3, so that top-level files (e.g. instrumentation/build.gradle) are ignored.
+          modules=$(jq -c '[.[] | split("/") | select(length >= 3) | .[1]] | unique' <<< "$CHANGED_FILES")
           echo "modules=$modules" >> $GITHUB_OUTPUT
           echo "any=$([ "$modules" != "[]" ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
