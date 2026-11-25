@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.DEFAULT_NUM_OF_LOG_EVENT_ATTRIBUTES;
 import static com.newrelic.agent.bridge.logging.AppLoggingUtils.ERROR_CLASS;
@@ -80,12 +81,12 @@ public class LogEventUtil {
                     }
 
                     // Use Timestamp if it is present, otherwise use ObservedTimestamp.
+                    // OTel timestamps are in nanoseconds, but a LogEvent's timestamp is in epoch milliseconds.
                     long timestampEpochNanos = logRecordData.getTimestampEpochNanos();
-                    if (timestampEpochNanos > 0) {
-                        logEventMap.put(TIMESTAMP, timestampEpochNanos);
-                    } else {
-                        logEventMap.put(TIMESTAMP, logRecordData.getObservedTimestampEpochNanos());
+                    if (timestampEpochNanos <= 0) {
+                        timestampEpochNanos = logRecordData.getObservedTimestampEpochNanos();
                     }
+                    logEventMap.put(TIMESTAMP, TimeUnit.NANOSECONDS.toMillis(timestampEpochNanos));
 
                     // otel.scope.version and otel.scope.name should be reported along with the deprecated versions otel.library.version and otel.library.name
                     String instrumentationScopeName = logRecordData.getInstrumentationScopeInfo().getName();

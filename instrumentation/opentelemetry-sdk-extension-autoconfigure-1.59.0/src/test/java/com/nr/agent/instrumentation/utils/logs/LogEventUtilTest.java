@@ -36,14 +36,17 @@ public class LogEventUtilTest extends TestCase {
 
     private static final long TIMESTAMP_NANOS = 1_700_000_000_123_000_000L;
     private static final long OBSERVED_TIMESTAMP_NANOS = 1_700_000_005_456_000_000L;
+    // A LogEvent timestamp is in epoch milliseconds, so the sub-millisecond part is dropped
+    private static final long TIMESTAMP_MILLIS = 1_700_000_000_123L;
+    private static final long OBSERVED_TIMESTAMP_MILLIS = 1_700_000_005_456L;
 
     public void testUsesTimestampWhenPresent() {
-        assertEquals(Long.valueOf(TIMESTAMP_NANOS), recordedTimestamp(TIMESTAMP_NANOS, OBSERVED_TIMESTAMP_NANOS));
+        assertEquals(Long.valueOf(TIMESTAMP_MILLIS), recordedTimestamp(TIMESTAMP_NANOS, OBSERVED_TIMESTAMP_NANOS));
     }
 
     // OTel represents an unset Timestamp as 0, so the ObservedTimestamp has to be used instead
     public void testFallsBackToObservedTimestampWhenTimestampUnset() {
-        assertEquals(Long.valueOf(OBSERVED_TIMESTAMP_NANOS), recordedTimestamp(0L, OBSERVED_TIMESTAMP_NANOS));
+        assertEquals(Long.valueOf(OBSERVED_TIMESTAMP_MILLIS), recordedTimestamp(0L, OBSERVED_TIMESTAMP_NANOS));
     }
 
     @SuppressWarnings("unchecked")

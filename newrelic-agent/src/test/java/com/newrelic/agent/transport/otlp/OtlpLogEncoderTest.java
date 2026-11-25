@@ -214,9 +214,8 @@ public class OtlpLogEncoderTest {
     }
 
     @Test
-    public void toEpochNanosHandlesMillisNanosAndInvalidValues() {
+    public void toEpochNanosConvertsMillisAndHandlesInvalidValues() {
         assertEquals(1_700_000_000_123_000_000L, OtlpLogEncoder.toEpochNanos(1_700_000_000_123L, 5));
-        assertEquals(1_700_000_000_123_456_789L, OtlpLogEncoder.toEpochNanos(1_700_000_000_123_456_789L, 5));
         assertEquals(5, OtlpLogEncoder.toEpochNanos(null, 5));
         assertEquals(5, OtlpLogEncoder.toEpochNanos("1700000000123", 5));
         assertEquals(5, OtlpLogEncoder.toEpochNanos(0L, 5));

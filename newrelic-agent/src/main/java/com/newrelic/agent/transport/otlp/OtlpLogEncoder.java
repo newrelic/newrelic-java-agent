@@ -60,10 +60,6 @@ final class OtlpLogEncoder {
     private static final Set<String> NATIVE_FIELD_ATTRIBUTES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             MESSAGE, TIMESTAMP, AppLoggingUtils.TRACE_ID, AppLoggingUtils.SPAN_ID, EVENT_NAME)));
 
-    // Timestamps above this value can't be epoch milliseconds (it's the year 33658), so they are already epoch nanoseconds.
-    // The OpenTelemetry SDK bridge instrumentation records log timestamps in nanoseconds.
-    private static final long MAX_EPOCH_MILLIS = 1_000_000_000_000_000L;
-
     private OtlpLogEncoder() {
     }
 
@@ -152,7 +148,7 @@ final class OtlpLogEncoder {
         if (value <= 0) {
             return defaultNanos;
         }
-        return value > MAX_EPOCH_MILLIS ? value : TimeUnit.MILLISECONDS.toNanos(value);
+        return TimeUnit.MILLISECONDS.toNanos(value);
     }
 
     /**
