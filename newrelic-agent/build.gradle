@@ -211,8 +211,9 @@ dependencies {
     testImplementation(project(path: ':newrelic-weaver', configuration: 'testClasses'))
     testImplementation("org.mockito:mockito-inline:4.11.0")
     // Generated OTLP message classes, used to build the OTLP encoders' payloads and (in tests) to decode them.
-    // Pinned to the pre-4.x codegen release so it shares the protobuf-java 3.25.5 runtime already shaded in via
-    // infinite-tracing-protobuf, instead of pulling in a second, newer protobuf-java copy.
+    // Pinned to the pre-4.x codegen release so it keeps the protobuf-java 3.25.5 runtime already shaded in via
+    // infinite-tracing-protobuf. Newer releases depend on protobuf-java 4.x, which Gradle's conflict resolution
+    // would use in place of 3.25.5, changing the runtime that infinite tracing's generated code runs against.
     shadowIntoJar("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
     testImplementation("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
 }

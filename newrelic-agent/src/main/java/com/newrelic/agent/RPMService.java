@@ -149,7 +149,13 @@ public class RPMService extends AbstractService implements IRPMService, Environm
 
     private static OtlpDataSender createOtlpDataSender(AgentConfig config) {
         try {
-            return new OtlpDataSender(config.getHost(), config.getLicenseKey(), config.isAuditMode(),
+            // audit_mode and audit_mode.endpoints are read on every send so that they can be changed at runtime, as DataSenderImpl does
+            return new OtlpDataSender(config.getHost(), config.getLicenseKey(),
+                    () -> {
+                        AgentConfig localConfig = ServiceFactory.getConfigService().getLocalAgentConfig();
+                        return OtlpDataSender.shouldAudit(localConfig.isAuditMode(), localConfig.getAuditModeConfig().getEndpoints(),
+                                OtlpDataSender.AUDIT_ENDPOINT_LOGS);
+                    },
                     DataSenderFactory.createHttpClientWrapper(config, Agent.LOG, false));
         } catch (Exception e) {
             Agent.LOG.log(Level.WARNING, e, "Error creating OTLP DataSender", e.toString());

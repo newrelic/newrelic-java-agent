@@ -26,12 +26,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
 
 import static org.junit.Assert.assertEquals;
@@ -86,6 +92,96 @@ public class OtlpDataSenderTest {
         verifyMetricRecorded("Supportability/Java/OTLP/HttpCode/200");
         verifyMetricRecorded("Supportability/Java/OTLP/Output/Bytes");
         verifyMetricRecorded("Supportability/Java/OTLP/Logs/Output/Bytes");
+    }
+
+    @Test
+    public void auditRequestMessageHasDestinationByteCountAndBase64Payload() throws Exception {
+        byte[] payload = new byte[2048];
+        for (int i = 0; i < payload.length; i++) {
+            payload[i] = (byte) i;
+        }
+
+        String message = OtlpDataSender.auditRequestMessage("Logs", new URL("https://otlp.nr-data.net/v1/logs"), payload);
+
+        // The byte count is the decoded size, written without thousands separators, and the payload decodes back to the original bytes
+        assertEquals("Sent OTLP/Logs to: https://otlp.nr-data.net/v1/logs, bytes: 2048, payload: "
+                + Base64.getEncoder().encodeToString(payload), message);
+    }
+
+    @Test
+    public void auditResponseMessageHasStatusByteCountAndBase64Body() {
+        String message = OtlpDataSender.auditResponseMessage("Logs", 429, "slow down");
+
+        assertEquals("Received OTLP/Logs response: status=429, bytes=9, payload: "
+                + Base64.getEncoder().encodeToString("slow down".getBytes(StandardCharsets.UTF_8)), message);
+    }
+
+    @Test
+    public void auditResponseMessageHandlesEmptyBody() {
+        assertEquals("Received OTLP/Logs response: status=200, bytes=0, payload: ", OtlpDataSender.auditResponseMessage("Logs", 200, null));
+        assertEquals("Received OTLP/Logs response: status=200, bytes=0, payload: ", OtlpDataSender.auditResponseMessage("Logs", 200, ""));
+    }
+
+    @Test
+    public void auditModeSendsTheRequestAndDoesNotChangeTheResult() throws Exception {
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net", LICENSE_KEY, true, httpClientWrapper);
+
+        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
+
+        assertEquals("https://otlp.nr-data.net/v1/logs", captureRequest().getURL().toString());
+    }
+
+    @Test
+    public void auditModeIsCheckedOnEverySend() throws Exception {
+        final AtomicBoolean auditMode = new AtomicBoolean(false);
+        final int[] checks = { 0 };
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net", LICENSE_KEY, () -> {
+            checks[0]++;
+            return auditMode.get();
+        }, httpClientWrapper);
+
+        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("first")));
+        auditMode.set(true);
+        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("second")));
+
+        assertEquals(2, checks[0]);
+    }
+
+    @Test
+    public void failureCheckingAuditModeDoesNotStopTheSend() throws Exception {
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net", LICENSE_KEY, () -> {
+            throw new IllegalStateException("config unavailable");
+        }, httpClientWrapper);
+
+        sender.sendLogEvents(Collections.<String, Object>emptyMap(), Collections.singletonList(logEvent("hello")));
+
+        assertEquals("https://otlp.nr-data.net/v1/logs", captureRequest().getURL().toString());
+    }
+
+    @Test
+    public void auditModeIsLoggedOnFirstSendAndWhenItChanges() throws Exception {
+        OtlpDataSender sender = new OtlpDataSender("otlp.nr-data.net", LICENSE_KEY, false, httpClientWrapper);
+
+        assertTrue(sender.logAuditModeChange(false));
+        assertFalse(sender.logAuditModeChange(false));
+        assertTrue(sender.logAuditModeChange(true));
+        assertFalse(sender.logAuditModeChange(true));
+        assertTrue(sender.logAuditModeChange(false));
+    }
+
+    @Test
+    public void auditEndpointsFilterWhichEndpointsAreAudited() {
+        String logs = OtlpDataSender.AUDIT_ENDPOINT_LOGS;
+
+        // audit_mode off: nothing is audited
+        assertFalse(OtlpDataSender.shouldAudit(false, Collections.<String>emptySet(), logs));
+        assertFalse(OtlpDataSender.shouldAudit(false, new HashSet<>(Arrays.asList(logs)), logs));
+        // No endpoints configured (including the legacy "audit_mode: true", where there is no endpoint set): everything is audited
+        assertTrue(OtlpDataSender.shouldAudit(true, null, logs));
+        assertTrue(OtlpDataSender.shouldAudit(true, Collections.<String>emptySet(), logs));
+        // Endpoints configured: only the listed ones are audited
+        assertTrue(OtlpDataSender.shouldAudit(true, new HashSet<>(Arrays.asList("connect", logs)), logs));
+        assertFalse(OtlpDataSender.shouldAudit(true, new HashSet<>(Arrays.asList("connect", "log_event_data")), logs));
     }
 
     @Test
