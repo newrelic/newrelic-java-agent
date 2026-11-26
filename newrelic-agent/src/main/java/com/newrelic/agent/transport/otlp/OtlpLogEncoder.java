@@ -76,7 +76,7 @@ final class OtlpLogEncoder {
                 scopeLogs = ScopeLogs.newBuilder().setScope(OtlpAttributes.buildScope(scopeKey.get(0), scopeKey.get(1)));
                 scopes.put(scopeKey, scopeLogs);
             }
-            scopeLogs.addLogRecords(buildLogRecord(event, attributes));
+            scopeLogs.addLogRecords(buildLogRecord(attributes));
         }
         ResourceLogs.Builder resourceLogs = ResourceLogs.newBuilder().setResource(OtlpAttributes.buildResource(resourceAttributes));
         for (ScopeLogs.Builder scopeLogs : scopes.values()) {
@@ -94,12 +94,15 @@ final class OtlpLogEncoder {
         return value == null ? null : value.toString();
     }
 
-    private static LogRecord buildLogRecord(LogEvent event, Map<String, Object> attributes) {
-        long observedTimeNanos = TimeUnit.MILLISECONDS.toNanos(event.getTimestamp());
+    private static LogRecord buildLogRecord(Map<String, Object> attributes) {
+        // The timestamp attribute is the LogEvent's only time, so it is written to both time fields.
+        // If it is missing or invalid, the time of encoding is used for both.
+        long encodeTimeNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+        long timeNanos = toEpochNanos(attributes.get(TIMESTAMP), encodeTimeNanos);
 
         LogRecord.Builder builder = LogRecord.newBuilder()
-                .setTimeUnixNano(toEpochNanos(attributes.get(TIMESTAMP), observedTimeNanos))
-                .setObservedTimeUnixNano(observedTimeNanos);
+                .setTimeUnixNano(timeNanos)
+                .setObservedTimeUnixNano(timeNanos);
 
         Object level = attributes.get(LEVEL);
         if (level != null) {

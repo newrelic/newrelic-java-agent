@@ -65,7 +65,7 @@ public class OtlpLogEncoderTest {
 
         LogRecord record = scopeLogs.getLogRecords(0);
         assertEquals(TimeUnit.MILLISECONDS.toNanos(1_700_000_000_123L), record.getTimeUnixNano());
-        assertEquals(TimeUnit.MILLISECONDS.toNanos(event.getTimestamp()), record.getObservedTimeUnixNano());
+        assertEquals(record.getTimeUnixNano(), record.getObservedTimeUnixNano());
         assertEquals(OtlpLogEncoder.SEVERITY_WARN, record.getSeverityNumberValue());
         assertEquals("WARN", record.getSeverityText());
         assertEquals("Order 42 shipped", record.getBody().getStringValue());
@@ -135,14 +135,17 @@ public class OtlpLogEncoderTest {
     }
 
     @Test
-    public void minimalLogUsesObservedTimeAndOmitsMissingFields() throws Exception {
+    public void minimalLogUsesEncodeTimeAndOmitsMissingFields() throws Exception {
         LogEvent event = new LogEvent(Collections.<String, Object>emptyMap(), 1.0f);
+        long beforeNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
 
         LogRecord record = ExportLogsServiceRequest.parseFrom(
                         OtlpLogEncoder.encode(Collections.<String, Object>emptyMap(), Collections.singletonList(event)))
                 .getResourceLogs(0).getScopeLogs(0).getLogRecords(0);
 
+        long afterNanos = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
         assertEquals(record.getObservedTimeUnixNano(), record.getTimeUnixNano());
+        assertTrue(record.getTimeUnixNano() >= beforeNanos && record.getTimeUnixNano() <= afterNanos);
         assertFalse(record.hasBody());
         assertEquals("", record.getSeverityText());
         assertEquals(0, record.getSeverityNumberValue());
